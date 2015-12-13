@@ -49,9 +49,24 @@ coverage.xml
 
 # Django stuff:
 *.log
+*.pot
+local_settings.py
 
 # Sphinx documentation
 docs/_build/
 
 # PyBuilder
 target/
+
+# Sphinx documentation
+docs/_build/
+
+# Database
+*.sqlite3
+
+# Backups
+*~
+
+# Vim
+*.swp
+
