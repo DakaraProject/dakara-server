@@ -1,8 +1,8 @@
-from django.http import HTTPResponse
+from django.http import HttpResponse
 from rest_framework import viewsets
 from playlist.models import *
-from  playlist.serializers import *
-from library.communications import *
+from playlist.serializers import *
+from playlist.communications import *
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
@@ -69,7 +69,7 @@ def player_status(request):
 
         return JSONResponse(player_status_serializer.errors, status=400)
 
-    return HTTPResponse(status=405)
+    return HttpResponse(status=405)
 
 
 

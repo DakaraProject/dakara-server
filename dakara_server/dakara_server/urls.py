@@ -17,7 +17,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework import routers
 from library.views import *
-from playlist.view import *
+from playlist.views import *
 
 router = routers.DefaultRouter()
 router.register(r'library/songs', SongViewSet)

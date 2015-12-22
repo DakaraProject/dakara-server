@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from library.models import *
-from library.communications import *
+from playlist.models import *
+from playlist.communications import *
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
@@ -21,11 +21,11 @@ class PlayerSerializer(serializers.ModelSerializer):
 class PlayerStatusSerializer(serializers.Serializer):
     """ Serializer for status communication from the player to the server
     """
-    song_id = serializers.IntegerField(null=True)
-    timing = serializers.DurationField(null=True)
+    song_id = serializers.IntegerField()
+    timing = serializers.DurationField()
 
 class PlayerCommandSerializer(serializers.Serializer):
     """ Serializer for command communication from the server to the player
     """
-    pause = serializer.BooleanField(default=False)
+    pause = serializers.BooleanField(default=False)
     skip = serializers.BooleanField(default=False)
