@@ -1,26 +1,19 @@
-from django.http import HttpResponse
 from rest_framework import viewsets
 from playlist.models import *
 from playlist.serializers import *
 from playlist.communications import *
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 class PlaylistEntryViewSet(viewsets.ModelViewSet):
     """ Class for playlist view set
     """
+    queryset = PlaylistEntry.objects.all()
+    serializer_clss = PlaylistEntrySerializer
 
 
-class JSONResponse(HttpResponse):
-    """ An HttpResponse that renders its content into JSON.
-    """
-    def __init__(self, data, **kwargs):
-        content = JSONRenderer().render(data)
-        kwargs['content_type'] = 'application/json'
-        super(JSONResponse, self).__init__(content, **kwargs)
-
-@csrf_exempt
+@api_view(['PUT'])
 def player_status(request):
     """ Recieve status from player
         Send commands to player
@@ -65,12 +58,15 @@ def player_status(request):
                 command = Command(pause=player.is_pause_requested, skip=skip)
 
             player_command_serializer = PlayerCommandSerializer(command)
-            return JSONResponse(player_command_serializer.data)
+            return Response(
+                    player_command_serializer.data,
+                    status=status.HTTP_201_CREATED
+                    )
 
-        return JSONResponse(player_status_serializer.errors, status=400)
-
-    return HttpResponse(status=405)
-
+        return Response(
+                player_status_serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
 
 
 def get_next_song(id):

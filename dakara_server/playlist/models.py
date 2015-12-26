@@ -3,7 +3,7 @@ from django.db import models
 class PlaylistEntry(models.Model):
     """ Class for a song in playlist
     """
-    song = models.ForeignKey('Song', null=False)
+    song = models.ForeignKey('library.Song', null=False)
     date_created = models.DateTimeField(auto_now_add=True)
 
 class Player(models.Model):
@@ -15,4 +15,4 @@ class Player(models.Model):
 
     # requested by the server
     is_pause_requested = models.BooleanField(default=False)
-    skip_requested = models.ForeignKey('PlaylistEntry', null=True)
+    skip_requested = models.ForeignKey('PlaylistEntry', null=True, related_name="skip")
