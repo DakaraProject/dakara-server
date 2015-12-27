@@ -14,5 +14,5 @@ class Player(models.Model):
     timing = models.DurationField(null=True)
 
     # requested by the server
-    is_pause_requested = models.BooleanField(default=False)
+    pause_requested = models.BooleanField(default=False)
     skip_requested = models.ForeignKey('PlaylistEntry', null=True, related_name="skip")

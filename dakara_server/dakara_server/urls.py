@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework import routers
+from rest_framework.urlpatterns import format_suffix_patterns
 from library.views import *
 from playlist.views import *
 
@@ -25,6 +26,9 @@ router.register(r'library/songs', SongViewSet)
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^player/status/$', player_status),
+    url(r'^player/status/$', PlayerView.as_view()),
+    url(r'^playlist/$', PlaylistEntryList.as_view()),
+    url(r'^playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
     url(r'^', include(router.urls)),
 ]
+
