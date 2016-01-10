@@ -26,16 +26,20 @@ class PlaylistEntryList(ListCreateAPIView):
 
     def create(self, request):
         """ Create new playlist entry
+
+            If the playlist was empty, it starts the player right then
         """
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             playlist_entry = serializer.save()
+            logger.debug("Added element to the playlist: " + str(playlist_entry))
             # check if the player is playing
             player = Player.objects.get_or_create()[0]
             if not player.playlist_entry:
                 # start playing
                 player.playlist_entry = playlist_entry
                 player.save()
+                logger.debug("Playlist started")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
