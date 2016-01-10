@@ -51,6 +51,7 @@ coverage.xml
 *.log
 *.pot
 local_settings.py
+**/migrations
 
 # Sphinx documentation
 docs/_build/
