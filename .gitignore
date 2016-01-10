@@ -69,5 +69,5 @@ docs/_build/
 *~
 
 # Vim
-*.swp
+*.sw[po]
 
