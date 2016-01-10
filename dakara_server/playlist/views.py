@@ -7,6 +7,10 @@ from rest_framework.permissions import IsAuthenticated
 from playlist.models import *
 from playlist.serializers import *
 from playlist.communications import *
+import logging
+
+# logger object
+logger = logging.getLogger(__name__)
 
 class PlaylistEntryDetail(RetrieveUpdateDestroyAPIView):
     """ Class for editing an playlist entry
@@ -69,19 +73,14 @@ class PlayerView(APIView):
         player_status_serializer = PlayerStatusSerializer(
                 data=request.data
                 )
-        print('player', player)
         if player_status_serializer.is_valid():
-            print('data validated')
             player_status = PlayerStatus(**player_status_serializer.validated_data)
             player_command = PlayerCommand(False, False)
-            print('status', player_status.song_id, player_status.timing)
             try:
                 # currently playing something?
                 if player_status.song_id:
                     # currently supposed to play something?
-                    print('status song id', player_status.song_id)
                     if player.playlist_entry:
-                        print('player song id', player.playlist_entry.song.id)
                         current_song = player.playlist_entry.song
                         ##
                         # status
@@ -92,8 +91,8 @@ class PlayerView(APIView):
                             next_song = get_next_song()
                             if next_song != player_status.song_id:
                                  # TODO the player is playing something unrequested
-                                message = 'playing sth unrequested'
-                                print(message)
+                                message = 'Playing something unrequested'
+                                logger.error(message)
                                 raise Exception(message)
                             player.song = next_song
                             player.timing = player_status.timing
@@ -116,8 +115,8 @@ class PlayerView(APIView):
                         player_command = PlayerCommand(pause=player.pause_requested, skip=skip)
                     else:
                         # TODO the player is playing while not supposed to
-                        message = 'player is playing while not supposed to'
-                        print(message)
+                        message = 'Player is playing while not supposed to'
+                        logger.error(message)
                         raise Exception(message)
 
                 player_command_serializer = PlayerCommandSerializer(
@@ -128,7 +127,7 @@ class PlayerView(APIView):
                         status=status.HTTP_201_CREATED
                         )
             except Exception as e:
-                print(e)
+                logger.exception('Unexpected error')
                 raise
         # if invalid data from the player
         return Response(
