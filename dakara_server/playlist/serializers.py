@@ -18,6 +18,16 @@ class PlayerSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Player
+        fields = (
+                'playlist_entry',
+                'timing',
+                'pause_requested',
+                'skip_requested',
+                )
+        read_only_fields = (
+                'timing',
+                'playlist_entry',
+                )
 
 class PlayerStatusSerializer(serializers.Serializer):
     """ Serializer for status communication from the player to the server

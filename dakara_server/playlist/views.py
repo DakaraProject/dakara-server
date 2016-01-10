@@ -1,7 +1,7 @@
-from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from playlist.models import *
@@ -44,8 +44,53 @@ class PlaylistEntryList(ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PlayerView(APIView):
-    """ Class to communicate with the player
+class PlayerToUserView(APIView):
+    """ Class to communicate with the user to player management
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get_player(self):
+        """ Load or create a new player
+        """
+        return Player.objects.get_or_create()[0]
+
+    def get(self, request):
+        """ Display player
+
+            Create one if it doesn't exist
+        """
+        player = self.get_player()
+        serializer = PlayerSerializer(player)
+        return Response(
+                serializer.data,
+                status.HTTP_200_OK
+                )
+
+    def put(self, request):
+        """ Manage player
+        """
+        player = self.get_player()
+        serializer = PlayerSerializer(data=request.data)
+        try:
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                        serializer.data,
+                        status.HTTP_202_ACCEPTED
+                        )
+            else:
+                return Response(
+                        serializer.errors,
+                        status.HTTP_400_BAD_REQUEST
+                        )
+        except Exception as e:
+            print(e)
+            raise
+
+
+
+class PlayerToPlayerView(APIView):
+    """ Class to communicate with the player for player management
 
         Recieve status from player
         Send commands to player
@@ -128,7 +173,7 @@ class PlayerView(APIView):
                         )
                 return Response(
                         player_command_serializer.data,
-                        status=status.HTTP_201_CREATED
+                        status=status.HTTP_202_ACCEPTED
                         )
             except Exception as e:
                 logger.exception('Unexpected error')

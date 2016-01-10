@@ -1,8 +1,8 @@
-from rest_framework import viewsets
+from rest_framework.viewsets import ModelViewSet
 from library.models import *
 from library.serializers import *
 
-class SongViewSet(viewsets.ModelViewSet):
+class SongViewSet(ModelViewSet):
     """ Class for song query set
     """
     queryset = Song.objects.all()

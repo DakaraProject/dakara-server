@@ -26,7 +26,8 @@ router.register(r'library/songs', SongViewSet)
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^player/status/$', PlayerView.as_view()),
+    url(r'^player/status/$', PlayerToPlayerView.as_view()),
+    url(r'^player/manage/$', PlayerToUserView.as_view()),
     url(r'^playlist/$', PlaylistEntryList.as_view()),
     url(r'^playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
     url(r'^', include(router.urls)),
