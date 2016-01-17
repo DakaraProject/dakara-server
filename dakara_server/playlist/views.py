@@ -32,14 +32,14 @@ class PlaylistEntryList(ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             playlist_entry = serializer.save()
-            logger.debug("Added element to the playlist: " + str(playlist_entry))
+            logger.info("INFO Added element to the playlist: " + str(playlist_entry.song))
             # check if the player is playing
             player = Player.objects.get_or_create()[0]
             if not player.playlist_entry:
                 # start playing
                 player.playlist_entry = playlist_entry
                 player.save()
-                logger.debug("Playlist started")
+                logger.info("INFO Playlist started")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -140,7 +140,7 @@ class PlayerToPlayerView(APIView):
                             next_song = get_next_song()
                             if next_song != player_status.song_id:
                                  # TODO the player is playing something unrequested
-                                message = 'Playing something unrequested'
+                                message = 'ERROR Playing something unrequested'
                                 logger.error(message)
                                 raise Exception(message)
                             player.song = next_song
@@ -164,7 +164,7 @@ class PlayerToPlayerView(APIView):
                         player_command = PlayerCommand(pause=player.pause_requested, skip=skip)
                     else:
                         # TODO the player is playing while not supposed to
-                        message = 'Player is playing while not supposed to'
+                        message = 'ERROR Player is playing while not supposed to'
                         logger.error(message)
                         raise Exception(message)
 
@@ -176,7 +176,7 @@ class PlayerToPlayerView(APIView):
                         status=status.HTTP_202_ACCEPTED
                         )
             except Exception as e:
-                logger.exception('Unexpected error')
+                logger.exception('EXCEPTION Unexpected error')
                 raise
         # if invalid data from the player
         return Response(

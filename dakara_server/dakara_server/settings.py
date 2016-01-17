@@ -112,3 +112,25 @@ REST_FRAMEWORK = {
         ),
     'PAGE_SIZE': 10
 }
+
+# Loggin config
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'playlist.views': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
+    },
+}
+
