@@ -127,31 +127,33 @@ class PlayerToPlayerView(APIView):
             player_command = PlayerCommand(False, False)
             try:
                 # currently playing something?
-                if player_status.song_id:
+                if player_status.playlist_entry_id:
                     # currently supposed to play something?
                     if player.playlist_entry:
-                        current_song = player.playlist_entry.song
+                        current_playlist_entry = player.playlist_entry
+
                         ##
                         # status
                         #
-
-                        # has changed from the previous to the next track
-                        if current_song.id != player_status.song_id:
-                            next_song = get_next_song()
-                            if next_song != player_status.song_id:
+                        # the player has changed from the previous to the next track
+                        if current_playlist_entry.id != player_status.playlist_entry_id:
+                            next_playlist_entry = get_next_playlist_entry(current_playlist_entry.id)
+                            if next_playlist_entry.id != player_status.playlist_entry_id:
                                  # TODO the player is playing something unrequested
                                 message = 'ERROR Playing something unrequested'
                                 logger.error(message)
                                 raise Exception(message)
-                            player.song = next_song
+                            player.playlist_entry = next_playlist_entry
                             player.timing = player_status.timing
                             player.skip_requested = None
                             player.save()
-                            current_song.delete()
+                            current_playlist_entry.delete()
+                            logger.info("INFO The player has switched and is at {0} of {1}".format(player.timing, player.playlist_entry.song))
                         # the track is currently playing
                         else:
                             player.timing = player_status.timing
                             player.save()
+                            logger.debug("DEBUG The player is at {0} of {1}".format(player.timing, player.playlist_entry.song))
 
                         ##
                         # command
@@ -159,7 +161,7 @@ class PlayerToPlayerView(APIView):
                         skip = False
                         # skip requested
                         if player.skip_requested:
-                            if player_status.song_id == player.skip_requested.id:
+                            if player_status.playlist_entry_id == player.skip_requested.id:
                                 skip = True
                         player_command = PlayerCommand(pause=player.pause_requested, skip=skip)
                     else:

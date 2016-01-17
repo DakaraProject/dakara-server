@@ -2,8 +2,8 @@ class PlayerStatus(object):
     """ Class for status communication from the player to the server
     """
 
-    def __init__(self, song_id=0, timing=0):
-        self.song_id = song_id
+    def __init__(self, playlist_entry_id=0, timing=0):
+        self.playlist_entry_id = playlist_entry_id
         self.timing = timing
 
 class PlayerCommand(object):

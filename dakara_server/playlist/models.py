@@ -9,10 +9,10 @@ class PlaylistEntry(models.Model):
 class Player(models.Model):
     """ Class for the playlist player
     """
-    # recieved from the player
+    # recieved from the player (status)
     playlist_entry = models.ForeignKey('PlaylistEntry', null=True)
     timing = models.DurationField(null=True)
 
-    # requested by the server
+    # requested by the server (command
     pause_requested = models.BooleanField(default=False)
     skip_requested = models.ForeignKey('PlaylistEntry', null=True, related_name="skip")

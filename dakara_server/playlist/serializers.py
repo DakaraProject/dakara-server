@@ -32,7 +32,7 @@ class PlayerSerializer(serializers.ModelSerializer):
 class PlayerStatusSerializer(serializers.Serializer):
     """ Serializer for status communication from the player to the server
     """
-    song_id = serializers.IntegerField(default=0)
+    playlist_entry_id = serializers.IntegerField(default=0)
     timing = serializers.DurationField(default=0)
 
 class PlayerCommandSerializer(serializers.Serializer):
