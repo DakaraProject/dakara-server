@@ -6,6 +6,7 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = PlaylistEntry
+        depth = 1
         fields = (
                 'id',
                 'song',
