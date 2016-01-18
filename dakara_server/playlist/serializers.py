@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from playlist.models import *
-from playlist.communications import *
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
@@ -14,29 +13,22 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
                 )
 
 class PlayerSerializer(serializers.ModelSerializer):
-    """ Class for communication with the player
+    """ Class for Player serializer
     """
     class Meta:
         model = Player
         fields = (
                 'playlist_entry',
                 'timing',
-                'pause_requested',
-                'skip_requested',
-                )
-        read_only_fields = (
-                'timing',
-                'playlist_entry',
+                'paused',
                 )
 
-class PlayerStatusSerializer(serializers.Serializer):
-    """ Serializer for status communication from the player to the server
+class PlayerCommandSerializer(serializers.ModelSerializer):
+    """ Class for PlayerCommand serializer
     """
-    playlist_entry_id = serializers.IntegerField(default=0)
-    timing = serializers.DurationField(default=0)
-
-class PlayerCommandSerializer(serializers.Serializer):
-    """ Serializer for command communication from the server to the player
-    """
-    pause = serializers.BooleanField(default=False)
-    skip = serializers.BooleanField(default=False)
+    class Meta:
+        model = PlayerCommand
+        fields = (
+                'pause',
+                'skip',
+                )

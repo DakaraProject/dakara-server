@@ -7,12 +7,17 @@ class PlaylistEntry(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
 class Player(models.Model):
-    """ Class for the playlist player
+    """ Class for status recieved from the player
     """
-    # recieved from the player (status)
+
     playlist_entry = models.ForeignKey('PlaylistEntry', null=True)
     timing = models.DurationField(null=True)
+    paused  = models.BooleanField(default=False)
 
-    # requested by the server (command
-    pause_requested = models.BooleanField(default=False)
-    skip_requested = models.ForeignKey('PlaylistEntry', null=True, related_name="skip")
+
+class PlayerCommand(models.Model):
+    """ Class for user commands to the player
+    """
+
+    pause = models.BooleanField(default=False)
+    skip = models.BooleanField(default=False)

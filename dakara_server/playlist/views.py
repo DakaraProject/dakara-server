@@ -6,7 +6,6 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIV
 from rest_framework.permissions import IsAuthenticated
 from playlist.models import *
 from playlist.serializers import *
-from playlist.communications import *
 import logging
 
 # logger object
@@ -24,53 +23,33 @@ class PlaylistEntryList(ListCreateAPIView):
     queryset = PlaylistEntry.objects.all()
     serializer_class = PlaylistEntrySerializer
 
-    def create(self, request):
-        """ Create new playlist entry
 
-            If the playlist was empty, it starts the player right then
-        """
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            playlist_entry = serializer.save()
-            logger.info("INFO Added element to the playlist: " + str(playlist_entry.song))
-            # check if the player is playing
-            player = Player.objects.get_or_create()[0]
-            if not player.playlist_entry:
-                # start playing
-                player.playlist_entry = playlist_entry
-                player.save()
-                logger.info("INFO Playlist started")
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PlayerToUserView(APIView):
-    """ Class to communicate with the user to player management
+class PlayerCommandForUserView(APIView):
+    """ Class for the user to view or send commands 
     """
     permission_classes = (IsAuthenticated,)
 
-    def get_player(self):
-        """ Load or create a new player
+    def get_player_command(self):
+        """ Load or create player command
         """
-        return Player.objects.get_or_create()[0]
+        return PlayerCommand.objects.get_or_create()[0]
 
     def get(self, request):
-        """ Display player
-
+        """ Get playerCommand
             Create one if it doesn't exist
         """
-        player = self.get_player()
-        serializer = PlayerSerializer(player)
+        player_command = self.get_player_command()
+        serializer = PlayerCommandSerializer(player_command)
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
                 )
 
     def put(self, request):
-        """ Manage player
+        """ Send pause or skip requests
         """
-        player = self.get_player()
-        serializer = PlayerSerializer(data=request.data)
+        player_command = self.get_player_command()
+        serializer = PlayerCommandSerializer(player_command, data=request.data)
         try:
             if serializer.is_valid():
                 serializer.save()
@@ -88,9 +67,30 @@ class PlayerToUserView(APIView):
             raise
 
 
+class PlayerForUserView(APIView):
+    """ Class for user to get the player status 
+    """
+    permission_classes = (IsAuthenticated,)
 
-class PlayerToPlayerView(APIView):
-    """ Class to communicate with the player for player management
+    def get_player(self):
+        """ Load or create player status 
+        """
+        return Player.objects.get_or_create()[0]
+
+    def get(self, request):
+        """ Get player status
+            Create one if it doesn't exist
+        """
+        player = self.get_player()
+        serializer = PlayerSerializer(player)
+        return Response(
+                serializer.data,
+                status.HTTP_200_OK
+                )
+
+
+class PlayerForPlayerView(APIView):
+    """ Class for the player to communicate with the server
 
         Recieve status from player
         Send commands to player
@@ -102,96 +102,101 @@ class PlayerToPlayerView(APIView):
         """
         return Player.objects.get_or_create()[0]
 
-    # def get(self, request):
-    #     """ Show status only
-    #         Debuging purpose
-    #     """
-    #     player = self.get_player()
-    #     status = PlayerStatus(
-    #             player.playlist_entry.song.pk \
-    #                 if player.playlist_entry else None,
-    #             player.timing
-    #             )
-    #     player_status_serializer = PlayerStatusSerializer(status)
-    #     return Response(player_status_serializer.data)
+    def get_player_command(self):
+        """ Load or create player command
+        """
+        return PlayerCommand.objects.get_or_create()[0]
+
+    def get(self, request):
+        """ Get next playist entry 
+        """
+        player = self.get_player()
+        entry = get_next_playlist_entry(player.playlist_entry_id)
+        serializer = PlaylistEntrySerializer(entry)
+        return Response(
+                serializer.data,
+                status.HTTP_200_OK
+                )
 
     def put(self, request):
         """ Send commands on recieveing status
         """
-        player = self.get_player()
-        player_status_serializer = PlayerStatusSerializer(
+        
+        player_command = self.get_player_command()
+        player_old = self.get_player()
+        entry_old = player_old.playlist_entry
+        player_serializer = PlayerSerializer(
+                player_old,
                 data=request.data
                 )
-        if player_status_serializer.is_valid():
-            player_status = PlayerStatus(**player_status_serializer.validated_data)
-            player_command = PlayerCommand(False, False)
+        if player_serializer.is_valid():
+            player = Player(**player_serializer.validated_data)
             try:
-                # currently playing something?
-                if player_status.playlist_entry_id:
-                    # currently supposed to play something?
-                    if player.playlist_entry:
-                        current_playlist_entry = player.playlist_entry
+                playing_old_id = entry_old.id if entry_old else None
+                playing_id = player.playlist_entry.id if player.playlist_entry else None
+                next_entry = get_next_playlist_entry(playing_old_id)
+                next_id = next_entry.id if next_entry else None
 
-                        ##
-                        # status
-                        #
-                        # the player has changed from the previous to the next track
-                        if current_playlist_entry.id != player_status.playlist_entry_id:
-                            next_playlist_entry = get_next_playlist_entry(current_playlist_entry.id)
-                            if next_playlist_entry.id != player_status.playlist_entry_id:
-                                 # TODO the player is playing something unrequested
-                                message = 'ERROR Playing something unrequested'
-                                logger.error(message)
-                                raise Exception(message)
-                            player.playlist_entry = next_playlist_entry
-                            player.timing = player_status.timing
-                            player.skip_requested = None
-                            player.save()
-                            current_playlist_entry.delete()
+                # check player status is consistent
+                # playing entry has to be either same as before, or the value returned by get_next_song
+                if playing_old_id == playing_id or playing_id == next_id:
+
+                    #if we're playing something new                    
+                    if playing_id != playing_old_id:
+
+                        #reset skip flag if present
+                        if player_command.skip:
+                            player_command.skip = false
+                            player_command.save()
+
+                        #remove previous entry from playlist if there was any
+                        if entry_old:
+                            entry_old.delete()
+
+                        if player.playlist_entry:
                             logger.info("INFO The player has switched and is at {0} of {1}".format(player.timing, player.playlist_entry.song))
-                        # the track is currently playing
                         else:
-                            player.timing = player_status.timing
-                            player.save()
-                            logger.debug("DEBUG The player is at {0} of {1}".format(player.timing, player.playlist_entry.song))
+                            logger.info("INFO The player has stopped playing")
 
-                        ##
-                        # command
-                        #
-                        skip = False
-                        # skip requested
-                        if player.skip_requested:
-                            if player_status.playlist_entry_id == player.skip_requested.id:
-                                skip = True
-                        player_command = PlayerCommand(pause=player.pause_requested, skip=skip)
-                    else:
-                        # TODO the player is playing while not supposed to
-                        message = 'ERROR Player is playing while not supposed to'
+                    # save new player
+                    player_serializer.save()
+
+                    # Send commands to the player
+                    player_command_serializer = PlayerCommandSerializer(
+                            player_command
+                            )
+                    return Response(
+                            player_command_serializer.data,
+                            status=status.HTTP_202_ACCEPTED
+                            )
+
+                else:
+                        # TODO the player is not doing what it's supposed to do 
+                        message = 'ERROR Player is not supposed to do that'
                         logger.error(message)
                         raise Exception(message)
 
-                player_command_serializer = PlayerCommandSerializer(
-                        player_command
-                        )
-                return Response(
-                        player_command_serializer.data,
-                        status=status.HTTP_202_ACCEPTED
-                        )
             except Exception as e:
                 logger.exception('EXCEPTION Unexpected error')
                 raise
-        # if invalid data from the player
-        return Response(
-                player_status_serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-                )
+
+        else:
+            # if invalid data from the player
+            return Response(
+                    player_serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
 
 
-def get_next_song(id):
+def get_next_playlist_entry(id):
     """ Returns the next playlist_entry in playlist
+        excluding entry with specified id
     """
-    song = PlaylistEntry.objects.exclude(pk=id).order_by('-date_created')[0]
-    return song
+    playlist = PlaylistEntry.objects.exclude(pk=id).order_by('date_created')
+    if not playlist :
+        return None
+    playlist_entry = playlist[0]
+    return playlist_entry 
 
 
 
