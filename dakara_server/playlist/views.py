@@ -112,7 +112,7 @@ class PlayerForPlayerView(APIView):
         """
         player = self.get_player()
         entry = get_next_playlist_entry(player.playlist_entry_id)
-        serializer = PlaylistEntrySerializer(entry)
+        serializer = PlaylistEntryReadSerializer(entry)
         return Response(
                 serializer.data,
                 status.HTTP_200_OK

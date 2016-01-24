@@ -6,6 +6,17 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = PlaylistEntry
+        fields = (
+                'id',
+                'song',
+                'date_created',
+                )
+
+class PlaylistEntryReadSerializer(serializers.ModelSerializer):
+    """ Class for song serializer in playlist
+    """
+    class Meta:
+        model = PlaylistEntry
         depth = 1
         fields = (
                 'id',
