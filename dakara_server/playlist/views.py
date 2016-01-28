@@ -146,7 +146,7 @@ class PlayerForPlayerView(APIView):
 
                         #reset skip flag if present
                         if player_command.skip:
-                            player_command.skip = false
+                            player_command.skip = False
                             player_command.save()
 
                         #remove previous entry from playlist if there was any
