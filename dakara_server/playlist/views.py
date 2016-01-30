@@ -134,7 +134,9 @@ class PlayerForPlayerView(APIView):
                             entry_old.delete()
 
                         if player.playlist_entry:
-                            logger.info("INFO The player has switched and is at {0} of {1}".format(player.timing, player.playlist_entry.song))
+                            logger.info("INFO The player has started {song}".format(
+                                song=player.playlist_entry.song
+                                ))
                         else:
                             logger.info("INFO The player has stopped playing")
 
@@ -166,6 +168,63 @@ class PlayerForPlayerView(APIView):
                     player_serializer.errors,
                     status=status.HTTP_400_BAD_REQUEST
                     )
+
+class PlayerErrorView(APIView):
+    """ Class to handle player errors
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        """ Recieve error message, log it and delete entry from playlist
+
+            The error can happen at the middle of the song, or at its
+            very beginning. In that case, the player may have had no
+            time to actualize its status to the server
+        """
+        player_error = PlayerErrorSerializer(data=request.data)
+
+        if player_error.is_valid():
+            player = get_player()
+            entry_error_id = player_error.validated_data['playlist_entry']
+            entry_current = player.playlist_entry
+            # protection if the erroneous song is the first one to play
+            entry_current_id = entry_current.id if entry_current else 0
+            entry_next = get_next_playlist_entry(entry_current_id)
+            # protectionif the erroneous song is the last one to play
+            entry_next_id = entry_next.id if entry_next else 0
+
+            if entry_error_id == entry_current_id:
+                # the server knows the player has already
+                # started playing
+                entry_to_delete = entry_current
+            elif entry_error_id == entry_next_id:
+                # the server does not know the player has
+                # started playing,
+                # which means the error occured immediately and
+                # status of the player has not been updated yet
+                entry_to_delete = entry_next
+            else:
+                # TODO error
+                message = 'ERROR Player is not supposed to do that'
+                logger.error(message)
+                raise Exception(message)
+
+            logger.warning("WARNING Unable to play {song}, \
+remove from playlist\n\
+Error message: {error_message}".format(
+                song=entry_to_delete.song,
+                error_message=player_error.validated_data['error_message']
+                ))
+            # remove the problematic song from the playlist
+            entry_to_delete.delete()
+
+            return Response(
+                    status=status.HTTP_200_OK
+                    )
+        return Response(
+                player_error.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
 
 ##
 # Routines

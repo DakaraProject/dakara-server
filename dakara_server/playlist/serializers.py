@@ -44,3 +44,9 @@ class PlayerCommandSerializer(serializers.ModelSerializer):
                 'pause',
                 'skip',
                 )
+
+class PlayerErrorSerializer(serializers.Serializer):
+    """ Class for player errors
+    """
+    playlist_entry = serializers.IntegerField()
+    error_message = serializers.CharField(max_length=255)

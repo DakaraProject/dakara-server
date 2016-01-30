@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     #route for the player
     url(r'^player/status/$', PlayerForPlayerView.as_view()),
+    url(r'^player/error/$', PlayerErrorView.as_view()),
 
     #routes for the user
     url(r'^playlist/player/manage/$', PlayerCommandForUserView.as_view()),
