@@ -29,16 +29,11 @@ class PlayerCommandForUserView(APIView):
     """
     permission_classes = (IsAuthenticated,)
 
-    def get_player_command(self):
-        """ Load or create player command
-        """
-        return PlayerCommand.objects.get_or_create()[0]
-
     def get(self, request):
         """ Get playerCommand
             Create one if it doesn't exist
         """
-        player_command = self.get_player_command()
+        player_command = get_player_command()
         serializer = PlayerCommandSerializer(player_command)
         return Response(
                 serializer.data,
@@ -48,7 +43,7 @@ class PlayerCommandForUserView(APIView):
     def put(self, request):
         """ Send pause or skip requests
         """
-        player_command = self.get_player_command()
+        player_command = get_player_command()
         serializer = PlayerCommandSerializer(player_command, data=request.data)
         try:
             if serializer.is_valid():
@@ -72,16 +67,11 @@ class PlayerForUserView(APIView):
     """
     permission_classes = (IsAuthenticated,)
 
-    def get_player(self):
-        """ Load or create player status 
-        """
-        return Player.objects.get_or_create()[0]
-
     def get(self, request):
         """ Get player status
             Create one if it doesn't exist
         """
-        player = self.get_player()
+        player = get_player()
         serializer = PlayerSerializer(player)
         return Response(
                 serializer.data,
@@ -97,20 +87,10 @@ class PlayerForPlayerView(APIView):
     """
     permission_classes = (IsAuthenticated,)
 
-    def get_player(self):
-        """ Load or create a new player
-        """
-        return Player.objects.get_or_create()[0]
-
-    def get_player_command(self):
-        """ Load or create player command
-        """
-        return PlayerCommand.objects.get_or_create()[0]
-
     def get(self, request):
         """ Get next playist entry 
         """
-        player = self.get_player()
+        player = get_player()
         entry = get_next_playlist_entry(player.playlist_entry_id)
         serializer = PlaylistEntryReadSerializer(entry)
         return Response(
@@ -122,8 +102,8 @@ class PlayerForPlayerView(APIView):
         """ Send commands on recieveing status
         """
         
-        player_command = self.get_player_command()
-        player_old = self.get_player()
+        player_command = get_player_command()
+        player_old = get_player()
         entry_old = player_old.playlist_entry
         player_serializer = PlayerSerializer(
                 player_old,
@@ -187,6 +167,9 @@ class PlayerForPlayerView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                     )
 
+##
+# Routines
+#
 
 def get_next_playlist_entry(id):
     """ Returns the next playlist_entry in playlist
@@ -198,8 +181,15 @@ def get_next_playlist_entry(id):
     playlist_entry = playlist[0]
     return playlist_entry 
 
+def get_player():
+    """ Load or create a new player
+    """
+    return Player.objects.get_or_create()[0]
 
-
+def get_player_command():
+    """ Load or create player command
+    """
+    return PlayerCommand.objects.get_or_create()[0]
 
 
 
