@@ -197,6 +197,9 @@ class PlayerErrorView(APIView):
                 # the server knows the player has already
                 # started playing
                 entry_to_delete = entry_current
+                # change player status
+                player.playlist_entry = None
+                player.save()
             elif entry_error_id == entry_next_id:
                 # the server does not know the player has
                 # started playing,
@@ -208,6 +211,8 @@ class PlayerErrorView(APIView):
                 message = 'ERROR Player is not supposed to do that'
                 logger.error(message)
                 raise Exception(message)
+
+            assert entry_to_delete is not None, "Player is playing something inconsistent"
 
             logger.warning("WARNING Unable to play {song}, \
 remove from playlist\n\
