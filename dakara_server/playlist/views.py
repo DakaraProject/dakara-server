@@ -78,7 +78,7 @@ class PlayerForUserView(APIView):
             Create one if it doesn't exist
         """
         player = get_player()
-        serializer = PlayerDetailsSerializer(player)
+        serializer = PlayerDetailsSerializer(player, context={'request': request})
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
