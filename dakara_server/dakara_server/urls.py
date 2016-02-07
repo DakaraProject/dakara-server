@@ -15,13 +15,8 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-from rest_framework import routers
-from rest_framework.urlpatterns import format_suffix_patterns
 from library.views import *
 from playlist.views import *
-
-router = routers.DefaultRouter()
-router.register(r'library/songs', SongViewSet)
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
@@ -35,6 +30,7 @@ urlpatterns = [
     url(r'^playlist/player/status/$', PlayerForUserView.as_view()),
     url(r'^playlist/$', PlaylistEntryList.as_view()),
     url(r'^playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
-    url(r'^', include(router.urls)),
+    url(r'^library/songs/$', SongList.as_view()),
+    url(r'^library/songs/(?P<pk>[0-9]+)/$', SongDetailView.as_view(), name='song-detail'),
 ]
 
