@@ -13,3 +13,13 @@ class SongSerializer(serializers.HyperlinkedModelSerializer):
                 'date_created',
                 'date_updated',
                 )
+
+class SongForPlayerSerializer(serializers.ModelSerializer):
+    """ Class for song serializer
+    """
+    class Meta:
+        model = Song
+        fields = (
+                'title',
+                'file_path',
+                )

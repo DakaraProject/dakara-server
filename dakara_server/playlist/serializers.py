@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from playlist.models import *
+from library.serializers import *
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
@@ -15,9 +16,21 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
 class PlaylistEntryReadSerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
     """
+    song = SongSerializer(many=False, read_only=True)
     class Meta:
         model = PlaylistEntry
-        depth = 1
+        fields = (
+                'id',
+                'song',
+                'date_created',
+                )
+
+class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
+    """ Class for song serializer in playlist
+    """
+    song = SongForPlayerSerializer(many=False, read_only=True)
+    class Meta:
+        model = PlaylistEntry
         fields = (
                 'id',
                 'song',
@@ -27,6 +40,20 @@ class PlaylistEntryReadSerializer(serializers.ModelSerializer):
 class PlayerSerializer(serializers.ModelSerializer):
     """ Class for Player serializer
     """
+    class Meta:
+        model = Player
+        fields = (
+                'playlist_entry',
+                'timing',
+                'paused',
+                )
+
+class PlayerDetailsSerializer(serializers.ModelSerializer):
+    """ Class for Player serializer
+        with nested playlist_entry and song details
+    """
+
+    playlist_entry = PlaylistEntryReadSerializer(many=False,read_only=True)
     class Meta:
         model = Player
         fields = (
