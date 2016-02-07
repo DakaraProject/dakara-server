@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dakara</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <div id="content"></div>
+    <script type="text/babel">
+    var PlayerBox = React.createClass({
+        getInitialState: function() {
+            return {playerStatus: {}};
+        },
+
+      loadStatusFromServer: function() {
+        $.ajax({
+          url: this.props.url,
+          dataType: 'json',
+          cache: false,
+          success: function(data) {
+            this.setState({playerStatus: data});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+      },
+
+      componentDidMount: function() {
+        this.loadStatusFromServer();
+        setInterval(this.loadStatusFromServer, this.props.pollInterval);
+      },
+
+        render: function() {
+            var state = this.state.playerStatus;
+            var playing;
+            if (state.playlist_entry){
+                playing = <div><p>Playing : {this.state.playerStatus.playlist_entry.song.title}</p>
+                 <p>Timing : {this.state.playerStatus.timing}</p></div>
+            } else {
+                playing = "idle";
+            }
+            return (
+                <div className="playerBox">
+                <h1>Dakara</h1> 
+                {playing}
+            
+                  </div>
+                      );
+        }
+    });
+    ReactDOM.render(
+      <PlayerBox url="/playlist/player/status/" pollInterval={2000}/>,
+        document.getElementById('content')
+        );
+    </script>
+  </body>
+</html>
