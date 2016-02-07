@@ -23,6 +23,12 @@ class PlaylistEntryList(ListCreateAPIView):
     queryset = PlaylistEntry.objects.all()
     serializer_class = PlaylistEntrySerializer
 
+    def get_serializer_class(self, *args, **kwargs):
+        if self.request.method == 'POST':
+            return PlaylistEntrySerializer 
+        return PlaylistEntryReadSerializer
+
+
 
 class PlayerCommandForUserView(APIView):
     """ Class for the user to view or send commands 
@@ -72,7 +78,7 @@ class PlayerForUserView(APIView):
             Create one if it doesn't exist
         """
         player = get_player()
-        serializer = PlayerSerializer(player)
+        serializer = PlayerDetailsSerializer(player)
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
@@ -92,7 +98,7 @@ class PlayerForPlayerView(APIView):
         """
         player = get_player()
         entry = get_next_playlist_entry(player.playlist_entry_id)
-        serializer = PlaylistEntryReadSerializer(entry)
+        serializer = PlaylistEntryForPlayerSerializer(entry)
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
