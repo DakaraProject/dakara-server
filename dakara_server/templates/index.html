@@ -10,18 +10,66 @@
   <body>
     <div id="content"></div>
     <script type="text/babel">
+    var PlaylistEntry = React.createClass({
+        render: function(){
+            return (<p>{this.props.playing ? '▶' : '■'} {this.props.name} </p>);
+        }
+    });
+    var Playlist = React.createClass({
+        render: function() {
+            var playingId = this.props.playingId;
+            var playlistEntries = this.props.entries.map(function(entry) {
+                return ( <PlaylistEntry name={entry.song.title} playing={playingId == entry.id}/> );
+            });
+            return ( <div className="playlist"> <h2>Playlist</h2> {playlistEntries} </div> );
+        }
+    });
     var PlayerBox = React.createClass({
+        handlePlayPause : function(e) {
+            var pause = !this.state.playerStatus.paused;
+            $.ajax({
+            url: this.props.url + "playlist/player/manage/",
+            dataType: 'json',
+            type: 'PUT',
+            data: {"pause": pause},
+            headers: {
+                "Authorization": "Basic " + btoa(this.props.auth)
+            },
+            success: function(data) {
+            }.bind(this),
+            error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString() + xhr.responseText);
+            }.bind(this)
+            }); 
+        },
         getInitialState: function() {
-            return {playerStatus: {}};
+            return {playerStatus: {}, playlistEntries: []};
         },
 
       loadStatusFromServer: function() {
         $.ajax({
-          url: this.props.url,
+          url: this.props.url + "playlist/player/status/",
           dataType: 'json',
           cache: false,
+          headers: {
+              "Authorization": "Basic " + btoa(this.props.auth)
+          },
           success: function(data) {
             this.setState({playerStatus: data});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+        $.ajax({
+          url: this.props.url + "playlist/",
+          dataType: 'json',
+          cache: false,
+          headers: {
+              "Authorization": "Basic " + btoa(this.props.auth)
+          },
+          success: function(data) {
+            this.setState({playlistEntries: data.results});
           }.bind(this),
           error: function(xhr, status, err) {
             console.error(this.props.url, status, err.toString());
@@ -35,11 +83,15 @@
       },
 
         render: function() {
-            var state = this.state.playerStatus;
+            var playerStatus = this.state.playerStatus;
             var playing;
-            if (state.playlist_entry){
-                playing = <div><p>Playing : {this.state.playerStatus.playlist_entry.song.title}</p>
-                 <p>Timing : {this.state.playerStatus.timing}</p></div>
+            var playingId;
+            if (playerStatus.playlist_entry){
+                playingId = playerStatus.playlist_entry.id;
+                playing = <div><p>Playing : {playerStatus.playlist_entry.song.title}</p>
+                 <p>Timing : {playerStatus.timing}</p>
+                 <input type="button" value={playerStatus.paused? 'play' : 'pause'} onClick={this.handlePlayPause}/>
+                 </div>
             } else {
                 playing = "idle";
             }
@@ -47,13 +99,13 @@
                 <div className="playerBox">
                 <h1>Dakara</h1> 
                 {playing}
-            
+                <Playlist entries={this.state.playlistEntries} playingId={playingId}/> 
                   </div>
                       );
         }
     });
     ReactDOM.render(
-      <PlayerBox url="/playlist/player/status/" pollInterval={2000}/>,
+      <PlayerBox url="/" auth="username:password" pollInterval={2000}/>,
         document.getElementById('content')
         );
     </script>
