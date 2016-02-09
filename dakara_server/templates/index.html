@@ -1,113 +1,303 @@
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Dakara</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-  </head>
-  <body>
-    <div id="content"></div>
-    <script type="text/babel">
-    var PlaylistEntry = React.createClass({
-        render: function(){
-            return (<p>{this.props.playing ? '▶' : '■'} {this.props.name} </p>);
-        }
-    });
-    var Playlist = React.createClass({
-        render: function() {
-            var playingId = this.props.playingId;
-            var playlistEntries = this.props.entries.map(function(entry) {
-                return ( <PlaylistEntry name={entry.song.title} playing={playingId == entry.id}/> );
-            });
-            return ( <div className="playlist"> <h2>Playlist</h2> {playlistEntries} </div> );
-        }
-    });
-    var PlayerBox = React.createClass({
-        handlePlayPause : function(e) {
-            var pause = !this.state.playerStatus.paused;
-            $.ajax({
-            url: this.props.url + "playlist/player/manage/",
-            dataType: 'json',
-            type: 'PUT',
-            data: {"pause": pause},
-            headers: {
-                "Authorization": "Basic " + btoa(this.props.auth)
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Dakara preview</title>
+        <link rel="stylesheet" href="/static/dakara.css" type="text/css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,100,700,300" type="text/css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1>Dakara</h1>
+        </header>
+        <div id="content">
+            <div id="playlist">
+            </div>
+            <div id="library">
+                <form id="query">
+                    <div class="field">
+                        <input type="text" value="hand in hand">
+                    </div>
+                    <div class="controls">
+                        <div class="search">
+                            <i class="fa fa-search"></i>
+                        </div>
+                    </div>
+                </form>
+                <div id="results">
+                    <ul id="results-listing" class="listing">
+                        <li>
+                            <div class="data">
+                                kz livetune feat. Hatsune Miku - PV - Hand in Hand
+                            </div>
+                            <div class="controls">
+                                <div class="add">
+                                    <i class="fa fa-play"></i>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="data">
+                                kz livetune feat. Hatsune Miku - PV - Hand in Hand
+                            </div>
+                            <div class="controls">
+                                <div class="add">
+                                    <i class="fa fa-play"></i>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="data">
+                                kz livetune feat. Hatsune Miku - PV - Hand in Hand
+                            </div>
+                            <div class="controls">
+                                <div class="add">
+                                    <i class="fa fa-play"></i>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <nav id="paginator">
+                    <div class="controls">
+                        <div class="first disabled">
+                            <i class="fa fa-angle-double-left"></i>
+                        </div>
+                        <div class="previous disabled">
+                            <i class="fa fa-angle-left"></i>
+                        </div>
+                        <div class="next">
+                            <i class="fa fa-angle-right"></i>
+                        </div>
+                        <div class="last">
+                            <i class="fa fa-angle-double-right"></i>
+                        </div>
+                    </div>
+                    <div class="info">
+                        <div id="library-amount">
+                            <span class="stat">3</span>
+                            <span class="description">songs found</span>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <footer>
+            <h2>Dakara Project</h2>
+            <span clas="version">Alpha Proof of Concept</span>
+        </footer>
+
+        <script type="text/babel">
+        var Player = React.createClass({
+            handlePlayPause: function(e){
+                if (this.props.playerStatus.playlist_entry){
+                    var pause = !this.props.playerStatus.paused;
+                    this.props.sendPlayerCommand({"pause": pause});
+                }
             },
-            success: function(data) {
-            }.bind(this),
-            error: function(xhr, status, err) {
-            console.error(this.props.url, status, err.toString() + xhr.responseText);
-            }.bind(this)
-            }); 
-        },
-        getInitialState: function() {
-            return {playerStatus: {}, playlistEntries: []};
-        },
 
-      loadStatusFromServer: function() {
-        $.ajax({
-          url: this.props.url + "playlist/player/status/",
-          dataType: 'json',
-          cache: false,
-          headers: {
-              "Authorization": "Basic " + btoa(this.props.auth)
-          },
-          success: function(data) {
-            this.setState({playerStatus: data});
-          }.bind(this),
-          error: function(xhr, status, err) {
-            console.error(this.props.url, status, err.toString());
-          }.bind(this)
-        });
-        $.ajax({
-          url: this.props.url + "playlist/",
-          dataType: 'json',
-          cache: false,
-          headers: {
-              "Authorization": "Basic " + btoa(this.props.auth)
-          },
-          success: function(data) {
-            this.setState({playlistEntries: data.results});
-          }.bind(this),
-          error: function(xhr, status, err) {
-            console.error(this.props.url, status, err.toString());
-          }.bind(this)
-        });
-      },
+            handleSkip: function(e){
+                if (this.props.playerStatus.playlist_entry){
+                    this.props.sendPlayerCommand({"skip": true});
+                }
+            },
 
-      componentDidMount: function() {
-        this.loadStatusFromServer();
-        setInterval(this.loadStatusFromServer, this.props.pollInterval);
-      },
+            render: function() {
+                var playerStatus = this.props.playerStatus;
+                var timing = playerStatus.timing;
+                if (timing){
+                    timing = timing.substring(3,8);
+                }
+                var songName;
+                var playIcon = "fa fa-";
+                if (playerStatus.playlist_entry){
+                    songName = playerStatus.playlist_entry.song.title;
+                    playIcon += playerStatus.paused ? "play" : "pause";
+                } else {
+                    playIcon += "stop";
+                }
+                return (
+                <div id="player">
+                    <div className="controls">
+                        <div className="play-pause" onClick={this.handlePlayPause}>
+                            <i className={playIcon}></i>
+                        </div>
+                        <div className="skip" onClick={this.handleSkip}>
+                            <i className="fa fa-step-forward"></i>
+                        </div>
+                    </div>
+                    <div id="playlist-current-song" className="details">
+                        <span className="title">{songName}</span>
+                    </div>
+                    <div className="status">
+                        <span id="playlist-current-timing" className="current">{timing}</span>
+                    </div>
+                </div>
+                );
 
-        render: function() {
-            var playerStatus = this.state.playerStatus;
-            var playing;
-            var playingId;
-            if (playerStatus.playlist_entry){
-                playingId = playerStatus.playlist_entry.id;
-                playing = <div><p>Playing : {playerStatus.playlist_entry.song.title}</p>
-                 <p>Timing : {playerStatus.timing}</p>
-                 <input type="button" value={playerStatus.paused? 'play' : 'pause'} onClick={this.handlePlayPause}/>
-                 </div>
-            } else {
-                playing = "idle";
             }
-            return (
-                <div className="playerBox">
-                <h1>Dakara</h1> 
-                {playing}
-                <Playlist entries={this.state.playlistEntries} playingId={playingId}/> 
-                  </div>
-                      );
-        }
-    });
-    ReactDOM.render(
-      <PlayerBox url="/" auth="username:password" pollInterval={2000}/>,
-        document.getElementById('content')
+        });
+
+        var PlaylistEntry = React.createClass({
+            render: function(){
+                return (
+                    <li>
+                        <div className="data">
+                            {this.props.song.title} 
+                        </div>
+                        <div className="controls">
+                            <div className="remove">
+                                <i className="fa fa-times"></i>
+                            </div>
+                        </div>
+                    </li>
+                );
+            }
+        });
+
+
+        var Playlist = React.createClass({
+            handleCollapse: function() {
+                this.setState({collapsed: !this.state.collapsed});
+            },
+            getInitialState: function() {
+                return {collapsed: true};
+            },
+
+            render: function() {
+                var playingId = this.props.playingId; 
+                var list = this.props.entries.results;
+                var playingIndex = list.map(function(item) { return item.id; })
+                       .indexOf(playingId);
+                //remove current playing id from list
+                if (playingIndex > -1){
+                    list.splice(playingIndex,1);
+                } 
+                var playlistEntries;
+                var next;
+                if (!this.state.collapsed){
+                    playlistEntries = list.map(function(entry) {
+                        return ( <PlaylistEntry song={entry.song}/> );
+                    });
+                } else {
+                    if (list[0]){
+                        next = (
+                            <div id="playlist-info-next">
+                                <span className="stat">Next</span>
+                                <span className="description">{list[0].song.title}</span>
+                            </div>
+                        );
+                    }
+                }
+                
+                var playlistSize = this.props.entries.count;
+ 
+                return (
+                <div id="entries">
+                    <ul id="entries-listing" className="listing">
+                        {playlistEntries}
+                    </ul>
+                    <div className="info" onClick={this.handleCollapse}> 
+                        <div id="playlist-info-amount">
+                            <span className="stat">{playlistSize}</span>
+                            <span className="description">songs<br/>in playlist</span>
+                        </div>
+                        {next}
+                    </div>
+                </div>
+                );
+            }
+        });
+
+        var PlayerBox = React.createClass({
+            getInitialState: function() {
+                return {playerStatus: {}, playlistEntries: {count: 0, results: []}};
+            },
+
+            sendPlayerCommand : function(cmd) {
+                $.ajax({
+                url: this.props.url + "playlist/player/manage/",
+                dataType: 'json',
+                type: 'PUT',
+                data: cmd,
+                headers: {
+                    "Authorization": "Basic " + btoa(this.props.auth)
+                },
+                success: function(data) {
+                }.bind(this),
+                error: function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString() + xhr.responseText);
+                }.bind(this)
+                }); 
+            },
+
+
+            loadStatusFromServer: function() {
+                $.ajax({
+                    url: this.props.url + "playlist/player/status/",
+                    dataType: 'json',
+                    cache: false,
+                    headers: {
+                        "Authorization": "Basic " + btoa(this.props.auth)
+                    },
+                    success: function(data) {
+                      this.setState({playerStatus: data});
+                    }.bind(this),
+                    error: function(xhr, status, err) {
+                      console.error(this.props.url, status, err.toString());
+                    }.bind(this)
+                });
+                $.ajax({
+                  url: this.props.url + "playlist/",
+                  dataType: 'json',
+                  cache: false,
+                  headers: {
+                      "Authorization": "Basic " + btoa(this.props.auth)
+                  },
+                  success: function(data) {
+                    this.setState({playlistEntries: data});
+                  }.bind(this),
+                  error: function(xhr, status, err) {
+                    console.error(this.props.url, status, err.toString());
+                  }.bind(this)
+                });
+
+            },
+
+            componentDidMount: function() {
+              this.loadStatusFromServer();
+              setInterval(this.loadStatusFromServer, this.props.pollInterval);
+            },
+
+            render: function() {
+                var playingId;
+                if (this.state.playerStatus.playlist_entry){
+                    playingId = this.state.playerStatus.playlist_entry.id;
+                }
+
+                return (
+                    <div>
+                        <Player playerStatus={this.state.playerStatus} sendPlayerCommand={this.sendPlayerCommand}/>
+                        <Playlist entries={this.state.playlistEntries} playingId={playingId}/>
+                    </div>
+                );
+            }
+
+        }); 
+
+
+        ReactDOM.render(
+            <PlayerBox url="/" auth="username:password" pollInterval={2000}/>,
+            document.getElementById('playlist')
         );
-    </script>
-  </body>
+
+
+        </script>
+
+    </body>
 </html>
