@@ -8,12 +8,14 @@
 import os
 import sys
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dakara_server.settings")
-sys.path.append("../dakara_server/")
+package_path = os.path.split(__file__)[0]
+sys.path.append(os.path.join(package_path, "../dakara_server/"))
 
 try:
     from library.models import Song
 except ImportError as e:
     print("Unable to import Django modules:\n" + str(e))
+    exit(1)
 
 file_coding = sys.getfilesystemencoding()
 
@@ -79,7 +81,7 @@ class FeedDatabase:
                 print("Saving: " + title)
                 song.save()
             else:
-                print("To save:\n" + title + "\n" + file_path)
+                print("To save:\ntitle: " + title + "\npath: " + file_path)
 
 
 
