@@ -257,7 +257,7 @@
 
         var Library = React.createClass({
             getInitialState: function() {
-                return {libraryEntries: {count: 0, results: []}, search: null};
+                return {libraryEntries: {count: 0, results: []}, search: ""};
             },
 
             componentDidMount: function() {
@@ -273,20 +273,28 @@
             },
 
             handleFirst: function() {
-                this.refreshEntries(this.props.url + "library/songs/?title=" + this.state.search);
+                if (this.state.libraryEntries.previous) {
+                    this.refreshEntries(this.props.url + "library/songs/?title=" + encodeURIComponent(this.state.search));
+                }
             },
 
             handleLast: function() {
-                this.refreshEntries(this.props.url + "library/songs/?page=last&title=" + this.state.search);
+                if (this.state.libraryEntries.next) {
+                    this.refreshEntries(this.props.url + "library/songs/?page=last&title=" + encodeURIComponent(this.state.search));
+                }
             },
 
             handleSearchChange: function(e) {
                 this.setState({search: e.target.value});
             },
 
-            handleSearch: function(e) {
+            handleSubmit: function(e) {
                 e.preventDefault();
-                this.refreshEntries(this.props.url + "library/songs/?title=" + this.state.search);                
+                this.handleSearch(e);
+            },
+
+            handleSearch: function(e) {
+                this.refreshEntries(this.props.url + "library/songs/?title=" + encodeURIComponent(this.state.search));                
             },
 
             addToPlaylist: function(songId) {
@@ -335,7 +343,7 @@
                 var hasPrevious = this.state.libraryEntries.previous;
                 return (
                 <div>
-                    <form id="query" onSubmit={this.handleSearch}>
+                    <form id="query" onSubmit={this.handleSubmit}>
                         <div className="field">
                             <input type="text" value={this.state.search} onChange={this.handleSearchChange}/>
                         </div>
