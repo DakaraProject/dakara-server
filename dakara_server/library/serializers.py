@@ -1,13 +1,13 @@
 from rest_framework import serializers
 from library.models import *
 
-class SongSerializer(serializers.HyperlinkedModelSerializer):
+class SongSerializer(serializers.ModelSerializer):
     """ Class for song serializer
     """
     class Meta:
         model = Song
         fields = (
-                'url',
+                'id',
                 'title',
                 'file_path',
                 'date_created',

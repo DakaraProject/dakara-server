@@ -19,72 +19,6 @@
             <div id="playlist">
             </div>
             <div id="library">
-                <form id="query">
-                    <div class="field">
-                        <input type="text" value="hand in hand">
-                    </div>
-                    <div class="controls">
-                        <div class="search">
-                            <i class="fa fa-search"></i>
-                        </div>
-                    </div>
-                </form>
-                <div id="results">
-                    <ul id="results-listing" class="listing">
-                        <li>
-                            <div class="data">
-                                kz livetune feat. Hatsune Miku - PV - Hand in Hand
-                            </div>
-                            <div class="controls">
-                                <div class="add">
-                                    <i class="fa fa-play"></i>
-                                </div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="data">
-                                kz livetune feat. Hatsune Miku - PV - Hand in Hand
-                            </div>
-                            <div class="controls">
-                                <div class="add">
-                                    <i class="fa fa-play"></i>
-                                </div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="data">
-                                kz livetune feat. Hatsune Miku - PV - Hand in Hand
-                            </div>
-                            <div class="controls">
-                                <div class="add">
-                                    <i class="fa fa-play"></i>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <nav id="paginator">
-                    <div class="controls">
-                        <div class="first disabled">
-                            <i class="fa fa-angle-double-left"></i>
-                        </div>
-                        <div class="previous disabled">
-                            <i class="fa fa-angle-left"></i>
-                        </div>
-                        <div class="next">
-                            <i class="fa fa-angle-right"></i>
-                        </div>
-                        <div class="last">
-                            <i class="fa fa-angle-double-right"></i>
-                        </div>
-                    </div>
-                    <div class="info">
-                        <div id="library-amount">
-                            <span class="stat">3</span>
-                            <span class="description">songs found</span>
-                        </div>
-                    </div>
-                </nav>
             </div>
         </div>
         <footer>
@@ -292,12 +226,164 @@
 
 
         ReactDOM.render(
-            <PlayerBox url="/" auth="username:password" pollInterval={2000}/>,
+            <PlayerBox url="/" auth="flore:admin" pollInterval={2000}/>,
             document.getElementById('playlist')
         );
 
 
         </script>
+
+        <script type="text/babel">
+        var LibraryEntry = React.createClass({
+            handleAdd: function() {
+                var songId = this.props.song.id;
+                this.props.addToPlaylist(songId);
+            },
+            render: function() {
+                return (
+                        <li>
+                            <div className="data">
+                                {this.props.song.title}
+                            </div>
+                            <div className="controls">
+                                <div className="add" onClick={this.handleAdd}>
+                                    <i className="fa fa-play"></i>
+                                </div>
+                            </div>
+                        </li>
+                );
+            }
+        });
+
+        var Library = React.createClass({
+            getInitialState: function() {
+                return {libraryEntries: {count: 0, results: []}, search: null};
+            },
+
+            componentDidMount: function() {
+                this.refreshEntries(this.props.url + "library/songs/");
+            },
+
+            handleNext: function() {
+                this.refreshEntries(this.state.libraryEntries.next);
+            },
+
+            handlePrevious: function() {
+                this.refreshEntries(this.state.libraryEntries.previous);
+            },
+
+            handleFirst: function() {
+                this.refreshEntries(this.props.url + "library/songs/?title=" + this.state.search);
+            },
+
+            handleLast: function() {
+                this.refreshEntries(this.props.url + "library/songs/?page=last&title=" + this.state.search);
+            },
+
+            handleSearchChange: function(e) {
+                this.setState({search: e.target.value});
+            },
+
+            handleSearch: function(e) {
+                e.preventDefault();
+                this.refreshEntries(this.props.url + "library/songs/?title=" + this.state.search);                
+            },
+
+            addToPlaylist: function(songId) {
+                $.ajax({
+                url: this.props.url + "playlist/",
+                dataType: 'json',
+                type: 'POST',
+                data: {"song": songId},
+                headers: {
+                    "Authorization": "Basic " + btoa(this.props.auth)
+                },
+                success: function(data) {
+                }.bind(this),
+                error: function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString() + xhr.responseText);
+                }.bind(this)
+                }); 
+            },
+
+            refreshEntries: function(url) {
+                if (url) {
+                    $.ajax({
+                      url: url,
+                      dataType: 'json',
+                      cache: false,
+                      headers: {
+                          "Authorization": "Basic " + btoa(this.props.auth)
+                      },
+                      success: function(data) {
+                        this.setState({libraryEntries: data});
+                      }.bind(this),
+                      error: function(xhr, status, err) {
+                        console.error(this.props.url, status, err.toString());
+                      }.bind(this)
+                    });
+                }
+            },
+
+            render: function() {
+                var addToPlaylist = this.addToPlaylist;
+                var list = this.state.libraryEntries.results.map(function(entry){
+                    return (<LibraryEntry song={entry} addToPlaylist={addToPlaylist}/>);
+                });
+                var count = this.state.libraryEntries.count;
+                var hasNext = this.state.libraryEntries.next;
+                var hasPrevious = this.state.libraryEntries.previous;
+                return (
+                <div>
+                    <form id="query" onSubmit={this.handleSearch}>
+                        <div className="field">
+                            <input type="text" value={this.state.search} onChange={this.handleSearchChange}/>
+                        </div>
+                        <div className="controls">
+                            <div className="search" onClick={this.handleSearch}>
+                                <i className="fa fa-search"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="results">
+                        <ul id="results-listing" className="listing">
+                            {list}
+                        </ul>
+                    </div>
+                    <nav id="paginator">
+                        <div className="controls">
+                            <div className={hasPrevious? "first" : "first disabled"} onClick={this.handleFirst}>
+                                <i className="fa fa-angle-double-left"></i>
+                            </div>
+                            <div className={hasPrevious? "previous" : "previous disabled"} onClick={this.handlePrevious}>
+                                <i className="fa fa-angle-left"></i>
+                            </div>
+                            <div className={hasNext? "next" : "next disabled"} onClick={this.handleNext}>
+                                <i className="fa fa-angle-right"></i>
+                            </div>
+                            <div className={hasNext? "last" : "last disabled"} onClick={this.handleLast}>
+                                <i className="fa fa-angle-double-right"></i>
+                            </div>
+                        </div>
+                        <div className="info">
+                            <div id="library-amount">
+                                <span className="stat">{count}</span>
+                                <span className="description">songs found</span>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+                );
+            }
+        });
+
+        ReactDOM.render(
+            <Library url="/" auth="flore:admin" pollInterval={2000}/>,
+            document.getElementById('library')
+        );
+
+        </script>
+
 
     </body>
 </html>
