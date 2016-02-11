@@ -43,7 +43,7 @@ var LibraryEntry = React.createClass({
                         {this.props.song.title}
                     </div>
                     <div className="controls">
-                        <div className="add" onClick={this.handleAdd}>
+                        <div className="add control-primary" onClick={this.handleAdd}>
                             <i className="fa fa-play"></i>
                         </div>
                     </div>
@@ -140,7 +140,7 @@ var Library = React.createClass({
                     <input type="text" value={this.state.search} onChange={this.handleSearchChange}/>
                 </div>
                 <div className="controls">
-                    <div className="search" onClick={this.handleSearch}>
+                    <div className="search control-primary" onClick={this.handleSearch}>
                         <i className="fa fa-search"></i>
                     </div>
                 </div>
@@ -152,21 +152,21 @@ var Library = React.createClass({
             </div>
             <nav id="paginator">
                 <div className="controls">
-                    <div className={hasPrevious? "first" : "first disabled"} onClick={this.handleFirst}>
+                    <div className={"first control-primary" + (hasPrevious? "" : " disabled")} onClick={this.handleFirst}>
                         <i className="fa fa-angle-double-left"></i>
                     </div>
-                    <div className={hasPrevious? "previous" : "previous disabled"} onClick={this.handlePrevious}>
+                    <div className={"previous control-primary" + (hasPrevious? "" : " disabled")} onClick={this.handlePrevious}>
                         <i className="fa fa-angle-left"></i>
                     </div>
-                    <div className={hasNext? "next" : "next disabled"} onClick={this.handleNext}>
+                    <div className={"next control-primary" + (hasNext? "" : " disabled")} onClick={this.handleNext}>
                         <i className="fa fa-angle-right"></i>
                     </div>
-                    <div className={hasNext? "last" : "last disabled"} onClick={this.handleLast}>
+                    <div className={"last control-primary" + (hasNext? "" : " disabled")} onClick={this.handleLast}>
                         <i className="fa fa-angle-double-right"></i>
                     </div>
                 </div>
                 <div className="info">
-                    <div id="library-amount">
+                    <div classname="info-item" id="library-amount">
                         <span className="stat">{count}</span>
                         <span className="description">song{count == 1? '': 's'} found</span>
                     </div>
@@ -211,10 +211,10 @@ var Player = React.createClass({
         return (
         <div id="player">
             <div className="controls">
-                <div className="play-pause" onClick={this.handlePlayPause}>
+                <div className="play-pause control-primary" onClick={this.handlePlayPause}>
                     <i className={playIcon}></i>
                 </div>
-                <div className="skip" onClick={this.handleSkip}>
+                <div className="skip control-primary" onClick={this.handleSkip}>
                     <i className="fa fa-step-forward"></i>
                 </div>
             </div>
@@ -242,7 +242,7 @@ var PlaylistEntry = React.createClass({
                     {this.props.entry.song.title} 
                 </div>
                 <div className="controls">
-                    <div className="remove" onClick={this.handleRemove}>
+                    <div className="remove control-danger" onClick={this.handleRemove}>
                         <i className="fa fa-times"></i>
                     </div>
                 </div>
@@ -279,7 +279,7 @@ var Playlist = React.createClass({
         } else {
             if (list[0]){
                 next = (
-                    <div id="playlist-info-next">
+                    <div className="info-item" id="playlist-info-next">
                         <span className="stat">Next</span>
                         <span className="description">{list[0].song.title}</span>
                     </div>
@@ -295,7 +295,7 @@ var Playlist = React.createClass({
                 {playlistEntries}
             </ul>
             <div className="info" onClick={this.handleCollapse}> 
-                <div id="playlist-info-amount">
+                <div className="info-item" id="playlist-info-amount">
                     <span className="stat">{playlistSize}</span>
                     <span className="description">song{playlistSize == 1? '': 's'}<br/>in playlist</span>
                 </div>
