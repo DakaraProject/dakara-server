@@ -63,7 +63,7 @@ target/
 docs/_build/
 
 # Database
-*.sqlite3
+*.sqlite3*
 
 # Backups
 *~
