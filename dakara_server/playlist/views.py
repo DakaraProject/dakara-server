@@ -23,6 +23,16 @@ class PlaylistEntryDetail(RetrieveUpdateDestroyAPIView):
     queryset = PlaylistEntry.objects.all()
     serializer_class = PlaylistEntrySerializer
 
+    def destroy(self, request, *args, **kwargs):
+        playing_id = get_player().playlist_entry_id
+        instance = self.get_object()
+        if playing_id == instance.id:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class PlaylistEntryList(ListCreateAPIView):
     """ Class for listing or creating new entry in the playlist
     """
