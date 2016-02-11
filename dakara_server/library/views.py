@@ -1,4 +1,5 @@
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from django.db.models.functions import Lower
 from library.models import *
 from library.serializers import *
 
@@ -13,9 +14,9 @@ class SongList(ListCreateAPIView):
         if 'title' in self.request.query_params:
             title_query = self.request.query_params.get('title', None)
             if title_query is not None:
-                return Song.objects.filter(title__icontains=title_query)
+                return Song.objects.filter(title__icontains=title_query).order_by(Lower('title'))
 
-        return Song.objects.all()
+        return Song.objects.all().order_by(Lower('title'))
 
 class SongDetailView(RetrieveUpdateDestroyAPIView):
     """ Class for displaying song details
