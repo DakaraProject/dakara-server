@@ -29,7 +29,17 @@ $.ajaxSetup({
     }
 });
 
-
+$.notify.addStyle('dakara', {
+  html: "<div><span data-notify-text/></div>",
+  classes: {
+    base: {
+      "white-space": "nowrap",
+      "padding": "5px",
+      "color": "#191919",
+      "background": "#8612a0" 
+    }
+  }
+});
 
 var LibraryEntry = React.createClass({
     handleAdd: function() {
@@ -42,7 +52,7 @@ var LibraryEntry = React.createClass({
                     <div className="data">
                         {this.props.song.title}
                     </div>
-                    <div className="controls">
+                    <div className="controls" id={"song-" + this.props.song.id}>
                         <div className="add control-primary" onClick={this.handleAdd}>
                             <i className="fa fa-play"></i>
                         </div>
@@ -101,6 +111,7 @@ var Library = React.createClass({
         type: 'POST',
         data: {"song": songId},
         success: function(data) {
+            $("#song-" + songId).notify("Added to Playlist", {style: "dakara", position: "left"});
             this.props.loadStatusFromServer();
         }.bind(this),
         error: function(xhr, status, err) {
