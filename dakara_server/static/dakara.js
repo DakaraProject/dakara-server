@@ -36,7 +36,7 @@ $.notify.addStyle('dakara', {
       "white-space": "nowrap",
       "padding": "5px",
       "color": "#191919",
-      "background": "#8612a0" 
+      "background": "#19FFB0"
     }
   }
 });
