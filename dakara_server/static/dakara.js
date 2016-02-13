@@ -41,6 +41,9 @@ $.notify.addStyle('dakara', {
   }
 });
 
+
+var previousTiming;
+
 var LibraryEntry = React.createClass({
     handleAdd: function() {
         var songId = this.props.song.id;
@@ -216,6 +219,10 @@ var Player = React.createClass({
         var timing = playerStatus.timing;
         if (timing){
             timing = timing.substring(3,8);
+            previousTiming = timing;
+        } else {
+            timing = previousTiming;
+            console.error("timing null");
         }
         var songName;
         var playIcon = "fa fa-";
