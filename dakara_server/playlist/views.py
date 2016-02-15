@@ -7,10 +7,13 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIV
 from rest_framework.permissions import IsAuthenticated
 from playlist.models import *
 from playlist.serializers import *
+from threading import Lock
 import logging
 
 # logger object
 logger = logging.getLogger(__name__)
+lock = Lock()
+
 
 class PlaylistEntryPagination(PageNumberPagination):
     """ Class for pagination setup for playlist entries
@@ -271,7 +274,8 @@ def get_next_playlist_entry(id):
 def get_player():
     """ Load or create a new player
     """
-    return Player.objects.get_or_create()[0]
+    with lock:
+        return Player.objects.get_or_create()[0]
 
 def get_player_command():
     """ Load or create player command
