@@ -22,9 +22,15 @@ class Player:
         self.paused  = paused
 
 
-class PlayerCommand(models.Model):
+class PlayerCommand:
     """ Class for user commands to the player
     """
 
-    pause = models.BooleanField(default=False)
-    skip = models.BooleanField(default=False)
+    def __init__(
+            self,
+            pause=False,
+            skip=False
+            ):
+        self.pause = pause
+        self.skip = skip
+

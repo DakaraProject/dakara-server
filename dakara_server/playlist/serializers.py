@@ -61,15 +61,12 @@ class PlayerDetailsSerializer(serializers.Serializer):
         return None
 
 
-class PlayerCommandSerializer(serializers.ModelSerializer):
+class PlayerCommandSerializer(serializers.Serializer):
     """ Class for PlayerCommand serializer
     """
-    class Meta:
-        model = PlayerCommand
-        fields = (
-                'pause',
-                'skip',
-                )
+    pause = serializers.BooleanField(default=False)
+    skip = serializers.BooleanField(default=False)
+
 
 class PlayerErrorSerializer(serializers.Serializer):
     """ Class for player errors

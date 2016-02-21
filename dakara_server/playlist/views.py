@@ -56,8 +56,7 @@ class PlayerCommandForUserView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        """ Get playerCommand
-            Create one if it doesn't exist
+        """ Get pause or skip status
         """
         player_command = get_player_command()
         serializer = PlayerCommandSerializer(player_command)
@@ -69,11 +68,11 @@ class PlayerCommandForUserView(APIView):
     def put(self, request):
         """ Send pause or skip requests
         """
-        player_command = get_player_command()
-        serializer = PlayerCommandSerializer(player_command, data=request.data)
+        serializer = PlayerCommandSerializer(data=request.data)
         try:
             if serializer.is_valid():
-                serializer.save()
+                player_command = PlayerCommand(**serializer.data)
+                cache.set('player_command', player_command)
                 return Response(
                         serializer.data,
                         status.HTTP_202_ACCEPTED
@@ -150,7 +149,7 @@ class PlayerForPlayerView(APIView):
                         #reset skip flag if present
                         if player_command.skip:
                             player_command.skip = False
-                            player_command.save()
+                            cache.set('player_command', player_command)
 
                         #remove previous entry from playlist if there was any
                         if playing_old_id:
@@ -273,13 +272,16 @@ def get_player():
     """
     player = cache.get('player')
     if player is None:
-        player = player = Player()
+        player = Player()
     return player
 
 def get_player_command():
-    """ Load or create player command
+    """ Load or create a new player command
     """
-    return PlayerCommand.objects.get_or_create()[0]
+    player_command = cache.get('player_command')
+    if player_command is None:
+        player_command = PlayerCommand()
+    return player_command
 
 
 
