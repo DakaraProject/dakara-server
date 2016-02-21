@@ -8,17 +8,17 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
 from playlist.models import *
 from playlist.serializers import *
-
 import logging
-
 
 # logger object
 logger = logging.getLogger(__name__)
+
 
 class PlaylistEntryPagination(PageNumberPagination):
     """ Class for pagination setup for playlist entries
     """
     page_size = 100
+
 
 class PlaylistEntryDetail(RetrieveUpdateDestroyAPIView):
     """ Class for editing an playlist entry
@@ -45,9 +45,9 @@ class PlaylistEntryList(ListCreateAPIView):
 
     def get_serializer_class(self, *args, **kwargs):
         if self.request.method == 'POST':
-            return PlaylistEntrySerializer 
-        return PlaylistEntryReadSerializer
+            return PlaylistEntrySerializer
 
+        return PlaylistEntryReadSerializer
 
 
 class PlayerCommandForUserView(APIView):
@@ -77,11 +77,11 @@ class PlayerCommandForUserView(APIView):
                         serializer.data,
                         status.HTTP_202_ACCEPTED
                         )
-            else:
-                return Response(
-                        serializer.errors,
-                        status.HTTP_400_BAD_REQUEST
-                        )
+            return Response(
+                    serializer.errors,
+                    status.HTTP_400_BAD_REQUEST
+                    )
+
         except Exception as e:
             print(e)
             raise
@@ -140,7 +140,8 @@ class PlayerForPlayerView(APIView):
                 next_id = next_entry.id if next_entry else None
 
                 # check player status is consistent
-                # playing entry has to be either same as before, or the value returned by get_next_song
+                # playing entry has to be either same as before,
+                # or the value returned by get_next_song
                 if playing_old_id == playing_id or playing_id == next_id:
 
                     #if we're playing something new
@@ -157,7 +158,7 @@ class PlayerForPlayerView(APIView):
 
                         if player.playlist_entry_id:
                             logger.info("INFO The player has started {song}".format(
-                                song=player.playlist_entry_id
+                                song=PlaylistEntry.objects.get(id=player.playlist_entry_id)
                                 ))
                         else:
                             logger.info("INFO The player has stopped playing")
@@ -184,12 +185,12 @@ class PlayerForPlayerView(APIView):
                 logger.exception('EXCEPTION Unexpected error')
                 raise
 
-        else:
-            # if invalid data from the player
-            return Response(
-                    player_serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+        # if invalid data from the player
+        return Response(
+                player_serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
 
 class PlayerErrorView(APIView):
     """ Class to handle player errors
@@ -209,7 +210,7 @@ class PlayerErrorView(APIView):
             player = get_player()
             entry_id_error = player_error.validated_data['playlist_entry']
             entry_id_current = player.playlist_entry_id
-            entry_next = get_next_playlist_entry(entry_current_id)
+            entry_next = get_next_playlist_entry(entry_id_current)
             # protection if the erroneous song is the last one to play
             entry_id_next = entry_next.id if entry_next else None
 
@@ -221,7 +222,7 @@ class PlayerErrorView(APIView):
                 player.playlist_id_entry = None
                 cache.set('playe', player)
 
-            elif entry_id_error_id == entry_id_next:
+            elif entry_id_error == entry_id_next:
                 # the server does not know the player has
                 # started playing,
                 # which means the error occured immediately and
@@ -239,7 +240,7 @@ class PlayerErrorView(APIView):
             logger.warning("WARNING Unable to play {song}, \
 remove from playlist\n\
 Error message: {error_message}".format(
-                song=entry_id_to_delete,
+                song=PlaylistEntry.objects.get(id=entry_id_to_delete),
                 error_message=player_error.validated_data['error_message']
                 ))
             # remove the problematic song from the playlist
@@ -262,7 +263,7 @@ def get_next_playlist_entry(id):
         excluding entry with specified id
     """
     playlist = PlaylistEntry.objects.exclude(pk=id).order_by('date_created')
-    if not playlist :
+    if not playlist:
         return None
     playlist_entry = playlist[0]
     return playlist_entry 
@@ -282,7 +283,4 @@ def get_player_command():
     if player_command is None:
         player_command = PlayerCommand()
     return player_command
-
-
-
 

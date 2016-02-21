@@ -3,6 +3,7 @@ from django.db.models.functions import Lower
 from library.models import *
 from library.serializers import *
 
+
 class SongList(ListCreateAPIView):
     """ Class for listing songs
     """
@@ -18,8 +19,10 @@ class SongList(ListCreateAPIView):
 
         return Song.objects.all().order_by(Lower('title'))
 
+
 class SongDetailView(RetrieveUpdateDestroyAPIView):
     """ Class for displaying song details
     """
     queryset = Song.objects.all()
     serializer_class = SongSerializer
+

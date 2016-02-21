@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from library.models import *
 
+
 class SongSerializer(serializers.HyperlinkedModelSerializer):
     """ Class for song serializer
     """
@@ -15,6 +16,7 @@ class SongSerializer(serializers.HyperlinkedModelSerializer):
                 'date_updated',
                 )
 
+
 class SongForPlayerSerializer(serializers.ModelSerializer):
     """ Class for song serializer
     """
@@ -24,3 +26,4 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
                 'title',
                 'file_path',
                 )
+

@@ -1,14 +1,19 @@
 from django.db import models
 from datetime import timedelta
 
+
 class PlaylistEntry(models.Model):
     """ Class for a song in playlist
     """
     song = models.ForeignKey('library.Song', null=False)
     date_created = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return str(self.song)
+
+
 class Player:
-    """ Class for status recieved from the player
+    """ Class for player representation in the server
     """
 
     def __init__(

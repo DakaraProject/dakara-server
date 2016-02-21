@@ -13,6 +13,7 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
                 'date_created',
                 )
 
+
 class PlaylistEntryReadSerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
     """
@@ -25,6 +26,7 @@ class PlaylistEntryReadSerializer(serializers.ModelSerializer):
                 'date_created',
                 )
 
+
 class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
     """
@@ -36,6 +38,7 @@ class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
                 'song',
                 'date_created',
                 )
+
 
 class PlayerSerializer(serializers.Serializer):
     """ Class for Player serializer
@@ -73,3 +76,4 @@ class PlayerErrorSerializer(serializers.Serializer):
     """
     playlist_entry = serializers.IntegerField()
     error_message = serializers.CharField(max_length=255)
+

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Song(models.Model):
     """ Class for songs
     """
@@ -10,3 +11,4 @@ class Song(models.Model):
 
     def __str__(self):
         return str(self.title)
+
