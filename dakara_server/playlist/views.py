@@ -5,15 +5,15 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
+from django.core.cache import cache
 from playlist.models import *
 from playlist.serializers import *
-from threading import Lock
+
 import logging
+
 
 # logger object
 logger = logging.getLogger(__name__)
-lock = Lock()
-
 
 class PlaylistEntryPagination(PageNumberPagination):
     """ Class for pagination setup for playlist entries
@@ -127,19 +127,16 @@ class PlayerForPlayerView(APIView):
     def put(self, request):
         """ Send commands on recieveing status
         """
-        
-        player_command = get_player_command()
-        player_old = get_player()
-        entry_old = player_old.playlist_entry
         player_serializer = PlayerSerializer(
-                player_old,
                 data=request.data
                 )
         if player_serializer.is_valid():
+            player_command = get_player_command()
+            player_old = get_player()
             player = Player(**player_serializer.validated_data)
             try:
-                playing_old_id = entry_old.id if entry_old else None
-                playing_id = player.playlist_entry.id if player.playlist_entry else None
+                playing_old_id = player_old.playlist_entry_id
+                playing_id = player.playlist_entry_id
                 next_entry = get_next_playlist_entry(playing_old_id)
                 next_id = next_entry.id if next_entry else None
 
@@ -147,7 +144,7 @@ class PlayerForPlayerView(APIView):
                 # playing entry has to be either same as before, or the value returned by get_next_song
                 if playing_old_id == playing_id or playing_id == next_id:
 
-                    #if we're playing something new                    
+                    #if we're playing something new
                     if playing_id != playing_old_id:
 
                         #reset skip flag if present
@@ -156,18 +153,18 @@ class PlayerForPlayerView(APIView):
                             player_command.save()
 
                         #remove previous entry from playlist if there was any
-                        if entry_old:
-                            entry_old.delete()
+                        if playing_old_id:
+                            PlaylistEntry.objects.get(id=playing_old_id).delete()
 
-                        if player.playlist_entry:
+                        if player.playlist_entry_id:
                             logger.info("INFO The player has started {song}".format(
-                                song=player.playlist_entry.song
+                                song=player.playlist_entry_id
                                 ))
                         else:
                             logger.info("INFO The player has stopped playing")
 
                     # save new player
-                    player_serializer.save()
+                    cache.set('player', player)
 
                     # Send commands to the player
                     player_command_serializer = PlayerCommandSerializer(
@@ -211,43 +208,43 @@ class PlayerErrorView(APIView):
 
         if player_error.is_valid():
             player = get_player()
-            entry_error_id = player_error.validated_data['playlist_entry']
-            entry_current = player.playlist_entry
-            # protection if the erroneous song is the first one to play
-            entry_current_id = entry_current.id if entry_current else 0
+            entry_id_error = player_error.validated_data['playlist_entry']
+            entry_id_current = player.playlist_entry_id
             entry_next = get_next_playlist_entry(entry_current_id)
-            # protectionif the erroneous song is the last one to play
-            entry_next_id = entry_next.id if entry_next else 0
+            # protection if the erroneous song is the last one to play
+            entry_id_next = entry_next.id if entry_next else None
 
-            if entry_error_id == entry_current_id:
+            if entry_id_error == entry_id_current:
                 # the server knows the player has already
                 # started playing
-                entry_to_delete = entry_current
+                entry_id_to_delete = entry_id_current
                 # change player status
-                player.playlist_entry = None
-                player.save()
-            elif entry_error_id == entry_next_id:
+                player.playlist_id_entry = None
+                cache.set('playe', player)
+
+            elif entry_id_error_id == entry_id_next:
                 # the server does not know the player has
                 # started playing,
                 # which means the error occured immediately and
                 # status of the player has not been updated yet
-                entry_to_delete = entry_next
+                entry_id_to_delete = entry_id_next
+
             else:
                 # TODO error
                 message = 'ERROR Player is not supposed to do that'
                 logger.error(message)
                 raise Exception(message)
 
-            assert entry_to_delete is not None, "Player is playing something inconsistent"
+            assert entry_id_to_delete is not None, "Player is playing something inconsistent"
 
             logger.warning("WARNING Unable to play {song}, \
 remove from playlist\n\
 Error message: {error_message}".format(
-                song=entry_to_delete.song,
+                song=entry_id_to_delete,
                 error_message=player_error.validated_data['error_message']
                 ))
             # remove the problematic song from the playlist
-            entry_to_delete.delete()
+            PlaylistEntry.objects.get(id=entry_id_to_delete).delete()
 
             return Response(
                     status=status.HTTP_200_OK
@@ -274,8 +271,10 @@ def get_next_playlist_entry(id):
 def get_player():
     """ Load or create a new player
     """
-    with lock:
-        return Player.objects.get_or_create()[0]
+    player = cache.get('player')
+    if player is None:
+        player = player = Player()
+    return player
 
 def get_player_command():
     """ Load or create player command

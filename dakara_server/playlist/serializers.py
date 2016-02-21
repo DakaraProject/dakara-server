@@ -37,30 +37,29 @@ class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
                 'date_created',
                 )
 
-class PlayerSerializer(serializers.ModelSerializer):
+class PlayerSerializer(serializers.Serializer):
     """ Class for Player serializer
     """
-    class Meta:
-        model = Player
-        fields = (
-                'playlist_entry',
-                'timing',
-                'paused',
-                )
+    playlist_entry_id = serializers.IntegerField(allow_null=True)
+    timing = serializers.DurationField(allow_null=True)
+    paused = serializers.BooleanField(default=False)
 
-class PlayerDetailsSerializer(serializers.ModelSerializer):
+
+class PlayerDetailsSerializer(serializers.Serializer):
     """ Class for Player serializer
         with nested playlist_entry and song details
     """
+    playlist_entry = serializers.SerializerMethodField()
+    timing = serializers.DurationField(allow_null=True)
+    paused = serializers.BooleanField(default=False)
 
-    playlist_entry = PlaylistEntryReadSerializer(many=False,read_only=True)
-    class Meta:
-        model = Player
-        fields = (
-                'playlist_entry',
-                'timing',
-                'paused',
-                )
+    def get_playlist_entry(self, player):
+        if player.playlist_entry_id is not None:
+            entry = PlaylistEntry.objects.get(id=player.playlist_entry_id)
+            return PlaylistEntryReadSerializer(entry, context=self.context).data
+
+        return None
+
 
 class PlayerCommandSerializer(serializers.ModelSerializer):
     """ Class for PlayerCommand serializer

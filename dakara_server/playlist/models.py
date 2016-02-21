@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import timedelta
 
 class PlaylistEntry(models.Model):
     """ Class for a song in playlist
@@ -6,13 +7,19 @@ class PlaylistEntry(models.Model):
     song = models.ForeignKey('library.Song', null=False)
     date_created = models.DateTimeField(auto_now_add=True)
 
-class Player(models.Model):
+class Player:
     """ Class for status recieved from the player
     """
 
-    playlist_entry = models.ForeignKey('PlaylistEntry', null=True)
-    timing = models.DurationField(null=True)
-    paused  = models.BooleanField(default=False)
+    def __init__(
+            self,
+            playlist_entry_id=None,
+            timing=timedelta(),
+            paused=False
+            ):
+        self.playlist_entry_id = playlist_entry_id
+        self.timing = timing
+        self.paused  = paused
 
 
 class PlayerCommand(models.Model):
