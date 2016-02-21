@@ -74,8 +74,8 @@ TEMPLATES = [
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'TIMEOUT': None,
     },
-    'TIMEOUT': None,
 }
 
 WSGI_APPLICATION = 'dakara_server.wsgi.application'
