@@ -70,4 +70,4 @@ docs/_build/
 
 # Vim
 *.sw[po]
-
+*.vim
