@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from playlist.models import *
-from library.serializers import *
+from playlist.models import PlaylistEntry
+from library.serializers import SongSerializer, \
+                                SongForPlayerSerializer
+
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
@@ -18,6 +20,7 @@ class PlaylistEntryReadSerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
     """
     song = SongSerializer(many=False, read_only=True)
+
     class Meta:
         model = PlaylistEntry
         fields = (
@@ -31,6 +34,7 @@ class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
     """
     song = SongForPlayerSerializer(many=False, read_only=True)
+
     class Meta:
         model = PlaylistEntry
         fields = (
@@ -59,7 +63,10 @@ class PlayerDetailsSerializer(serializers.Serializer):
     def get_playlist_entry(self, player):
         if player.playlist_entry_id is not None:
             entry = PlaylistEntry.objects.get(id=player.playlist_entry_id)
-            return PlaylistEntryReadSerializer(entry, context=self.context).data
+            return PlaylistEntryReadSerializer(
+                    entry,
+                    context=self.context
+                    ).data
 
         return None
 
@@ -76,4 +83,3 @@ class PlayerErrorSerializer(serializers.Serializer):
     """
     playlist_entry = serializers.IntegerField()
     error_message = serializers.CharField(max_length=255)
-

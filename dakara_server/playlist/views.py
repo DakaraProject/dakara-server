@@ -2,12 +2,18 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, \
+                                    ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
-from playlist.models import *
-from playlist.serializers import *
+from playlist.models import PlaylistEntry, Player, PlayerCommand
+from playlist.serializers import PlaylistEntrySerializer, \
+                                 PlaylistEntryReadSerializer, \
+                                 PlaylistEntryForPlayerSerializer, \
+                                 PlayerSerializer, \
+                                 PlayerDetailsSerializer, \
+                                 PlayerCommandSerializer, \
+                                 PlayerErrorSerializer
 import logging
 
 # logger object
@@ -51,7 +57,7 @@ class PlaylistEntryList(ListCreateAPIView):
 
 
 class PlayerCommandForUserView(APIView):
-    """ Class for the user to view or send commands 
+    """ Class for the user to view or send commands
     """
     permission_classes = (IsAuthenticated,)
 
@@ -88,7 +94,7 @@ class PlayerCommandForUserView(APIView):
 
 
 class PlayerForUserView(APIView):
-    """ Class for user to get the player status 
+    """ Class for user to get the player stiatus
     """
     permission_classes = (IsAuthenticated,)
 
@@ -97,7 +103,10 @@ class PlayerForUserView(APIView):
             Create one if it doesn't exist
         """
         player = get_player()
-        serializer = PlayerDetailsSerializer(player, context={'request': request})
+        serializer = PlayerDetailsSerializer(
+                player,
+                context={'request': request}
+                )
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
@@ -113,7 +122,7 @@ class PlayerForPlayerView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        """ Get next playist entry 
+        """ Get next playist entry
         """
         player = get_player()
         entry = get_next_playlist_entry(player.playlist_entry_id)
@@ -144,22 +153,28 @@ class PlayerForPlayerView(APIView):
                 # or the value returned by get_next_song
                 if playing_old_id == playing_id or playing_id == next_id:
 
-                    #if we're playing something new
+                    # if we're playing something new
                     if playing_id != playing_old_id:
 
-                        #reset skip flag if present
+                        # reset skip flag if present
                         if player_command.skip:
                             player_command.skip = False
                             cache.set('player_command', player_command)
 
-                        #remove previous entry from playlist if there was any
+                        # remove previous entry from playlist if there was any
                         if playing_old_id:
-                            PlaylistEntry.objects.get(id=playing_old_id).delete()
+                            PlaylistEntry.objects.get(
+                                    id=playing_old_id
+                                    ).delete()
 
                         if player.playlist_entry_id:
-                            logger.info("INFO The player has started {song}".format(
-                                song=PlaylistEntry.objects.get(id=player.playlist_entry_id)
-                                ))
+                            logger.info(
+                                "INFO The player has started {song}".format(
+                                    song=PlaylistEntry.objects.get(
+                                        id=player.playlist_entry_id
+                                        )
+                                    )
+                                )
                         else:
                             logger.info("INFO The player has stopped playing")
 
@@ -176,12 +191,12 @@ class PlayerForPlayerView(APIView):
                             )
 
                 else:
-                        # TODO the player is not doing what it's supposed to do 
+                        # TODO the player is not doing what it's supposed to do
                         message = 'ERROR Player is not supposed to do that'
                         logger.error(message)
                         raise Exception(message)
 
-            except Exception as e:
+            except Exception:
                 logger.exception('EXCEPTION Unexpected error')
                 raise
 
@@ -235,7 +250,8 @@ class PlayerErrorView(APIView):
                 logger.error(message)
                 raise Exception(message)
 
-            assert entry_id_to_delete is not None, "Player is playing something inconsistent"
+            assert entry_id_to_delete is not None, \
+                "Player is playing something inconsistent"
 
             logger.warning("WARNING Unable to play {song}, \
 remove from playlist\n\
@@ -254,9 +270,11 @@ Error message: {error_message}".format(
                 status=status.HTTP_400_BAD_REQUEST
                 )
 
+
 ##
 # Routines
 #
+
 
 def get_next_playlist_entry(id):
     """ Returns the next playlist_entry in playlist
@@ -266,7 +284,8 @@ def get_next_playlist_entry(id):
     if not playlist:
         return None
     playlist_entry = playlist[0]
-    return playlist_entry 
+    return playlist_entry
+
 
 def get_player():
     """ Load or create a new player
@@ -276,6 +295,7 @@ def get_player():
         player = Player()
     return player
 
+
 def get_player_command():
     """ Load or create a new player command
     """
@@ -283,4 +303,3 @@ def get_player_command():
     if player_command is None:
         player_command = PlayerCommand()
     return player_command
-

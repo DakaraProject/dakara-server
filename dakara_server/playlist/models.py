@@ -24,7 +24,7 @@ class Player:
             ):
         self.playlist_entry_id = playlist_entry_id
         self.timing = timing
-        self.paused  = paused
+        self.paused = paused
 
 
 class PlayerCommand:
@@ -38,4 +38,3 @@ class PlayerCommand:
             ):
         self.pause = pause
         self.skip = skip
-

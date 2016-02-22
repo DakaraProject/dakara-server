@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from library.models import *
+from library.models import Song
 
 
 class SongSerializer(serializers.HyperlinkedModelSerializer):
@@ -26,4 +26,3 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
                 'title',
                 'file_path',
                 )
-

@@ -8,8 +8,14 @@
 import os
 import sys
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dakara_server.settings")
-package_path = os.path.split(__file__)[0]
-sys.path.append(os.path.join(package_path, "../dakara_server/"))
+package_path = os.path.dirname(__file__)
+sys.path.append(
+        os.path.join(
+            package_path,
+            os.pardir,
+            "dakara_server"
+            )
+        )
 
 try:
     from library.models import Song
@@ -30,7 +36,7 @@ class FeedDatabase:
             input:
                 listing <list> list of file names
                 prefix <str> directory prefix to be appended to file name
-                test <bool> flag for test (no save in database) mode
+                test <bool> flag for test mode (no save in database)
         """
         self.listing_raw = listing
         self.prefix = prefix
@@ -53,7 +59,9 @@ class FeedDatabase:
         for file in os.listdir(directory_path_encoded):
             file_decoded = file.decode(file_coding)
             if os.path.isfile(os.path.join(directory_path_encoded, file)) and \
-                    os.path.splitext(file_decoded)[1] not in ('.ssa', '.ass', '.srt', '.db') and \
+                    os.path.splitext(file_decoded)[1] not in (
+                            '.ssa', '.ass', '.srt', '.db'
+                            ) and \
                     file_decoded[0] != ".":
                 listing.append(file_decoded)
         return cls(listing, *args, **kwargs)
@@ -84,12 +92,12 @@ class FeedDatabase:
                 print("To save:\ntitle: " + title + "\npath: " + file_path)
 
 
-
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-            description="Import songs from files and feed the Django database with it"
+            description="Import songs from files \
+and feed the Django database with it"
             )
     parser.add_argument(
             "directory",
@@ -117,5 +125,3 @@ if __name__ == "__main__":
             )
     feed_database.extract_attributes()
     feed_database.save()
-
-
