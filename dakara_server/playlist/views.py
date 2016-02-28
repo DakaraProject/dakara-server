@@ -45,7 +45,6 @@ class PlaylistEntryDetail(RetrieveUpdateDestroyAPIView):
 class PlaylistEntryList(ListCreateAPIView):
     """ Class for listing or creating new entry in the playlist
     """
-    queryset = PlaylistEntry.objects.all()
     serializer_class = PlaylistEntrySerializer
     pagination_class = PlaylistEntryPagination
 
@@ -54,6 +53,12 @@ class PlaylistEntryList(ListCreateAPIView):
             return PlaylistEntrySerializer
 
         return PlaylistEntryReadSerializer
+
+    def get_queryset(self):
+        player = get_player()
+        entry_id = player.playlist_entry_id
+        return PlaylistEntry.objects.exclude(pk=entry_id) \
+            .order_by('date_created')
 
 
 class PlayerCommandForUserView(APIView):
