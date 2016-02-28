@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from playlist.models import PlaylistEntry
 from library.serializers import SongSerializer, \
-                                SongForPlayerSerializer
+                                SongForPlayerSerializer, \
+                                MinutesSecondsDurationField
 
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
@@ -48,7 +49,7 @@ class PlayerSerializer(serializers.Serializer):
     """ Class for Player serializer
     """
     playlist_entry_id = serializers.IntegerField(allow_null=True)
-    timing = serializers.DurationField(allow_null=True)
+    timing = MinutesSecondsDurationField(allow_null=True)
     paused = serializers.BooleanField(default=False)
 
 
@@ -57,7 +58,7 @@ class PlayerDetailsSerializer(serializers.Serializer):
         with nested playlist_entry and song details
     """
     playlist_entry = serializers.SerializerMethodField()
-    timing = serializers.DurationField(allow_null=True)
+    timing = MinutesSecondsDurationField(allow_null=True)
     paused = serializers.BooleanField(default=False)
 
     def get_playlist_entry(self, player):

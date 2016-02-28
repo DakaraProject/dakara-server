@@ -7,6 +7,8 @@
 
 import os
 import sys
+from pymediainfo import MediaInfo
+from datetime import timedelta
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dakara_server.settings")
 package_path = os.path.dirname(__file__)
 sys.path.append(
@@ -30,7 +32,7 @@ class FeedDatabase:
     """ Class representing a list of files to feed the database with
     """
 
-    def __init__(self, listing, prefix="", test=False):
+    def __init__(self, listing, prefix="", test=False, directory=""):
         """ Constructor
 
             input:
@@ -42,6 +44,7 @@ class FeedDatabase:
         self.prefix = prefix
         self.test = test
         self.listing = []
+        self.directory = directory
 
     @classmethod
     def from_directory(cls, directory_path, *args, **kwargs):
@@ -64,7 +67,7 @@ class FeedDatabase:
                             ) and \
                     file_decoded[0] != ".":
                 listing.append(file_decoded)
-        return cls(listing, *args, **kwargs)
+        return cls(listing, *args, directory=directory_path, **kwargs)
 
     def extract_attributes(self):
         """ Extract database fields from files
@@ -73,23 +76,32 @@ class FeedDatabase:
         listing = []
         for file in self.listing_raw:
             title = os.path.splitext(file)[0]
-            listing.append((title, file))
+            file_path = os.path.join(self.directory, file)
+            media = MediaInfo.parse(file_path)
+            media_general_track = media.tracks[0]
+            duration = getattr(media_general_track, 'duration', 0) / 1000.
+            listing.append((title, file, duration))
         self.listing = listing
 
     def save(self):
         """ Save list in database
         """
-        for title, file in self.listing:
+        for title, file, duration in self.listing:
             file_path = os.path.join(self.prefix, file)
             song = Song(
                     title=title,
-                    file_path=file_path
+                    file_path=file_path,
+                    duration=timedelta(seconds=duration)
                     )
             if not self.test:
                 print("Saving: " + title)
                 song.save()
             else:
-                print("To save:\ntitle: " + title + "\npath: " + file_path)
+                print(
+                        "To save:\ntitle: " + title +
+                        "\npath: " + file_path +
+                        "\nduration: " + str(duration)
+                        )
 
 
 if __name__ == "__main__":
