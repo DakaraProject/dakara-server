@@ -71,3 +71,9 @@ docs/_build/
 # Vim
 *.sw[po]
 *.vim
+
+# Template and static files
+**/templates/*
+!**/templates/*.md
+**/static/*
+!**/static/*.md
