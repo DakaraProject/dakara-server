@@ -7,6 +7,7 @@
 
 import os
 import sys
+from progressbar import ProgressBar
 from pymediainfo import MediaInfo
 from datetime import timedelta
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dakara_server.settings")
@@ -58,15 +59,21 @@ class FeedDatabase:
                 <object> FeedDatabase object
         """
         directory_path_encoded = directory_path.encode(file_coding)
+        directory = os.listdir(directory_path_encoded)
         listing = []
-        for file in os.listdir(directory_path_encoded):
-            file_decoded = file.decode(file_coding)
-            if os.path.isfile(os.path.join(directory_path_encoded, file)) and \
-                    os.path.splitext(file_decoded)[1] not in (
-                            '.ssa', '.ass', '.srt', '.db'
-                            ) and \
-                    file_decoded[0] != ".":
-                listing.append(file_decoded)
+        print("Collecting files")
+        with ProgressBar(max_value=len(directory)) as progress:
+            for i, file in enumerate(directory):
+                progress.update(i)
+                file_decoded = file.decode(file_coding)
+                if os.path.isfile(
+                        os.path.join(directory_path_encoded, file)
+                        ) and \
+                        os.path.splitext(file_decoded)[1] not in (
+                                '.ssa', '.ass', '.srt', '.db'
+                                ) and \
+                        file_decoded[0] != ".":
+                    listing.append(file_decoded)
         return cls(listing, *args, directory=directory_path, **kwargs)
 
     def extract_attributes(self):
@@ -74,35 +81,41 @@ class FeedDatabase:
         """
 
         listing = []
-        for file in self.listing_raw:
-            title = os.path.splitext(file)[0]
-            file_path = os.path.join(self.directory, file)
-            media = MediaInfo.parse(file_path)
-            media_general_track = media.tracks[0]
-            duration = getattr(media_general_track, 'duration', 0) or 0
-            duration /= 1000.
-            listing.append((title, file, duration))
+        print("Extracting data from files")
+        with ProgressBar(max_value=len(self.listing_raw)) as progress:
+            for i, file in enumerate(self.listing_raw):
+                progress.update(i)
+                title = os.path.splitext(file)[0]
+                file_path = os.path.join(self.directory, file)
+                media = MediaInfo.parse(file_path)
+                media_general_track = media.tracks[0]
+                duration = getattr(media_general_track, 'duration', 0) or 0
+                duration /= 1000.
+                listing.append((title, file, duration))
         self.listing = listing
 
     def save(self):
         """ Save list in database
         """
-        for title, file, duration in self.listing:
-            file_path = os.path.join(self.prefix, file)
-            song = Song(
-                    title=title,
-                    file_path=file_path,
-                    duration=timedelta(seconds=duration)
-                    )
-            if not self.test:
-                print("Saving: " + title)
-                song.save()
-            else:
-                print(
-                        "To save:\ntitle: " + title +
-                        "\npath: " + file_path +
-                        "\nduration: " + str(duration)
+        print("Saving entries to database")
+        with ProgressBar(max_value=len(self.listing)) as progress:
+            for i, (title, file, duration) in enumerate(self.listing):
+                file_path = os.path.join(self.prefix, file)
+                song = Song(
+                        title=title,
+                        file_path=file_path,
+                        duration=timedelta(seconds=duration)
                         )
+                if not self.test:
+                    progress.update(i)
+                    song.save()
+                else:
+                    print(
+                            "Title: " + title +
+                            "\nPath: " + file_path +
+                            "\nDuration: " + str(duration) +
+                            "\n"
+                            )
 
 
 if __name__ == "__main__":
