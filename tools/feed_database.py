@@ -91,7 +91,6 @@ class FeedDatabase:
                 media = MediaInfo.parse(file_path)
                 media_general_track = media.tracks[0]
                 duration = getattr(media_general_track, 'duration', 0) or 0
-                duration /= 1000.
                 listing.append((title, file, duration))
         self.listing = listing
 
@@ -105,7 +104,7 @@ class FeedDatabase:
                 song = Song(
                         title=title,
                         file_path=file_path,
-                        duration=timedelta(seconds=duration)
+                        duration=timedelta(milliseconds=int(duration))
                         )
                 if not self.test:
                     progress.update(i)
