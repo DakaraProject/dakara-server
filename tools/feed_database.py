@@ -7,6 +7,7 @@
 
 import os
 import sys
+import logging
 from progressbar import ProgressBar
 from pymediainfo import MediaInfo
 from datetime import timedelta
@@ -140,8 +141,18 @@ and feed the Django database with it"
             help="run script in test mode, don't save anything in database",
             action="store_true"
             )
+    parser.add_argument(
+            "--debug-sql",
+            help="show Django SQL logs (very verbose)",
+            action="store_true"
+            )
 
     args = parser.parse_args()
+
+    if args.debug_sql:
+        logger = logging.getLogger('django.db.backends')
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(logging.StreamHandler())
 
     feed_database = FeedDatabase.from_directory(
             directory_path=args.directory,
