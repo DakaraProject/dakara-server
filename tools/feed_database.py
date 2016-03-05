@@ -79,7 +79,8 @@ class FeedDatabase:
             file_path = os.path.join(self.directory, file)
             media = MediaInfo.parse(file_path)
             media_general_track = media.tracks[0]
-            duration = getattr(media_general_track, 'duration', 0) / 1000.
+            duration = getattr(media_general_track, 'duration', 0) or 0
+            duration /= 1000.
             listing.append((title, file, duration))
         self.listing = listing
 
