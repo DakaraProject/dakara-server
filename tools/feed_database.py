@@ -141,6 +141,12 @@ and feed the Django database with it"
             action="store_true"
             )
     parser.add_argument(
+            "-a",
+            "--auto-prefix",
+            help="use directory-name as prefix",
+            action="store_true"
+            )
+    parser.add_argument(
             "--debug-sql",
             help="show Django SQL logs (very verbose)",
             action="store_true"
@@ -153,9 +159,13 @@ and feed the Django database with it"
         logger.setLevel(logging.DEBUG)
         logger.addHandler(logging.StreamHandler())
 
+    prefix = args.prefix or ""
+    if args.auto_prefix:
+        prefix = os.path.basename(os.path.normpath(args.directory))
+
     feed_database = FeedDatabase.from_directory(
             directory_path=args.directory,
-            prefix=args.prefix or "",
+            prefix=prefix,
             test=args.test_mode
 
             )
