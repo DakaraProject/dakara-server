@@ -2,26 +2,20 @@ from rest_framework import serializers
 from library.models import Song
 
 
-class MinutesSecondsDurationField(serializers.DurationField):
-    """ Field that displays only minues and seconds
+class SecondsDurationField(serializers.DurationField):
+    """ Field that displays only seconds
     """
 
     def to_representation(self, obj):
         """ Method for serializing duration in right format
         """
-        seconds = int(obj.total_seconds())
-        minutes = seconds // 60
-        seconds = seconds % 60
-        return "{m:02n}:{s:02n}".format(
-                m=minutes,
-                s=seconds
-                )
+        return str(int(round(obj.total_seconds())))
 
 
 class SongSerializer(serializers.HyperlinkedModelSerializer):
     """ Class for song serializer
     """
-    duration = MinutesSecondsDurationField()
+    duration = SecondsDurationField()
 
     class Meta:
         model = Song
