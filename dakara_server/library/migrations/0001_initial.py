@@ -7,16 +7,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('library', '0003_auto_20160313_1822'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PlaylistEntry',
+            name='Song',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
+                ('title', models.CharField(max_length=255)),
+                ('file_path', models.CharField(max_length=255)),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
-                ('song', models.ForeignKey(to='library.Song')),
+                ('date_updated', models.DateTimeField(auto_now=True)),
             ],
         ),
     ]
