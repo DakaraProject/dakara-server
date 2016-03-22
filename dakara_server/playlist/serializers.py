@@ -84,3 +84,11 @@ class PlayerErrorSerializer(serializers.Serializer):
     """
     playlist_entry = serializers.IntegerField()
     error_message = serializers.CharField(max_length=255)
+
+
+class PlayerErrorsPoolSerializer(serializers.Serializer):
+    """ Class for player errors sent to the client
+    """
+    id = serializers.IntegerField()
+    song = SongSerializer(many=False, read_only=True)
+    error_message = serializers.CharField(max_length=255)

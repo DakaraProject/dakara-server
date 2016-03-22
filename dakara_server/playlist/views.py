@@ -13,7 +13,8 @@ from playlist.serializers import PlaylistEntrySerializer, \
                                  PlayerSerializer, \
                                  PlayerDetailsSerializer, \
                                  PlayerCommandSerializer, \
-                                 PlayerErrorSerializer
+                                 PlayerErrorSerializer, \
+                                 PlayerErrorsPoolSerializer
 import logging
 
 # logger object
@@ -217,8 +218,23 @@ class PlayerErrorView(APIView):
     """
     permission_classes = (IsAuthenticated,)
 
+    def get(self, request):
+        """ Send player error pool
+        """
+        player_errors_pool = get_player_errors_pool()
+        serializer = PlayerErrorsPoolSerializer(
+                player_errors_pool,
+                many=True,
+                context={'request': request}
+               )
+        return Response(
+                serializer.data,
+                status.HTTP_200_OK
+                )
+
     def post(self, request):
-        """ Recieve error message, log it and delete entry from playlist
+        """ Recieve error message, log it, keep it in cache and delete
+            entry from playlist
 
             The error can happen at the middle of the song, or at its
             very beginning. In that case, the player may have had no
@@ -240,7 +256,7 @@ class PlayerErrorView(APIView):
                 entry_id_to_delete = entry_id_current
                 # change player status
                 player.playlist_id_entry = None
-                cache.set('playe', player)
+                cache.set('player', player)
 
             elif entry_id_error == entry_id_next:
                 # the server does not know the player has
@@ -258,12 +274,25 @@ class PlayerErrorView(APIView):
             assert entry_id_to_delete is not None, \
                 "Player is playing something inconsistent"
 
+            # log the event
             logger.warning("WARNING Unable to play {song}, \
 remove from playlist\n\
 Error message: {error_message}".format(
-                song=PlaylistEntry.objects.get(id=entry_id_to_delete),
+                song=PlaylistEntry.objects.get(id=entry_id_to_delete).song,
                 error_message=player_error.validated_data['error_message']
                 ))
+
+            # store the event in player error pool
+            player_errors_pool = get_player_errors_pool()
+            player_errors_count = get_player_errors_count()
+            player_errors_pool.append({
+                'id': player_errors_count,
+                'song': PlaylistEntry.objects.get(id=entry_id_to_delete).song,
+                'error_message': player_error.validated_data['error_message'],
+                })
+            cache.set('player_errors_pool', player_errors_pool, 10)
+            cache.incr('player_errors_count')
+
             # remove the problematic song from the playlist
             PlaylistEntry.objects.get(id=entry_id_to_delete).delete()
 
@@ -308,3 +337,22 @@ def get_player_command():
     if player_command is None:
         player_command = PlayerCommand()
     return player_command
+
+
+def get_player_errors_count():
+    """ Load or create a new count for player errors
+    """
+    count = cache.get('player_errors_count')
+    if count is None:
+        count = 0
+        cache.set('player_errors_count', 0)
+    return count
+
+
+def get_player_errors_pool():
+    """ Load or create a new pool for player errors
+    """
+    pool = cache.get('player_errors_pool')
+    if pool is None:
+        pool = []
+    return pool
