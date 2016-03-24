@@ -213,8 +213,8 @@ class PlayerForPlayerView(APIView):
                 )
 
 
-class PlayerErrorView(APIView):
-    """ Class to handle player errors
+class PlayerErrorsForUserView(APIView):
+    """ Class to send player errors pool
     """
     permission_classes = (IsAuthenticated,)
 
@@ -226,11 +226,17 @@ class PlayerErrorView(APIView):
                 player_errors_pool,
                 many=True,
                 context={'request': request}
-               )
+                )
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
                 )
+
+
+class PlayerErrorForPlayerView(APIView):
+    """ Class to handle player errors
+    """
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         """ Recieve error message, log it, keep it in cache and delete

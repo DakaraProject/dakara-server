@@ -27,11 +27,12 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     #route for the player
     url(r'^player/status/$', PlayerForPlayerView.as_view()),
-    url(r'^player/error/$', PlayerErrorView.as_view()),
+    url(r'^player/error/$', PlayerErrorForPlayerView.as_view()),
 
     #routes for the user
     url(r'^playlist/player/manage/$', PlayerCommandForUserView.as_view()),
     url(r'^playlist/player/status/$', PlayerForUserView.as_view()),
+    url(r'^playlist/player/errors/$', PlayerErrorsForUserView.as_view()),
     url(r'^playlist/$', PlaylistEntryList.as_view()),
     url(r'^playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
     url(r'^library/songs/$', SongList.as_view()),
