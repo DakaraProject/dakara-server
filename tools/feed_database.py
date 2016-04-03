@@ -40,7 +40,14 @@ class DatabaseFeeder:
     """ Class representing a list of DatabaseFeederEntry to feed the database with
     """
 
-    def __init__(self, listing, prefix="", dry_run=False, directory_path=""):
+    def __init__(
+            self,
+            listing,
+            prefix="",
+            dry_run=False,
+            directory_path="",
+            progress_show=False
+            ):
         """ Constructor
 
             input:
@@ -48,6 +55,7 @@ class DatabaseFeeder:
                 prefix <str> directory prefix to be appended to file name
                 dry_run <bool> flag for test mode (no save in database)
                 directory_path <str> parent directory of the songs
+                no_output <bool> disable all outputs
         """
         if type(listing) not in (list, tuple):
             raise ValueError("listing argument must be a list or a tuple")
@@ -60,6 +68,7 @@ class DatabaseFeeder:
         self.prefix = prefix
         self.dry_run = dry_run
         self.directory_path = directory_path
+        self.progress_show = progress_show
 
     @classmethod
     def from_directory(
@@ -68,6 +77,7 @@ class DatabaseFeeder:
             *args,
             prefix="",
             append_only=False,
+            progress_show=False,
             **kwargs
             ):
         """ Overloaded constructor
@@ -84,27 +94,35 @@ class DatabaseFeeder:
         listing = []
         created_amount = 0
         print("Collecting files")
-        with ProgressBar(max_value=len(directory)) as progress:
-            for i, file_name_encoded in enumerate(directory):
-                progress.update(i)
-                file_name = file_name_encoded.decode(file_coding)
-                if \
-                        os.path.isfile(os.path.join(
-                            directory_path_encoded,
-                            file_name_encoded
-                            )) and \
-                        os.path.splitext(file_name)[1] not in (
-                            '.ssa', '.ass', '.srt', '.db'
-                            ) and \
-                        file_name[0] != ".":
-                    entry = DatabaseFeederEntry(file_name, prefix)
-                    if append_only and entry.created or not append_only:
-                        listing.append(entry)
-                    if entry.created:
-                        created_amount += 1
+        if progress_show:
+            progress = ProgressBar(max_value=len(directory)).start()
+
+        for i, file_name_encoded in enumerate(directory):
+            if progress_show:
+                progress.update(i + 1)
+
+            file_name = file_name_encoded.decode(file_coding)
+            if \
+                    os.path.isfile(os.path.join(
+                        directory_path_encoded,
+                        file_name_encoded
+                        )) and \
+                    os.path.splitext(file_name)[1] not in (
+                        '.ssa', '.ass', '.srt', '.db'
+                        ) and \
+                    file_name[0] != ".":
+                entry = DatabaseFeederEntry(file_name, prefix)
+                if entry.created or not append_only:
+                    listing.append(entry)
+
+                if entry.created:
+                    created_amount += 1
+
+        if progress_show:
+            progress.finish()
 
         if created_amount:
-            print("{} new song{} created".format(
+            print("{} new song{} detected".format(
                 created_amount,
                 "s" if created_amount > 1 else ""
                 ))
@@ -114,6 +132,7 @@ class DatabaseFeeder:
                 *args,
                 directory_path=directory_path,
                 prefix=prefix,
+                progress_show=progress_show,
                 **kwargs
                 )
 
@@ -121,52 +140,83 @@ class DatabaseFeeder:
         """ Extract database fields from files name
         """
         print("Extracting data from files name")
-        with ProgressBar(max_value=len(self.listing)) as progress:
-            for i, entry in enumerate(self.listing):
-                progress.update(i)
-                entry.set_from_file_name()
+        if self.progress_show:
+            progress = ProgressBar(max_value=len(self.listing)).start()
+
+        for i, entry in enumerate(self.listing):
+            if self.progress_show:
+                progress.update(i + 1)
+            entry.set_from_file_name()
+
+        if self.progress_show:
+            progress.finish()
 
     def set_from_media_info(self):
         """ Extract database fields from files media info
         """
         print("Extracting data from files media info")
-        with ProgressBar(max_value=len(self.listing)) as progress:
-            for i, entry in enumerate(self.listing):
-                progress.update(i)
-                entry.set_from_media_info(self.directory_path)
+        if self.progress_show:
+            progress = ProgressBar(max_value=len(self.listing)).start()
+
+        for i, entry in enumerate(self.listing):
+            if self.progress_show:
+                progress.update(i + 1)
+            entry.set_from_media_info(self.directory_path)
+
+        if self.progress_show:
+            progress.finish()
 
     def set_from_meta_data(self):
         """ Extract database fields from files metadata
         """
         print("Extracting data from files metadata")
-        with ProgressBar(max_value=len(self.listing)) as progress:
-            for i, entry in enumerate(self.listing):
-                progress.update(i)
-                entry.set_from_meta_data()
+        if self.progress_show:
+            progress = ProgressBar(max_value=len(self.listing)).start()
+
+        for i, entry in enumerate(self.listing):
+            if self.progress_show:
+                progress.update(i + 1)
+            entry.set_from_meta_data()
+
+        if self.progress_show:
+            progress.finish()
 
     def save(self):
         """ Save list in database
         """
-        print("Saving entries to database")
-        with ProgressBar(max_value=len(self.listing)) as progress:
-            save_fun = self._save_dry_run if self.dry_run else self._save_real
-            for i, entry in enumerate(self.listing):
-                save_fun(entry, progress, i)
+        if self.dry_run:
+            print("Entries to save")
 
-    def _save_real(self, entry, progress, iterator):
+        else:
+            print("Saving entries to database")
+
+        if self.progress_show and not self.dry_run:
+            progress = ProgressBar(max_value=len(self.listing)).start()
+
+        for i, entry in enumerate(self.listing):
+            if self.dry_run:
+                self._save_dry_run(entry)
+
+            else:
+                self._save_real(entry)
+                if self.progress_show:
+                    progress.update(i + 1)
+
+        if self.progress_show and not self.dry_run:
+            progress.finish()
+
+    def _save_real(self, entry):
         """ Real save process
         """
         entry.save()
-        progress.update(iterator)
 
-    def _save_dry_run(self, entry, *args, **kwargs):
+    def _save_dry_run(self, entry):
         """ Simulated save process
         """
         entry_serializer = SongSerializer(entry.song, context=context_dummy)
+        print()
         for key, value in entry_serializer.data.items():
             print(key, ":", value)
-
-        print()
 
 
 class DatabaseFeederEntry:
@@ -257,6 +307,11 @@ and feed the Django database with it"
             action="store_true"
             )
     parser.add_argument(
+            "--no-progress",
+            help="don't display progress bars",
+            action="store_true"
+            )
+    parser.add_argument(
             "--debug-sql",
             help="show Django SQL logs (very verbose)",
             action="store_true"
@@ -277,7 +332,8 @@ and feed the Django database with it"
             directory_path=args.directory,
             prefix=prefix,
             dry_run=args.dry_run,
-            append_only=args.append_only
+            append_only=args.append_only,
+            progress_show=not args.no_progress
             )
 
     database_feeder.set_from_file_name()
