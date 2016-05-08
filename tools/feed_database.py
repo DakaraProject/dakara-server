@@ -8,6 +8,7 @@
 import os
 import sys
 import logging
+import importlib
 from progressbar import ProgressBar
 from pymediainfo import MediaInfo
 from datetime import timedelta
@@ -22,7 +23,7 @@ sys.path.append(
         )
 
 try:
-    from library.models import Song
+    from library.models import * 
     from library.serializers import SongSerializer
     from django.test.client import RequestFactory
     import django
@@ -46,7 +47,8 @@ class DatabaseFeeder:
             prefix="",
             dry_run=False,
             directory_path="",
-            progress_show=False
+            progress_show=False,
+            custom_parser=None
             ):
         """ Constructor
 
@@ -69,6 +71,7 @@ class DatabaseFeeder:
         self.dry_run = dry_run
         self.directory_path = directory_path
         self.progress_show = progress_show
+        self.custom_parser = custom_parser
 
     @classmethod
     def from_directory(
@@ -146,7 +149,7 @@ class DatabaseFeeder:
         for i, entry in enumerate(self.listing):
             if self.progress_show:
                 progress.update(i + 1)
-            entry.set_from_file_name()
+            entry.set_from_file_name(self.custom_parser)
 
         if self.progress_show:
             progress.finish()
@@ -246,10 +249,28 @@ class DatabaseFeederEntry:
         self.created = created
         self.song = song
 
-    def set_from_file_name(self):
+    def set_from_file_name(self, custom_parser):
         """ Set attributes by extracting them from file name
         """
-        self.song.title = os.path.splitext(self.file_name)[0]
+        file_name = os.path.splitext(self.file_name)[0]
+
+        self.song.title = file_name
+        self.title_work = None
+        self.subtitle_work = None
+        self.link_type = None 
+        self.link_nb = None
+        self.artists = None
+
+        if custom_parser:
+            data = custom_parser.parse_file_name(file_name)
+            self.song.title = data['title_music']
+            self.song.detail = data['detail']
+            self.title_work = data['title_work']
+            self.subtitle_work = data['subtitle_work']
+            self.link_type = data['link_type'] 
+            self.link_nb = data['link_nb']
+            self.artists = data['artists']
+            
 
     def set_from_media_info(self, directory_path):
         """ Set attributes by extracting them from media info
@@ -273,6 +294,23 @@ class DatabaseFeederEntry:
         """
         self.song.save()
 
+        # Create link to work if there is one
+        if self.title_work:
+            work, created = Work.objects.get_or_create(title=self.title_work,subtitle=self.subtitle_work)
+            link, created_link = SongWorkLink.objects.get_or_create(song_id = self.song.id, work_id = work.id)
+            if self.link_type:
+                link.link_type = self.link_type
+            if self.link_nb:
+                link.link_type_number = int(self.link_nb)
+            else:
+                link.link_type_number = None
+            link.save()
+        
+        # Create link to artists if there are any
+        if self.artists:
+            for artist_name in self.artists:
+                artist, created = Artist.objects.get_or_create(name=artist_name)
+                self.song.artists.add(artist)
 
 if __name__ == "__main__":
     import argparse
@@ -289,6 +327,20 @@ and feed the Django database with it"
             "-p",
             "--prefix",
             help="prefix to add to file path stored in database"
+            )
+    parser.add_argument(
+            "--parser",
+            help="Name of a custom python module used to extract data from file name.\
+                    This module should define a method called parse_file_name\
+                    which takes a file name as argument and return a dictionnary with the following :\
+                    title_music : (String) Title of the music.\
+                    detail : (String) Details about the music.\
+                    artists : (Array of String) List of artists.\
+                    title_work : (String) Name of the work related to this song.\
+                    subtitle_work : (String) SubName of the work related to this song.\
+                    link_type : (String Enum : OP ED IS IN) Type of relation between the work and the song.\
+                    link_nb : (Integer) For OP and ED link type, number of OP or ED.\
+                    All of these values, except title_music are optional, if a value is not used, set it to None."
             )
     parser.add_argument(
             "-d",
@@ -327,13 +379,18 @@ and feed the Django database with it"
     prefix = args.prefix or ""
     if args.auto_prefix:
         prefix = os.path.basename(os.path.normpath(args.directory))
+    
+    custom_parser = None
+    if args.parser:
+        custom_parser = importlib.import_module(args.parser)
 
     database_feeder = DatabaseFeeder.from_directory(
             directory_path=args.directory,
             prefix=prefix,
             dry_run=args.dry_run,
             append_only=args.append_only,
-            progress_show=not args.no_progress
+            progress_show=not args.no_progress,
+            custom_parser=custom_parser
             )
 
     database_feeder.set_from_file_name()
