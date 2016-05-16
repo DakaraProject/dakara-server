@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from library.models import Song, Artist, Work, SongWorkLink
+from library.models import Song, Artist, Work, SongWorkLink, WorkType
 
 
 class SecondsDurationField(serializers.DurationField):
@@ -22,14 +22,27 @@ class ArtistSerializer(serializers.ModelSerializer):
                 )
 
 
+class WorkTypeSerializer(serializers.ModelSerializer):
+    """ Class for work type serializer
+    """
+    class Meta:
+        model = WorkType 
+        fields = (
+                'name',
+                'icon_name'
+                )
+
+
 class WorkSerializer(serializers.ModelSerializer):
     """ Class for work serializer
     """
+    work_type = WorkTypeSerializer(many=False, read_only=True)
     class Meta:
         model = Work
         fields = (
                 'title',
-                'subtitle'
+                'subtitle',
+                'work_type'
                 )
 
 

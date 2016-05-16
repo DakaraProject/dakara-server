@@ -33,10 +33,20 @@ class Work(models.Model):
     """
     title = models.CharField(max_length=255)
     subtitle = models.CharField(max_length=255, blank=True)
+    work_type = models.ForeignKey('WorkType', null=True)
 
     def __str__(self):
         return str(self.title)
 
+class WorkType(models.Model):
+    """ Class for the type of a work: anime, games and so on 
+    """
+    name = models.CharField(max_length=255)
+    # icon_name refers to a fontawesome icon name
+    icon_name = models.CharField(max_length=255, null=True)
+
+    def __str__(self):
+        return str(self.name)
 
 class SongWorkLink(models.Model):
     """ Class to describe the use of a song in a work

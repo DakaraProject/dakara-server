@@ -23,7 +23,7 @@ sys.path.append(
         )
 
 try:
-    from library.models import * 
+    from library.models import *
     from library.serializers import SongSerializer
     from django.test.client import RequestFactory
     import django
@@ -260,6 +260,7 @@ class DatabaseFeederEntry:
         self.link_type = None 
         self.link_nb = None
         self.artists = None
+        self.work_type = None
 
         if custom_parser:
             data = custom_parser.parse_file_name(file_name)
@@ -267,6 +268,7 @@ class DatabaseFeederEntry:
             self.song.detail = data['detail']
             self.title_work = data['title_work']
             self.subtitle_work = data['subtitle_work']
+            self.work_type = data['work_type']
             self.link_type = data['link_type'] 
             self.link_nb = data['link_nb']
             self.artists = data['artists']
@@ -305,6 +307,11 @@ class DatabaseFeederEntry:
             else:
                 link.link_type_number = None
             link.save()
+
+            if self.work_type:
+                work_type, created = WorkType.objects.get_or_create(name=self.work_type)
+                work.work_type = work_type
+                work.save()
         
         # Create link to artists if there are any
         if self.artists:
