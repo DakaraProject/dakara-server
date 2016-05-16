@@ -259,17 +259,16 @@ class PlayerErrorForPlayerView(APIView):
             if entry_id_error == entry_id_current:
                 # the server knows the player has already
                 # started playing
-                entry_id_to_delete = entry_id_current
-                # change player status
-                player.playlist_id_entry = None
-                cache.set('player', player)
+                # Nothing to do
+                pass
 
             elif entry_id_error == entry_id_next:
                 # the server does not know the player has
                 # started playing,
                 # which means the error occured immediately and
                 # status of the player has not been updated yet
-                entry_id_to_delete = entry_id_next
+                # remove the problematic song from the playlist
+                PlaylistEntry.objects.get(id=entry_id_next).delete()
 
             else:
                 # TODO error
@@ -277,14 +276,11 @@ class PlayerErrorForPlayerView(APIView):
                 logger.error(message)
                 raise Exception(message)
 
-            assert entry_id_to_delete is not None, \
-                "Player is playing something inconsistent"
-
             # log the event
             logger.warning("WARNING Unable to play {song}, \
 remove from playlist\n\
 Error message: {error_message}".format(
-                song=PlaylistEntry.objects.get(id=entry_id_to_delete).song,
+                song=PlaylistEntry.objects.get(id=entry_id_error).song,
                 error_message=player_error.validated_data['error_message']
                 ))
 
@@ -293,14 +289,12 @@ Error message: {error_message}".format(
             player_errors_count = get_player_errors_count()
             player_errors_pool.append({
                 'id': player_errors_count,
-                'song': PlaylistEntry.objects.get(id=entry_id_to_delete).song,
+                'song': PlaylistEntry.objects.get(id=entry_id_error).song,
                 'error_message': player_error.validated_data['error_message'],
                 })
             cache.set('player_errors_pool', player_errors_pool, 10)
             cache.incr('player_errors_count')
 
-            # remove the problematic song from the playlist
-            PlaylistEntry.objects.get(id=entry_id_to_delete).delete()
 
             return Response(
                     status=status.HTTP_200_OK
