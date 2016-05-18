@@ -12,6 +12,7 @@ import importlib
 from progressbar import ProgressBar
 from pymediainfo import MediaInfo
 from datetime import timedelta
+from warnings import warn
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dakara_server.settings")
 package_path = os.path.dirname(__file__)
 sys.path.append(
@@ -29,8 +30,7 @@ try:
     import django
 
 except ImportError as e:
-    print("Unable to import Django modules:\n" + str(e))
-    exit(1)
+    raise ImportError("Unable to import Django modules")
 
 file_coding = sys.getfilesystemencoding()
 context_dummy = dict(request=RequestFactory().get('/'))
@@ -57,7 +57,26 @@ class DatabaseFeeder:
                 prefix <str> directory prefix to be appended to file name
                 dry_run <bool> flag for test mode (no save in database)
                 directory_path <str> parent directory of the songs
-                no_output <bool> disable all outputs
+                progress_show <bool> show the progress bar
+                custom_parser <module> name of a custom python module used
+                    to extract data from file name; soo notes below
+
+            about custom_parser:
+                This module should define a method called parse_file_name
+                which takes a file name as argument and return a
+                dictionnary with the following:
+                    title_music <str> title of the music
+                    detail <str> details about the music
+                    artists <list> of <str> list of artists
+                    title_work <str> name of the work related
+                        to this song
+                    subtitle_work <str> subname of the work related to
+                        this song
+                    link_type <str> enum (OP ED IS IN) type of relation
+                        between the work and the song
+                    link_nb <int> for OP and ED link type, number of OP or ED
+                All of these values, except title_music, are optional; if a
+                    value is not used, set it to None
         """
         if type(listing) not in (list, tuple):
             raise ValueError("listing argument must be a list or a tuple")
@@ -143,16 +162,28 @@ class DatabaseFeeder:
         """ Extract database fields from files name
         """
         print("Extracting data from files name")
+        error_ids = []
         if self.progress_show:
             progress = ProgressBar(max_value=len(self.listing)).start()
 
         for i, entry in enumerate(self.listing):
             if self.progress_show:
                 progress.update(i + 1)
-            entry.set_from_file_name(self.custom_parser)
+
+            try:
+                entry.set_from_file_name(self.custom_parser)
+
+            except DatabaseFeederEntryError:
+                warn("Cannot import file '{file_name}'".format(
+                    file_name=entry.file_name
+                    ))
+                error_ids.append(i)
 
         if self.progress_show:
             progress.finish()
+
+        for error_id in error_ids:
+            self.listing.pop(error_id)
 
     def set_from_media_info(self):
         """ Extract database fields from files media info
@@ -219,7 +250,7 @@ class DatabaseFeeder:
         entry_serializer = SongSerializer(entry.song, context=context_dummy)
         print()
         for key, value in entry_serializer.data.items():
-            print(key, ":", value)
+            print(str(key) + ":", value)
 
 
 class DatabaseFeederEntry:
@@ -263,7 +294,12 @@ class DatabaseFeederEntry:
         self.work_type = None
 
         if custom_parser:
-            data = custom_parser.parse_file_name(file_name)
+            try:
+                data = custom_parser.parse_file_name(file_name)
+
+            except:
+                raise DatabaseFeederEntryError
+
             self.song.title = data['title_music']
             self.song.detail = data['detail']
             self.title_work = data['title_work']
@@ -272,7 +308,6 @@ class DatabaseFeederEntry:
             self.link_type = data['link_type'] 
             self.link_nb = data['link_nb']
             self.artists = data['artists']
-            
 
     def set_from_media_info(self, directory_path):
         """ Set attributes by extracting them from media info
@@ -312,12 +347,18 @@ class DatabaseFeederEntry:
                 work_type, created = WorkType.objects.get_or_create(name=self.work_type)
                 work.work_type = work_type
                 work.save()
-        
+
         # Create link to artists if there are any
         if self.artists:
             for artist_name in self.artists:
                 artist, created = Artist.objects.get_or_create(name=artist_name)
                 self.song.artists.add(artist)
+
+
+class DatabaseFeederEntryError(Exception):
+    """ Class for handling errors raised when dealing with
+        a file gathered by the feeder
+    """
 
 if __name__ == "__main__":
     import argparse
@@ -337,17 +378,7 @@ and feed the Django database with it"
             )
     parser.add_argument(
             "--parser",
-            help="Name of a custom python module used to extract data from file name.\
-                    This module should define a method called parse_file_name\
-                    which takes a file name as argument and return a dictionnary with the following :\
-                    title_music : (String) Title of the music.\
-                    detail : (String) Details about the music.\
-                    artists : (Array of String) List of artists.\
-                    title_work : (String) Name of the work related to this song.\
-                    subtitle_work : (String) SubName of the work related to this song.\
-                    link_type : (String Enum : OP ED IS IN) Type of relation between the work and the song.\
-                    link_nb : (Integer) For OP and ED link type, number of OP or ED.\
-                    All of these values, except title_music are optional, if a value is not used, set it to None."
+            help="Name of a custom python module used to extract data from file name; see internal doc for what is expected for this module"
             )
     parser.add_argument(
             "-d",
@@ -389,7 +420,7 @@ and feed the Django database with it"
     
     custom_parser = None
     if args.parser:
-        custom_parser = importlib.import_module(args.parser)
+        custom_parser = importlib.import_module(os.path.splitext(args.parser)[0])
 
     database_feeder = DatabaseFeeder.from_directory(
             directory_path=args.directory,
