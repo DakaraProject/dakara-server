@@ -292,6 +292,7 @@ class DatabaseFeederEntry:
         self.link_nb = None
         self.artists = None
         self.work_type = None
+        self.tags = None
 
         if custom_parser:
             try:
@@ -308,6 +309,7 @@ class DatabaseFeederEntry:
             self.link_type = data.get('link_type')
             self.link_nb = data.get('link_nb')
             self.artists = data.get('artists')
+            self.tags = data.get('tags')
 
     def set_from_media_info(self, directory_path):
         """ Set attributes by extracting them from media info
@@ -353,6 +355,12 @@ class DatabaseFeederEntry:
             else:
                 link.link_type_number = None
             link.save()
+
+        # Create tags to song if there are any
+        if self.tags:
+            for tag_name in self.tags:
+                tag, created = SongTag.objects.get_or_create(name=tag_name)
+                self.song.tags.add(tag)
 
 
         # Create link to artists if there are any

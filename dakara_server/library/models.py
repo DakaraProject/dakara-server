@@ -10,6 +10,7 @@ class Song(models.Model):
     file_path = models.CharField(max_length=255)
     duration = SafeDurationField(default=timedelta(0))
     detail = models.CharField(max_length=255, blank=True)
+    tags = models.ManyToManyField('SongTag')
     artists = models.ManyToManyField('Artist')
     works = models.ManyToManyField('Work', through='SongWorkLink')
     date_created = models.DateTimeField(auto_now_add=True)
@@ -38,6 +39,7 @@ class Work(models.Model):
     def __str__(self):
         return str(self.title)
 
+
 class WorkType(models.Model):
     """ Class for the type of a work: anime, games and so on 
     """
@@ -47,6 +49,7 @@ class WorkType(models.Model):
 
     def __str__(self):
         return str(self.name)
+
 
 class SongWorkLink(models.Model):
     """ Class to describe the use of a song in a work
@@ -70,3 +73,10 @@ class SongWorkLink(models.Model):
     def __str__(self):
         return str(self.work.title) + ' ' + str(self.link_type) + \
             (' ' + str(self.link_type_number) if self.link_type_number else '')
+
+
+class SongTag(models.Model):
+    """ Class to describe song tags
+    """
+    name = models.CharField(max_length=255)
+    color_id = models.IntegerField(null=True)

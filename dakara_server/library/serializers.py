@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from library.models import Song, Artist, Work, SongWorkLink, WorkType
+from library.models import Song, Artist, Work, SongWorkLink, WorkType, SongTag
 
 
 class SecondsDurationField(serializers.DurationField):
@@ -60,12 +60,23 @@ class SongWorkLinkSerializer(serializers.ModelSerializer):
                 )
 
 
+class SongTagSerializer(serializers.ModelSerializer):
+    """ Class for song tags serializer
+    """
+    class Meta:
+        model = SongTag
+        fields = (
+                'name',
+                'color_id',
+                )
+
 
 class SongSerializer(serializers.HyperlinkedModelSerializer):
     """ Class for song serializer
     """
     duration = SecondsDurationField()
     artists = ArtistSerializer(many=True, read_only=True)
+    tags = SongTagSerializer(many=True, read_only=True)
     works = SongWorkLinkSerializer(many=True, read_only=True, source='songworklink_set')
 
     class Meta:
@@ -77,6 +88,7 @@ class SongSerializer(serializers.HyperlinkedModelSerializer):
                 'file_path',
                 'duration',
                 'detail',
+                'tags',
                 'artists',
                 'works',
                 'date_created',
@@ -85,7 +97,7 @@ class SongSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class SongForPlayerSerializer(serializers.ModelSerializer):
-    """ Class for song serializer
+    """ Class for song serializer, to be used by the player
     """
     class Meta:
         model = Song
