@@ -288,7 +288,7 @@ class DatabaseFeederEntry:
         self.song.title = file_name
         self.title_work = None
         self.subtitle_work = None
-        self.link_type = None 
+        self.link_type = None
         self.link_nb = None
         self.artists = None
         self.work_type = None
@@ -300,14 +300,14 @@ class DatabaseFeederEntry:
             except:
                 raise DatabaseFeederEntryError
 
-            self.song.title = data['title_music']
-            self.song.detail = data['detail']
-            self.title_work = data['title_work']
-            self.subtitle_work = data['subtitle_work']
-            self.work_type = data['work_type']
-            self.link_type = data['link_type'] 
-            self.link_nb = data['link_nb']
-            self.artists = data['artists']
+            self.song.title = data.get('title_music')
+            self.song.detail = data.get('detail')
+            self.title_work = data.get('title_work')
+            self.subtitle_work = data.get('subtitle_work')
+            self.work_type = data.get('work_type')
+            self.link_type = data.get('link_type')
+            self.link_nb = data.get('link_nb')
+            self.artists = data.get('artists')
 
     def set_from_media_info(self, directory_path):
         """ Set attributes by extracting them from media info
@@ -333,7 +333,18 @@ class DatabaseFeederEntry:
 
         # Create link to work if there is one
         if self.title_work:
-            work, created = Work.objects.get_or_create(title=self.title_work,subtitle=self.subtitle_work)
+            if self.work_type:
+                work_type, created = WorkType.objects.get_or_create(name=self.work_type)
+
+            else:
+                work_type = None
+
+            work, created = Work.objects.get_or_create(
+                    title=self.title_work,
+                    subtitle=self.subtitle_work,
+                    work_type=work_type
+                    )
+
             link, created_link = SongWorkLink.objects.get_or_create(song_id = self.song.id, work_id = work.id)
             if self.link_type:
                 link.link_type = self.link_type
@@ -343,10 +354,6 @@ class DatabaseFeederEntry:
                 link.link_type_number = None
             link.save()
 
-            if self.work_type:
-                work_type, created = WorkType.objects.get_or_create(name=self.work_type)
-                work.work_type = work_type
-                work.save()
 
         # Create link to artists if there are any
         if self.artists:
