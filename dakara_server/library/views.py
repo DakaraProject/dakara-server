@@ -1,8 +1,9 @@
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, \
                                     ListCreateAPIView
 from django.db.models.functions import Lower
-from library.models import Song
+from library.models import Song, Artist, Work
 from library.serializers import SongSerializer
+from django.db.models import Q
 
 
 class SongList(ListCreateAPIView):
@@ -13,12 +14,14 @@ class SongList(ListCreateAPIView):
     def get_queryset(self):
         """ Filter the songs
         """
-        if 'title' in self.request.query_params:
-            title_query = self.request.query_params.get('title', None)
-            if title_query is not None:
+        if 'query' in self.request.query_params:
+            query = self.request.query_params.get('query', None)
+            if query is not None:
                 return Song.objects.filter(
-                        title__icontains=title_query
-                        ).order_by(Lower('title'))
+                        Q(title__icontains=query) |
+                        Q(artists__name__icontains=query) |
+                        Q(works__title__icontains=query)
+                    ).order_by(Lower('title'))
 
         return Song.objects.all().order_by(Lower('title'))
 
