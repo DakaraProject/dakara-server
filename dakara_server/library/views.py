@@ -31,7 +31,7 @@ class SongList(ListCreateAPIView):
                 for title in res['titles']:
                     q.append(Q(title__icontains=title))
                 for title in res['titles_exact']:
-                    q.append(Q(title__iexact=work))
+                    q.append(Q(title__iexact=title))
                 for remain in res['remaining']:
                     q.append(
                             Q(title__icontains=remain) |
