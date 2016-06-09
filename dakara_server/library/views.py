@@ -20,10 +20,11 @@ class SongList(ListCreateAPIView):
             if query:
                 res = parse_query(query)
                 q = []
+                q_artist = []
                 for artist in res['artists']:
-                    q.append(Q(artists__name__icontains=artist))
+                    q_artist.append(Q(artists__name__icontains=artist))
                 for artist in res['artists_exact']:
-                    q.append(Q(artists__name__iexact=artist))
+                    q_artist.append(Q(artists__name__iexact=artist))
                 for work in res['works']:
                     q.append(Q(works__title__icontains=work))
                 for work in res['works_exact']:
@@ -39,13 +40,16 @@ class SongList(ListCreateAPIView):
                             Q(works__title__icontains=remain)
                         )
 
-                filter_query = q.pop()
+                filter_query = Q() 
                 for item in q:
                     filter_query &= item
 
-                return Song.objects.filter(
-                        filter_query
-                    ).order_by(Lower('title'))
+                query_set = Song.objects.filter(filter_query)
+                
+                for item in q_artist:
+                    query_set = query_set.filter(item)
+                
+                return query_set.order_by(Lower('title'))
 
         return Song.objects.all().order_by(Lower('title'))
 
