@@ -52,7 +52,7 @@ class SongList(ListCreateAPIView):
                 # saving the query to give it back to the client
                 self.query_parsed = res
 
-                return query_set.order_by(Lower('title'))
+                return query_set.distinct().order_by(Lower('title'))
 
         return Song.objects.all().order_by(Lower('title'))
 
