@@ -6,7 +6,7 @@ KEYWORDS = [
         "title",
         ]
 
-LANGUAGE_MATCHER = re.compile(r'\b(' + r'|'.join(KEYWORDS) + r'):(?:"(.+?)"|((?:\\\s|\S)+))', re.I)
+LANGUAGE_MATCHER = re.compile(r'\b(' + r'|'.join(KEYWORDS) + r'):\s?(?:"(.+?)"|((?:\\\s|\S)+))', re.I)
 
 def parse(query):
     """ Function that parses query mini language
