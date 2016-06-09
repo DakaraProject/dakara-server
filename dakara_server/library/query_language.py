@@ -6,7 +6,7 @@ KEYWORDS = [
         "title",
         ]
 
-LANGUAGE_MATCHER = re.compile(r'\b(' + r'|'.join(KEYWORDS) + r'):\s?(?:"(.+?)"|((?:\\\s|\S)+))', re.I)
+LANGUAGE_MATCHER = re.compile(r'\b(' + r'|'.join(KEYWORDS) + r'):\s?(?:""(.+?)""|"(.+?)"|((?:\\\s|\S)+))', re.I)
 
 def parse(query):
     """ Function that parses query mini language
@@ -41,7 +41,7 @@ def parse(query):
         remaining = split[0].strip()
         target = split[1].strip() + "s"
         value_exact = (split[2] or '').strip()
-        value = (split[3] or '').replace("\\", "").strip()
+        value = (split[3] or split[4] or '').replace("\\", "").strip()
 
         if remaining:
             result['remaining'].append(remaining)
@@ -53,6 +53,6 @@ def parse(query):
         else:
             raise ValueError("Inconsistency")
 
-        query = split[4].strip()
+        query = split[5].strip()
 
     return result
