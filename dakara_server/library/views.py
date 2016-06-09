@@ -48,10 +48,24 @@ class SongList(ListCreateAPIView):
                 
                 for item in q_artist:
                     query_set = query_set.filter(item)
-                
+
+                # saving the query to give it back to the client
+                self.query_parsed = res
+
                 return query_set.order_by(Lower('title'))
 
         return Song.objects.all().order_by(Lower('title'))
+
+    def list(self, request, *args, **kwargs):
+        """ Send a listing of songs
+        """
+        response = super(SongList, self).list(request, args, kwargs)
+
+        # pass the query words to highlight to the response
+        if hasattr(self, 'query_parsed'):
+            response.data['query'] = self.query_parsed
+
+        return response
 
 
 class SongDetailView(RetrieveUpdateDestroyAPIView):
