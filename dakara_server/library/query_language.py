@@ -40,6 +40,7 @@ def parse(query):
 
         remaining = split[0].strip()
         target = split[1].strip() + "s"
+        target = target.lower()
         value_exact = (split[2] or '').strip()
         value = (split[3] or split[4] or '').replace("\\", "").strip()
 
