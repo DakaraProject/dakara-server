@@ -1,4 +1,5 @@
 import re
+import shlex
 
 KEYWORDS = [
         "artist",
@@ -35,7 +36,7 @@ def parse(query):
         split = LANGUAGE_MATCHER.split(query, maxsplit=1)
         if len(split) == 1:
             if query:
-                result['remaining'].append(query)
+                result['remaining'].extend(shlex.split(query))
             break
 
         remaining = split[0].strip()
@@ -45,7 +46,7 @@ def parse(query):
         value = (split[3] or split[4] or '').replace("\\", "").strip()
 
         if remaining:
-            result['remaining'].append(remaining)
+            result['remaining'].extend(shlex.split(remaining))
 
         if value and not value_exact:
             result.get(target).append(value)
