@@ -99,9 +99,13 @@ class SongSerializer(serializers.HyperlinkedModelSerializer):
 class SongForPlayerSerializer(serializers.ModelSerializer):
     """ Class for song serializer, to be used by the player
     """
+    artists = ArtistSerializer(many=True, read_only=True)
+    works = SongWorkLinkSerializer(many=True, read_only=True, source='songworklink_set')
     class Meta:
         model = Song
         fields = (
                 'title',
+                'artists',
+                'works',
                 'file_path',
                 )
