@@ -1,5 +1,4 @@
 import re
-import shlex
 
 KEYWORDS = [
         "artist",
@@ -8,6 +7,42 @@ KEYWORDS = [
         ]
 
 LANGUAGE_MATCHER = re.compile(r'\b(' + r'|'.join(KEYWORDS) + r'):\s?(?:""(.+?)""|"(.+?)"|((?:\\\s|\S)+))', re.I)
+
+
+def split_remaining(string):
+    result = []
+    current_expression = ""
+    in_quotes = False
+    previous_char = ""
+    for char in string:
+        if char == '"':
+            if in_quotes:
+                if current_expression:
+                    result.append(current_expression)
+                in_quotes = False 
+                current_expression = ""
+            else:
+                current_expression = current_expression.strip()
+                if current_expression:
+                    result.append(current_expression)
+                in_quotes = True
+                current_expression = ""
+        elif char == " " and not in_quotes and previous_char != "\\":
+            current_expression = current_expression.strip()
+            if current_expression:
+                result.append(current_expression)
+            current_expression = ""
+        elif char != "\\":
+            current_expression += char
+        
+        previous_char = char
+
+    current_expression = current_expression.strip()
+    if current_expression:
+        result.append(current_expression)
+
+    return result
+            
 
 def parse(query):
     """ Function that parses query mini language
@@ -36,7 +71,7 @@ def parse(query):
         split = LANGUAGE_MATCHER.split(query, maxsplit=1)
         if len(split) == 1:
             if query:
-                result['remaining'].extend(shlex.split(query))
+                result['remaining'].extend(split_remaining(query))
             break
 
         remaining = split[0].strip()
@@ -46,7 +81,7 @@ def parse(query):
         value = (split[3] or split[4] or '').replace("\\", "").strip()
 
         if remaining:
-            result['remaining'].extend(shlex.split(remaining))
+            result['remaining'].extend(split_remaining(remaining))
 
         if value and not value_exact:
             result.get(target).append(value)
