@@ -80,3 +80,6 @@ class SongTag(models.Model):
     """
     name = models.CharField(max_length=255)
     color_id = models.IntegerField(null=True)
+
+    def __str__(self):
+        return str(self.name)
