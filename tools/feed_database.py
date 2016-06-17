@@ -48,6 +48,7 @@ class DatabaseFeeder:
             dry_run=False,
             directory_path="",
             progress_show=False,
+            no_add_on_error=False,
             custom_parser=None
             ):
         """ Constructor
@@ -58,6 +59,8 @@ class DatabaseFeeder:
                 dry_run <bool> flag for test mode (no save in database)
                 directory_path <str> parent directory of the songs
                 progress_show <bool> show the progress bar
+                no_add_on_error <bool> when true do not add song when
+                parse fail
                 custom_parser <module> name of a custom python module used
                     to extract data from file name; soo notes below
 
@@ -90,6 +93,7 @@ class DatabaseFeeder:
         self.dry_run = dry_run
         self.directory_path = directory_path
         self.progress_show = progress_show
+        self.no_add_on_error = no_add_on_error
         self.custom_parser = custom_parser
 
     @classmethod
@@ -99,6 +103,7 @@ class DatabaseFeeder:
             *args,
             prefix="",
             append_only=False,
+            no_add_on_error=False,
             progress_show=False,
             **kwargs
             ):
@@ -155,6 +160,7 @@ class DatabaseFeeder:
                 directory_path=directory_path,
                 prefix=prefix,
                 progress_show=progress_show,
+                no_add_on_error=no_add_on_error,
                 **kwargs
                 )
 
@@ -174,10 +180,11 @@ class DatabaseFeeder:
                 entry.set_from_file_name(self.custom_parser)
 
             except DatabaseFeederEntryError:
-                warn("Cannot import file '{file_name}'".format(
+                warn("Cannot parse file '{file_name}'".format(
                     file_name=entry.file_name
                     ))
-                error_ids.append(i)
+                if self.no_add_on_error:
+                    error_ids.append(i)
 
         if self.progress_show:
             progress.finish()
@@ -421,6 +428,12 @@ and feed the Django database with it"
             help="show Django SQL logs (very verbose)",
             action="store_true"
             )
+    parser.add_argument(
+            "--no-add-on-error",
+            help="Do not add file when parse failed.\
+            By default parse error still add the file unparsed",
+            action="store_true"
+            )
 
     args = parser.parse_args()
 
@@ -443,7 +456,8 @@ and feed the Django database with it"
             dry_run=args.dry_run,
             append_only=args.append_only,
             progress_show=not args.no_progress,
-            custom_parser=custom_parser
+            custom_parser=custom_parser,
+            no_add_on_error=args.no_add_on_error,
             )
 
     database_feeder.set_from_file_name()
