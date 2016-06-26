@@ -39,13 +39,15 @@ class SongList(ListCreateAPIView):
                             Q(artists__name__icontains=remain) |
                             Q(works__title__icontains=remain)
                         )
+                for tag in res['tags']:
+                    q.append(Q(tags__name__iexact=tag))
 
-                filter_query = Q() 
+                filter_query = Q()
                 for item in q:
                     filter_query &= item
 
                 query_set = Song.objects.filter(filter_query)
-                
+
                 for item in q_artist:
                     query_set = query_set.filter(item)
 

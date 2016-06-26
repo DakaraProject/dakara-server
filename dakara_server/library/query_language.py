@@ -65,6 +65,7 @@ def parse(query):
             "titles": [],
             "titles_exact": [],
             "remaining": [],
+            "tags": [],
             }
 
     while True:
@@ -91,5 +92,13 @@ def parse(query):
             raise ValueError("Inconsistency")
 
         query = split[5].strip()
+
+    # deal with tags
+    for item in result["remaining"][:]:
+        if item[0] == "#":
+            result["remaining"].remove(item)
+            item_clean = item[1:]
+            if item_clean:
+                result["tags"].append(item_clean)
 
     return result
