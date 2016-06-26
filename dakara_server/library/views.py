@@ -20,11 +20,11 @@ class SongList(ListCreateAPIView):
             if query:
                 res = parse_query(query)
                 q = []
-                q_artist = []
+                q_many = []
                 for artist in res['artists']:
-                    q_artist.append(Q(artists__name__icontains=artist))
+                    q_many.append(Q(artists__name__icontains=artist))
                 for artist in res['artists_exact']:
-                    q_artist.append(Q(artists__name__iexact=artist))
+                    q_many.append(Q(artists__name__iexact=artist))
                 for work in res['works']:
                     q.append(Q(works__title__icontains=work))
                 for work in res['works_exact']:
@@ -40,7 +40,7 @@ class SongList(ListCreateAPIView):
                             Q(works__title__icontains=remain)
                         )
                 for tag in res['tags']:
-                    q.append(Q(tags__name__iexact=tag))
+                    q_many.append(Q(tags__name=tag))
 
                 filter_query = Q()
                 for item in q:
@@ -48,7 +48,7 @@ class SongList(ListCreateAPIView):
 
                 query_set = Song.objects.filter(filter_query)
 
-                for item in q_artist:
+                for item in q_many:
                     query_set = query_set.filter(item)
 
                 # saving the query to give it back to the client

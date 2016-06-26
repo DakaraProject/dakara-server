@@ -99,6 +99,6 @@ def parse(query):
             result["remaining"].remove(item)
             item_clean = item[1:]
             if item_clean:
-                result["tags"].append(item_clean)
+                result["tags"].append(item_clean.upper())
 
     return result
