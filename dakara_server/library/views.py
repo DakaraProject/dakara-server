@@ -1,16 +1,34 @@
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, \
                                     ListCreateAPIView
 from django.db.models.functions import Lower
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 from library.models import Song, Artist, Work
-from library.serializers import SongSerializer
+from library.serializers import SongSerializer, \
+                                ArtistSerializer, \
+                                WorkSerializer
 from django.db.models import Q
 from .query_language import parse as parse_query
 
 
+class LibraryPagination(PageNumberPagination):
+    """ Class for pagination
+        gives current page number and last page number
+    """
+    def get_paginated_response(self, data):
+        return Response({
+                'current': self.page.number,
+                'last': self.page.paginator.num_pages,
+                'count': self.page.paginator.count,
+                'results': data,
+            })
+
+    
 class SongList(ListCreateAPIView):
     """ Class for listing songs
     """
     serializer_class = SongSerializer
+    pagination_class = LibraryPagination
 
     def get_queryset(self):
         """ Filter the songs
