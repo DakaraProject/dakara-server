@@ -36,6 +36,8 @@ urlpatterns = [
     url(r'^playlist/$', PlaylistEntryList.as_view()),
     url(r'^playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
     url(r'^library/songs/$', SongList.as_view()),
+    url(r'^library/artists/$', ArtistList.as_view()),
+    url(r'^library/works/$', WorkList.as_view()),
     url(r'^library/songs/(?P<pk>[0-9]+)/$', SongDetailView.as_view(), name='song-detail'),
 ]
 

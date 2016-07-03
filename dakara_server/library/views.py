@@ -93,3 +93,19 @@ class SongDetailView(RetrieveUpdateDestroyAPIView):
     """
     queryset = Song.objects.all()
     serializer_class = SongSerializer
+
+
+class ArtistList(ListCreateAPIView):
+    """ Class for listing artists
+    """
+    queryset = Artist.objects.all().order_by("name")
+    serializer_class = ArtistSerializer
+    pagination_class = LibraryPagination
+
+
+class WorkList(ListCreateAPIView):
+    """ Class for listing works
+    """
+    queryset = Work.objects.all().order_by("title", "subtitle")
+    serializer_class = WorkSerializer
+    pagination_class = LibraryPagination
