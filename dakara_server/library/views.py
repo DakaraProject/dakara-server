@@ -113,14 +113,105 @@ class SongDetailView(RetrieveUpdateDestroyAPIView):
 class ArtistList(ListCreateAPIView):
     """ Class for listing artists
     """
-    queryset = Artist.objects.all().order_by("name")
     serializer_class = ArtistSerializer
     pagination_class = LibraryPagination
+
+    def get_queryset(self):
+        """ Search and filter the artists
+        """
+        # if 'query' is in the query string
+        # then perform search
+        if 'query' in self.request.query_params:
+            query = self.request.query_params.get('query', None)
+            if query:
+                # there is no need for query language for artists
+                # it is used to split terms and for uniformity
+                res = parse_query(query)
+                q = []
+                # only unspecific terms are used
+                for remain in res['remaining']:
+                    q.append(
+                            Q(name__icontains=remain)
+                        )
+
+                # gather the query objects
+                filter_query = Q()
+                for item in q:
+                    filter_query &= item
+
+                query_set = Artist.objects.filter(filter_query)
+                # saving the parsed query to give it back to the client
+                self.query_parsed = {'remaining': res['remaining']}
+
+                return query_set.order_by(Lower("name"))
+
+        # else return all artists
+        return Artist.objects.all().order_by(Lower("name"))
+
+    def list(self, request, *args, **kwargs):
+        """ Send a listing of artists
+        """
+        response = super(ArtistList, self).list(request, args, kwargs)
+
+        # pass the query words to highlight to the response
+        # the words have been passed to the object in the get_queryset method
+        # now, they have to be passed to the response
+        # this is why this function in overloaded
+        if hasattr(self, 'query_parsed'):
+            response.data['query'] = self.query_parsed
+
+        return response
 
 
 class WorkList(ListCreateAPIView):
     """ Class for listing works
     """
-    queryset = Work.objects.all().order_by("title", "subtitle")
     serializer_class = WorkSerializer
     pagination_class = LibraryPagination
+
+    def get_queryset(self):
+        """ Search and filter the works
+        """
+        # if 'query' is in the query string
+        # then perform search
+        if 'query' in self.request.query_params:
+            query = self.request.query_params.get('query', None)
+            if query:
+                # there is no need for query language for works
+                # it is used to split terms and for uniformity
+                res = parse_query(query)
+                q = []
+                # only unspecific terms are used
+                for remain in res['remaining']:
+                    q.append(
+                            Q(title__icontains=remain) |
+                            Q(subtitle__icontains=remain)
+                        )
+
+                # gather the query objects
+                filter_query = Q()
+                for item in q:
+                    filter_query &= item
+
+                query_set = Work.objects.filter(filter_query)
+                # saving the parsed query to give it back to the client
+                self.query_parsed = {'remaining': res['remaining']}
+
+                return query_set.order_by(Lower("title"), Lower("subtitle"))
+
+        # else return all artists
+        return Work.objects.all().order_by(Lower("title"), Lower("subtitle"))
+
+    def list(self, request, *args, **kwargs):
+        """ Send a listing of works
+        """
+        response = super(WorkList, self).list(request, args, kwargs)
+
+        # pass the query words to highlight to the response
+        # the words have been passed to the object in the get_queryset method
+        # now, they have to be passed to the response
+        # this is why this function in overloaded
+        if hasattr(self, 'query_parsed'):
+            response.data['query'] = self.query_parsed
+
+        return response
