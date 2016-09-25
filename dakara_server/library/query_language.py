@@ -1,4 +1,5 @@
 import re
+from library.models import WorkType
 
 KEYWORDS = [
         "artist",
@@ -6,6 +7,13 @@ KEYWORDS = [
         "title",
         ]
 
+KEYWORDS_WORK_TYPE = [work_type.query_name for work_type in WorkType.objects.all()]
+KEYS_WORK_TYPE, KEYS_WORK_TYPE_EXACT = zip(*[(
+    work_type_query_name + 's',
+    work_type_query_name + 's_exact',
+    ) for work_type_query_name in KEYWORDS_WORK_TYPE])
+
+KEYWORDS.extend(KEYWORDS_WORK_TYPE)
 LANGUAGE_MATCHER = re.compile(r'\b(' + r'|'.join(KEYWORDS) + r'):\s?(?:""(.+?)""|"(.+?)"|((?:\\\s|\S)+))', re.I)
 
 
@@ -43,18 +51,17 @@ def split_remaining(string):
 
     return result
             
-
 def parse(query):
     """ Function that parses query mini language
-       Returns a dictionnary with the folowing entries:
+        Returns a dictionnary with the folowing entries:
 
-       artists: list of artists names to match partially
-       artists_exact: list of artists names to match exactly
-       works: list of works names to match partially
-       works_exact: list of works names to match exactly
-       titles: titles to match partially
-       titles_exact: titles to match exactly
-       remaining: unparsed text
+        artists: list of artists names to match partially
+        artists_exact: list of artists names to match exactly
+        works: list of works names to match partially
+        works_exact: list of works names to match exactly
+        titles: titles to match partially
+        titles_exact: titles to match exactly
+        remaining: unparsed text
     """
 
     result = {
@@ -67,6 +74,10 @@ def parse(query):
             "remaining": [],
             "tags": [],
             }
+    # add current work types to the list
+    for key_work_type, key_work_type_exact in zip(KEYS_WORK_TYPE, KEYS_WORK_TYPE_EXACT):
+        result[key_work_type] = []
+        result[key_work_type_exact] = []
 
     while True:
         split = LANGUAGE_MATCHER.split(query, maxsplit=1)

@@ -298,7 +298,8 @@ class DatabaseFeederEntry:
         self.link_type = None
         self.link_nb = None
         self.artists = None
-        self.work_type = None
+        self.work_type_name = None
+        self.work_type_query_name = None
         self.tags = None
 
         if custom_parser:
@@ -312,7 +313,8 @@ class DatabaseFeederEntry:
             self.song.detail = data.get('detail')
             self.title_work = data.get('title_work')
             self.subtitle_work = data.get('subtitle_work')
-            self.work_type = data.get('work_type')
+            self.work_type_name = data.get('work_type_name')
+            self.work_type_query_name = data.get('work_type_query_name')
             self.link_type = data.get('link_type')
             self.link_nb = data.get('link_nb')
             self.artists = data.get('artists')
@@ -342,8 +344,11 @@ class DatabaseFeederEntry:
 
         # Create link to work if there is one
         if self.title_work:
-            if self.work_type:
-                work_type, created = WorkType.objects.get_or_create(name=self.work_type)
+            if self.work_type_name and self.work_type_query_name:
+                work_type, created = WorkType.objects.get_or_create(
+                        name=self.work_type_name,
+                        query_name=self.work_type_query_name
+                        )
 
             else:
                 work_type = None

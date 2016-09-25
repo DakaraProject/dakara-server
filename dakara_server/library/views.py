@@ -8,7 +8,10 @@ from library.serializers import SongSerializer, \
                                 ArtistSerializer, \
                                 WorkSerializer
 from django.db.models import Q
-from .query_language import parse as parse_query
+from .query_language import parse as parse_query, \
+                            KEYWORDS_WORK_TYPE, \
+                            KEYS_WORK_TYPE, \
+                            KEYS_WORK_TYPE_EXACT
 
 
 class LibraryPagination(PageNumberPagination):
@@ -50,14 +53,43 @@ class SongList(ListCreateAPIView):
                     q_many.append(Q(artists__name__icontains=artist))
                 for artist in res['artists_exact']:
                     q_many.append(Q(artists__name__iexact=artist))
-                for work in res['works']:
-                    q.append(Q(works__title__icontains=work))
-                for work in res['works_exact']:
-                    q.append(Q(works__title__iexact=work))
                 for title in res['titles']:
                     q.append(Q(title__icontains=title))
                 for title in res['titles_exact']:
                     q.append(Q(title__iexact=title))
+                for work in res['works']:
+                    q.append(Q(works__title__icontains=work))
+                for work in res['works_exact']:
+                    q.append(Q(works__title__iexact=work))
+                # specific terms of the research derivating from work
+                for (
+                        keyword_work_type,
+                        key_work_type,
+                        key_work_type_exact
+                        ) in zip(
+                                KEYWORDS_WORK_TYPE, # aka work_type.query_name
+                                KEYS_WORK_TYPE,
+                                KEYS_WORK_TYPE_EXACT
+                                ):
+
+                            for work in res[key_work_type]:
+                                q.append(
+                                        Q(works__title__icontains=work) &
+                                        Q(works__work_type__query_name=keyword_work_type)
+                                        )
+
+                            for work in res[key_work_type_exact]:
+                                q.append(
+                                        Q(works__title__iexact=work) &
+                                        Q(works__work_type__query_name=keyword_work_type)
+                                        )
+
+                            # one may want to factor the duplicated query on the work type
+                            # but it is very unlikely someone will define severals animes
+                            # (by instance) for a song at the same time
+                            # IMHO a factorization will make the code less clear and
+                            # just heavier, for no practical reason
+
                 # unspecific terms of the research
                 for remain in res['remaining']:
                     q.append(
