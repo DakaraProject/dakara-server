@@ -29,6 +29,7 @@ class WorkTypeSerializer(serializers.ModelSerializer):
         model = WorkType 
         fields = (
                 'name',
+                'query_name',
                 'icon_name'
                 )
 

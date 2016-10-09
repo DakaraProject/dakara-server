@@ -3,10 +3,11 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, \
 from django.db.models.functions import Lower
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from library.models import Song, Artist, Work
+from library.models import Song, Artist, Work, WorkType
 from library.serializers import SongSerializer, \
                                 ArtistSerializer, \
-                                WorkSerializer
+                                WorkSerializer, \
+                                WorkTypeSerializer
 from django.db.models import Q
 from .query_language import parse as parse_query, \
                             KEYWORDS_WORK_TYPE, \
@@ -36,6 +37,7 @@ class SongList(ListCreateAPIView):
     def get_queryset(self):
         """ Search and filter the songs
         """
+        query_set = Song.objects.all()
         # if 'query' is in the query string
         # then perform search
         if 'query' in self.request.query_params:
@@ -107,7 +109,7 @@ class SongList(ListCreateAPIView):
                 for item in q:
                     filter_query &= item
 
-                query_set = Song.objects.filter(filter_query)
+                query_set = query_set.filter(filter_query)
                 # gather the query objects involving custom many to many relation
                 for item in q_many:
                     query_set = query_set.filter(item)
@@ -115,10 +117,8 @@ class SongList(ListCreateAPIView):
                 # saving the parsed query to give it back to the client
                 self.query_parsed = res
 
-                return query_set.distinct().order_by(Lower('title'))
-
         # otherwise return all songs
-        return Song.objects.all().order_by(Lower('title'))
+        return query_set.order_by(Lower('title'))
 
     def list(self, request, *args, **kwargs):
         """ Send a listing of songs
@@ -151,6 +151,8 @@ class ArtistList(ListCreateAPIView):
     def get_queryset(self):
         """ Search and filter the artists
         """
+        query_set = Artist.objects.all()
+
         # if 'query' is in the query string
         # then perform search
         if 'query' in self.request.query_params:
@@ -171,14 +173,12 @@ class ArtistList(ListCreateAPIView):
                 for item in q:
                     filter_query &= item
 
-                query_set = Artist.objects.filter(filter_query)
+                query_set = query_set.filter(filter_query)
                 # saving the parsed query to give it back to the client
                 self.query_parsed = {'remaining': res['remaining']}
 
-                return query_set.order_by(Lower("name"))
-
-        # else return all artists
-        return Artist.objects.all().order_by(Lower("name"))
+        # return results of the corresponding query
+        return query_set.order_by(Lower("name"))
 
     def list(self, request, *args, **kwargs):
         """ Send a listing of artists
@@ -204,6 +204,15 @@ class WorkList(ListCreateAPIView):
     def get_queryset(self):
         """ Search and filter the works
         """
+        query_set = Work.objects.all()
+
+        # if 'type' is in the query string
+        # then filter work type
+        if 'type' in self.request.query_params:
+            work_type = self.request.query_params.get('type', None)
+            if work_type:
+                query_set = query_set.filter(work_type__query_name=work_type)
+
         # if 'query' is in the query string
         # then perform search
         if 'query' in self.request.query_params:
@@ -225,14 +234,12 @@ class WorkList(ListCreateAPIView):
                 for item in q:
                     filter_query &= item
 
-                query_set = Work.objects.filter(filter_query)
+                query_set = query_set.filter(filter_query)
                 # saving the parsed query to give it back to the client
                 self.query_parsed = {'remaining': res['remaining']}
 
-                return query_set.order_by(Lower("title"), Lower("subtitle"))
-
-        # else return all artists
-        return Work.objects.all().order_by(Lower("title"), Lower("subtitle"))
+        # return results of the corresponding query and type filter
+        return query_set.order_by(Lower("title"), Lower("subtitle"))
 
     def list(self, request, *args, **kwargs):
         """ Send a listing of works
@@ -247,3 +254,8 @@ class WorkList(ListCreateAPIView):
             response.data['query'] = self.query_parsed
 
         return response
+
+
+class WorkTypeList(ListCreateAPIView):
+    queryset = WorkType.objects.all().order_by(Lower("name"))
+    serializer_class = WorkTypeSerializer
