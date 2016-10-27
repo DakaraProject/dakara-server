@@ -12,14 +12,34 @@ class SecondsDurationField(serializers.DurationField):
         return str(int(round(obj.total_seconds())))
 
 
-class ArtistSerializer(serializers.ModelSerializer):
+class ArtistNoCountSerializer(serializers.ModelSerializer):
+
     """ Class for artist serializer
+        Only contains name
+        Used in song representation
     """
     class Meta:
         model = Artist
         fields = (
                 'name',
                 )
+
+
+class ArtistSerializer(serializers.ModelSerializer):
+    """ Class for artist serializer
+        Including a song count
+        Used in artists listing
+    """
+    song_count =  serializers.SerializerMethodField()
+    class Meta:
+        model = Artist
+        fields = (
+                'name',
+                'song_count'
+                )
+
+    def get_song_count(self, artist):
+        return Song.objects.filter(artists=artist).count()
 
 
 class WorkTypeSerializer(serializers.ModelSerializer):
@@ -34,7 +54,7 @@ class WorkTypeSerializer(serializers.ModelSerializer):
                 )
 
 
-class WorkSerializer(serializers.ModelSerializer):
+class WorkNoCountSerializer(serializers.ModelSerializer):
     """ Class for work serializer
     """
     work_type = WorkTypeSerializer(many=False, read_only=True)
@@ -46,11 +66,28 @@ class WorkSerializer(serializers.ModelSerializer):
                 'work_type'
                 )
 
+class WorkSerializer(serializers.ModelSerializer):
+    """ Class for work serializer
+    """
+    work_type = WorkTypeSerializer(many=False, read_only=True)
+    song_count =  serializers.SerializerMethodField()
+    class Meta:
+        model = Work
+        fields = (
+                'title',
+                'subtitle',
+                'work_type',
+                'song_count'
+                )
+
+    def get_song_count(self, work):
+        return Song.objects.filter(works=work).count()
+
 
 class SongWorkLinkSerializer(serializers.ModelSerializer):
     """ Class for serializing the use of a song in a work
     """
-    work = WorkSerializer(many=False, read_only=True)
+    work = WorkNoCountSerializer(many=False, read_only=True)
 
     class Meta:
         model = SongWorkLink
@@ -76,7 +113,7 @@ class SongSerializer(serializers.HyperlinkedModelSerializer):
     """ Class for song serializer
     """
     duration = SecondsDurationField()
-    artists = ArtistSerializer(many=True, read_only=True)
+    artists = ArtistNoCountSerializer(many=True, read_only=True)
     tags = SongTagSerializer(many=True, read_only=True)
     works = SongWorkLinkSerializer(many=True, read_only=True, source='songworklink_set')
 
@@ -100,7 +137,7 @@ class SongSerializer(serializers.HyperlinkedModelSerializer):
 class SongForPlayerSerializer(serializers.ModelSerializer):
     """ Class for song serializer, to be used by the player
     """
-    artists = ArtistSerializer(many=True, read_only=True)
+    artists = ArtistNoCountSerializer(many=True, read_only=True)
     works = SongWorkLinkSerializer(many=True, read_only=True, source='songworklink_set')
     class Meta:
         model = Song
