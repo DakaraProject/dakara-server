@@ -8,10 +8,14 @@ KEYWORDS = [
         ]
 
 KEYWORDS_WORK_TYPE = [work_type.query_name for work_type in WorkType.objects.all()]
-KEYS_WORK_TYPE, KEYS_WORK_TYPE_EXACT = zip(*[(
-    work_type_query_name + 's',
-    work_type_query_name + 's_exact',
-    ) for work_type_query_name in KEYWORDS_WORK_TYPE])
+if KEYWORDS_WORK_TYPE:
+    KEYS_WORK_TYPE, KEYS_WORK_TYPE_EXACT = zip(*[(
+        work_type_query_name + 's',
+        work_type_query_name + 's_exact',
+        ) for work_type_query_name in KEYWORDS_WORK_TYPE])
+else:
+    KEYS_WORK_TYPE = []
+    KEYS_WORK_TYPE_EXACT = []
 
 KEYWORDS.extend(KEYWORDS_WORK_TYPE)
 LANGUAGE_MATCHER = re.compile(r'\b(' + r'|'.join(KEYWORDS) + r'):\s?(?:""(.+?)""|"(.+?)"|((?:\\\s|\S)+))', re.I)
