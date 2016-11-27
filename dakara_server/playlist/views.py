@@ -255,6 +255,7 @@ class PlayerErrorForPlayerView(APIView):
             entry_next = get_next_playlist_entry(entry_id_current)
             # protection if the erroneous song is the last one to play
             entry_id_next = entry_next.id if entry_next else None
+            error_song=PlaylistEntry.objects.get(id=entry_id_error).song
 
             if entry_id_error == entry_id_current:
                 # the server knows the player has already
@@ -280,7 +281,7 @@ class PlayerErrorForPlayerView(APIView):
             logger.warning("WARNING Unable to play {song}, \
 remove from playlist\n\
 Error message: {error_message}".format(
-                song=PlaylistEntry.objects.get(id=entry_id_error).song,
+                song=error_song,
                 error_message=player_error.validated_data['error_message']
                 ))
 
@@ -289,7 +290,7 @@ Error message: {error_message}".format(
             player_errors_count = get_player_errors_count()
             player_errors_pool.append({
                 'id': player_errors_count,
-                'song': PlaylistEntry.objects.get(id=entry_id_error).song,
+                'song': error_song,
                 'error_message': player_error.validated_data['error_message'],
                 })
             cache.set('player_errors_pool', player_errors_pool, 10)
