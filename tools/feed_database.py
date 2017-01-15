@@ -179,9 +179,10 @@ class DatabaseFeeder:
             try:
                 entry.set_from_file_name(self.custom_parser)
 
-            except DatabaseFeederEntryError:
-                warn("Cannot parse file '{file_name}'".format(
-                    file_name=entry.file_name
+            except DatabaseFeederEntryError as error:
+                warn("Cannot parse file '{file_name}': {error}".format(
+                    file_name=entry.file_name,
+                    error=error
                     ))
                 if self.no_add_on_error:
                     error_ids.append(i)
@@ -306,17 +307,20 @@ class DatabaseFeederEntry:
             try:
                 data = custom_parser.parse_file_name(file_name)
 
-            except:
-                raise DatabaseFeederEntryError
+            except Exception as error:
+                raise DatabaseFeederEntryError(str(error)) from error
 
             self.song.title = data.get('title_music')
+            self.song.version = data.get('version')
             self.song.detail = data.get('detail')
+            self.song.detail_video = data.get('detail_video')
             self.title_work = data.get('title_work')
             self.subtitle_work = data.get('subtitle_work')
             self.work_type_name = data.get('work_type_name')
             self.work_type_query_name = data.get('work_type_query_name')
             self.link_type = data.get('link_type')
             self.link_nb = data.get('link_nb')
+            self.episodes = data.get('episodes')
             self.artists = data.get('artists')
             self.tags = data.get('tags')
 
@@ -366,6 +370,10 @@ class DatabaseFeederEntry:
                 link.link_type_number = int(self.link_nb)
             else:
                 link.link_type_number = None
+
+            if self.episodes:
+                link.episodes = self.episodes
+
             link.save()
 
         # Create tags to song if there are any
@@ -453,7 +461,10 @@ and feed the Django database with it"
     
     custom_parser = None
     if args.parser:
-        custom_parser = importlib.import_module(os.path.splitext(args.parser)[0])
+        parser_directory = os.path.dirname(args.parser)
+        parser_name = os.path.splitext(os.path.basename(args.parser))[0]
+        sys.path.append(parser_directory)
+        custom_parser = importlib.import_module(parser_name)
 
     database_feeder = DatabaseFeeder.from_directory(
             directory_path=args.directory,

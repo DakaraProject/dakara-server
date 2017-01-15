@@ -95,6 +95,7 @@ class SongWorkLinkSerializer(serializers.ModelSerializer):
                 'work',
                 'link_type',
                 'link_type_number',
+                'episodes',
                 )
 
 
@@ -125,7 +126,9 @@ class SongSerializer(serializers.HyperlinkedModelSerializer):
                 'title',
                 'file_path',
                 'duration',
+                'version',
                 'detail',
+                'detail_video',
                 'tags',
                 'artists',
                 'works',
