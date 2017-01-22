@@ -88,16 +88,28 @@ class SongWorkLinkSerializer(serializers.ModelSerializer):
     """ Class for serializing the use of a song in a work
     """
     work = WorkNoCountSerializer(many=False, read_only=True)
+    link_type_name = serializers.SerializerMethodField()
 
     class Meta:
         model = SongWorkLink
         fields = (
                 'work',
                 'link_type',
+                'link_type_name',
                 'link_type_number',
                 'episodes',
                 )
+    
+    def get_link_type_name(self, song_work_link):
+        link_type_name = [ 
+                choice[1] 
+                for choice in SongWorkLink.LINK_TYPE_CHOICES 
+                if choice[0] == song_work_link.link_type
+                ]
+        if len(link_type_name) < 1:
+            return song_work_link.link_type 
 
+        return link_type_name[0]
 
 class SongTagSerializer(serializers.ModelSerializer):
     """ Class for song tags serializer
