@@ -118,7 +118,7 @@ class SongList(ListCreateAPIView):
                 self.query_parsed = res
 
         # otherwise return all songs
-        return query_set.order_by(Lower('title'))
+        return query_set.distinct().order_by(Lower('title'))
 
     def list(self, request, *args, **kwargs):
         """ Send a listing of songs
