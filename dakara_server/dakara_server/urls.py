@@ -38,6 +38,7 @@ urlpatterns = [
     url(r'^api/playlist/player/manage/$', PlayerCommandForUserView.as_view()),
     url(r'^api/playlist/player/status/$', PlayerForUserView.as_view()),
     url(r'^api/playlist/player/errors/$', PlayerErrorsForUserView.as_view()),
+    url(r'^api/playlist/player/$', PlayerDetailsCommandErrorsForUserView.as_view()),
     url(r'^api/playlist/$', PlaylistEntryList.as_view()),
     url(r'^api/playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
     url(r'^api/library/songs/$', SongList.as_view()),

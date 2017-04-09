@@ -92,3 +92,11 @@ class PlayerErrorsPoolSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     song = SongSerializer(many=False, read_only=True)
     error_message = serializers.CharField(max_length=255)
+
+
+class PlayerDetailsCommandErrorsSerializer(serializers.Serializer):
+    """ Class combine all player serializers for front
+    """
+    status = PlayerDetailsSerializer()
+    manage = PlayerCommandSerializer()
+    errors = PlayerErrorsPoolSerializer(many=True)

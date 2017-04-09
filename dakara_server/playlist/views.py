@@ -7,14 +7,18 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, \
 from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
 from playlist.models import PlaylistEntry, Player, PlayerCommand
-from playlist.serializers import PlaylistEntrySerializer, \
-                                 PlaylistEntryReadSerializer, \
-                                 PlaylistEntryForPlayerSerializer, \
-                                 PlayerSerializer, \
-                                 PlayerDetailsSerializer, \
-                                 PlayerCommandSerializer, \
-                                 PlayerErrorSerializer, \
-                                 PlayerErrorsPoolSerializer
+from playlist.serializers import (
+        PlaylistEntrySerializer,
+        PlaylistEntryReadSerializer,
+        PlaylistEntryForPlayerSerializer,
+        PlayerSerializer,
+        PlayerDetailsSerializer,
+        PlayerCommandSerializer,
+        PlayerErrorSerializer,
+        PlayerErrorsPoolSerializer,
+        PlayerDetailsCommandErrorsSerializer,
+        )
+
 import logging
 
 # logger object
@@ -43,6 +47,11 @@ class PlaylistEntryDetail(RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+##
+# Playlist view for front
+#
+
+
 class PlaylistEntryList(ListCreateAPIView):
     """ Class for listing or creating new entry in the playlist
     """
@@ -60,6 +69,31 @@ class PlaylistEntryList(ListCreateAPIView):
         entry_id = player.playlist_entry_id
         return PlaylistEntry.objects.exclude(pk=entry_id) \
             .order_by('date_created')
+
+
+##
+# Player views for user
+#
+
+
+class PlayerForUserView(APIView):
+    """ Class for user to get the player stiatus
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        """ Get player status
+            Create one if it doesn't exist
+        """
+        player = get_player()
+        serializer = PlayerDetailsSerializer(
+                player,
+                context={'request': request}
+                )
+        return Response(
+                serializer.data,
+                status.HTTP_200_OK
+                )
 
 
 class PlayerCommandForUserView(APIView):
@@ -99,24 +133,61 @@ class PlayerCommandForUserView(APIView):
             raise
 
 
-class PlayerForUserView(APIView):
-    """ Class for user to get the player stiatus
+class PlayerErrorsForUserView(APIView):
+    """ Class to send player errors pool
     """
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        """ Get player status
-            Create one if it doesn't exist
+        """ Send player error pool
         """
-        player = get_player()
-        serializer = PlayerDetailsSerializer(
-                player,
+        player_errors_pool = get_player_errors_pool()
+        serializer = PlayerErrorsPoolSerializer(
+                player_errors_pool,
+                many=True,
                 context={'request': request}
                 )
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
                 )
+
+
+class PlayerDetailsCommandErrorsForUserView(APIView):
+    """ Class to send aggregated player status
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        """ Send aggregated player status 
+        """
+        # Get player
+        player = get_player()
+
+        # Get player commands
+        player_command = get_player_command()
+
+        # Get player errors
+        player_errors_pool = get_player_errors_pool()
+
+        serializer = PlayerDetailsCommandErrorsSerializer(
+                {
+                    "status": player,
+                    "manage": player_command,
+                    "errors": player_errors_pool,
+                },
+                context={'request': request},
+            )
+
+        return Response(
+                serializer.data,
+                status.HTTP_200_OK
+                )
+
+
+##
+# Player views for player
+#
 
 
 class PlayerForPlayerView(APIView):
@@ -210,26 +281,6 @@ class PlayerForPlayerView(APIView):
         return Response(
                 player_serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
-                )
-
-
-class PlayerErrorsForUserView(APIView):
-    """ Class to send player errors pool
-    """
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        """ Send player error pool
-        """
-        player_errors_pool = get_player_errors_pool()
-        serializer = PlayerErrorsPoolSerializer(
-                player_errors_pool,
-                many=True,
-                context={'request': request}
-                )
-        return Response(
-                serializer.data,
-                status.HTTP_200_OK
                 )
 
 
