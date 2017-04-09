@@ -21,6 +21,7 @@ class ArtistNoCountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artist
         fields = (
+                'id',
                 'name',
                 )
 
@@ -34,6 +35,7 @@ class ArtistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artist
         fields = (
+                'id',
                 'name',
                 'song_count'
                 )
@@ -61,6 +63,7 @@ class WorkNoCountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Work
         fields = (
+                'id',
                 'title',
                 'subtitle',
                 'work_type'
@@ -74,6 +77,7 @@ class WorkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Work
         fields = (
+                'id',
                 'title',
                 'subtitle',
                 'work_type',
@@ -99,7 +103,7 @@ class SongWorkLinkSerializer(serializers.ModelSerializer):
                 'link_type_number',
                 'episodes',
                 )
-    
+
     def get_link_type_name(self, song_work_link):
         link_type_name = [ 
                 choice[1] 
