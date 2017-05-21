@@ -15,32 +15,46 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.views.generic import TemplateView
+from django.conf import settings
+from django.views.defaults import page_not_found
 from rest_framework.authtoken.views import obtain_auth_token
 from library.views import *
 from playlist.views import *
 
 urlpatterns = [
-    # Root
-    url(r'^$', TemplateView.as_view(template_name='index.html')),
 
+    # Admin route
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^api-token-auth/', obtain_auth_token),
-    #route for the player
-    url(r'^player/status/$', PlayerForPlayerView.as_view()),
-    url(r'^player/error/$', PlayerErrorForPlayerView.as_view()),
 
-    #routes for the user
-    url(r'^playlist/player/manage/$', PlayerCommandForUserView.as_view()),
-    url(r'^playlist/player/status/$', PlayerForUserView.as_view()),
-    url(r'^playlist/player/errors/$', PlayerErrorsForUserView.as_view()),
-    url(r'^playlist/$', PlaylistEntryList.as_view()),
-    url(r'^playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
-    url(r'^library/songs/$', SongList.as_view()),
-    url(r'^library/artists/$', ArtistList.as_view()),
-    url(r'^library/works/$', WorkList.as_view()),
-    url(r'^library/work-types/$', WorkTypeList.as_view()),
-    url(r'^library/songs/(?P<pk>[0-9]+)/$', SongDetailView.as_view(), name='song-detail'),
+    # Authentication routes
+    url(r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api/token-auth/', obtain_auth_token),
+
+    # Api routes for the player
+    url(r'^api/player/status/$', PlayerForPlayerView.as_view()),
+    url(r'^api/player/error/$', PlayerErrorForPlayerView.as_view()),
+
+    # Api routes for the front
+    url(r'^api/playlist/player/manage/$', PlayerCommandForUserView.as_view()),
+    url(r'^api/playlist/player/status/$', PlayerForUserView.as_view()),
+    url(r'^api/playlist/player/errors/$', PlayerErrorsForUserView.as_view()),
+    url(r'^api/playlist/player/$', PlayerDetailsCommandErrorsForUserView.as_view()),
+    url(r'^api/playlist/$', PlaylistEntryList.as_view()),
+    url(r'^api/playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
+    url(r'^api/library/songs/$', SongList.as_view()),
+    url(r'^api/library/artists/$', ArtistList.as_view()),
+    url(r'^api/library/works/$', WorkList.as_view()),
+    url(r'^api/library/work-types/$', WorkTypeList.as_view()),
+    url(r'^api/library/songs/(?P<pk>[0-9]+)/$', SongDetailView.as_view(), name='song-detail'),
+
+    # Default case for api routes
+    url(r'^api', page_not_found),
+
 ]
 
+if settings.DEBUG:
+    urlpatterns.extend([
+            # Default to main page
+            url(r'', 'django.contrib.staticfiles.views.serve', kwargs={
+                            'path': 'index.html'})
+        ])

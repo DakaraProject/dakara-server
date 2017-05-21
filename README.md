@@ -44,7 +44,7 @@ python feed_database.py /path/to/your/songs
 You'll need MediaInfo for this process.
 Pass the `-h` option to get some help for this command.
 
-Link the templates and static files from [Dakara web client](https://github.com/Nadeflore/dakara-client-web) in `dakara_server/templates` and `dakara_server/static`.
+Link the dist folder from [Dakara web client](https://github.com/Nadeflore/dakara-client-web) to `dakara_server/static`.
 
 ### Start the server
 
