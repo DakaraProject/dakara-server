@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.views.generic import TemplateView
+from django.conf import settings
 from django.views.defaults import page_not_found
 from rest_framework.authtoken.views import obtain_auth_token
 from library.views import *
@@ -50,7 +50,11 @@ urlpatterns = [
     # Default case for api routes
     url(r'^api', page_not_found),
 
-    # Default to main page
-    url(r'', TemplateView.as_view(template_name='index.html')),
 ]
 
+if settings.DEBUG:
+    urlpatterns.extend([
+            # Default to main page
+            url(r'', 'django.contrib.staticfiles.views.serve', kwargs={
+                            'path': 'index.html'})
+        ])
