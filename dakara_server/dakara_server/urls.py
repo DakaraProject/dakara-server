@@ -20,6 +20,7 @@ from django.views.defaults import page_not_found
 from rest_framework.authtoken.views import obtain_auth_token
 from library.views import *
 from playlist.views import *
+from users.views import *
 
 urlpatterns = [
 
@@ -29,6 +30,10 @@ urlpatterns = [
     # Authentication routes
     url(r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/token-auth/', obtain_auth_token),
+
+    # User routes
+    url(r'^api/users/$', UserList.as_view()),
+    url(r'^api/users/(?P<pk>[0-9]+)/$', UserView.as_view()),
 
     # Api routes for the player
     url(r'^api/player/status/$', PlayerForPlayerView.as_view()),

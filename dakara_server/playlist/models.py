@@ -5,6 +5,12 @@ from datetime import timedelta
 class PlaylistEntry(models.Model):
     """ Class for a song in playlist
     """
+
+    class Meta:
+        permissions = (
+            ("delete_own_playlistentry", "Can delete a user's own playlist entry"),
+        )
+
     song = models.ForeignKey('library.Song', null=False)
     date_created = models.DateTimeField(auto_now_add=True)
 

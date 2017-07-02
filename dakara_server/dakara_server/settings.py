@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'library',
     'playlist',
+    'users',
 )
 
 MIDDLEWARE_CLASSES = (
