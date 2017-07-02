@@ -48,7 +48,7 @@ urlpatterns = [
     url(r'^api/library/songs/(?P<pk>[0-9]+)/$', SongDetailView.as_view(), name='song-detail'),
 
     # Default case for api routes
-    url(r'^api', page_not_found),
+    url(r'^api/', page_not_found),
 
 ]
 
