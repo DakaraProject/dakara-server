@@ -5,8 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, \
                                     ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
-from django.core.cache import cache
-from playlist.models import PlaylistEntry, Player, PlayerCommand
+from playlist.models import PlaylistEntry, Player, PlayerCommand, PlayerErrorsPool
 from playlist.serializers import (
         PlaylistEntrySerializer,
         PlaylistEntryReadSerializer,
@@ -38,7 +37,7 @@ class PlaylistEntryDetail(RetrieveUpdateDestroyAPIView):
     serializer_class = PlaylistEntrySerializer
 
     def destroy(self, request, *args, **kwargs):
-        playing_id = get_player().playlist_entry_id
+        playing_id = Player.get_or_create().playlist_entry_id
         instance = self.get_object()
         if playing_id == instance.id:
             return Response(status=status.HTTP_403_FORBIDDEN)
@@ -65,7 +64,7 @@ class PlaylistEntryList(ListCreateAPIView):
         return PlaylistEntryReadSerializer
 
     def get_queryset(self):
-        player = get_player()
+        player = Player.get_or_create()
         entry_id = player.playlist_entry_id
         return PlaylistEntry.objects.exclude(pk=entry_id) \
             .order_by('date_created')
@@ -85,11 +84,12 @@ class PlayerForUserView(APIView):
         """ Get player status
             Create one if it doesn't exist
         """
-        player = get_player()
+        player = Player.get_or_create()
         serializer = PlayerDetailsSerializer(
                 player,
                 context={'request': request}
                 )
+
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
@@ -104,8 +104,9 @@ class PlayerCommandForUserView(APIView):
     def get(self, request):
         """ Get pause or skip status
         """
-        player_command = get_player_command()
+        player_command = PlayerCommand.get_or_create()
         serializer = PlayerCommandSerializer(player_command)
+
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
@@ -118,11 +119,13 @@ class PlayerCommandForUserView(APIView):
         try:
             if serializer.is_valid():
                 player_command = PlayerCommand(**serializer.data)
-                cache.set('player_command', player_command)
+                player_command.save()
+
                 return Response(
                         serializer.data,
                         status.HTTP_202_ACCEPTED
                         )
+
             return Response(
                     serializer.errors,
                     status.HTTP_400_BAD_REQUEST
@@ -141,12 +144,13 @@ class PlayerErrorsForUserView(APIView):
     def get(self, request):
         """ Send player error pool
         """
-        player_errors_pool = get_player_errors_pool()
+        player_errors_pool = PlayerErrorsPool.get_or_create()
         serializer = PlayerErrorsPoolSerializer(
-                player_errors_pool,
+                player_errors_pool.dump(),
                 many=True,
                 context={'request': request}
                 )
+
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
@@ -162,19 +166,19 @@ class PlayerDetailsCommandErrorsForUserView(APIView):
         """ Send aggregated player status 
         """
         # Get player
-        player = get_player()
+        player = Player.get_or_create()
 
         # Get player commands
-        player_command = get_player_command()
+        player_command = PlayerCommand.get_or_create()
 
         # Get player errors
-        player_errors_pool = get_player_errors_pool()
+        player_errors_pool = PlayerErrorsPool.get_or_create()
 
         serializer = PlayerDetailsCommandErrorsSerializer(
                 {
                     "status": player,
                     "manage": player_command,
-                    "errors": player_errors_pool,
+                    "errors": player_errors_pool.dump(),
                 },
                 context={'request': request},
             )
@@ -201,7 +205,7 @@ class PlayerForPlayerView(APIView):
     def get(self, request):
         """ Get next playist entry
         """
-        player = get_player()
+        player = Player.get_or_create()
         entry = get_next_playlist_entry(player.playlist_entry_id)
         serializer = PlaylistEntryForPlayerSerializer(entry)
         return Response(
@@ -215,9 +219,10 @@ class PlayerForPlayerView(APIView):
         player_serializer = PlayerSerializer(
                 data=request.data
                 )
+
         if player_serializer.is_valid():
-            player_command = get_player_command()
-            player_old = get_player()
+            player_command = PlayerCommand.get_or_create()
+            player_old = Player.get_or_create()
             player = Player(**player_serializer.validated_data)
             try:
                 playing_old_id = player_old.playlist_entry_id
@@ -236,7 +241,7 @@ class PlayerForPlayerView(APIView):
                         # reset skip flag if present
                         if player_command.skip:
                             player_command.skip = False
-                            cache.set('player_command', player_command)
+                            player_command.save()
 
                         # remove previous entry from playlist if there was any
                         if playing_old_id:
@@ -252,16 +257,18 @@ class PlayerForPlayerView(APIView):
                                         )
                                     )
                                 )
+
                         else:
                             logger.info("INFO The player has stopped playing")
 
                     # save new player
-                    cache.set('player', player)
+                    player.save()
 
                     # Send commands to the player
                     player_command_serializer = PlayerCommandSerializer(
                             player_command
                             )
+
                     return Response(
                             player_command_serializer.data,
                             status=status.HTTP_202_ACCEPTED
@@ -300,10 +307,11 @@ class PlayerErrorForPlayerView(APIView):
         player_error = PlayerErrorSerializer(data=request.data)
 
         if player_error.is_valid():
-            player = get_player()
+            player = Player.get_or_create()
             entry_id_error = player_error.validated_data['playlist_entry']
             entry_id_current = player.playlist_entry_id
             entry_next = get_next_playlist_entry(entry_id_current)
+
             # protection if the erroneous song is the last one to play
             entry_id_next = entry_next.id if entry_next else None
             error_song=PlaylistEntry.objects.get(id=entry_id_error).song
@@ -337,20 +345,18 @@ Error message: {error_message}".format(
                 ))
 
             # store the event in player error pool
-            player_errors_pool = get_player_errors_pool()
-            player_errors_count = get_player_errors_count()
-            player_errors_pool.append({
-                'id': player_errors_count,
-                'song': error_song,
-                'error_message': player_error.validated_data['error_message'],
-                })
-            cache.set('player_errors_pool', player_errors_pool, 10)
-            cache.incr('player_errors_count')
+            player_errors_pool = PlayerErrorsPool.get_or_create()
+            player_errors_pool.add(
+                    song=error_song,
+                    error_message=player_error.validated_data['error_message']
+                    )
 
+            player_errors_pool.save()
 
             return Response(
                     status=status.HTTP_200_OK
                     )
+
         return Response(
                 player_error.errors,
                 status=status.HTTP_400_BAD_REQUEST
@@ -369,42 +375,7 @@ def get_next_playlist_entry(id):
     playlist = PlaylistEntry.objects.exclude(pk=id).order_by('date_created')
     if not playlist:
         return None
+
     playlist_entry = playlist[0]
+
     return playlist_entry
-
-
-def get_player():
-    """ Load or create a new player
-    """
-    player = cache.get('player')
-    if player is None:
-        player = Player()
-    return player
-
-
-def get_player_command():
-    """ Load or create a new player command
-    """
-    player_command = cache.get('player_command')
-    if player_command is None:
-        player_command = PlayerCommand()
-    return player_command
-
-
-def get_player_errors_count():
-    """ Load or create a new count for player errors
-    """
-    count = cache.get('player_errors_count')
-    if count is None:
-        count = 0
-        cache.set('player_errors_count', 0)
-    return count
-
-
-def get_player_errors_pool():
-    """ Load or create a new pool for player errors
-    """
-    pool = cache.get('player_errors_pool')
-    if pool is None:
-        pool = []
-    return pool
