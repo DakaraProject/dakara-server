@@ -361,21 +361,3 @@ Error message: {error_message}".format(
                 player_error.errors,
                 status=status.HTTP_400_BAD_REQUEST
                 )
-
-
-##
-# Routines
-#
-
-
-def get_next_playlist_entry(id):
-    """ Returns the next playlist_entry in playlist
-        excluding entry with specified id
-    """
-    playlist = PlaylistEntry.objects.exclude(pk=id).order_by('date_created')
-    if not playlist:
-        return None
-
-    playlist_entry = playlist[0]
-
-    return playlist_entry
