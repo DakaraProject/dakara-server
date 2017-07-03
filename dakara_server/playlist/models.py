@@ -12,6 +12,20 @@ class PlaylistEntry(models.Model):
     def __str__(self):
         return str(self.song)
 
+    @classmethod
+    def get_next(cls, id):
+        """ Returns the next playlist entry in playlist
+            excluding entry with specified id
+        """
+        playlist = cls.objects.exclude(pk=id).order_by('date_created')
+
+        if not playlist:
+            return None
+
+        playlist_entry = playlist[0]
+
+        return playlist_entry
+
 
 class Player:
     """ Class for player representation in the server

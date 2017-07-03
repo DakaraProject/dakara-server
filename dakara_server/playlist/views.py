@@ -206,7 +206,7 @@ class PlayerForPlayerView(APIView):
         """ Get next playist entry
         """
         player = Player.get_or_create()
-        entry = get_next_playlist_entry(player.playlist_entry_id)
+        entry = PlaylistEntry.get_next(player.playlist_entry_id)
         serializer = PlaylistEntryForPlayerSerializer(entry)
         return Response(
                 serializer.data,
@@ -227,7 +227,7 @@ class PlayerForPlayerView(APIView):
             try:
                 playing_old_id = player_old.playlist_entry_id
                 playing_id = player.playlist_entry_id
-                next_entry = get_next_playlist_entry(playing_old_id)
+                next_entry = PlaylistEntry.get_next(playing_old_id)
                 next_id = next_entry.id if next_entry else None
 
                 # check player status is consistent
@@ -310,7 +310,7 @@ class PlayerErrorForPlayerView(APIView):
             player = Player.get_or_create()
             entry_id_error = player_error.validated_data['playlist_entry']
             entry_id_current = player.playlist_entry_id
-            entry_next = get_next_playlist_entry(entry_id_current)
+            entry_next = PlaylistEntry.get_next(entry_id_current)
 
             # protection if the erroneous song is the last one to play
             entry_id_next = entry_next.id if entry_next else None
