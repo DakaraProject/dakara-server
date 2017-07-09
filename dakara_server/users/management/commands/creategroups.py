@@ -8,16 +8,9 @@ from playlist import models as playlist_models
 class Command(BaseCommand):
     help = 'Create default groups : Admin, User'
 
-
     def handle(self, *args, **options):
-        admin, created = Group.objects.get_or_create(name="Admins")
-        user, created = Group.objects.get_or_create(name="Users")
-
-        permission_add_playlistentry = Permission.objects.get(codename="add_playlistentry")
-        permission_delete_playlistentry = Permission.objects.get(codename="delete_playlistentry")
-        permission_delete_own_playlistentry = Permission.objects.get(codename="delete_own_playlistentry")
-
-
-        user.permissions.add(permission_add_playlistentry, permission_delete_own_playlistentry)
-        admin.permissions.add(permission_add_playlistentry, permission_delete_playlistentry)
-
+        player, created = Group.objects.get_or_create(name="Player")
+        users_manager, created = Group.objects.get_or_create(name="Users Manager")
+        playlist_manager, created = Group.objects.get_or_create(name="Playlist Manager")
+        playlist_user, created = Group.objects.get_or_create(name="Playlist User")
+        library_manager, created = Group.objects.get_or_create(name="Library Manager")

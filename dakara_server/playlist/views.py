@@ -21,6 +21,8 @@ from playlist.serializers import (
 
 import logging
 
+from . import permissions
+
 # logger object
 logger = logging.getLogger(__name__)
 
@@ -36,6 +38,9 @@ class PlaylistEntryDetail(RetrieveUpdateDestroyAPIView):
     """
     queryset = PlaylistEntry.objects.all()
     serializer_class = PlaylistEntrySerializer
+    permission_classes = [
+            permissions.IsPlaylistManagerOrOwnerOrReadOnly
+            ]
 
     def destroy(self, request, *args, **kwargs):
         playing_id = get_player().playlist_entry_id
@@ -55,8 +60,10 @@ class PlaylistEntryDetail(RetrieveUpdateDestroyAPIView):
 class PlaylistEntryList(ListCreateAPIView):
     """ Class for listing or creating new entry in the playlist
     """
-    serializer_class = PlaylistEntrySerializer
     pagination_class = PlaylistEntryPagination
+    permission_classes = [
+            permissions.IsPlaylistUserOrReadOnly
+            ]
 
     def get_serializer_class(self, *args, **kwargs):
         if self.request.method == 'POST':
@@ -77,7 +84,7 @@ class PlaylistEntryList(ListCreateAPIView):
 
 
 class PlayerForUserView(APIView):
-    """ Class for user to get the player stiatus
+    """ Class for user to get the player status
     """
     permission_classes = (IsAuthenticated,)
 
@@ -90,6 +97,7 @@ class PlayerForUserView(APIView):
                 player,
                 context={'request': request}
                 )
+
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
@@ -99,7 +107,9 @@ class PlayerForUserView(APIView):
 class PlayerCommandForUserView(APIView):
     """ Class for the user to view or send commands
     """
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [
+            permissions.IsPlaylistManagerOrReadOnly
+            ]
 
     def get(self, request):
         """ Get pause or skip status
@@ -147,6 +157,7 @@ class PlayerErrorsForUserView(APIView):
                 many=True,
                 context={'request': request}
                 )
+
         return Response(
                 serializer.data,
                 status.HTTP_200_OK
@@ -196,7 +207,9 @@ class PlayerForPlayerView(APIView):
         Recieve status from player
         Send commands to player
     """
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [
+            permissions.IsPlayer
+            ]
 
     def get(self, request):
         """ Get next playist entry
@@ -287,7 +300,9 @@ class PlayerForPlayerView(APIView):
 class PlayerErrorForPlayerView(APIView):
     """ Class to handle player errors
     """
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [
+            permissions.IsPlayer
+            ]
 
     def post(self, request):
         """ Recieve error message, log it, keep it in cache and delete

@@ -8,7 +8,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ('name',)
+        fields = ('id', 'name',)
 
 class UserSerializer(serializers.ModelSerializer):
     """ Serializer for creation and view
@@ -20,31 +20,33 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserModel
-        fields = ('id' ,'username', 'password', 'groups')
+        fields = ('id', 'username', 'password', 'groups')
 
     def create(self, validated_data):
-        user_group = Group.objects.get(name="Users")
+        user_group = Group.objects.get(name="Playlist User")
 
         password = validated_data.pop('password')
 
         instance = super(UserSerializer, self).create(validated_data)
-
         instance.set_password(password)
         instance.save()
-
         instance.groups.add(user_group)
 
         return instance
 
+
 class UserUpdateSerializer(serializers.ModelSerializer):
-    """ Serializer for update
+    """ Serializer for updating users
+
+        Can edit:
+            Password.
     """
 
     password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = UserModel
-        fields = ('password', 'groups')
+        fields = ('password',)
 
     def update(self, instance, validated_data):
         password = None
@@ -58,3 +60,16 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             instance.save()
 
         return instance
+
+
+class UserUpdateManagerSerializer(UserUpdateSerializer):
+    """ Serializer for updating users for managers
+
+        Can edit:
+            Group;
+            Password.
+    """
+
+    class Meta:
+        model = UserModel
+        fields = ('password', 'groups')

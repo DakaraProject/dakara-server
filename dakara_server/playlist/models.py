@@ -1,18 +1,14 @@
 from django.db import models
 from datetime import timedelta
+from django.contrib.auth.models import User
 
 
 class PlaylistEntry(models.Model):
     """ Class for a song in playlist
     """
-
-    class Meta:
-        permissions = (
-            ("delete_own_playlistentry", "Can delete a user's own playlist entry"),
-        )
-
     song = models.ForeignKey('library.Song', null=False)
     date_created = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(User, null=False)
 
     def __str__(self):
         return str(self.song)

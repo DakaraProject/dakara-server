@@ -31,21 +31,27 @@ urlpatterns = [
     url(r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/token-auth/', obtain_auth_token),
 
-    # User routes
+    # Api routes for the users
     url(r'^api/users/$', UserList.as_view()),
     url(r'^api/users/(?P<pk>[0-9]+)/$', UserView.as_view()),
+    url(r'^api/users/current/$', CurrentUser.as_view()),
+    url(r'^api/users/groups/$', GroupList.as_view()),
+    url(r'^api/admin/users/$', UserCreate.as_view()),
+    url(r'^api/admin/users/(?P<pk>[0-9]+)/$', UserManagerView.as_view()),
 
     # Api routes for the player
     url(r'^api/player/status/$', PlayerForPlayerView.as_view()),
     url(r'^api/player/error/$', PlayerErrorForPlayerView.as_view()),
 
-    # Api routes for the front
+    # Api routes for the playlist
     url(r'^api/playlist/player/manage/$', PlayerCommandForUserView.as_view()),
     url(r'^api/playlist/player/status/$', PlayerForUserView.as_view()),
     url(r'^api/playlist/player/errors/$', PlayerErrorsForUserView.as_view()),
     url(r'^api/playlist/player/$', PlayerDetailsCommandErrorsForUserView.as_view()),
     url(r'^api/playlist/$', PlaylistEntryList.as_view()),
     url(r'^api/playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
+
+    # Api routes for the library
     url(r'^api/library/songs/$', SongList.as_view()),
     url(r'^api/library/artists/$', ArtistList.as_view()),
     url(r'^api/library/works/$', WorkList.as_view()),

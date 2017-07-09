@@ -4,16 +4,26 @@ from library.serializers import SongSerializer, \
                                 SongForPlayerSerializer, \
                                 SecondsDurationField
 
+from users.serializers import UserSerializer
+
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
     """
+    owner = serializers.PrimaryKeyRelatedField(
+            read_only=True,
+            default=serializers.CreateOnlyDefault(
+                serializers.CurrentUserDefault()
+                )
+            )
+
     class Meta:
         model = PlaylistEntry
         fields = (
                 'id',
                 'song',
                 'date_created',
+                'owner',
                 )
 
 
@@ -21,6 +31,9 @@ class PlaylistEntryReadSerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
     """
     song = SongSerializer(many=False, read_only=True)
+    owner = UserSerializer(
+            read_only=True,
+            )
 
     class Meta:
         model = PlaylistEntry
@@ -28,6 +41,7 @@ class PlaylistEntryReadSerializer(serializers.ModelSerializer):
                 'id',
                 'song',
                 'date_created',
+                'owner',
                 )
 
 
