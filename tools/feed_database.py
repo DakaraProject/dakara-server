@@ -459,8 +459,17 @@ class TextProgressBar(progressbar.ProgressBar):
 
         # customize the widget
         if text is not None:
+            # space padded length for text
+            width, _ = progressbar.utils.get_terminal_size()
+            length = int(width * 0.25) # set length to one quarter of terminal width
+
+            # truncate text if necessary
+            if len(text) > length:
+                half = int(length * 0.5)
+                text = text[:half - 2].strip() + '...' + text[-half + 1:].strip()
+
             widgets = [
-                    "{:40s} ".format(text)
+                    "{:{length}s} ".format(text, length=length)
                     ]
 
             widgets.extend(self.default_widgets())
