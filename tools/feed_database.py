@@ -91,40 +91,40 @@ class DatabaseFeeder:
             ):
         """ Constructor
 
-            input:
-                listing <list> list of file names
-                prefix <str> directory prefix to be appended to file name
-                dry_run <bool> flag for test mode (no save in database)
-                directory_path <str> parent directory of the songs
-                progress_show <bool> show the progress bar
-                no_add_on_error <bool> when true do not add song when
-                parse fail
-                custom_parser <module> name of a custom python module used
-                    to extract data from file name; soo notes below
+            Args
+                listing (list): list of file names.
+                prefix (str): directory prefix to be appended to file name.
+                dry_run (bool): flag for test mode (no save in database).
+                directory_path (str): parent directory of the songs.
+                progress_show (bool): show the progress bar.
+                no_add_on_error (bool): when true do not add song when parse
+                    fails.
+                custom_parser (module): name of a custom python module used to
+                    extract data from file name; soo notes below.
 
-            about custom_parser:
-                This module should define a method called parse_file_name
-                which takes a file name as argument and return a
-                dictionnary with the following:
-                    title_music <str> title of the music
-                    detail <str> details about the music
-                    artists <list> of <str> list of artists
-                    title_work <str> name of the work related
-                        to this song
-                    subtitle_work <str> subname of the work related to
-                        this song
-                    link_type <str> enum (OP ED IS IN) type of relation
-                        between the work and the song
-                    link_nb <int> for OP and ED link type, number of OP or ED
-                All of these values, except title_music, are optional; if a
-                    value is not used, set it to None
+            About custom_parser:
+                This module should define a method called `parse_file_name`
+                which takes a file name as argument and return a dictionnary
+                with the following:
+                    title_music (str): title of the music.
+                    detail (str): details about the music.
+                    artists (list): of (str): list of artists.
+                    title_work (str): name of the work related to this song.
+                    subtitle_work (str): subname of the work related to this
+                        song.
+                    link_type (str): enum (OP ED IS IN) type of relation between
+                        the work and the song.
+                    link_nb (int): for OP and ED link type, number of OP or ED.
+
+                All of these values, except `title_music`, are optional; if a
+                    value is not used, set it to `None`.
         """
-        if type(listing) not in (list, tuple):
+        if not isinstance(listing, (list, tuple)):
             raise ValueError("listing argument must be a list or a tuple")
 
-        if len(listing) and not isinstance(listing[0], DatabaseFeederEntry):
-            raise ValueError("listing argument elements must be \
-                    DatabaseFeederEntry objects")
+        # if len(listing) and not isinstance(listing[0], DatabaseFeederEntry):
+        #     raise ValueError("listing argument elements must be \
+        #             DatabaseFeederEntry objects")
 
         self.listing = listing
         self.prefix = prefix
@@ -148,16 +148,19 @@ class DatabaseFeeder:
         """ Overloaded constructor
             Extract files from directory
 
-            input:
-                directory_path <str> path of directory to extract songs from
+            Args:
+                directory_path (str): path of directory to extract songs from.
 
-            output:
-                <DatabaseFeeder> list of songs
+            Returns:
+                (DatabaseFeeder) list of songs.
         """
         directory_path_encoded = directory_path.encode(file_coding)
         directory = os.listdir(directory_path_encoded)
+
         listing = []
         created_amount = 0
+
+        # create progress bar
         text = "Collecting files"
         progress_bar = get_progress_bar(progress_show)
         bar = progress_bar(max_value=len(directory), text=text)
@@ -193,6 +196,12 @@ class DatabaseFeeder:
 
     def _get_progress_bar(self, text=None):
         """ Get the progress bar according to the verbosity requested
+
+            Args:
+                text (str): text to add to the progress bar.
+
+            Returns:
+                Progress bar object.
         """
         return get_progress_bar(self.progress_show, text)
 
@@ -200,9 +209,9 @@ class DatabaseFeeder:
     def set_from_file_name(self):
         """ Extract database fields from files name
         """
-        text = "Extracting data from files name"
 
         # create progress bar
+        text = "Extracting data from files name"
         progress_bar = self._get_progress_bar()
         bar = progress_bar(max_value=len(self.listing), text=text)
 
@@ -229,9 +238,9 @@ class DatabaseFeeder:
     def set_from_media_info(self):
         """ Extract database fields from files media info
         """
-        text = "Extracting data from files media info"
 
         # create progress bar
+        text = "Extracting data from files media info"
         progress_bar = self._get_progress_bar()
         bar = progress_bar(max_value=len(self.listing), text=text)
 
@@ -241,9 +250,9 @@ class DatabaseFeeder:
     def set_from_meta_data(self):
         """ Extract database fields from files metadata
         """
-        text = "Extracting data from files metadata"
 
         # create progress bar
+        text = "Extracting data from files metadata"
         progress_bar = self._get_progress_bar()
         bar = progress_bar(max_value=len(self.listing), text=text)
 
@@ -252,10 +261,13 @@ class DatabaseFeeder:
 
     def save(self):
         """ Save list in database
+
+            Depending on the attribute `dry_run`, entries will be saved or just
+            displayed on screen.
         """
-        text = "Entries to save" if self.dry_run else "Saving entries to database"
 
         # create progress bar
+        text = "Entries to save" if self.dry_run else "Saving entries to database"
         progress_bar = self._get_progress_bar()
         bar = progress_bar(max_value=len(self.listing), text=text)
 
@@ -268,11 +280,15 @@ class DatabaseFeeder:
 
     def _save_real(self, entry):
         """ Real save process
+
+            entry (DatabaseFeederEntry): entry to save.
         """
         entry.save()
 
     def _save_dry_run(self, entry):
         """ Simulated save process
+
+            entry (DatabaseFeederEntry): entry to save.
         """
         entry_serializer = SongSerializer(entry.song, context=context_dummy)
         print()
@@ -289,10 +305,10 @@ class DatabaseFeederEntry:
             Detect if a song already exists in the database,
             then take it or create it
 
-            input:
-                file_name <str> name of the song file
-                prefix <str> prefix to append to file name
-                input arguments are aimed to serve as ID
+            Args:
+                file_name (str): name of the song file.
+                prefix (str): prefix to append to file name.
+                input arguments are aimed to serve as ID.
         """
         file_path = os.path.join(prefix, file_name)
 
@@ -310,8 +326,11 @@ class DatabaseFeederEntry:
 
     def set_from_file_name(self, custom_parser):
         """ Set attributes by extracting them from file name
+
+            Args:
+                custom_parser (module): module for custom parsing.
         """
-        file_name = os.path.splitext(self.file_name)[0]
+        file_name, _ = os.path.splitext(self.file_name)
 
         self.song.title = file_name
         self.title_work = None
@@ -347,8 +366,8 @@ class DatabaseFeederEntry:
     def set_from_media_info(self, directory_path):
         """ Set attributes by extracting them from media info
 
-            input:
-                directory_path <str> parent directory of the file
+            Args:
+                directory_path (str): parent directory of the file.
         """
         file_path = os.path.join(directory_path, self.file_name)
         media = MediaInfo.parse(file_path)
@@ -358,11 +377,12 @@ class DatabaseFeederEntry:
 
     def set_from_meta_data(self):
         """ Set attributes by extracting them from file metadata
-            Not implemented
+
+            Not implemented.
         """
 
     def save(self):
-        """ Save song in database
+        """ Save song in database.
         """
         self.song.save()
 
@@ -455,9 +475,14 @@ class TextProgressBar(progressbar.ProgressBar):
     """ Progress bar with text in the widgets
     """
     def __init__(self, *args, text=None, **kwargs):
+        """ Constructor
+
+            Args:
+                text (str): text to display at the left of the line.
+        """
         super(TextProgressBar, self).__init__(*args, **kwargs)
 
-        # customize the widget
+        # customize the widget if text is provided
         if text is not None:
             # space padded length for text
             width, _ = progressbar.utils.get_terminal_size()
@@ -477,9 +502,14 @@ class TextProgressBar(progressbar.ProgressBar):
 
 
 class TextNullBar(progressbar.NullBar):
-    """ Non-existent bar with text in widgets
+    """ Muted bar wich displays one line of text instead.
     """
     def __init__(self, *args, text=None, **kwargs):
+        """ Constructor
+
+            Args:
+                text (str): text to display.
+        """
         super(TextNullBar, self).__init__(*args, **kwargs)
         self.text = text
 
@@ -599,4 +629,3 @@ if __name__ == "__main__":
     database_feeder.set_from_file_name()
     database_feeder.set_from_media_info()
     database_feeder.save()
-
