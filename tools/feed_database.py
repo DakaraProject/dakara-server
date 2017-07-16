@@ -39,24 +39,40 @@ except ImportError as error:
 # get logger
 logger = logging.getLogger(__file__)
 
-# path progress bar output
-progressbar.streams.wrap_stderr()
+# wrap a special stream for warnings
+# the wrapping done by progressbar seems to reassign the ouput and flush it when
+# needed, and not automatically
+# if the standard error is wrapped, it mutes any exception, which is not
+# acceptable
+# so, we create a custom wrapped stream and assign warnings to use it
+# since we cannot specify a new stream, we use stderr for that, and reassign
+# it to its origineal value right after
+original_stderr = sys.stderr
+wrapped_stderr = progressbar.streams.wrap_stderr()
+sys.stderr = original_stderr
 
 # define a less verbose custom warnings formatting
 def custom_formatwarning(message, *args, **kwargs):
-    return "Warning: {}".format(message)
+    return "Warning: {}\n".format(message)
 
-# patch warnings.warn output format
+# assign warnings to write in the wrapped stream
+def custom_showwarning(*args, **kwargs):
+    wrapped_stderr.write(custom_formatwarning(*args, **kwargs))
+
+# start Django
+django.setup()
+
+# patch warnings output
+# has to be done after Django initialization because it
+# redefines `warnings.showwarning`
 warnings.formatwarning = custom_formatwarning
+warnings.showwarning = custom_showwarning
 
 # get file system encoding
 file_coding = sys.getfilesystemencoding()
 
 # create a dummy context for Django
 context_dummy = dict(request=RequestFactory().get('/'))
-
-# start Django
-django.setup()
 
 
 class DatabaseFeeder:
