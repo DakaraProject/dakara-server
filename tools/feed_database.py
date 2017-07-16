@@ -9,10 +9,13 @@ import os
 import sys
 import logging
 import importlib
-from progressbar import ProgressBar
+import progressbar
+import warnings
+import argparse
 from pymediainfo import MediaInfo
 from datetime import timedelta
-from warnings import warn
+
+# setup Django for its import
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dakara_server.settings")
 package_path = os.path.dirname(__file__)
 sys.path.append(
@@ -23,17 +26,36 @@ sys.path.append(
             )
         )
 
+# import django and the Dakara server project
 try:
     from library.models import *
     from library.serializers import SongSerializer
     from django.test.client import RequestFactory
     import django
 
-except ImportError as e:
-    raise ImportError("Unable to import Django modules")
+except ImportError as error:
+    raise ImportError("Unable to import Django modules") from error
 
+# get logger
+logger = logging.getLogger(__file__)
+
+# path progress bar output
+progressbar.streams.wrap_stderr()
+
+# define a less verbose custom warnings formatting
+def custom_formatwarning(message, *args, **kwargs):
+    return "Warning: {}".format(message)
+
+# patch warnings.warn output format
+warnings.formatwarning = custom_formatwarning
+
+# get file system encoding
 file_coding = sys.getfilesystemencoding()
+
+# create a dummy context for Django
 context_dummy = dict(request=RequestFactory().get('/'))
+
+# start Django
 django.setup()
 
 
@@ -120,33 +142,22 @@ class DatabaseFeeder:
         directory = os.listdir(directory_path_encoded)
         listing = []
         created_amount = 0
-        print("Collecting files")
-        if progress_show:
-            progress = ProgressBar(max_value=len(directory)).start()
+        text = "Collecting files"
+        progress_bar = get_progress_bar(progress_show)
+        bar = progress_bar(max_value=len(directory), text=text)
 
-        for i, file_name_encoded in enumerate(directory):
-            if progress_show:
-                progress.update(i + 1)
-
+        for file_name_encoded in bar(directory):
             file_name = file_name_encoded.decode(file_coding)
-            if \
-                    os.path.isfile(os.path.join(
-                        directory_path_encoded,
-                        file_name_encoded
-                        )) and \
-                    os.path.splitext(file_name)[1] not in (
-                        '.ssa', '.ass', '.srt', '.db'
-                        ) and \
-                    file_name[0] != ".":
+            if file_is_valid(directory_path, file_name,
+                    directory_path_encoded, file_name_encoded):
+
                 entry = DatabaseFeederEntry(file_name, prefix)
+
                 if entry.created or not append_only:
                     listing.append(entry)
 
                 if entry.created:
                     created_amount += 1
-
-        if progress_show:
-            progress.finish()
 
         if created_amount:
             print("{} new song{} detected".format(
@@ -164,31 +175,37 @@ class DatabaseFeeder:
                 **kwargs
                 )
 
+    def _get_progress_bar(self, text=None):
+        """ Get the progress bar according to the verbosity requested
+        """
+        return get_progress_bar(self.progress_show, text)
+
+
     def set_from_file_name(self):
         """ Extract database fields from files name
         """
-        print("Extracting data from files name")
-        error_ids = []
-        if self.progress_show:
-            progress = ProgressBar(max_value=len(self.listing)).start()
+        text = "Extracting data from files name"
 
-        for i, entry in enumerate(self.listing):
-            if self.progress_show:
-                progress.update(i + 1)
+        # create progress bar
+        progress_bar = self._get_progress_bar()
+        bar = progress_bar(max_value=len(self.listing), text=text)
+
+        # list of error ids
+        error_ids = []
+
+        for entry in bar(self.listing):
 
             try:
                 entry.set_from_file_name(self.custom_parser)
 
             except DatabaseFeederEntryError as error:
-                warn("Cannot parse file '{file_name}': {error}".format(
+                warnings.warn("Cannot parse file '{file_name}': {error}".format(
                     file_name=entry.file_name,
                     error=error
                     ))
+
                 if self.no_add_on_error:
                     error_ids.append(i)
-
-        if self.progress_show:
-            progress.finish()
 
         for error_id in error_ids:
             self.listing.pop(error_id)
@@ -196,56 +213,42 @@ class DatabaseFeeder:
     def set_from_media_info(self):
         """ Extract database fields from files media info
         """
-        print("Extracting data from files media info")
-        if self.progress_show:
-            progress = ProgressBar(max_value=len(self.listing)).start()
+        text = "Extracting data from files media info"
 
-        for i, entry in enumerate(self.listing):
-            if self.progress_show:
-                progress.update(i + 1)
+        # create progress bar
+        progress_bar = self._get_progress_bar()
+        bar = progress_bar(max_value=len(self.listing), text=text)
+
+        for entry in bar(self.listing):
             entry.set_from_media_info(self.directory_path)
-
-        if self.progress_show:
-            progress.finish()
 
     def set_from_meta_data(self):
         """ Extract database fields from files metadata
         """
-        print("Extracting data from files metadata")
-        if self.progress_show:
-            progress = ProgressBar(max_value=len(self.listing)).start()
+        text = "Extracting data from files metadata"
 
-        for i, entry in enumerate(self.listing):
-            if self.progress_show:
-                progress.update(i + 1)
+        # create progress bar
+        progress_bar = self._get_progress_bar()
+        bar = progress_bar(max_value=len(self.listing), text=text)
+
+        for entry in bar(self.listing):
             entry.set_from_meta_data()
-
-        if self.progress_show:
-            progress.finish()
 
     def save(self):
         """ Save list in database
         """
-        if self.dry_run:
-            print("Entries to save")
+        text = "Entries to save" if self.dry_run else "Saving entries to database"
 
-        else:
-            print("Saving entries to database")
+        # create progress bar
+        progress_bar = self._get_progress_bar()
+        bar = progress_bar(max_value=len(self.listing), text=text)
 
-        if self.progress_show and not self.dry_run:
-            progress = ProgressBar(max_value=len(self.listing)).start()
-
-        for i, entry in enumerate(self.listing):
+        for entry in bar(self.listing):
             if self.dry_run:
                 self._save_dry_run(entry)
 
             else:
                 self._save_real(entry)
-                if self.progress_show:
-                    progress.update(i + 1)
-
-        if self.progress_show and not self.dry_run:
-            progress.finish()
 
     def _save_real(self, entry):
         """ Real save process
@@ -276,6 +279,7 @@ class DatabaseFeederEntry:
                 input arguments are aimed to serve as ID
         """
         file_path = os.path.join(prefix, file_name)
+
         try:
             song = Song.objects.get(file_path=file_path)
             created = False
@@ -366,8 +370,10 @@ class DatabaseFeederEntry:
             link, created_link = SongWorkLink.objects.get_or_create(song_id = self.song.id, work_id = work.id)
             if self.link_type:
                 link.link_type = self.link_type
+
             if self.link_nb:
                 link.link_type_number = int(self.link_nb)
+
             else:
                 link.link_type_number = None
 
@@ -382,7 +388,6 @@ class DatabaseFeederEntry:
                 tag, created = SongTag.objects.get_or_create(name=tag_name)
                 self.song.tags.add(tag)
 
-
         # Create link to artists if there are any
         if self.artists:
             for artist_name in self.artists:
@@ -395,58 +400,147 @@ class DatabaseFeederEntryError(Exception):
         a file gathered by the feeder
     """
 
-if __name__ == "__main__":
-    import argparse
 
+def file_is_valid(directory_path, file_name, directory_path_encoded, file_name_encoded):
+    """ Check the file validity
+
+        A valid file is:
+            A valid file,
+            A media file,
+            Not a hidden file.
+
+        Args:
+            directory_path (str): path to tthe directory of the file.
+            file_name (str): name of the file.
+            directory_path_encoded (byte): path to the directory of the file.
+            file_name_encoded (byte): name of the file.
+
+        Returns:
+            (bool) true if the file is valid.
+    """
+    return all((
+        # valid file
+        os.path.isfile(os.path.join(
+            directory_path_encoded,
+            file_name_encoded
+            )),
+
+        # media file
+        os.path.splitext(file_name)[1] not in (
+            '.ssa', '.ass', '.srt', '.db'
+            ),
+
+        # not hidden file
+        file_name[0] != ".",
+        ))
+
+
+class TextProgressBar(progressbar.ProgressBar):
+    """ Progress bar with text in the widgets
+    """
+    def __init__(self, *args, text=None, **kwargs):
+        super(TextProgressBar, self).__init__(*args, **kwargs)
+
+        # customize the widget
+        if text is not None:
+            widgets = [
+                    "{:40s} ".format(text)
+                    ]
+
+            widgets.extend(self.default_widgets())
+            self.widgets = widgets
+
+
+class TextNullBar(progressbar.NullBar):
+    """ Non-existent bar with text in widgets
+    """
+    def __init__(self, *args, text=None, **kwargs):
+        super(TextNullBar, self).__init__(*args, **kwargs)
+        self.text = text
+
+        if self.text:
+            print(self.text)
+
+
+def get_progress_bar(show, text=None):
+    """ Get the progress bar class according to the requested verbosity
+
+        Args:
+            show (bool): true for enabling the progressbar display.
+
+        Returns:
+            Progress bar object.
+        """
+    return TextProgressBar if show else TextNullBar
+
+
+def get_parser():
+    """ Get the argument parser
+    """
     parser = argparse.ArgumentParser(
             description="Import songs from files \
 and feed the Django database with it"
             )
+
     parser.add_argument(
             "directory",
             help="path of the directory to scan"
             )
+
     parser.add_argument(
             "-p",
             "--prefix",
             help="prefix to add to file path stored in database"
             )
+
     parser.add_argument(
             "--parser",
             help="Name of a custom python module used to extract data from file name; see internal doc for what is expected for this module"
             )
+
     parser.add_argument(
             "-d",
             "--dry-run",
             help="run script in test mode, don't save anything in database",
             action="store_true"
             )
+
     parser.add_argument(
             "--auto-prefix",
             help="use directory as prefix",
             action="store_true"
             )
+
     parser.add_argument(
             "--append-only",
             help="create new songs, don't update existing ones",
             action="store_true"
             )
+
     parser.add_argument(
             "--no-progress",
             help="don't display progress bars",
             action="store_true"
             )
+
     parser.add_argument(
             "--debug-sql",
             help="show Django SQL logs (very verbose)",
             action="store_true"
             )
+
     parser.add_argument(
             "--no-add-on-error",
             help="Do not add file when parse failed.\
             By default parse error still add the file unparsed",
             action="store_true"
             )
+
+    return parser
+
+
+if __name__ == "__main__":
+    parser = get_parser()
 
     args = parser.parse_args()
 
@@ -458,7 +552,8 @@ and feed the Django database with it"
     prefix = args.prefix or ""
     if args.auto_prefix:
         prefix = os.path.basename(os.path.normpath(args.directory))
-    
+
+
     custom_parser = None
     if args.parser:
         parser_directory = os.path.dirname(args.parser)
@@ -479,3 +574,4 @@ and feed the Django database with it"
     database_feeder.set_from_file_name()
     database_feeder.set_from_media_info()
     database_feeder.save()
+
