@@ -36,8 +36,6 @@ urlpatterns = [
     url(r'^api/users/(?P<pk>[0-9]+)/$', UserView.as_view()),
     url(r'^api/users/current/$', CurrentUser.as_view()),
     url(r'^api/users/groups/$', GroupList.as_view()),
-    url(r'^api/admin/users/$', UserCreate.as_view()),
-    url(r'^api/admin/users/(?P<pk>[0-9]+)/$', UserManagerView.as_view()),
 
     # Api routes for the player
     url(r'^api/player/status/$', PlayerForPlayerView.as_view()),
