@@ -55,6 +55,12 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
+# user model
+
+AUTH_USER_MODEL = 'users.DakaraUser'
+
+# urls
+
 ROOT_URLCONF = 'dakara_server.urls'
 
 TEMPLATES = [
