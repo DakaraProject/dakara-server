@@ -1,14 +1,23 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model # If used custom user model
-from django.contrib.auth.models import Group
+from .models import DakaraUser
+
 
 UserModel = get_user_model()
 
-class GroupSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Group
-        fields = ('id', 'name',)
+class PermissionLevelField(serializers.ChoiceField):
+    """ Apps permission level field
+
+        It does the dirty job in one place.
+    """
+    def __init__(self, target, *args, **kwargs):
+        super(PermissionLevelField, self).__init__(
+                *args,
+                choices=DakaraUser._meta.get_field(target).choices,
+                **kwargs,
+                )
+
 
 class UserSerializer(serializers.ModelSerializer):
     """ Serializer for creation and view
@@ -16,21 +25,34 @@ class UserSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(write_only=True)
     id = serializers.CharField(read_only=True)
-    groups = GroupSerializer(many=True, read_only=True)
+    users_permission_level = PermissionLevelField(
+            target="users_permission_level",
+            read_only=True
+            )
+
+    library_permission_level = PermissionLevelField(
+            target="library_permission_level",
+            read_only=True
+            )
+
+    playlist_permission_level = PermissionLevelField(
+            target="playlist_permission_level",
+            read_only=True
+            )
 
     class Meta:
         model = UserModel
-        fields = ('id', 'username', 'password', 'groups')
+        fields = ('id', 'username', 'password',
+                'users_permission_level',
+                'library_permission_level',
+                'playlist_permission_level')
 
     def create(self, validated_data):
-        user_group = Group.objects.get(name="Playlist User")
-
         password = validated_data.pop('password')
-
         instance = super(UserSerializer, self).create(validated_data)
         instance.set_password(password)
+        instance.playlist_permission_level = 'u'
         instance.save()
-        instance.groups.add(user_group)
 
         return instance
 
@@ -66,10 +88,13 @@ class UserUpdateManagerSerializer(UserUpdateSerializer):
     """ Serializer for updating users for managers
 
         Can edit:
-            Group;
+            Apps permission levels,
             Password.
     """
 
     class Meta:
         model = UserModel
-        fields = ('password', 'groups')
+        fields = ('password',
+                'users_permission_level',
+                'library_permission_level',
+                'playlist_permission_level')

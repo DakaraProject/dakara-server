@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from users.permissions import BasePermissionCustom, is_user_in_group
+from users.permissions import BasePermissionCustom
 
 class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
     """ Handle permissions to modify playlist entries
@@ -20,7 +20,7 @@ class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
             return True
 
         # for manager
-        if is_user_in_group(request.user, "Playlist Manager"):
+        if request.user.has_playlist_permission_level('m'):
             return True
 
         # if the object belongs to the user
@@ -41,7 +41,7 @@ class IsPlaylistUserOrReadOnly(BasePermissionCustom):
             return True
 
         # for modification
-        return is_user_in_group(request.user, "Playlist User")
+        return request.user.has_playlist_permission_level('u')
 
 class IsPlaylistManagerOrReadOnly(BasePermissionCustom):
     """ Handle permissions for changing player status
@@ -58,7 +58,7 @@ class IsPlaylistManagerOrReadOnly(BasePermissionCustom):
             return True
 
         # for modification
-        return is_user_in_group(request.user, "Playlist Manager")
+        return request.user.has_playlist_permission_level('m')
 
 class IsPlayer(BasePermissionCustom):
     """ Handle permissions player management
@@ -70,7 +70,4 @@ class IsPlayer(BasePermissionCustom):
             Unauthenticated user cannot see anything.
     """
     def has_permission_custom(self, request, view):
-        return is_user_in_group(request.user, "Player")
-
-
-
+        return request.user.has_playlist_permission_level('p')

@@ -3,14 +3,11 @@ from rest_framework import generics
 from rest_framework import views
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model # If used custom user model
-from django.contrib.auth.models import Group
-from .permissions import is_user_in_group
 
 from .serializers import (
         UserSerializer,
         UserUpdateSerializer,
         UserUpdateManagerSerializer,
-        GroupSerializer,
         )
 from .permissions import IsUsersManagerOrReadOnly, IsUsersManagerOrSelfOrReadOnly
 
@@ -28,16 +25,6 @@ class CurrentUser(views.APIView):
         serializer = UserSerializer(user)
 
         return Response(serializer.data)
-
-
-class GroupList(generics.ListAPIView):
-    model = Group
-    queryset = Group.objects.all()
-    permission_classes = [
-            permissions.IsAuthenticated
-            ]
-
-    serializer_class = GroupSerializer
 
 
 class UserList(generics.ListCreateAPIView):
@@ -58,9 +45,7 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_serializer_class(self, *args, **kwargs):
         if self.request.method in ('PUT', 'PATCH'):
-            if is_user_in_group(self.request.user, "User Manager") \
-                    or self.request.user.is_superuser:
-
+            if self.request.user.has_users_permission_level('m'):
                 return UserUpdateManagerSerializer
 
             return UserUpdateSerializer

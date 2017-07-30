@@ -29,14 +29,6 @@ class BasePermissionCustom(permissions.BasePermission):
         return True
 
 
-def is_user_in_group(user, group_name):
-    """ Check if the user is member of the provided group
-
-        Should be moved into User class when available.
-    """
-    return user.groups.filter(name=group_name)
-
-
 class IsUsersManagerOrReadOnly(BasePermissionCustom):
     """ Handle permissions for the User app
 
@@ -48,7 +40,7 @@ class IsUsersManagerOrReadOnly(BasePermissionCustom):
     """
     def has_permission_custom(self, request, view):
         # for manager
-        if is_user_in_group(request.user, "User Manager"):
+        if request.user.has_users_permission_level('m'):
             return True
 
         # for safe methods only
@@ -68,7 +60,7 @@ class IsUsersManagerOrSelfOrReadOnly(BasePermissionCustom):
             return True
 
         # for manager
-        if is_user_in_group(request.user, "User Manager"):
+        if request.user.has_users_permission_level('m'):
             return True
 
         # if the object belongs to the user
