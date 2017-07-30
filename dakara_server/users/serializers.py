@@ -25,6 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(write_only=True)
     id = serializers.CharField(read_only=True)
+    is_superuser = serializers.BooleanField(read_only=True)
     users_permission_level = PermissionLevelField(
             target="users_permission_level",
             read_only=True
@@ -43,6 +44,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
         fields = ('id', 'username', 'password',
+                'is_superuser',
                 'users_permission_level',
                 'library_permission_level',
                 'playlist_permission_level')
