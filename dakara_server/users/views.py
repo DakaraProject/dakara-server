@@ -20,7 +20,6 @@ class CurrentUser(views.APIView):
             ]
 
     def get(self, request):
-        print(request.user)
         user = request.user
         serializer = UserSerializer(user)
 
