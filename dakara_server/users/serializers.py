@@ -15,7 +15,7 @@ class PermissionLevelField(serializers.ChoiceField):
         super(PermissionLevelField, self).__init__(
                 *args,
                 choices=DakaraUser._meta.get_field(target).choices,
-                **kwargs,
+                **kwargs
                 )
 
 
