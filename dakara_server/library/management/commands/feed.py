@@ -203,16 +203,13 @@ class DatabaseFeeder:
                 **kwargs
                 )
 
-    def _get_progress_bar(self, text=None):
+    def _get_progress_bar(self):
         """ Get the progress bar according to the verbosity requested
-
-            Args:
-                text (str): text to add to the progress bar.
 
             Returns:
                 Progress bar object.
         """
-        return get_progress_bar(self.progress_show, text)
+        return get_progress_bar(self.progress_show)
 
 
     def set_from_file_name(self):
@@ -534,7 +531,7 @@ class TextNullBar(progressbar.NullBar):
             print(self.text)
 
 
-def get_progress_bar(show, text=None):
+def get_progress_bar(show):
     """ Get the progress bar class according to the requested verbosity
 
         Args:
