@@ -306,7 +306,7 @@ class DatabaseFeederEntry:
     """ Class representing a song to upgrade or create in the database
     """
 
-    def __init__(self, file_name, prefix="", metadata_parser=MetadataParser):
+    def __init__(self, file_name, prefix="", metadata_parser=None):
         """ Constructor
 
             Detect if a song already exists in the database,
@@ -316,6 +316,7 @@ class DatabaseFeederEntry:
                 file_name (str): name of the song file, serves as ID.
                 prefix (str): prefix to append to file name.
                 metadata_parser (:obj:`MetadataParser`): metadata parser class.
+                    Default is `MetadataParser`.
         """
         file_path = os.path.join(prefix, file_name)
 
@@ -332,7 +333,9 @@ class DatabaseFeederEntry:
         self.file_name = file_name
         self.created = created
         self.song = song
-        self.metadata_parser = metadata_parser
+
+        # if no metadata parser is provided, use the default one
+        self.metadata_parser = metadata_parser or MetadataParser
 
     def set_from_file_name(self, custom_parser):
         """ Set attributes by extracting them from file name
