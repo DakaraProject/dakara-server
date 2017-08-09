@@ -18,7 +18,6 @@ from pymediainfo import MediaInfo
 from datetime import timedelta
 from django.core.management.base import BaseCommand, CommandError
 from library.models import *
-from library.serializers import SongSerializer
 
 # get logger
 logger = logging.getLogger(__file__)
@@ -405,13 +404,21 @@ class DatabaseFeederEntry:
                 stdout (file descriptor): standard output.
         """
         stdout.write('')
-        entry_serializer = SongSerializer(self.song)
 
         # set key length to one quarter of terminal width or 20
         width, _ = progressbar.utils.get_terminal_size()
         length = max(int(width * 0.25), 20)
 
-        for key, value in entry_serializer.data.items():
+        # we cannot use the song serializer here because it will have troubles on
+        # songs that are not already in the database
+        # instead, we extract manually all the fields
+        fields = {k: v for k, v in self.song.__dict__.items() \
+                if k not in ('_state')}
+
+        fields.update({k: v for k, v in self.__dict__.items() \
+                if k not in ('file_name', 'song', 'metadata_parser')})
+
+        for key, value in fields.items():
             stdout.write("{key:{length}s} {value}".format(
                 key=key,
                 value=repr(value),
