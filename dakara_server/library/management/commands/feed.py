@@ -314,7 +314,16 @@ class DatabaseFeederEntry:
         """
         file_path = os.path.join(prefix, file_name)
 
-        song, created = Song.objects.get_or_create(file_path=file_path)
+        # we do not use get_or_create as it will automatically create a new Song
+        # in the database
+        try:
+            song = Song.objects.get(file_path=file_path)
+            created = False
+
+        except Song.DoesNotExist:
+            song = Song(file_path=file_path)
+            created = True
+
         self.file_name = file_name
         self.created = created
         self.song = song
