@@ -84,8 +84,8 @@ class DatabaseFeeder:
                     extract data from file name; soo notes below.
                 metadata_parser (str): name of the metadata parser to use
                     ('ffprobe', 'mediainfo' or `None`).
-                stdout: standard output.
-                stderr: standard error.
+                stdout (file descriptor): standard output.
+                stderr (file descriptor): standard error.
 
             About custom_parser:
                 This module should define a method called `parse_file_name`
@@ -106,10 +106,6 @@ class DatabaseFeeder:
         """
         if not isinstance(listing, (list, tuple)):
             raise ValueError("listing argument must be a list or a tuple")
-
-        # if len(listing) and not isinstance(listing[0], DatabaseFeederEntry):
-        #     raise ValueError("listing argument elements must be \
-        #             DatabaseFeederEntry objects")
 
         self.listing = listing
         self.prefix = prefix
@@ -200,6 +196,8 @@ class DatabaseFeeder:
                         metadata_parser=feeder.metadata_parser
                         )
 
+                # only add entry to feeder list if we are not in append only
+                # mode, otherwise only if the entry is new in the database
                 if entry.created or not append_only:
                     listing.append(entry)
 
@@ -220,29 +218,30 @@ class DatabaseFeeder:
     def set_from_file_name(self):
         """ Extract database fields from files name
         """
-
         # create progress bar
         text = "Extracting data from files name"
         progress_bar = self._get_progress_bar()
         bar = progress_bar(max_value=len(self.listing), text=text)
 
-        # list of error ids
+        # list of erroneous songs id
         error_ids = []
 
         for entry in bar(self.listing):
-
             try:
                 entry.set_from_file_name(self.custom_parser)
 
             except DatabaseFeederEntryError as error:
+                # only show a warning in case of error
                 warnings.warn("Cannot parse file '{file_name}': {error}"\
                         .format(
-                    file_name=entry.file_name,
-                    error=error
-                    ))
+                            file_name=entry.file_name,
+                            error=error
+                            )
+                        )
 
                 error_ids.append(entry.song.id)
 
+        # if no erroneous songs can be added, delete them from list
         if self.no_add_on_error:
             self.listing = [item for item in self.listing \
                     if item.song.id not in error_ids]
@@ -250,26 +249,14 @@ class DatabaseFeeder:
     def set_from_metadata(self):
         """ Extract database fields from files metadata
         """
-
         # create progress bar
         text = "Extracting data from files metadata"
         progress_bar = self._get_progress_bar()
         bar = progress_bar(max_value=len(self.listing), text=text)
 
+        # extract metadata
         for entry in bar(self.listing):
             entry.set_from_metadata(self.directory_path)
-
-    def set_from_meta_data(self):
-        """ Extract database fields from files metadata
-        """
-
-        # create progress bar
-        text = "Extracting data from files metadata"
-        progress_bar = self._get_progress_bar()
-        bar = progress_bar(max_value=len(self.listing), text=text)
-
-        for entry in bar(self.listing):
-            entry.set_from_meta_data()
 
     def save(self):
         """ Save list in database
@@ -277,7 +264,6 @@ class DatabaseFeeder:
             Depending on the attribute `dry_run`, entries will be saved or
             just displayed on screen.
         """
-
         # create progress bar
         text = "Entries to save" if self.dry_run \
                 else "Saving entries to database"
@@ -290,6 +276,7 @@ class DatabaseFeeder:
 
         bar = progress_bar(max_value=len(self.listing), text=text)
 
+        # define action to perform depending on dry run mode or not
         if self.dry_run:
             def save(obj):
                 obj.show(self.stdout)
@@ -298,6 +285,7 @@ class DatabaseFeeder:
             def save(obj):
                 obj.save()
 
+        # save entries
         for entry in bar(self.listing):
             save(entry)
 
@@ -345,6 +333,7 @@ class DatabaseFeederEntry:
         """
         file_name, _ = os.path.splitext(self.file_name)
 
+        # prepare fields
         self.song.title = file_name
         self.title_work = None
         self.subtitle_work = None
@@ -360,6 +349,7 @@ class DatabaseFeederEntry:
                 data = custom_parser.parse_file_name(file_name)
 
             except Exception as error:
+                # re-raise the error with custom class and message
                 raise DatabaseFeederEntryError(
                         "{klass}: {message}".format(
                             message=str(error),
@@ -368,6 +358,7 @@ class DatabaseFeederEntry:
 
                         ) from error
 
+            # fill fields
             self.song.title = data.get('title_music')
             self.song.version = data.get('version')
             self.song.detail = data.get('detail')
@@ -394,13 +385,15 @@ class DatabaseFeederEntry:
 
     def show(self, stdout=sys.stdout):
         """ Show the song content
+
+            Args:
+                stdout (file descriptor): standard output.
         """
         stdout.write('')
         entry_serializer = SongSerializer(self.song)
 
-        # get screen size
+        # set key length to one quarter of terminal width or 20
         width, _ = progressbar.utils.get_terminal_size()
-        # set length to one quarter of terminal width or 20
         length = max(int(width * 0.25), 20)
 
         for key, value in entry_serializer.data.items():
@@ -433,7 +426,11 @@ class DatabaseFeederEntry:
                     work_type=work_type
                     )
 
-            link, created_link = SongWorkLink.objects.get_or_create(song_id = self.song.id, work_id = work.id)
+            link, created_link = SongWorkLink.objects.get_or_create(
+                    song_id=self.song.id,
+                    work_id=work.id
+                    )
+
             if self.link_type:
                 link.link_type = self.link_type
 
@@ -515,8 +512,8 @@ class TextProgressBar(progressbar.ProgressBar):
         # customize the widget if text is provided
         if text is not None:
             # space padded length for text
-            width, _ = progressbar.utils.get_terminal_size()
             # set length to one quarter of terminal width
+            width, _ = progressbar.utils.get_terminal_size()
             length = int(width * 0.25)
 
             # truncate text if necessary
@@ -725,9 +722,28 @@ class Command(BaseCommand):
                 )
 
         parser.add_argument(
+                "--no-progress",
+                help="Don't display progress bars.",
+                action="store_true"
+                )
+
+        parser.add_argument(
+                "-r",
+                "--dry-run",
+                help="Run script in test mode, don't save anything in database.",
+                action="store_true",
+                )
+
+        parser.add_argument(
                 "-p",
                 "--prefix",
                 help="Prefix to add to file path stored in database.",
+                )
+
+        parser.add_argument(
+                "--auto-prefix",
+                help="Use directory as prefix.",
+                action="store_true",
                 )
 
         parser.add_argument(
@@ -738,32 +754,15 @@ file name; see internal doc for what is expected for this module.",
                 )
 
         parser.add_argument(
-                "--dry-run",
-                help="Run script in test mode, don't save anything in database.",
-                action="store_true",
-                )
-
-        parser.add_argument(
-                "--auto-prefix",
-                help="Use directory as prefix.",
-                action="store_true",
+                "--metadata-parser",
+                help="Which program to extract metadata from: \
+none (no parser), mediainfo or ffprobe (default).",
+                default='ffprobe'
                 )
 
         parser.add_argument(
                 "--append-only",
                 help="Create new songs, don't update existing ones.",
-                action="store_true"
-                )
-
-        parser.add_argument(
-                "--no-progress",
-                help="Don't display progress bars.",
-                action="store_true"
-                )
-
-        parser.add_argument(
-                "--debug-sql",
-                help="Show Django SQL logs (very verbose).",
                 action="store_true"
                 )
 
@@ -775,10 +774,9 @@ By default parse error still add the file unparsed.",
                 )
 
         parser.add_argument(
-                "--metadata-parser",
-                help="Which program to extract metadata: \
-none, mediainfo or ffprobe (default)",
-                default='ffprobe'
+                "--debug-sql",
+                help="Show Django SQL logs (very verbose).",
+                action="store_true"
                 )
 
     def handle(self, *args, **options):
