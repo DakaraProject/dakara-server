@@ -114,13 +114,55 @@ class DatabaseFeeder:
         self.stdout = stdout
         self.stderr = stderr
         self.metadata_parser = DatabaseFeeder.select_metadata_parser(metadata_parser)
+        self.directory = DatabaseFeeder.select_directory(directory,
+                directory_source)
 
-        # set directory
+
+    @staticmethod
+    def select_directory(directory, directory_source):
+        """ Select the directory to store in the database
+
+            If no directory is provided, it gives the parent directory of the
+            scanned songs.
+
+            If a directory is provided as a string, it gives this string.
+
+            If a directory is provided as a level (ie: as negative integer), it
+                gives the folder structure up to this level from the directory
+                of the scanned song.
+
+            Args:
+                directory (str): directory given from command.
+                directory_source (str): directory of the songs to scan.
+
+            Returns:
+                (str) directory structure to store in database.
+        """
+        # if no directory is provided, return the last folder of directory
+        # source, which is the parent directory of scanned files
         if directory is None:
-            self.directory = os.path.basename(directory_source)
+            return os.path.basename(directory_source)
 
-        else:
-            self.directory = directory
+        # try to convert directory in numeric value, and return the string of n
+        # folders ahead from directory source, which is the nth parent directory
+        # of scanned files
+        try:
+            directory_num = int(directory)
+            directory_source_list = directory_source.split(os.path.sep)
+
+            # check if the level is negative
+            if directory_num >= 0:
+                raise ValueError
+
+            # check if the level is too deep
+            if -directory_num > len(directory_source_list):
+                raise ValueError
+
+            return os.path.join(*directory_source_list[directory_num:])
+
+        # otherwize, just return the directory string
+        except ValueError:
+            return directory
 
     @staticmethod
     def select_metadata_parser(parser_name):
@@ -753,7 +795,9 @@ class Command(BaseCommand):
                 "-D",
                 "--directory",
                 help="Directory stored in database for the files scanned. By \
-default, it will be the name of the directory scanned.",
+default, it will be the name of the scanned directory. If indicated as a \
+negative number, it will be the directory structure up to this number ahead \
+from the scanned directory. Example: for -2 and a/b/c, it gives b/c.",
                 default=None
                 )
 
