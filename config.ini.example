@@ -1,0 +1,24 @@
+; Configuration file for database small elements
+
+; DO NOT MODIFY THIS FILE!!!
+; You will have troubles at the next update.
+; Duplicate this file to `config.ini` instead and remove this message.
+
+; You have to provide the tags used here, alongwith their color id (positive
+; integer starting at 0).
+[tags]
+exampleTag = 0
+
+; You have to provide the types of works used here. Work types are identified by
+; their query name (hyphenated name, with no special characters, used as key
+; word for querying).
+;
+; The syntax is a bit exotic, so let's explain. The query name is followed by a
+; dot and a key word (.name or .icon_name) in order to define all attributes of
+; the work type:
+; exampleWorkType.name: for the displayed name of the work type;
+; exampleWorkType.icon_name: for the icon name of the work type, choosen in the
+; FontAwesome font.
+[worktypes]
+exampleWorkType.name = Example Work Type
+exampleWorkType.icon_name = smile-o
