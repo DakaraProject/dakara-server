@@ -145,63 +145,68 @@ class DatabaseFeeder:
     @classmethod
     def from_directory(
             cls,
-            directory_path,
             *args,
-            prefix="",
             append_only=False,
-            progress_show=False,
             **kwargs
             ):
         """ Overloaded constructor
             Extract files from directory
 
             Args:
-                directory_path (str): path of directory to extract songs from.
+                prefix (str): directory prefix to be appended to file name.
+                dry_run (bool): flag for test mode (no save in database).
+                directory_path (str): parent directory of the songs.
+                progress_show (bool): show the progress bar.
+                no_add_on_error (bool): when true do not add song when parse
+                    fails.
+                custom_parser (module): name of a custom python module used to
+                    extract data from file name; soo notes below.
+                metadata_parser (str): name of the metadata parser to use
+                    ('ffprobe', 'mediainfo' or `None`).
+                stdout (file descriptor): standard output.
+                stderr (file descriptor): standard error.
+                append_only (bool): create only new songs, do not update
+                    existing ones.
 
             Returns:
-                (DatabaseFeeder) list of songs.
+                (:obj:`DatabaseFeeder`) feeder object.
         """
-        # directory
-        directory_path_encoded = directory_path.encode(file_coding)
+        # create instance of feeder with no feeder entries yet
+        feeder = cls([], *args, **kwargs)
+
+        # manage directory
+        directory_path_encoded = feeder.directory_path.encode(file_coding)
         if not os.path.isdir(directory_path_encoded):
             raise CommandError("Directory '{}' does not exist"\
                     .format(directory_path))
 
         directory = os.listdir(directory_path_encoded)
 
-        listing = []
-
-        # select metadata parser
-        parser_kwarg = {}
-        if 'metadata_parser' in kwargs:
-            parser_kwarg['metadata_parser'] = \
-                    DatabaseFeeder.select_metadata_parser(
-                            kwargs['metadata_parser']
-                            )
-
         # create progress bar
         text = "Collecting files"
-        progress_bar = get_progress_bar(progress_show)
+        progress_bar = feeder._get_progress_bar()
         bar = progress_bar(max_value=len(directory), text=text)
 
+        # scan directory
+        listing = []
         for file_name_encoded in bar(directory):
             file_name = file_name_encoded.decode(file_coding)
-            if file_is_valid(directory_path, file_name,
+            if file_is_valid(feeder.directory_path, file_name,
                     directory_path_encoded, file_name_encoded):
 
-                entry = DatabaseFeederEntry(file_name, prefix, **parser_kwarg)
+                entry = DatabaseFeederEntry(
+                        file_name,
+                        feeder.prefix,
+                        metadata_parser=feeder.metadata_parser
+                        )
 
                 if entry.created or not append_only:
                     listing.append(entry)
 
-        return cls(
-                listing,
-                *args,
-                directory_path=directory_path,
-                prefix=prefix,
-                progress_show=progress_show,
-                **kwargs
-                )
+        # put listing in feeder
+        feeder.listing = listing
+
+        return feeder
 
     def _get_progress_bar(self):
         """ Get the progress bar according to the verbosity requested
