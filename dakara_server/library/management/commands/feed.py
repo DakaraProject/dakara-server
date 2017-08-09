@@ -12,6 +12,8 @@ import importlib
 import progressbar
 import warnings
 import argparse
+import subprocess
+import json
 from pymediainfo import MediaInfo
 from datetime import timedelta
 from django.core.management.base import BaseCommand, CommandError
@@ -64,6 +66,7 @@ class DatabaseFeeder:
             progress_show=False,
             no_add_on_error=False,
             custom_parser=None,
+            metadata_parser='ffprobe',
             stdout=sys.stdout,
             stderr=sys.stderr
             ):
@@ -79,6 +82,8 @@ class DatabaseFeeder:
                     fails.
                 custom_parser (module): name of a custom python module used to
                     extract data from file name; soo notes below.
+                metadata_parser (str): name of the metadata parser to use
+                    ('ffprobe', 'mediainfo' or `None`).
                 stdout: standard output.
                 stderr: standard error.
 
@@ -115,6 +120,27 @@ class DatabaseFeeder:
         self.custom_parser = custom_parser
         self.stdout = stdout
         self.stderr = stderr
+        self.metadata_parser = DatabaseFeeder.select_metadata_parser(metadata_parser)
+
+        # metadata parser
+    @staticmethod
+    def select_metadata_parser(parser_name):
+        if parser_name is None:
+            return MetadataParser
+
+        if parser_name == 'ffprobe':
+            if not FFProbeMetadataParser.is_available():
+                raise CommandError("ffprobe is not available")
+
+            return FFProbeMetadataParser
+
+        if parser_name == 'mediainfo':
+            if not MediainfoMetadataParser.is_available():
+                raise CommandError("mediainfo is not available")
+
+            return MediainfoMetadataParser
+
+        raise CommandError("Unknown metadata parser: '{}'".format(parser_name))
 
     @classmethod
     def from_directory(
@@ -145,6 +171,14 @@ class DatabaseFeeder:
 
         listing = []
 
+        # select metadata parser
+        parser_kwarg = {}
+        if 'metadata_parser' in kwargs:
+            parser_kwarg['metadata_parser'] = \
+                    DatabaseFeeder.select_metadata_parser(
+                            kwargs['metadata_parser']
+                            )
+
         # create progress bar
         text = "Collecting files"
         progress_bar = get_progress_bar(progress_show)
@@ -155,7 +189,7 @@ class DatabaseFeeder:
             if file_is_valid(directory_path, file_name,
                     directory_path_encoded, file_name_encoded):
 
-                entry = DatabaseFeederEntry(file_name, prefix)
+                entry = DatabaseFeederEntry(file_name, prefix, **parser_kwarg)
 
                 if entry.created or not append_only:
                     listing.append(entry)
@@ -211,17 +245,17 @@ class DatabaseFeeder:
             self.listing = [item for item in self.listing \
                     if item.song.id not in error_ids]
 
-    def set_from_media_info(self):
-        """ Extract database fields from files media info
+    def set_from_metadata(self):
+        """ Extract database fields from files metadata
         """
 
         # create progress bar
-        text = "Extracting data from files media info"
+        text = "Extracting data from files metadata"
         progress_bar = self._get_progress_bar()
         bar = progress_bar(max_value=len(self.listing), text=text)
 
         for entry in bar(self.listing):
-            entry.set_from_media_info(self.directory_path)
+            entry.set_from_metadata(self.directory_path)
 
     def set_from_meta_data(self):
         """ Extract database fields from files metadata
@@ -270,7 +304,7 @@ class DatabaseFeederEntry:
     """ Class representing a song to upgrade or create in the database
     """
 
-    def __init__(self, file_name, prefix=""):
+    def __init__(self, file_name, prefix="", metadata_parser=MetadataParser):
         """ Constructor
             Detect if a song already exists in the database,
             then take it or create it
@@ -278,6 +312,7 @@ class DatabaseFeederEntry:
             Args:
                 file_name (str): name of the song file.
                 prefix (str): prefix to append to file name.
+                metadata_parser (:obj:`MetadataParser`): metadata parser class.
                 input arguments are aimed to serve as ID.
         """
         file_path = os.path.join(prefix, file_name)
@@ -286,6 +321,7 @@ class DatabaseFeederEntry:
         self.file_name = file_name
         self.created = created
         self.song = song
+        self.metadata_parser = metadata_parser
 
     def set_from_file_name(self, custom_parser):
         """ Set attributes by extracting them from file name
@@ -332,23 +368,15 @@ class DatabaseFeederEntry:
             self.artists = data.get('artists')
             self.tags = data.get('tags')
 
-    def set_from_media_info(self, directory_path):
-        """ Set attributes by extracting them from media info
+    def set_from_metadata(self, directory_path):
+        """ Set attributes by extracting them from metadata
 
             Args:
                 directory_path (str): parent directory of the file.
         """
         file_path = os.path.join(directory_path, self.file_name)
-        media = MediaInfo.parse(file_path)
-        media_general_track = media.tracks[0]
-        duration = getattr(media_general_track, 'duration', 0) or 0
-        self.song.duration = timedelta(milliseconds=int(duration))
-
-    def set_from_meta_data(self):
-        """ Set attributes by extracting them from file metadata
-
-            Not implemented.
-        """
+        metadata = self.metadata_parser.parse(file_path)
+        self.song.duration = metadata.duration
 
     def show(self, stdout=sys.stdout):
         """ Show the song content
@@ -518,11 +546,155 @@ def get_progress_bar(show, text=None):
     return TextProgressBar if show else TextNullBar
 
 
-def get_parser():
-    """ Get the argument parser
-    """
+class MetadataParser:
+    """ Base class for metadata parser
 
-    return parser
+        The class works as an interface for the various metadata parsers
+        available.
+
+        This class itself is a null parser that always returns a timedelta 0
+        duration.
+    """
+    def __init__(self, metadata):
+        self.metadata = metadata
+
+    @staticmethod
+    def is_available():
+        """ Check if the parser is callable
+        """
+        return True
+
+    @classmethod
+    def parse(cls, filename):
+        """ Parse metadata from file name
+
+            Args:
+                filename (str): path of the file to parse.
+        """
+        return cls(None)
+
+    @property
+    def duration(self):
+        """ Get duration as timedelta object
+
+            Returns timedelta 0 if unable to get duration.
+        """
+        return timedelta(0)
+
+
+class MediainfoMetadataParser(MetadataParser):
+    """ Metadata parser based on PyMediaInfo (wrapper for MediaInfo)
+
+        The class works as an interface for the MediaInfo class, provided by the
+        pymediainfo module.
+
+        It does not seem to work on Windows, as the mediainfo DLL cannot be
+        found.
+    """
+    @staticmethod
+    def is_available():
+        """ Check if the parser is callable
+        """
+        return MediaInfo.can_parse()
+
+    @classmethod
+    def parse(cls, filename):
+        """ Parse metadata from file name
+
+            Args:
+                filename (str): path of the file to parse.
+        """
+        metadata = MediaInfo.parse(filename)
+        return cls(metadata)
+
+    @property
+    def duration(self):
+        """ Get duration as timedelta object
+
+            Returns timedelta 0 if unable to get duration.
+        """
+        general_track = self.metadata.tracks[0]
+        duration = getattr(general_track, 'duration', 0) or 0
+        return timedelta(milliseconds=int(duration))
+
+
+class FFProbeMetadataParser(MetadataParser):
+    """ Metadata parser based on ffprobe
+
+        The class works as a wrapper for the `ffprobe` command. The ffprobe3
+        module does not work, so we do our own here.
+
+        The command is invoked through `subprocess`, so it should work on
+        Windows as long as ffmpeg is installed and callable from the command
+        line. Data are passed as JSON string.
+
+        Freely inspired from [this proposed
+        wrapper](https://stackoverflow.com/a/36743499) and the [code of
+        ffprobe3](https://github.com/DheerendraRathor/ffprobe3/blob/master/ffprobe3/ffprobe.py).
+    """
+    @staticmethod
+    def is_available():
+        """ Check if the parser is callable
+        """
+        try:
+            with open(os.devnull, 'w') as tempf:
+                subprocess.check_call(
+                        ["ffprobe", "-h"],
+                        stdout=tempf,
+                        stderr=tempf
+                        )
+
+                return True
+
+        except:
+            return False
+
+    @classmethod
+    def parse(cls, filename):
+        """ Parse metadata from file name
+
+            Args:
+                filename (str): path of the file to parse.
+        """
+        command = ["ffprobe",
+                "-loglevel",  "quiet",
+                "-print_format", "json",
+                "-show_format",
+                "-show_streams",
+                filename
+                ]
+
+        pipe = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT
+                )
+
+        out, err = pipe.communicate()
+        return cls(json.loads(out.decode(sys.stdout.encoding)))
+
+    @property
+    def duration(self):
+        """ Get duration as timedelta object
+
+            Returns timedelta 0 if unable to get duration.
+        """
+        # try in generic location
+        if 'format' in self.metadata:
+            if 'duration' in self.metadata['format']:
+                return timedelta(seconds=float(
+                    self.metadata['format']['duration']
+                    ))
+
+        # try in the streams
+        if 'streams' in self.metadata:
+            # commonly stream 0 is the video
+            for s in self.metadata['streams']:
+                if 'duration' in s:
+                    return timedelta(seconds=float(s['duration']))
+
+        # if nothing is found
+        return timedelta(0)
 
 
 class Command(BaseCommand):
@@ -588,6 +760,13 @@ By default parse error still add the file unparsed.",
                 action="store_true"
                 )
 
+        parser.add_argument(
+                "--metadata-parser",
+                help="Which program to extract metadata: \
+none, mediainfo or ffprobe (default)",
+                default='ffprobe'
+                )
+
     def handle(self, *args, **options):
         """ Process the feeding
         """
@@ -615,6 +794,10 @@ By default parse error still add the file unparsed.",
             sys.path.append(parser_directory)
             custom_parser = importlib.import_module(parser_name)
 
+        metadata_parser = options.get('metadata_parser')
+        if metadata_parser == 'none':
+            metadata_parser = None
+
         database_feeder = DatabaseFeeder.from_directory(
                 directory_path=options['directory'],
                 prefix=prefix,
@@ -623,10 +806,11 @@ By default parse error still add the file unparsed.",
                 progress_show=not options.get('no_progress'),
                 custom_parser=custom_parser,
                 no_add_on_error=options.get('no_add_on_error'),
+                metadata_parser=metadata_parser,
                 stdout=self.stdout,
                 stderr=self.stderr
                 )
 
         database_feeder.set_from_file_name()
-        database_feeder.set_from_media_info()
+        database_feeder.set_from_metadata()
         database_feeder.save()
