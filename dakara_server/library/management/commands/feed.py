@@ -58,9 +58,9 @@ class DatabaseFeeder:
     def __init__(
             self,
             listing,
-            prefix="",
             dry_run=False,
-            directory_path="",
+            directory_source="",
+            directory=None,
             progress_show=False,
             no_add_on_error=False,
             custom_parser=None,
@@ -74,7 +74,7 @@ class DatabaseFeeder:
                 listing (list): list of file names.
                 prefix (str): directory prefix to be appended to file name.
                 dry_run (bool): flag for test mode (no save in database).
-                directory_path (str): parent directory of the songs.
+                directory_source (str): parent directory of the songs.
                 progress_show (bool): show the progress bar.
                 no_add_on_error (bool): when true do not add song when parse
                     fails.
@@ -106,15 +106,21 @@ class DatabaseFeeder:
             raise ValueError("listing argument must be a list or a tuple")
 
         self.listing = listing
-        self.prefix = prefix
         self.dry_run = dry_run
-        self.directory_path = directory_path
+        self.directory_source = directory_source
         self.progress_show = progress_show
         self.no_add_on_error = no_add_on_error
         self.custom_parser = custom_parser
         self.stdout = stdout
         self.stderr = stderr
         self.metadata_parser = DatabaseFeeder.select_metadata_parser(metadata_parser)
+
+        # set directory
+        if directory is None:
+            self.directory = os.path.basename(directory_source)
+
+        else:
+            self.directory = directory
 
     @staticmethod
     def select_metadata_parser(parser_name):
@@ -156,7 +162,7 @@ class DatabaseFeeder:
             Args:
                 prefix (str): directory prefix to be appended to file name.
                 dry_run (bool): flag for test mode (no save in database).
-                directory_path (str): parent directory of the songs.
+                directory_source (str): parent directory of the songs.
                 progress_show (bool): show the progress bar.
                 no_add_on_error (bool): when true do not add song when parse
                     fails.
@@ -176,12 +182,12 @@ class DatabaseFeeder:
         feeder = cls([], *args, **kwargs)
 
         # manage directory
-        directory_path_encoded = feeder.directory_path.encode(file_coding)
-        if not os.path.isdir(directory_path_encoded):
+        directory_source_encoded = feeder.directory_source.encode(file_coding)
+        if not os.path.isdir(directory_source_encoded):
             raise CommandError("Directory '{}' does not exist"\
-                    .format(directory_path))
+                    .format(directory_source))
 
-        directory = os.listdir(directory_path_encoded)
+        directory = os.listdir(directory_source_encoded)
 
         # create progress bar
         text = "Collecting files"
@@ -190,14 +196,14 @@ class DatabaseFeeder:
 
         # scan directory
         listing = []
-        for file_name_encoded in bar(directory):
-            file_name = file_name_encoded.decode(file_coding)
-            if file_is_valid(feeder.directory_path, file_name,
-                    directory_path_encoded, file_name_encoded):
+        for filename_encoded in bar(directory):
+            filename = filename_encoded.decode(file_coding)
+            if file_is_valid(feeder.directory_source, filename,
+                    directory_source_encoded, filename_encoded):
 
                 entry = DatabaseFeederEntry(
-                        file_name,
-                        feeder.prefix,
+                        filename,
+                        feeder.directory,
                         metadata_parser=feeder.metadata_parser
                         )
 
@@ -229,7 +235,7 @@ class DatabaseFeeder:
         return TextProgressBar if show else TextNullBar
 
 
-    def set_from_file_name(self):
+    def set_from_filename(self):
         """ Extract database fields from files name
         """
         # create progress bar
@@ -242,13 +248,13 @@ class DatabaseFeeder:
 
         for entry in bar(self.listing):
             try:
-                entry.set_from_file_name(self.custom_parser)
+                entry.set_from_filename(self.custom_parser)
 
             except DatabaseFeederEntryError as error:
                 # only show a warning in case of error
-                warnings.warn("Cannot parse file '{file_name}': {error}"\
+                warnings.warn("Cannot parse file '{filename}': {error}"\
                         .format(
-                            file_name=entry.file_name,
+                            filename=entry.filename,
                             error=error
                             )
                         )
@@ -270,7 +276,7 @@ class DatabaseFeeder:
 
         # extract metadata
         for entry in bar(self.listing):
-            entry.set_from_metadata(self.directory_path)
+            entry.set_from_metadata(self.directory_source)
 
     def save(self):
         """ Save list in database
@@ -308,47 +314,46 @@ class DatabaseFeederEntry:
     """ Class representing a song to upgrade or create in the database
     """
 
-    def __init__(self, file_name, prefix="", metadata_parser=None):
+    def __init__(self, filename, directory, metadata_parser=None):
         """ Constructor
 
             Detect if a song already exists in the database,
             then take it or create it
 
             Args:
-                file_name (str): name of the song file, serves as ID.
-                prefix (str): prefix to append to file name.
+                filename (str): name of the song file, serves as ID.
+                directory (str): prefix to append to file name.
                 metadata_parser (:obj:`MetadataParser`): metadata parser class.
                     Default is `MetadataParser`.
         """
-        file_path = os.path.join(prefix, file_name)
-
         # we do not use get_or_create as it will automatically create a new Song
         # in the database
         try:
-            song = Song.objects.get(file_path=file_path)
+            song = Song.objects.get(filename=filename, directory=directory)
             created = False
 
         except Song.DoesNotExist:
-            song = Song(file_path=file_path)
+            song = Song(filename=filename, directory=directory)
             created = True
 
-        self.file_name = file_name
+        self.filename = filename
+        self.directory = directory
         self.created = created
         self.song = song
 
         # if no metadata parser is provided, use the default one
         self.metadata_parser = metadata_parser or MetadataParser
 
-    def set_from_file_name(self, custom_parser):
+    def set_from_filename(self, custom_parser):
         """ Set attributes by extracting them from file name
 
             Args:
                 custom_parser (module): module for custom parsing.
         """
-        file_name, _ = os.path.splitext(self.file_name)
+        filename, _ = os.path.splitext(self.filename)
 
         # prepare fields
-        self.song.title = file_name
+        self.song.title = filename
         self.title_work = None
         self.subtitle_work = None
         self.link_type = None
@@ -360,7 +365,7 @@ class DatabaseFeederEntry:
 
         if custom_parser:
             try:
-                data = custom_parser.parse_file_name(file_name)
+                data = custom_parser.parse_file_name(filename)
 
             except Exception as error:
                 # re-raise the error with custom class and message
@@ -387,13 +392,13 @@ class DatabaseFeederEntry:
             self.artists = data.get('artists')
             self.tags = data.get('tags')
 
-    def set_from_metadata(self, directory_path):
+    def set_from_metadata(self, directory_source):
         """ Set attributes by extracting them from metadata
 
             Args:
-                directory_path (str): parent directory of the file.
+                directory_source (str): parent directory of the file.
         """
-        file_path = os.path.join(directory_path, self.file_name)
+        file_path = os.path.join(directory_source, self.filename)
         metadata = self.metadata_parser.parse(file_path)
         self.song.duration = metadata.duration
 
@@ -416,7 +421,7 @@ class DatabaseFeederEntry:
                 if k not in ('_state')}
 
         fields.update({k: v for k, v in self.__dict__.items() \
-                if k not in ('file_name', 'song', 'metadata_parser')})
+                if k not in ('filename', 'directory', 'song', 'metadata_parser')})
 
         for key, value in fields.items():
             stdout.write("{key:{length}s} {value}".format(
@@ -486,7 +491,7 @@ class DatabaseFeederEntryError(Exception):
     """
 
 
-def file_is_valid(directory_path, file_name, directory_path_encoded, file_name_encoded):
+def file_is_valid(directory_source, filename, directory_source_encoded, filename_encoded):
     """ Check the file validity
 
         A valid file is:
@@ -495,10 +500,10 @@ def file_is_valid(directory_path, file_name, directory_path_encoded, file_name_e
             Not a hidden file.
 
         Args:
-            directory_path (str): path to tthe directory of the file.
-            file_name (str): name of the file.
-            directory_path_encoded (byte): path to the directory of the file.
-            file_name_encoded (byte): name of the file.
+            directory_source (str): path to tthe directory of the file.
+            filename (str): name of the file.
+            directory_source_encoded (byte): path to the directory of the file.
+            filename_encoded (byte): name of the file.
 
         Returns:
             (bool) true if the file is valid.
@@ -506,17 +511,17 @@ def file_is_valid(directory_path, file_name, directory_path_encoded, file_name_e
     return all((
         # valid file
         os.path.isfile(os.path.join(
-            directory_path_encoded,
-            file_name_encoded
+            directory_source_encoded,
+            filename_encoded
             )),
 
         # media file
-        os.path.splitext(file_name)[1] not in (
+        os.path.splitext(filename)[1] not in (
             '.ssa', '.ass', '.srt', '.db', '.txt',
             ),
 
         # not hidden file
-        file_name[0] != ".",
+        filename[0] != ".",
         ))
 
 
@@ -727,7 +732,7 @@ class Command(BaseCommand):
         """ Extend arguments for the command
         """
         parser.add_argument(
-                "directory",
+                "directory-source",
                 help="Path of the directory to scan."
                 )
 
@@ -745,15 +750,11 @@ class Command(BaseCommand):
                 )
 
         parser.add_argument(
-                "-p",
-                "--prefix",
-                help="Prefix to add to file path stored in database.",
-                )
-
-        parser.add_argument(
-                "--auto-prefix",
-                help="Use directory as prefix.",
-                action="store_true",
+                "-D",
+                "--directory",
+                help="Directory stored in database for the files scanned. By \
+default, it will be the name of the directory scanned.",
+                default=None
                 )
 
         parser.add_argument(
@@ -792,17 +793,13 @@ By default parse error still add the file unparsed.",
     def handle(self, *args, **options):
         """ Process the feeding
         """
-
+        # debug SQL
         if options.get('debug_sql'):
             logger = logging.getLogger('django.db.backends')
             logger.setLevel(logging.DEBUG)
             logger.addHandler(logging.StreamHandler())
 
-        prefix = options.get('prefix') or ""
-        if options.get('auto_prefix'):
-            prefix = os.path.basename(os.path.normpath(options['directory']))
-
-
+        # custom parser
         custom_parser = None
         if options.get('parser'):
             parser_directory = os.path.join(
@@ -814,13 +811,21 @@ By default parse error still add the file unparsed.",
             sys.path.append(parser_directory)
             custom_parser = importlib.import_module(parser_name)
 
+        # directory
+        directory = options.get('directory')
+        if directory:
+            # clean provided directory string
+            directory = os.path.normpath(directory)
+
+        # metadata parser
         metadata_parser = options.get('metadata_parser')
         if metadata_parser == 'none':
             metadata_parser = None
 
+        # create feeder object
         database_feeder = DatabaseFeeder.from_directory(
-                directory_path=options['directory'],
-                prefix=prefix,
+                directory_source=options['directory-source'],
+                directory=directory,
                 dry_run=options.get('dry_run'),
                 append_only=options.get('append_only'),
                 progress_show=not options.get('no_progress'),
@@ -831,6 +836,6 @@ By default parse error still add the file unparsed.",
                 stderr=self.stderr
                 )
 
-        database_feeder.set_from_file_name()
+        database_feeder.set_from_filename()
         database_feeder.set_from_metadata()
         database_feeder.save()
