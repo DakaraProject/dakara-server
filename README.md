@@ -40,6 +40,12 @@ You should be asked to create a super user. Do it.
 
 Now, duplicate `config.ini.example` to `config.ini`.
 You'll set up here the different tags and type of works (anime, games…) of your kara library.
+When you're done, tell the server:
+
+```sh
+dakara_server/manage.py createtags ./config.ini # for tags
+dakara_server/manage.py createworktypes ./config.ini # for work types
+```
 
 It's time to feed the hungry database with your kara library!
 Suppose you have a anime songs folder and a Jpop songs folder in a parent kara folder:
