@@ -186,8 +186,8 @@ class DatabaseFeeder:
 
         # create progress bar
         text = "Collecting files"
-        progress_bar = feeder._get_progress_bar()
-        bar = progress_bar(max_value=len(directory), text=text)
+        ProgressBar = feeder._get_progress_bar()
+        bar = ProgressBar(max_value=len(directory), text=text)
 
         # scan directory
         listing = []
@@ -212,13 +212,22 @@ class DatabaseFeeder:
 
         return feeder
 
-    def _get_progress_bar(self):
-        """ Get the progress bar according to the verbosity requested
+    def _get_progress_bar(self, show=None):
+        """ Get the progress bar class according to the verbosity requested
+
+            Checks the `progress_show` attribute.
+
+            Args:
+                show (bool): if provided, bypass the `progress_show` attribute
+                    in favour of this argument.
 
             Returns:
                 Progress bar object.
         """
-        return get_progress_bar(self.progress_show)
+        if show is None:
+            show = self.progress_show
+
+        return TextProgressBar if show else TextNullBar
 
 
     def set_from_file_name(self):
@@ -226,8 +235,8 @@ class DatabaseFeeder:
         """
         # create progress bar
         text = "Extracting data from files name"
-        progress_bar = self._get_progress_bar()
-        bar = progress_bar(max_value=len(self.listing), text=text)
+        ProgressBar = self._get_progress_bar()
+        bar = ProgressBar(max_value=len(self.listing), text=text)
 
         # list of erroneous songs id
         error_ids = []
@@ -257,8 +266,8 @@ class DatabaseFeeder:
         """
         # create progress bar
         text = "Extracting data from files metadata"
-        progress_bar = self._get_progress_bar()
-        bar = progress_bar(max_value=len(self.listing), text=text)
+        ProgressBar = self._get_progress_bar()
+        bar = ProgressBar(max_value=len(self.listing), text=text)
 
         # extract metadata
         for entry in bar(self.listing):
@@ -276,11 +285,11 @@ class DatabaseFeeder:
 
         # the progress bar is displayed only if requested and if we actually
         # save the songs (instead of displaying them)
-        progress_bar = get_progress_bar(
+        ProgressBar = self._get_progress_bar(
                 self.progress_show and not self.dry_run
                 )
 
-        bar = progress_bar(max_value=len(self.listing), text=text)
+        bar = ProgressBar(max_value=len(self.listing), text=text)
 
         # define action to perform depending on dry run mode or not
         if self.dry_run:
@@ -549,18 +558,6 @@ class TextNullBar(progressbar.NullBar):
 
         if self.text:
             print(self.text)
-
-
-def get_progress_bar(show):
-    """ Get the progress bar class according to the requested verbosity
-
-        Args:
-            show (bool): true for enabling the progressbar display.
-
-        Returns:
-            Progress bar object.
-        """
-    return TextProgressBar if show else TextNullBar
 
 
 class MetadataParser:
