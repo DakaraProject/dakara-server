@@ -303,14 +303,14 @@ class DatabaseFeederEntry:
 
     def __init__(self, file_name, prefix="", metadata_parser=MetadataParser):
         """ Constructor
+
             Detect if a song already exists in the database,
             then take it or create it
 
             Args:
-                file_name (str): name of the song file.
+                file_name (str): name of the song file, serves as ID.
                 prefix (str): prefix to append to file name.
                 metadata_parser (:obj:`MetadataParser`): metadata parser class.
-                input arguments are aimed to serve as ID.
         """
         file_path = os.path.join(prefix, file_name)
 
@@ -454,7 +454,7 @@ def file_is_valid(directory_path, file_name, directory_path_encoded, file_name_e
     """ Check the file validity
 
         A valid file is:
-            A valid file,
+            An existing file,
             A media file,
             Not a hidden file.
 
@@ -476,7 +476,7 @@ def file_is_valid(directory_path, file_name, directory_path_encoded, file_name_e
 
         # media file
         os.path.splitext(file_name)[1] not in (
-            '.ssa', '.ass', '.srt', '.db'
+            '.ssa', '.ass', '.srt', '.db', '.txt',
             ),
 
         # not hidden file
@@ -697,7 +697,7 @@ class FFProbeMetadataParser(MetadataParser):
 class Command(BaseCommand):
     """ Command available for `manage.py` for feeding the library database
     """
-    help = "Import songs from files."
+    help = "Import songs from directory."
 
     def add_arguments(self, parser):
         """ Extend arguments for the command
@@ -780,8 +780,6 @@ none, mediainfo or ffprobe (default)",
 
         custom_parser = None
         if options.get('parser'):
-            # import ipdb
-            # ipdb.set_trace()
             parser_directory = os.path.join(
                     os.getcwd(),
                     os.path.dirname(options['parser'])
