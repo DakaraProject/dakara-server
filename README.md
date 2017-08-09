@@ -13,15 +13,16 @@ Installation guidelines are provided over here:
 #### System requirements
 
 * Python3, to make everything up and running;
-* [MediaInfo](https://mediaarea.net/fr/MediaInfo/), to extract metadata from files.
+* [ffmpeg](https://www.ffmpeg.org/), to extract metadata from files (preferred way);
+* [MediaInfo](https://mediaarea.net/fr/MediaInfo/), to extract metadata from files (slower, alternative way, may not work on Windows).
 
 #### Virtual environment
 
-It is strongly recommended to run Dakara server on virtual environment.
+It is strongly recommended to run the Dakara server in a virtual environment.
 
 #### Python dependencies
 
-Install dependencies, at root level of the repo:
+Install dependencies, at the root level of the repo (in the virtual environment):
 
 ```
 pip install -r requirements.txt
@@ -29,36 +30,49 @@ pip install -r requirements.txt
 
 #### Setting up the server and feeding the database
 
-Let's create the server database, in `dakara_server`, do:
+Let's create the server database, after loading the virtual environment, do:
 
 ```
-python manage.py syncdb
+dakara_server/manage.py migrate
 ```
 
-Grab some files for your kara library, in `tools`, do:
+You should be asked to create a super user. Do it.
+
+Now, duplicate `config.ini.example` to `config.ini`.
+You'll set up here the different tags and type of works (anime, games…) of your kara library.
+
+It's time to feed the hungry database with your kara library!
+Suppose you have a anime songs folder and a Jpop songs folder in a parent kara folder:
 
 ```
-python feed_database.py /path/to/your/songs
+kara
+|-- anime
+`-- jpop
 ```
 
-You'll need MediaInfo for this process.
-Pass the `-h` option to get some help for this command.
+You simply feed the database this way:
 
-Link the dist folder from [Dakara web client](https://github.com/Nadeflore/dakara-client-web) to `dakara_server/static`.
+```sh
+dakara_server/manage.py feed path/to/kara/anime
+dakara_server/manage.py feed path/to/kara/jpop
+```
+
+This may take some time, depending of your collection.
+You'll need `ffprobe`, provided by Ffmpeg, for this process to extract files duration (which is slow).
+Pass the `-h` parameter to get some help and all the options of the feeder.
+
+Build and link the dist folder from the [client](https://github.com/Nadeflore/dakara-client-web) to `dakara_server/static`.
+
+Setup the [player](https://github.com/Nadeflore/dakara-player-vlc/) accordingly.
 
 ### Start the server
 
-You're almost done! To start the server app, in the right virtual environment and in `dakara_server`, do:
+You're almost done! To start the server app, in the right virtual environment, do:
 
 ```
-python manage.py runserver
+dakara_server/manage.py runserver
 ```
 
-It's time to run the player.
-In the right virtual environment and in the right place, do:
-
-```
-python kara.py
-```
+Don't forget to start the player as well.
 
 Now, just grab some friends and have fun!
