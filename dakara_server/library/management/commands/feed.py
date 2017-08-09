@@ -49,9 +49,6 @@ warnings.showwarning = custom_showwarning
 # get file system encoding
 file_coding = sys.getfilesystemencoding()
 
-# create a dummy context for Django
-context_dummy = dict(request=RequestFactory().get('/'))
-
 
 class DatabaseFeeder:
     """ Class representing a list of DatabaseFeederEntry to feed the database
@@ -248,32 +245,25 @@ class DatabaseFeeder:
         # create progress bar
         text = "Entries to save" if self.dry_run \
                 else "Saving entries to database"
-        progress_bar = self._get_progress_bar()
+
+        # the progress bar is displayed only if requested and if we actually
+        # save the songs (instead of displaying them)
+        progress_bar = get_progress_bar(
+                self.progress_show and not self.dry_run
+                )
+
         bar = progress_bar(max_value=len(self.listing), text=text)
 
+        if self.dry_run:
+            def save(obj):
+                obj.show(self.stdout)
+
+        else:
+            def save(obj):
+                obj.save()
+
         for entry in bar(self.listing):
-            if self.dry_run:
-                self._save_dry_run(entry)
-
-            else:
-                self._save_real(entry)
-
-    def _save_real(self, entry):
-        """ Real save process
-
-            entry (DatabaseFeederEntry): entry to save.
-        """
-        entry.save()
-
-    def _save_dry_run(self, entry):
-        """ Simulated save process
-
-            entry (DatabaseFeederEntry): entry to save.
-        """
-        entry_serializer = SongSerializer(entry.song, context=context_dummy)
-        self.stdout.write('Serialized data:')
-        for key, value in entry_serializer.data.items():
-            self.stdout.write(str(key) + ":", value)
+            save(entry)
 
 
 class DatabaseFeederEntry:
@@ -359,6 +349,25 @@ class DatabaseFeederEntry:
 
             Not implemented.
         """
+
+    def show(self, stdout=sys.stdout):
+        """ Show the song content
+        """
+        stdout.write('')
+        entry_serializer = SongSerializer(self.song)
+
+        # get screen size
+        width, _ = progressbar.utils.get_terminal_size()
+        # set length to one quarter of terminal width or 20
+        length = max(int(width * 0.25), 20)
+
+        for key, value in entry_serializer.data.items():
+            stdout.write("{key:{length}s} {value}".format(
+                key=key,
+                value=repr(value),
+                length=length
+                )
+            )
 
     def save(self):
         """ Save song in database.

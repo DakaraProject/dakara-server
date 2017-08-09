@@ -126,7 +126,7 @@ class SongTagSerializer(serializers.ModelSerializer):
                 )
 
 
-class SongSerializer(serializers.HyperlinkedModelSerializer):
+class SongSerializer(serializers.ModelSerializer):
     """ Class for song serializer
     """
     duration = SecondsDurationField()
@@ -138,7 +138,6 @@ class SongSerializer(serializers.HyperlinkedModelSerializer):
         model = Song
         fields = (
                 'id',
-                'url',
                 'title',
                 'file_path',
                 'duration',
