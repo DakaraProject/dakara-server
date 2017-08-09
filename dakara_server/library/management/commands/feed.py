@@ -72,7 +72,7 @@ class DatabaseFeeder:
 
             Args
                 listing (list): list of file names.
-                prefix (str): directory prefix to be appended to file name.
+                directory (str): directory to store in the database.
                 dry_run (bool): flag for test mode (no save in database).
                 directory_source (str): parent directory of the songs.
                 progress_show (bool): show the progress bar.
@@ -202,7 +202,7 @@ class DatabaseFeeder:
             Extract files from directory
 
             Args:
-                prefix (str): directory prefix to be appended to file name.
+                directory (str): directory to store in the database.
                 dry_run (bool): flag for test mode (no save in database).
                 directory_source (str): parent directory of the songs.
                 progress_show (bool): show the progress bar.
@@ -359,12 +359,13 @@ class DatabaseFeederEntry:
     def __init__(self, filename, directory, metadata_parser=None):
         """ Constructor
 
-            Detect if a song already exists in the database,
-            then take it or create it
+            Detect if a song already exists in the database, then take it or
+            create a new object not yet saved.
 
             Args:
                 filename (str): name of the song file, serves as ID.
-                directory (str): prefix to append to file name.
+                directory (str): directory of the song file to store in the
+                    database, serves as ID.
                 metadata_parser (:obj:`MetadataParser`): metadata parser class.
                     Default is `MetadataParser`.
         """
