@@ -54,7 +54,8 @@ context_dummy = dict(request=RequestFactory().get('/'))
 
 
 class DatabaseFeeder:
-    """ Class representing a list of DatabaseFeederEntry to feed the database with
+    """ Class representing a list of DatabaseFeederEntry to feed the database
+        with
     """
 
     def __init__(
@@ -94,8 +95,8 @@ class DatabaseFeeder:
                     title_work (str): name of the work related to this song.
                     subtitle_work (str): subname of the work related to this
                         song.
-                    link_type (str): enum (OP ED IS IN) type of relation between
-                        the work and the song.
+                    link_type (str): enum (OP ED IS IN) type of relation
+                        between the work and the song.
                     link_nb (int): for OP and ED link type, number of OP or ED.
 
                 All of these values, except `title_music`, are optional; if a
@@ -140,7 +141,8 @@ class DatabaseFeeder:
         # directory
         directory_path_encoded = directory_path.encode(file_coding)
         if not os.path.isdir(directory_path_encoded):
-            raise CommandError("Directory '{}' does not exist".format(directory_path))
+            raise CommandError("Directory '{}' does not exist"\
+                    .format(directory_path))
 
         directory = os.listdir(directory_path_encoded)
 
@@ -200,7 +202,8 @@ class DatabaseFeeder:
                 entry.set_from_file_name(self.custom_parser)
 
             except DatabaseFeederEntryError as error:
-                warnings.warn("Cannot parse file '{file_name}': {error}".format(
+                warnings.warn("Cannot parse file '{file_name}': {error}"\
+                        .format(
                     file_name=entry.file_name,
                     error=error
                     ))
@@ -238,12 +241,13 @@ class DatabaseFeeder:
     def save(self):
         """ Save list in database
 
-            Depending on the attribute `dry_run`, entries will be saved or just
-            displayed on screen.
+            Depending on the attribute `dry_run`, entries will be saved or
+            just displayed on screen.
         """
 
         # create progress bar
-        text = "Entries to save" if self.dry_run else "Saving entries to database"
+        text = "Entries to save" if self.dry_run \
+                else "Saving entries to database"
         progress_bar = self._get_progress_bar()
         bar = progress_bar(max_value=len(self.listing), text=text)
 
@@ -288,14 +292,7 @@ class DatabaseFeederEntry:
         """
         file_path = os.path.join(prefix, file_name)
 
-        try:
-            song = Song.objects.get(file_path=file_path)
-            created = False
-
-        except Song.DoesNotExist:
-            song = Song(file_path=file_path)
-            created = True
-
+        song, created = Song.objects.get_or_create(file_path=file_path)
         self.file_name = file_name
         self.created = created
         self.song = song
@@ -323,7 +320,13 @@ class DatabaseFeederEntry:
                 data = custom_parser.parse_file_name(file_name)
 
             except Exception as error:
-                raise DatabaseFeederEntryError(str(error)) from error
+                raise DatabaseFeederEntryError(
+                        "{klass}: {message}".format(
+                            message=str(error),
+                            klass=error.__class__.__name__
+                            )
+
+                        ) from error
 
             self.song.title = data.get('title_music')
             self.song.version = data.get('version')
@@ -462,7 +465,8 @@ class TextProgressBar(progressbar.ProgressBar):
         if text is not None:
             # space padded length for text
             width, _ = progressbar.utils.get_terminal_size()
-            length = int(width * 0.25) # set length to one quarter of terminal width
+            # set length to one quarter of terminal width
+            length = int(width * 0.25)
 
             # truncate text if necessary
             if len(text) > length:
