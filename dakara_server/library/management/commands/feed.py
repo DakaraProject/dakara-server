@@ -208,11 +208,11 @@ class DatabaseFeeder:
                     error=error
                     ))
 
-                if self.no_add_on_error:
-                    error_ids.append(i)
+                error_ids.append(entry.song.id)
 
-        for error_id in error_ids:
-            self.listing.pop(error_id)
+        if self.no_add_on_error:
+            self.listing = [item for item in self.listing \
+                    if item.song.id not in error_ids]
 
     def set_from_media_info(self):
         """ Extract database fields from files media info
