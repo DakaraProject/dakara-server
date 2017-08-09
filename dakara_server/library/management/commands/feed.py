@@ -19,7 +19,6 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand, CommandError
 from library.models import *
 from library.serializers import SongSerializer
-from django.test.client import RequestFactory
 
 # get logger
 logger = logging.getLogger(__file__)
@@ -118,7 +117,6 @@ class DatabaseFeeder:
         self.stderr = stderr
         self.metadata_parser = DatabaseFeeder.select_metadata_parser(metadata_parser)
 
-        # metadata parser
     @staticmethod
     def select_metadata_parser(parser_name):
         if parser_name is None:
