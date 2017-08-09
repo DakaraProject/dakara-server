@@ -119,6 +119,14 @@ class DatabaseFeeder:
 
     @staticmethod
     def select_metadata_parser(parser_name):
+        """ Select the metadata parser class according to its name
+
+            Args:
+                parser_name (str): name of the parser.
+
+            Returns:
+                (:obj:`MetadataParser`) class of the parser.
+        """
         if parser_name is None:
             return MetadataParser
 
