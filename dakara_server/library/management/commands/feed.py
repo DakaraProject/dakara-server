@@ -789,7 +789,7 @@ class Command(BaseCommand):
                 "-r",
                 "--dry-run",
                 help="Run script in test mode, don't save anything in database.",
-                action="store_true",
+                action="store_true"
                 )
 
         parser.add_argument(
@@ -798,8 +798,16 @@ class Command(BaseCommand):
                 help="Directory stored in database for the files scanned. By \
 default, it will be the name of the scanned directory. If indicated as a \
 negative number, it will be the directory structure up to this number ahead \
-from the scanned directory. Example: for -2 and a/b/c, it gives b/c.",
+from the scanned directory. Example: for -2 and a/b/c, will give b/c. \
+Overriden by the 'no-directory' option.",
                 default=None
+                )
+
+        parser.add_argument(
+                "--no-directory",
+                help="Do not set directory for the files scanned. \
+This overrides the 'directory' option.",
+                action="store_true"
                 )
 
         parser.add_argument(
@@ -857,10 +865,14 @@ By default parse error still add the file unparsed.",
             custom_parser = importlib.import_module(parser_name)
 
         # directory
-        directory = options.get('directory')
-        if directory:
-            # clean provided directory string
-            directory = os.path.normpath(directory)
+        if options.get('no_directory'):
+            directory = ''
+
+        else:
+            directory = options.get('directory')
+            if directory:
+                # clean provided directory string
+                directory = os.path.normpath(directory)
 
         # metadata parser
         metadata_parser = options.get('metadata_parser')
