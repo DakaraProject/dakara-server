@@ -5,8 +5,14 @@
 #
 
 import os
+import sys
 from django.core.management.base import BaseCommand, CommandError
 from configparser import ConfigParser
+from codecs import open
+
+
+file_encoding = sys.getfilesystemencoding()
+
 
 class BaseCommandWithConfig(BaseCommand):
     """ Base command class for handling config file
@@ -26,14 +32,16 @@ class BaseCommandWithConfig(BaseCommand):
         """
         # check config file
         config_file = options['config-file']
-        if not os.path.isfile(config_file):
+        config_file_encoded = config_file.encode(file_encoding)
+        if not os.path.isfile(config_file_encoded):
             raise CommandError(
                     "Config file '{}' not found".format(config_file)
                     )
 
         # open config file
         config = ConfigParser()
-        config.read(config_file)
+        with open(config_file_encoded, "r", "utf8") as file:
+            config.readfp(file)
 
         # check tag section exists
         if not config.has_section(self.SECTION_NAME):
