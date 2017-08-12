@@ -27,6 +27,12 @@ class BaseCommandWithConfig(BaseCommand):
                 help="Config file."
                 )
 
+        self.add_arguments_custom(parser)
+
+    def add_arguments_custom(self, parser):
+        """ Stub for extra arguments for the command
+        """
+
     def handle(self, *args, **options):
         """ Setup the tags
         """
