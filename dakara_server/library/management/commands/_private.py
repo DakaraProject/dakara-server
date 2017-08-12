@@ -49,7 +49,7 @@ class BaseCommandWithConfig(BaseCommand):
                     "Invalid config file, no section '{}'".format(self.SECTION_NAME)
                     )
 
-        self.handle_custom(config, *args, **options)
+        self.handle_custom(config[self.SECTION_NAME], *args, **options)
 
     def handle_custom(self, config, *args, **options):
         """ Stub for custom handle actions

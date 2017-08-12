@@ -21,7 +21,7 @@ class Command(BaseCommandWithConfig):
     def handle_custom(self, config, *args, **options):
         """ Setup the tags
         """
-        for key, value in config[self.SECTION_NAME].items():
+        for key, value in config.items():
             # process for all subkeys
             for subkey in SUBKEYS:
                 dot_subkey = '.' + subkey

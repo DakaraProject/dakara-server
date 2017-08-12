@@ -18,7 +18,7 @@ class Command(BaseCommandWithConfig):
     def handle_custom(self, config,  *args, **options):
         """ Setup the tags
         """
-        for tag_name, color_id in config[self.SECTION_NAME].items():
+        for tag_name, color_id in config.items():
             tag, _ = SongTag.objects.get_or_create(
                     name__iexact=tag_name,
                     defaults={'name': tag_name}
