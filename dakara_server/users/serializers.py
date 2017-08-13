@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model # If used custom user model
+from django.contrib.auth import (
+        get_user_model, # If used custom user model
+        update_session_auth_hash,
+        )
 from .models import DakaraUser
 
 
@@ -61,16 +64,24 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     """ Serializer for updating users
+        Only for password edit
+        for editing other user info, create a new serializer
 
         Can edit:
             Password.
     """
 
-    password = serializers.CharField(write_only=True, required=False)
+    password = serializers.CharField(write_only=True, required=True)
+    old_password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = UserModel
-        fields = ('password',)
+        fields = ('password', 'old_password')
+
+    def validate_old_password(self, value):
+        # check old password is correct
+        if not self.instance.check_password(value):
+            raise serializers.ValidationError("Wrong password")
 
     def update(self, instance, validated_data):
         password = None
@@ -82,6 +93,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         if password:
             instance.set_password(password)
             instance.save()
+            # keep current user logged in
+            update_session_auth_hash(self.context['request'], instance)
 
         return instance
 
