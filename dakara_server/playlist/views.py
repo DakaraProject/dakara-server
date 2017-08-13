@@ -107,7 +107,7 @@ class PlayerCommandForUserView(APIView):
     """ Class for the user to view or send commands
     """
     permission_classes = [
-            permissions.IsPlaylistManagerOrReadOnly
+            permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly
             ]
 
     def get(self, request):
