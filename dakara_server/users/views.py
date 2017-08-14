@@ -3,7 +3,7 @@ from rest_framework import generics
 from rest_framework import views
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model # If used custom user model
-
+from library.views import LibraryPagination as UsersPagination
 from .serializers import (
         UserSerializer,
         UserUpdateSerializer,
@@ -30,6 +30,7 @@ class UserList(generics.ListCreateAPIView):
     model = UserModel
     queryset = UserModel.objects.all()
     serializer_class = UserSerializer
+    pagination_class = UsersPagination
     permission_classes = [
             IsUsersManagerOrReadOnly
     ]
