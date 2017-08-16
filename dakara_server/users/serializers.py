@@ -70,7 +70,6 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # we shouldn't use the parent class method, as it will bypass the
         # UserManager's secured user creation methods
-        print(validated_data)
         instance = UserModel.objects.create_user(**validated_data)
         instance.playlist_permission_level = 'u'
         instance.save()
