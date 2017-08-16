@@ -52,10 +52,17 @@ class UserSerializer(serializers.ModelSerializer):
                 'library_permission_level',
                 'playlist_permission_level')
 
+    def validate_username(self, value):
+        # check username unicity in case insensitive way
+        if UserModel.objects.get_by_natural_key(value):
+            raise serializers.ValidationError(
+                    "The username must be case insensitively unique"
+            )
+
     def create(self, validated_data):
-        password = validated_data.pop('password')
-        instance = super(UserSerializer, self).create(validated_data)
-        instance.set_password(password)
+        # we shouldn't use the parent class method, as it will bypass the
+        # UserManager's secured user creation methods
+        instance = UserModel.objects.create_user(**validated_data)
         instance.playlist_permission_level = 'u'
         instance.save()
 

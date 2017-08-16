@@ -4,7 +4,17 @@ from django.db import models
 
 class DakaraUserManager(UserManager):
     def get_by_natural_key(self, username):
+        # search a username case insensitively
         return self.get(username__iexact=username)
+
+    def _create_user(self, username, *args, **kwargs):
+        # check if a similar username exists with the natural method
+        # since we've set the search to be case insensitive, it will find it
+        # case insensitively
+        if self.get_by_natural_key(username):
+            raise ValueError("The username must be case insensitively unique")
+
+        return super(DakaraUserManager, self)._create_user(username, *args, **kwargs)
 
 
 class DakaraUser(AbstractUser):
