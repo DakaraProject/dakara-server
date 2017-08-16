@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class DakaraUserManager(UserManager):
@@ -11,7 +12,13 @@ class DakaraUserManager(UserManager):
         # check if a similar username exists with the natural method
         # since we've set the search to be case insensitive, it will find it
         # case insensitively
-        if self.get_by_natural_key(username):
+        try:
+            user = self.get_by_natural_key(username)
+
+        except ObjectDoesNotExist:
+            user = None
+
+        if user:
             raise ValueError("The username must be case insensitively unique")
 
         return super(DakaraUserManager, self)._create_user(username, *args, **kwargs)
