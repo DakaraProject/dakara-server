@@ -54,13 +54,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         # check username unicity in case insensitive way
-        try:
-            user = UserModel.objects.get_by_natural_key(value)
-
-        except UserModel.DoesNotExist:
-            user = None
-
-        if user:
+        if UserModel.objects.is_username_taken(value):
             raise serializers.ValidationError(
                     "The username must be case insensitively unique"
             )

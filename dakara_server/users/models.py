@@ -5,23 +5,35 @@ from django.core.exceptions import ObjectDoesNotExist
 
 class DakaraUserManager(UserManager):
     def get_by_natural_key(self, username):
-        # search a username case insensitively
+        """ Search a username case insensitively
+        """
         return self.get(username__iexact=username)
 
     def _create_user(self, username, *args, **kwargs):
-        # check if a similar username exists with the natural method
-        # since we've set the search to be case insensitive, it will find it
-        # case insensitively
-        try:
-            user = self.get_by_natural_key(username)
+        """ Generic method to create new users
 
-        except ObjectDoesNotExist:
-            user = None
-
-        if user:
+            Check if the username is free, otherwise raise a `ValueError`.
+        """
+        # check if username is free before creating user with this username
+        if self.is_username_taken(username):
             raise ValueError("The username must be case insensitively unique")
 
         return super(DakaraUserManager, self)._create_user(username, *args, **kwargs)
+
+    def is_username_taken(self, username):
+        """ Check if a similar username exists with the natural method
+
+            Since we've set the search to be case insensitive, it will find it
+            case insensitively.
+        """
+        try:
+            if self.get_by_natural_key(username):
+                return True
+
+        except ObjectDoesNotExist:
+            pass
+
+        return False
 
 
 class DakaraUser(AbstractUser):
