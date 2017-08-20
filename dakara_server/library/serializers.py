@@ -1,3 +1,4 @@
+import os
 from rest_framework import serializers
 from library.models import Song, Artist, Work, SongWorkLink, WorkType, SongTag
 
@@ -126,7 +127,7 @@ class SongTagSerializer(serializers.ModelSerializer):
                 )
 
 
-class SongSerializer(serializers.HyperlinkedModelSerializer):
+class SongSerializer(serializers.ModelSerializer):
     """ Class for song serializer
     """
     duration = SecondsDurationField()
@@ -138,9 +139,9 @@ class SongSerializer(serializers.HyperlinkedModelSerializer):
         model = Song
         fields = (
                 'id',
-                'url',
                 'title',
-                'file_path',
+                'filename',
+                'directory',
                 'duration',
                 'version',
                 'detail',
@@ -158,6 +159,7 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
     """
     artists = ArtistNoCountSerializer(many=True, read_only=True)
     works = SongWorkLinkSerializer(many=True, read_only=True, source='songworklink_set')
+    file_path = serializers.SerializerMethodField()
     class Meta:
         model = Song
         fields = (
@@ -166,3 +168,6 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
                 'works',
                 'file_path',
                 )
+
+    def get_file_path(self, song):
+        return os.path.join(song.directory, song.filename)
