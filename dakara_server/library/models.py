@@ -7,7 +7,8 @@ class Song(models.Model):
     """ Class for songs
     """
     title = models.CharField(max_length=255)
-    file_path = models.CharField(max_length=255)
+    filename = models.CharField(max_length=255)
+    directory = models.CharField(max_length=255)
     duration = SafeDurationField(default=timedelta(0))
     version = models.CharField(max_length=255, blank=True)
     detail = models.CharField(max_length=255, blank=True)
