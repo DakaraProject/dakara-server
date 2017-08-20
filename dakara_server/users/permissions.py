@@ -85,3 +85,20 @@ class IsSelf(BasePermissionCustom):
     def has_object_permission(self, request, view, obj):
         # if the object belongs to the user
         return obj == request.user
+
+
+class IsNotSelfOrReadOnly(BasePermissionCustom):
+    """ Handle permissions for the User app
+
+        Permission scheme:
+            Superuser can edit anything;
+            Authenticated user cannot edit self;
+            Unauthenticated user cannot see anything.
+    """
+    def has_object_permission(self, request, view, obj):
+        # for safe methods only
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # if the object belongs to someone else
+        return obj != request.user

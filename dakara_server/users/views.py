@@ -36,7 +36,8 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
     model = UserModel
     queryset = UserModel.objects.all()
     permission_classes = [
-            users_permissions.IsUsersManagerOrReadOnly
+            users_permissions.IsUsersManagerOrReadOnly,
+            users_permissions.IsNotSelfOrReadOnly
     ]
 
     def get_serializer_class(self, *args, **kwargs):
