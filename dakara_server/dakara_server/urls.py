@@ -34,6 +34,7 @@ urlpatterns = [
     # Api routes for the users
     url(r'^api/users/$', UserList.as_view()),
     url(r'^api/users/(?P<pk>[0-9]+)/$', UserView.as_view()),
+    url(r'^api/users/(?P<pk>[0-9]+)/password/$', PasswordView.as_view()),
     url(r'^api/users/current/$', CurrentUser.as_view()),
 
     # Api routes for the player

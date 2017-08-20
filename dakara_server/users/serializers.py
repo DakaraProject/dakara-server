@@ -71,7 +71,7 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UserUpdateSerializer(serializers.ModelSerializer):
+class PasswordSerializer(serializers.ModelSerializer):
     """ Serializer for updating users
         Only for password edit
         for editing other user info, create a new serializer
@@ -97,7 +97,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         if 'password' in validated_data:
             password = validated_data.pop('password')
 
-        instance = super(UserUpdateSerializer, self).update(instance, validated_data)
+        instance = super(PasswordSerializer, self).update(instance, validated_data)
 
         if password:
             instance.set_password(password)
@@ -108,7 +108,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UserUpdateManagerSerializer(UserUpdateSerializer):
+class UserUpdateManagerSerializer(PasswordSerializer):
     """ Serializer for updating users for managers
 
         Can edit:

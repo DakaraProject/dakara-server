@@ -49,7 +49,14 @@ class IsUsersManagerOrReadOnly(BasePermissionCustom):
 
 
 class IsUsersManagerOrSelfOrReadOnly(BasePermissionCustom):
+    """ Handle permissions for the User app
 
+        Permission scheme:
+            Superuser can edit anything;
+            Users Manager can edit anything;
+            Authenticated user can edit self;
+            Unauthenticated user cannot see anything.
+    """
     def has_object_permission(self, request, view, obj):
         # for safe methods only
         if request.method in permissions.SAFE_METHODS:
@@ -63,5 +70,18 @@ class IsUsersManagerOrSelfOrReadOnly(BasePermissionCustom):
         if request.user.has_users_permission_level('m'):
             return True
 
+        # if the object belongs to the user
+        return obj == request.user
+
+
+class IsSelf(BasePermissionCustom):
+    """ Handle permissions for the User app
+
+        Permission scheme:
+            Superuser can edit anything;
+            Authenticated user can only edit self;
+            Unauthenticated user cannot see anything.
+    """
+    def has_object_permission(self, request, view, obj):
         # if the object belongs to the user
         return obj == request.user

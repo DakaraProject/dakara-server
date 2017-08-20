@@ -4,12 +4,8 @@ from rest_framework import views
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model # If used custom user model
 from library.views import LibraryPagination as UsersPagination
-from .serializers import (
-        UserSerializer,
-        UserUpdateSerializer,
-        UserUpdateManagerSerializer,
-        )
-from .permissions import IsUsersManagerOrReadOnly, IsUsersManagerOrSelfOrReadOnly
+from . import serializers
+from . import permissions as users_permissions
 
 UserModel = get_user_model()
 
@@ -21,7 +17,7 @@ class CurrentUser(views.APIView):
 
     def get(self, request):
         user = request.user
-        serializer = UserSerializer(user)
+        serializer = serializers.UserSerializer(user)
 
         return Response(serializer.data)
 
@@ -29,10 +25,10 @@ class CurrentUser(views.APIView):
 class UserList(generics.ListCreateAPIView):
     model = UserModel
     queryset = UserModel.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = serializers.UserSerializer
     pagination_class = UsersPagination
     permission_classes = [
-            IsUsersManagerOrReadOnly
+            users_permissions.IsUsersManagerOrReadOnly
     ]
 
 
@@ -40,14 +36,20 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
     model = UserModel
     queryset = UserModel.objects.all()
     permission_classes = [
-        IsUsersManagerOrSelfOrReadOnly
+            users_permissions.IsUsersManagerOrReadOnly
     ]
 
     def get_serializer_class(self, *args, **kwargs):
         if self.request.method in ('PUT', 'PATCH'):
-            if self.request.user.has_users_permission_level('m'):
-                return UserUpdateManagerSerializer
+            return serializers.UserUpdateManagerSerializer
 
-            return UserUpdateSerializer
+        return serializers.UserSerializer
 
-        return UserSerializer
+
+class PasswordView(generics.UpdateAPIView):
+    model = UserModel
+    queryset = UserModel.objects.all()
+    serializer_class = serializers.PasswordSerializer
+    permission_classes = [
+            users_permissions.IsSelf
+            ]
