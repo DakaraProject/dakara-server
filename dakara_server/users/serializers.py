@@ -22,10 +22,20 @@ class PermissionLevelField(serializers.ChoiceField):
                 )
 
 
+class UserDisplaySerializer(serializers.ModelSerializer):
+    """ Serializer to display public data only
+    """
+    class Meta:
+        model = UserModel
+        fields = (
+                'id',
+                'username',
+                )
+
+
 class UserSerializer(serializers.ModelSerializer):
     """ Serializer for creation and view
     """
-
     password = serializers.CharField(write_only=True)
     id = serializers.CharField(read_only=True)
     is_superuser = serializers.BooleanField(read_only=True)
