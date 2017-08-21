@@ -62,7 +62,7 @@ class IsUsersManagerOrSelfOrReadOnly(BasePermissionCustom):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        # if the user is the superuser or the users manager, allow access
+        # if the user is the superuser, allow access
         if request.user.is_superuser:
             return True
 
@@ -98,6 +98,10 @@ class IsNotSelfOrReadOnly(BasePermissionCustom):
     def has_object_permission(self, request, view, obj):
         # for safe methods only
         if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # if the user is the superuser, allow access
+        if request.user.is_superuser:
             return True
 
         # if the object belongs to someone else
