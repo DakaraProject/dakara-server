@@ -2,32 +2,26 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework import status
+from .base_test import BaseAPITestCase
 
 UserModel = get_user_model()
 
-class UsersListCreateAPIViewTestCase(APITestCase):
+class UsersListCreateAPIViewTestCase(BaseAPITestCase):
     url = reverse('users-list')
 
     def setUp(self):
         # create a user without any rights
-        self.username = "TestUser"
-        self.password = "pw"
-        UserModel.objects.create_user(self.username, "", self.password)
+        self.user = self.create_user("TestUser")
 
         # Create a users manager
-        self.manager_username = "TestUserManager"
-        self.manager_password = "pwd"
-        manager = UserModel.objects.create_user(
-                self.manager_username, "", self.manager_password)
-        manager.users_permission_level = "m"
-        manager.save()
+        self.manager = self.create_user("TestUserManager", users_level="m")
 
     def test_get_users_list(self):
         """
         Test to verify users list
         """
         # Login as simple user 
-        self.client.login(username=self.username, password=self.password)
+        self.authenticate(self.user)
 
         # Get users list
         response = self.client.get(self.url)
@@ -48,7 +42,7 @@ class UsersListCreateAPIViewTestCase(APITestCase):
         Test to verify user creation
         """
         # Login as manager
-        self.client.login(username=self.manager_username, password=self.manager_password)
+        self.authenticate(self.manager)
 
         # Post new user
         username_new_user = "TestUserNew"
@@ -66,7 +60,7 @@ class UsersListCreateAPIViewTestCase(APITestCase):
         Test to verify simple user cannot create users
         """
         # Login as simple user 
-        self.client.login(username=self.username, password=self.password)
+        self.authenticate(self.user)
 
         # Post new user
         username_new_user = "TestUserNew"
@@ -80,39 +74,33 @@ class UsersListCreateAPIViewTestCase(APITestCase):
         This test also ensure username check is case insensitive
         """
         # Login as manager
-        self.client.login(username=self.manager_username, password=self.manager_password)
+        self.authenticate(self.manager)
 
         # Post new user with same name as existing user
-        username_new_user = self.username
+        username_new_user = self.user.username
         response = self.client.post(self.url,
                 {"username": username_new_user, "password": "pwd"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Post new user with same name as existing user
         # But with different case
-        username_new_user = self.username.upper()
+        username_new_user = self.user.username.upper()
         response = self.client.post(self.url,
                 {"username": username_new_user, "password": "pwd"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-class UsersRetrieveUpdateDestroyTestCase(APITestCase):
+
+class UsersRetrieveUpdateDestroyTestCase(BaseAPITestCase):
 
     def setUp(self):
         # create a user without any rights
-        self.username = "TestUser"
-        self.password = "pw"
-        self.user = UserModel.objects.create_user(self.username, "", self.password)
-
-        self.user_url = reverse('users-detail', kwargs={"pk": self.user.id})
+        self.user = self.create_user("TestUser")
 
         # Create a users manager
-        self.manager_username = "TestUserManager"
-        self.manager_password = "pwd"
-        self.manager = UserModel.objects.create_user(
-                self.manager_username, "", self.manager_password)
-        self.manager.users_permission_level = "m"
-        self.manager.save()
+        self.manager = self.create_user("TestUserManager", users_level="m")
 
+        # Generate url to access these users
+        self.user_url = reverse('users-detail', kwargs={"pk": self.user.id})
         self.manager_url = reverse('users-detail', kwargs={"pk": self.manager.id})
 
     def test_get_user(self):
@@ -120,7 +108,7 @@ class UsersRetrieveUpdateDestroyTestCase(APITestCase):
         Test to verify user details
         """
         # Login as simple user
-        self.client.login(username=self.username, password=self.password)
+        self.authenticate(self.user)
 
         # Get simple user details
         response = self.client.get(self.user_url)
@@ -163,7 +151,7 @@ class UsersRetrieveUpdateDestroyTestCase(APITestCase):
         self.assertEqual(user.library_permission_level, None)
 
         # Login as manager
-        self.client.login(username=self.manager_username, password=self.manager_password)
+        self.authenticate(self.manager)
 
         # update simple user to library user
         response = self.client.patch(self.user_url, {"library_permission_level": "u"})
@@ -178,7 +166,7 @@ class UsersRetrieveUpdateDestroyTestCase(APITestCase):
         Test to verify user update can't update self
         """
         # Login as manager
-        self.client.login(username=self.manager_username, password=self.manager_password)
+        self.authenticate(self.manager)
 
         # attempt to update self to library user
         response = self.client.patch(self.manager_url, {"library_permission_level": "u"})
@@ -189,7 +177,7 @@ class UsersRetrieveUpdateDestroyTestCase(APITestCase):
         Test to verify simple user can't update user
         """
         # Login as simple user
-        self.client.login(username=self.username, password=self.password)
+        self.authenticate(self.user)
 
         # attempt to update manager to library user
         response = self.client.patch(self.manager_url, {"library_permission_level": "u"})
@@ -200,7 +188,7 @@ class UsersRetrieveUpdateDestroyTestCase(APITestCase):
         Test to verify user delete
         """
         # Login as manager
-        self.client.login(username=self.manager_username, password=self.manager_password)
+        self.authenticate(self.manager)
 
         # Delete simple user
         response = self.client.delete(self.user_url)
@@ -215,7 +203,7 @@ class UsersRetrieveUpdateDestroyTestCase(APITestCase):
         Test to verify user update can't delete self
         """
         # Login as manager
-        self.client.login(username=self.manager_username, password=self.manager_password)
+        self.authenticate(self.manager)
 
         # Attempt to delete self
         response = self.client.delete(self.manager_url)
@@ -226,7 +214,7 @@ class UsersRetrieveUpdateDestroyTestCase(APITestCase):
         Test to verify simple user can't delete user
         """
         # Login as simple user
-        self.client.login(username=self.username, password=self.password)
+        self.authenticate(self.user)
 
         # Attempt to delete manager
         response = self.client.delete(self.manager_url)
