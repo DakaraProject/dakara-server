@@ -219,3 +219,107 @@ class UsersRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         # Attempt to delete manager
         response = self.client.delete(self.manager_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class CurrentUserTestCase(BaseAPITestCase):
+    url = reverse('users-current')
+
+    def setUp(self):
+        # create a user without any rights
+        self.user = self.create_user("TestUser")
+
+        # Create a users manager
+        self.manager = self.create_user("TestUserManager", users_level="m")
+
+    def test_get_current_user(self):
+        """
+        Test to verify get current user route
+        """
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Get current user
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(response.data, {
+                    "id": self.user.id,
+                    "username": self.user.username,
+                    "is_superuser": self.user.is_superuser,
+                    "users_permission_level": self.user.users_permission_level,
+                    "library_permission_level": self.user.library_permission_level,
+                    "playlist_permission_level": self.user.playlist_permission_level
+                })
+
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # Get current user
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(response.data, {
+                    "id": self.manager.id,
+                    "username": self.manager.username,
+                    "is_superuser": self.manager.is_superuser,
+                    "users_permission_level": self.manager.users_permission_level,
+                    "library_permission_level": self.manager.library_permission_level,
+                    "playlist_permission_level": self.manager.playlist_permission_level
+                })
+
+    def test_get_current_user_forbidden(self):
+        """
+        Test to verify we can't get current user when not logged in
+        (obviously)
+        """
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class PasswordViewTestCase(BaseAPITestCase):
+
+    def setUp(self):
+        # create a user without any rights
+        self.user = self.create_user("TestUser")
+
+        # Create a users manager
+        self.manager = self.create_user("TestUserManager", users_level="m")
+
+        # Generate url to access these users
+        self.user_url = reverse('users-password', kwargs={"pk": self.user.id})
+        self.manager_url = reverse('users-password', kwargs={"pk": self.manager.id})
+
+    def test_put_password(self):
+        """
+        Test to verify password update
+        """
+        new_password = "newPassword"
+        # Pre-assertion: user password is not 'newPassword'
+        user = UserModel.objects.get(id=self.user.id)
+        self.assertFalse(user.check_password(new_password))
+
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # update own password
+        response = self.client.put(self.user_url, {
+            "old_password": "password",
+            "password": new_password
+            })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Post-assertion: user password is now 'newPassword'
+        user = UserModel.objects.get(id=self.user.id)
+        self.assertTrue(user.check_password(new_password))
+
+    def test_put_password_forbidden(self):
+        """
+        Test to verify one can't update other password
+        """
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Attempt to update manager password
+        response = self.client.put(self.manager_url, {
+            "old_password": "password",
+            "password": "new"
+            })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
