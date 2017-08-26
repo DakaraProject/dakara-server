@@ -32,10 +32,10 @@ urlpatterns = [
     url(r'^api/token-auth/', obtain_auth_token),
 
     # Api routes for the users
-    url(r'^api/users/$', UserList.as_view()),
-    url(r'^api/users/(?P<pk>[0-9]+)/$', UserView.as_view()),
-    url(r'^api/users/(?P<pk>[0-9]+)/password/$', PasswordView.as_view()),
-    url(r'^api/users/current/$', CurrentUser.as_view()),
+    url(r'^api/users/$', UserList.as_view(), name='users-list'),
+    url(r'^api/users/(?P<pk>[0-9]+)/$', UserView.as_view(), name='users-detail'),
+    url(r'^api/users/(?P<pk>[0-9]+)/password/$', PasswordView.as_view(), name='users-password'),
+    url(r'^api/users/current/$', CurrentUser.as_view(), name='users-current'),
 
     # Api routes for the player
     url(r'^api/player/status/$', PlayerForPlayerView.as_view()),

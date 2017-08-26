@@ -1,3 +1,4 @@
+from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework import status
@@ -5,7 +6,7 @@ from rest_framework import status
 UserModel = get_user_model()
 
 class UsersListCreateAPIViewTestCase(APITestCase):
-    url = '/api/users/'
+    url = reverse('users-list')
 
     def setUp(self):
         # create a user without any rights
@@ -95,7 +96,6 @@ class UsersListCreateAPIViewTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class UsersRetrieveUpdateDestroyTestCase(APITestCase):
-    url = '/api/users/'
 
     def setUp(self):
         # create a user without any rights
@@ -103,7 +103,7 @@ class UsersRetrieveUpdateDestroyTestCase(APITestCase):
         self.password = "pw"
         self.user = UserModel.objects.create_user(self.username, "", self.password)
 
-        self.user_url = self.url + str(self.user.id) + '/'
+        self.user_url = reverse('users-detail', kwargs={"pk": self.user.id})
 
         # Create a users manager
         self.manager_username = "TestUserManager"
@@ -113,7 +113,7 @@ class UsersRetrieveUpdateDestroyTestCase(APITestCase):
         self.manager.users_permission_level = "m"
         self.manager.save()
 
-        self.manager_url = self.url + str(self.manager.id) + '/'
+        self.manager_url = reverse('users-detail', kwargs={"pk": self.manager.id})
 
     def test_get_user(self):
         """
