@@ -36,7 +36,11 @@ Let's create the server database, after loading the virtual environment, do:
 dakara_server/manage.py migrate
 ```
 
-You should be asked to create a super user. Do it.
+You should be asked to create a super user. Do it. Otherwise:
+
+```
+dakara_server/manage.py createsuperuser
+```
 
 Now, duplicate `config.yaml.example` to `config.yaml`.
 You'll set up here the different tags and type of works (anime, games…) of your kara library.
@@ -62,6 +66,8 @@ You simply feed the database this way:
 dakara_server/manage.py feed path/to/kara/anime
 dakara_server/manage.py feed path/to/kara/jpop
 ```
+
+All imported files will have a path relative to the kara folder.
 
 This may take some time, depending of your collection.
 You'll need `ffprobe`, provided by Ffmpeg, for this process to extract files duration (which is slow).
