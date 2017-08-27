@@ -51,27 +51,26 @@ class SongListAPIViewTestCase(BaseAPITestCase):
 
         # Get songs list with query = "ong1"
         # Should only return song1
-        response = self.client.get(self.url, {'query': "ong1"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['title'], "Song1")
+        self.song_query_test("ong1", [self.song1])
 
         # Get songs list with query = "tist1"
         # Should only return song2 which has Artist1 as artist
-        response = self.client.get(self.url, {'query': "tist1"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['title'], "Song2")
+        self.song_query_test("tist1", [self.song2])
 
         # Get songs list with query = "ork1"
         # Should only return song2 which is linked to Work1
-        response = self.client.get(self.url, {'query': "ork1"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['title'], "Song2")
+        self.song_query_test("ork1", [self.song2])
+
+    def test_get_song_list_with_query_empty(self):
+        """
+        Test to verify song list with empty query
+        """
+        # Login as simple user 
+        self.authenticate(self.user)
+
+        # Get songs list with query = ""
+        # Should return all songs
+        self.song_query_test("", [self.song1, self.song2])
 
     def test_get_song_list_with_query_tag(self):
         """
@@ -82,18 +81,11 @@ class SongListAPIViewTestCase(BaseAPITestCase):
 
         # Get songs list with query = "#TAG1"
         # Should only return song2
-        response = self.client.get(self.url, {'query': "#TAG1"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['title'], "Song2")
+        self.song_query_test("#TAG1", [self.song2])
 
         # Get songs list with query = "#TAG2"
         # Should not return any result
-        response = self.client.get(self.url, {'query': "#TAG2"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 0)
-        self.assertEqual(len(response.data['results']), 0)
+        self.song_query_test("#TAG2", [])
 
     def test_get_song_list_with_query_artist(self):
         """
@@ -104,33 +96,19 @@ class SongListAPIViewTestCase(BaseAPITestCase):
 
         # Get songs list with query = "artist:1"
         # Should only return song2
-        response = self.client.get(self.url, {'query': "artist:1"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['title'], "Song2")
+        self.song_query_test("artist:1", [self.song2])
 
         # Get songs list with query = "artist:k"
         # Should not return any result
-        response = self.client.get(self.url, {'query': "artist:k"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 0)
-        self.assertEqual(len(response.data['results']), 0)
+        self.song_query_test("artist:k", [])
 
         # Get songs list with query = "artist:""Artist1"""
         # Should only return song2
-        response = self.client.get(self.url, {'query': "artist:\"\"Artist1\"\""})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['title'], "Song2")
+        self.song_query_test("artist:\"\"Artist1\"\"", [self.song2])
 
         # Get songs list with query = "artist:""tist1"""
         # Should not return any result
-        response = self.client.get(self.url, {'query': "artist:\"\"tist1\"\""})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 0)
-        self.assertEqual(len(response.data['results']), 0)
+        self.song_query_test("artist:\"\"tist1\"\"", [])
 
     def test_get_song_list_with_query_work(self):
         """
@@ -141,18 +119,11 @@ class SongListAPIViewTestCase(BaseAPITestCase):
 
         # Get songs list with query = "wt1:Work1"
         # Should only return song2
-        response = self.client.get(self.url, {'query': "wt1:Work1"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['title'], "Song2")
+        self.song_query_test("wt1:Work1", [self.song2])
 
         # Get songs list with query = "wt2:Work1"
         # Should not return any result since Work1 is not of type workType2
-        response = self.client.get(self.url, {'query': "wt2:Work1"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 0)
-        self.assertEqual(len(response.data['results']), 0)
+        self.song_query_test("wt2:Work1", [])
 
     def test_get_song_list_with_query_title(self):
         """
@@ -163,15 +134,8 @@ class SongListAPIViewTestCase(BaseAPITestCase):
 
         # Get songs list with query = "title:1"
         # Should only return song1
-        response = self.client.get(self.url, {'query': "title:1"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['title'], "Song1")
+        self.song_query_test("title:1", [self.song1])
 
         # Get songs list with query = "title:Artist"
         # Should not return any result
-        response = self.client.get(self.url, {'query': "title:Artist"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 0)
-        self.assertEqual(len(response.data['results']), 0)
+        self.song_query_test("title:Artist", [])
