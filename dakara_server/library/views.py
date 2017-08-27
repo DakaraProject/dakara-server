@@ -9,11 +9,7 @@ from library.serializers import SongSerializer, \
                                 WorkSerializer, \
                                 WorkTypeSerializer
 from django.db.models import Q
-from .query_language import parse as parse_query, \
-                            KEYWORDS_WORK_TYPE, \
-                            KEYS_WORK_TYPE, \
-                            KEYS_WORK_TYPE_EXACT
-
+from .query_language import QueryLanguageParser
 
 class LibraryPagination(PageNumberPagination):
     """ Class for pagination
@@ -47,50 +43,48 @@ class SongList(ListCreateAPIView):
                 # which term to search where
                 # the language manages the simple search as well
                 # the parser is provided from query_language.py
-                res = parse_query(query)
+                language_parser = QueryLanguageParser()
+                res = language_parser.parse(query)
                 q = []
                 q_many = []
                 # specific terms of the research, i.e. artists, works and titles
-                for artist in res['artists']:
+                for artist in res['artist']['contains']:
                     q_many.append(Q(artists__name__icontains=artist))
-                for artist in res['artists_exact']:
+
+                for artist in res['artist']['exact']:
                     q_many.append(Q(artists__name__iexact=artist))
-                for title in res['titles']:
+
+                for title in res['title']['contains']:
                     q.append(Q(title__icontains=title))
-                for title in res['titles_exact']:
+
+                for title in res['title']['exact']:
                     q.append(Q(title__iexact=title))
-                for work in res['works']:
+
+                for work in res['work']['contains']:
                     q.append(Q(works__title__icontains=work))
-                for work in res['works_exact']:
+
+                for work in res['work']['exact']:
                     q.append(Q(works__title__iexact=work))
+
                 # specific terms of the research derivating from work
-                for (
-                        keyword_work_type,
-                        key_work_type,
-                        key_work_type_exact
-                        ) in zip(
-                                KEYWORDS_WORK_TYPE, # aka work_type.query_name
-                                KEYS_WORK_TYPE,
-                                KEYS_WORK_TYPE_EXACT
-                                ):
+                for query_name, search_keywords in res['work_type'].items():
+                    for keyword in search_keywords['contains']:
+                        q.append(
+                                Q(works__title__icontains=keyword) &
+                                Q(works__work_type__query_name=query_name)
+                                )
 
-                            for work in res[key_work_type]:
-                                q.append(
-                                        Q(works__title__icontains=work) &
-                                        Q(works__work_type__query_name=keyword_work_type)
-                                        )
+                    for keyword in search_keywords['exact']:
+                        q.append(
+                                Q(works__title__iexact=keyword) &
+                                Q(works__work_type__query_name=query_name)
+                                )
 
-                            for work in res[key_work_type_exact]:
-                                q.append(
-                                        Q(works__title__iexact=work) &
-                                        Q(works__work_type__query_name=keyword_work_type)
-                                        )
-
-                            # one may want to factor the duplicated query on the work type
-                            # but it is very unlikely someone will define severals animes
-                            # (by instance) for a song at the same time
-                            # IMHO a factorization will make the code less clear and
-                            # just heavier, for no practical reason
+                    # one may want to factor the duplicated query on the work type
+                    # but it is very unlikely someone will define severals animes
+                    # (by instance) for a song at the same time
+                    # IMHO a factorization will make the code less clear and
+                    # just heavier, for no practical reason
 
                 # unspecific terms of the research
                 for remain in res['remaining']:
@@ -101,7 +95,7 @@ class SongList(ListCreateAPIView):
                         )
 
                 # tags
-                for tag in res['tags']:
+                for tag in res['tag']:
                     q_many.append(Q(tags__name=tag))
 
                 # now, gather the query objects
@@ -160,10 +154,11 @@ class ArtistList(ListCreateAPIView):
             if query:
                 # there is no need for query language for artists
                 # it is used to split terms and for uniformity
-                res = parse_query(query)
+                parser = QueryLanguageParser()
+                res = parser.split_remaining(query)
                 q = []
                 # only unspecific terms are used
-                for remain in res['remaining']:
+                for remain in res:
                     q.append(
                             Q(name__icontains=remain)
                         )
@@ -175,7 +170,7 @@ class ArtistList(ListCreateAPIView):
 
                 query_set = query_set.filter(filter_query)
                 # saving the parsed query to give it back to the client
-                self.query_parsed = {'remaining': res['remaining']}
+                self.query_parsed = {'remaining': res}
 
         # return results of the corresponding query
         return query_set.order_by(Lower("name"))
@@ -220,10 +215,11 @@ class WorkList(ListCreateAPIView):
             if query:
                 # there is no need for query language for works
                 # it is used to split terms and for uniformity
-                res = parse_query(query)
+                parser = QueryLanguageParser()
+                res = parser.split_remaining(query)
                 q = []
                 # only unspecific terms are used
-                for remain in res['remaining']:
+                for remain in res:
                     q.append(
                             Q(title__icontains=remain) |
                             Q(subtitle__icontains=remain)
@@ -236,7 +232,7 @@ class WorkList(ListCreateAPIView):
 
                 query_set = query_set.filter(filter_query)
                 # saving the parsed query to give it back to the client
-                self.query_parsed = {'remaining': res['remaining']}
+                self.query_parsed = {'remaining': res}
 
         # return results of the corresponding query and type filter
         return query_set.order_by(Lower("title"), Lower("subtitle"))

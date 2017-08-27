@@ -139,3 +139,14 @@ class SongListAPIViewTestCase(BaseAPITestCase):
         # Get songs list with query = "title:Artist"
         # Should not return any result
         self.song_query_test("title:Artist", [])
+
+    def test_get_song_list_with_query_multiple(self):
+        """
+        Test to verify song list with title query
+        """
+        # Login as simple user 
+        self.authenticate(self.user)
+
+        # Get songs list with query = "artist:Artist1 title:1"
+        # Should not return any song
+        self.song_query_test("artist:Artist1 title:1", [])
