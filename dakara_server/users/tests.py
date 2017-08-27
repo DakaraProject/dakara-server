@@ -26,8 +26,8 @@ class UsersListCreateAPIViewTestCase(BaseAPITestCase):
         # Get users list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.data['count'], 2)
-        self.assertEquals(len(response.data['results']), 2)
+        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(len(response.data['results']), 2)
 
     def test_get_users_list_forbidden(self):
         """
@@ -113,7 +113,7 @@ class UsersRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         # Get simple user details
         response = self.client.get(self.user_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.data, {
+        self.assertEqual(response.data, {
                     "id": self.user.id,
                     "username": self.user.username,
                     "is_superuser": self.user.is_superuser,
@@ -125,7 +125,7 @@ class UsersRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         # Get manager details
         response = self.client.get(self.manager_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.data, {
+        self.assertEqual(response.data, {
                     "id": self.manager.id,
                     "username": self.manager.username,
                     "is_superuser": self.manager.is_superuser,
@@ -241,7 +241,7 @@ class CurrentUserTestCase(BaseAPITestCase):
         # Get current user
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.data, {
+        self.assertEqual(response.data, {
                     "id": self.user.id,
                     "username": self.user.username,
                     "is_superuser": self.user.is_superuser,
@@ -256,7 +256,7 @@ class CurrentUserTestCase(BaseAPITestCase):
         # Get current user
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.data, {
+        self.assertEqual(response.data, {
                     "id": self.manager.id,
                     "username": self.manager.username,
                     "is_superuser": self.manager.is_superuser,
