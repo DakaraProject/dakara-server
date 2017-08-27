@@ -21,30 +21,30 @@ class BaseAPITestCase(APITestCase):
 
     def create_library_test_data(self):
         # Create work types
-        wt1 = WorkType(name="WorkType1", query_name="wt1")
-        wt1.save()
-        wt2 = WorkType(name="WorkType2", query_name="wt2")
-        wt2.save()
+        self.wt1 = WorkType(name="WorkType1", query_name="wt1")
+        self.wt1.save()
+        self.wt2 = WorkType(name="WorkType2", query_name="wt2")
+        self.wt2.save()
 
         # Create works
-        work1 = Work(title="Work1", work_type=wt1)
-        work1.save()
-        work2 = Work(title="Work2", work_type=wt1)
-        work2.save()
-        work3 = Work(title="Work3", work_type=wt2)
-        work3.save()
+        self.work1 = Work(title="Work1", work_type=self.wt1)
+        self.work1.save()
+        self.work2 = Work(title="Work2", work_type=self.wt1)
+        self.work2.save()
+        self.work3 = Work(title="Work3", work_type=self.wt2)
+        self.work3.save()
 
         # Create artists
-        artist1 = Artist(name="Artist1")
-        artist1.save()
-        artist2 = Artist(name="Artist2")
-        artist2.save()
+        self.artist1 = Artist(name="Artist1")
+        self.artist1.save()
+        self.artist2 = Artist(name="Artist2")
+        self.artist2.save()
 
         # Create song tags
-        tag1 = SongTag(name="TAG1")
-        tag1.save()
-        tag2 = SongTag(name="TAG2")
-        tag2.save()
+        self.tag1 = SongTag(name="TAG1")
+        self.tag1.save()
+        self.tag2 = SongTag(name="TAG2")
+        self.tag2.save()
 
         # Create songs
 
@@ -55,11 +55,11 @@ class BaseAPITestCase(APITestCase):
         # Song associated with work, artist, and tag
         self.song2 = Song(title="Song2", filename="file.mp4")
         self.song2.save()
-        self.song2.tags.add(tag1)
-        self.song2.artists.add(artist1)
+        self.song2.tags.add(self.tag1)
+        self.song2.artists.add(self.artist1)
         SongWorkLink(
                 song_id=self.song2.id,
-                work_id=work1.id,
+                work_id=self.work1.id,
                 link_type=SongWorkLink.OPENING
                 ).save()
 
@@ -75,9 +75,16 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(json['detail'], expected_song.detail)
         self.assertEqual(json['detail_video'], expected_song.detail_video)
 
+    def check_artist_json(self, json, expected_song):
+        """
+        Method to test an representation against the expected artist
+        """
+        self.assertEqual(json['id'], expected_song.id)
+        self.assertEqual(json['name'], expected_song.name)
+
     def song_query_test(self, query, expected_songs):
         """
-        Method to test a song song request with a given query
+        Method to test a song request with a given query
         Returned songs should be the same as expected_songs,
         in the same order
         """
@@ -89,3 +96,18 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(len(results), len(expected_songs))
         for song, expected_song in zip(results, expected_songs):
             self.assertEqual(song['id'], expected_song.id)
+
+    def artist_query_test(self, query, expected_artists):
+        """
+        Method to test a artist request with a given query
+        Returned artist should be the same as expected_artists,
+        in the same order
+        """
+        # TODO This only works when there is only one page of artists
+        response = self.client.get(self.url, {'query': query})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], len(expected_artists))
+        results = response.data['results']
+        self.assertEqual(len(results), len(expected_artists))
+        for artist, expected_artist in zip(results, expected_artists):
+            self.assertEqual(artist['id'], expected_artist.id)
