@@ -150,3 +150,32 @@ class SongListAPIViewTestCase(BaseAPITestCase):
         # Get songs list with query = "artist:Artist1 title:1"
         # Should not return any song
         self.song_query_test("artist:Artist1 title:1", [])
+
+    def test_get_song_list_with_query_complex(self):
+        """
+        Test to verify parsed query is returned
+        """
+        # Login as simple user 
+        self.authenticate(self.user)
+
+        query = """hey  artist: me work:you wt1:workName title: test\ Test remain stuff #tagg wt3:test artist:"my artist" work:""exact Work"" i   """
+
+        # Get song list with a complex query
+        # should not return any song, but we'll check returned parsed query
+        response = self.client.get(self.url, {'query': query})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 0)
+        results = response.data['results']
+        self.assertEqual(len(results), 0)
+        query = response.data['query']
+        self.assertCountEqual(query['remaining'], ['remain', 'stuff', 'hey', 'i', 'wt3:test'])
+        self.assertCountEqual(query['tag'], ['TAGG'])
+        self.assertCountEqual(query['title']['contains'], ['test Test'])
+        self.assertCountEqual(query['title']['exact'], [])
+        self.assertCountEqual(query['artist']['contains'], ['me', 'my artist'])
+        self.assertCountEqual(query['artist']['exact'], [])
+        self.assertCountEqual(query['work']['contains'], ['you'])
+        self.assertCountEqual(query['work']['exact'], ["exact Work"])
+        self.assertCountEqual(query['work_type'].keys(), ['wt1'])
+        self.assertCountEqual(query['work_type']['wt1']['contains'], ['workName'])
+        self.assertCountEqual(query['work_type']['wt1']['exact'], [])
