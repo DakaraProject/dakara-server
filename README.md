@@ -38,13 +38,13 @@ dakara_server/manage.py migrate
 
 You should be asked to create a super user. Do it.
 
-Now, duplicate `config.ini.example` to `config.ini`.
+Now, duplicate `config.yaml.example` to `config.yaml`.
 You'll set up here the different tags and type of works (anime, games…) of your kara library.
 When you're done, tell the server:
 
 ```sh
-dakara_server/manage.py createtags ./config.ini # for tags
-dakara_server/manage.py createworktypes ./config.ini # for work types
+dakara_server/manage.py createtags ./config.yaml # for tags
+dakara_server/manage.py createworktypes ./config.yaml # for work types
 ```
 
 It's time to feed the hungry database with your kara library!

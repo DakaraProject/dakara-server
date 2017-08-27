@@ -6,9 +6,9 @@
 
 import os
 import sys
-from django.core.management.base import BaseCommand, CommandError
-from configparser import ConfigParser
 from codecs import open
+import yaml
+from django.core.management.base import BaseCommand, CommandError
 
 
 file_encoding = sys.getfilesystemencoding()
@@ -45,14 +45,13 @@ class BaseCommandWithConfig(BaseCommand):
                     )
 
         # open config file
-        config = ConfigParser()
         with open(config_file_encoded, "r", "utf8") as file:
-            config.readfp(file)
+            config = yaml.load(file.read())
 
         # check tag section exists
-        if not config.has_section(self.SECTION_NAME):
+        if self.SECTION_NAME not in config:
             raise CommandError(
-                    "Invalid config file, no section '{}'".format(self.SECTION_NAME)
+                    "Invalid YAML config file, no branch '{}'".format(self.SECTION_NAME)
                     )
 
         self.handle_custom(config[self.SECTION_NAME], *args, **options)

@@ -1,0 +1,31 @@
+# Configuration file for database small elements
+
+# DO NOT MODIFY THIS FILE!!!
+# You will have troubles at the next update.
+# Duplicate this file to `config.yaml` instead and remove this message.
+
+# You have to provide the tags used here. Tags are identified by their name (it
+# will be converted to upper case, it should be just one word). You can provide
+# a color id (positive integer starting at 0).
+#
+# For each tag use the following example:
+#  - name: example-tag
+#    color_id: 0
+tags:
+  - name: example-tag
+    color_id: 0
+
+# You have to provide the types of works used here. Work types are identified by
+# their query name (hyphenated name, with no special characters, used as key
+# word for querying). You can provide a work type display name and a icon name.
+# (the name is choosen among the [FontAwesome](http://fontawesome.io/icons/)
+# font glyphes).
+#
+# For each line, use the following example:
+#  - query_name: example-work-type
+#    name: Example Work Type
+#    icon_name: smile-o
+worktypes:
+  - query_name: example-work-type
+    name: Example Work Type
+    icon_name: smile-o
