@@ -20,15 +20,15 @@ class QueryLanguageParser:
         self.keywords = KEYWORDS + self.keywords_work_type
 
         self.language_matcher = re.compile(r"""
-            \b(?P<keyword>{keywords_regex}) #keyword
-            :
+            \b(?P<keyword>{keywords_regex}) # keyword
+            :                               # separator
             \s?
             (?:
-                ""(?P<exact>.+?)""          #exact value between double double quote
+                ""(?P<exact>.+?)""          # exact value between double double quote
                 |
-                "(?P<contains>.+?)"         #contains value between double quote
+                "(?P<contains>.+?)"         # contains value between double quote
                 |
-                (?P<contains2>(?:\\\s|\S)+) #contains with no quotes
+                (?P<contains2>(?:\\\s|\S)+) # contains with no quotes
             )
             """.format(keywords_regex=r'|'.join(self.keywords)),
             re.I | re.X
@@ -38,6 +38,12 @@ class QueryLanguageParser:
     def split_remaining(string):
         """ Split string by whitespace character not escaped with backslash
             and preserve double quoted strings
+
+            Args:
+                string (str): words or expressions separated with spaces.
+
+            Returns:
+                list: list of splitted words or expressions.
         """
         result = []
         current_expression = ""
@@ -74,24 +80,30 @@ class QueryLanguageParser:
 
     def parse(self, query):
         """ Function that parses query mini language
-            Returns a dictionnary with the folowing entries:
 
-            artist:
-                contains: list of list of artists names to match partially.
-                exact: list of list of artists names to match exactly.
-            work:
-                contains: list of works names to match partially
-                exact: list of works names to match exactly
-            title:
-                contains: titles to match partially
-                exact: titles to match exactly
-            tag: list of tags to match in uppercase
-            work_type: dict with queryname as key and
-                a dict as value with contains and exact
+            Args:
+                query (str): words or commands of the query language separated
+                    with spaces.
 
-            remaining: unparsed text
+            Returns:
+                dict: query terms arranged among the following keys:
+                    `artist`:
+                        `contains`: list of list of artists names to match partially.
+                        `exact`: list of list of artists names to match exactly.
+                    `work`:
+                        `contains`: list of works names to match partially.
+                        `exact`: list of works names to match exactly.
+                    `title:
+                        `contains`: titles to match partially
+                        `exact`: titles to match exactly.
+                    `tag`: list of tags to match in uppercase.
+                    `work_type`: dict with queryname as key and a dict as value
+                        with the keys `contains` and `exact`.
+
+                    `remaining`: unparsed text.
         """
-
+        # create results structure
+        # work_type will be filled only if necessary
         result = {
                 "artist": {
                     "contains": [],
@@ -111,12 +123,16 @@ class QueryLanguageParser:
                 }
 
         for match in self.language_matcher.finditer(query):
-
             group_index = match.groupdict()
 
+            # extract values
             target = group_index['keyword'].strip().lower()
             value_exact = (group_index['exact'] or '').strip()
-            value_contains = (group_index['contains'] or group_index['contains2'] or '').replace("\\", "").strip()
+            value_contains = (
+                    group_index['contains'] or
+                    group_index['contains2'] or
+                    ''
+                    ).replace("\\", "").strip()
 
 
             if target in self.keywords_work_type:
@@ -141,8 +157,8 @@ class QueryLanguageParser:
             else:
                 raise ValueError("Inconsistency")
 
+        # deal with remaining
         remaining = self.language_matcher.sub("", query)
-
         result['remaining'] = self.split_remaining(remaining)
 
         # deal with tags
