@@ -154,8 +154,7 @@ class ArtistList(ListCreateAPIView):
             if query:
                 # there is no need for query language for artists
                 # it is used to split terms and for uniformity
-                parser = QueryLanguageParser()
-                res = parser.split_remaining(query)
+                res = QueryLanguageParser.split_remaining(query)
                 q = []
                 # only unspecific terms are used
                 for remain in res:
@@ -215,8 +214,7 @@ class WorkList(ListCreateAPIView):
             if query:
                 # there is no need for query language for works
                 # it is used to split terms and for uniformity
-                parser = QueryLanguageParser()
-                res = parser.split_remaining(query)
+                res = QueryLanguageParser.split_remaining(query)
                 q = []
                 # only unspecific terms are used
                 for remain in res:

@@ -34,7 +34,8 @@ class QueryLanguageParser:
             re.I | re.X
         )
 
-    def split_remaining(self, string):
+    @staticmethod
+    def split_remaining(string):
         """ Split string by whitespace character not escaped with backslash
             and preserve double quoted strings
         """
