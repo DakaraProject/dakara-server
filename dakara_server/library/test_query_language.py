@@ -210,3 +210,45 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work']['contains'], [])
         self.assertCountEqual(res['work']['exact'], [])
         self.assertCountEqual(res['work_type'].keys(), [])
+
+    def test_parse_old_worktype(self):
+        """
+        This test attempts to reproduce a bug where old work types were kept in memory
+        """
+        # Pre-assertion, keywords contains wt1 and wt2
+        self.assertCountEqual(self.parser.keywords, ["artist", "work", "title", "wt1", "wt2"])
+
+        # Request with work type 2
+        res = self.parser.parse("wt2:mywork")
+        self.assertCountEqual(res['remaining'], [])
+        self.assertCountEqual(res['tag'], [])
+        self.assertCountEqual(res['title']['contains'], [])
+        self.assertCountEqual(res['title']['exact'], [])
+        self.assertCountEqual(res['artist']['contains'], [])
+        self.assertCountEqual(res['artist']['exact'], [])
+        self.assertCountEqual(res['work']['contains'], [])
+        self.assertCountEqual(res['work']['exact'], [])
+        self.assertCountEqual(res['work_type'].keys(), ['wt2'])
+        self.assertCountEqual(res['work_type']['wt2']['contains'], ['mywork'])
+        self.assertCountEqual(res['work_type']['wt2']['exact'], [])
+
+        # Now remove work type 2
+        self.wt2.delete()
+
+        # Create a new parser so that keywords are re-initialized with current workTypes
+        self.parser = QueryLanguageParser()
+
+        # Check parser keywords, should not include wt2 anymore
+        self.assertCountEqual(self.parser.keywords, ["artist", "work", "title", "wt1"])
+
+        # Now the request with wt2 should not be parsed since wt2 is not a keyword anymore
+        res = self.parser.parse("wt2:mywork")
+        self.assertCountEqual(res['remaining'], ["wt2:mywork"])
+        self.assertCountEqual(res['tag'], [])
+        self.assertCountEqual(res['title']['contains'], [])
+        self.assertCountEqual(res['title']['exact'], [])
+        self.assertCountEqual(res['artist']['contains'], [])
+        self.assertCountEqual(res['artist']['exact'], [])
+        self.assertCountEqual(res['work']['contains'], [])
+        self.assertCountEqual(res['work']['exact'], [])
+        self.assertCountEqual(res['work_type'].keys(), [])

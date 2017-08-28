@@ -17,8 +17,8 @@ class QueryLanguageParser:
         self.keywords_work_type = [work_type.query_name
                 for work_type in WorkType.objects.all()]
 
-        self.keywords = KEYWORDS
-        self.keywords.extend(self.keywords_work_type)
+        self.keywords = KEYWORDS + self.keywords_work_type
+
         self.language_matcher = re.compile(r"""
             \b(?P<keyword>{keywords_regex}) #keyword
             :
