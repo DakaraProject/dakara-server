@@ -211,6 +211,32 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work']['exact'], [])
         self.assertCountEqual(res['work_type'].keys(), [])
 
+    def test_parse_remaining_multi_words(self):
+        """
+        Test query parse with multi words remaining
+        """
+        res = self.parser.parse(r"word words\ words\ words remain")
+        self.assertCountEqual(res['remaining'], ['word', 'words words words', 'remain'])
+        self.assertCountEqual(res['tag'], [])
+        self.assertCountEqual(res['title']['contains'], [])
+        self.assertCountEqual(res['title']['exact'], [])
+        self.assertCountEqual(res['artist']['contains'], [])
+        self.assertCountEqual(res['artist']['exact'], [])
+        self.assertCountEqual(res['work']['contains'], [])
+        self.assertCountEqual(res['work']['exact'], [])
+        self.assertCountEqual(res['work_type'].keys(), [])
+
+        res = self.parser.parse(""" word"words words words" remain""")
+        self.assertCountEqual(res['remaining'], ['word', 'words words words','remain'])
+        self.assertCountEqual(res['tag'], [])
+        self.assertCountEqual(res['title']['contains'], [])
+        self.assertCountEqual(res['title']['exact'], [])
+        self.assertCountEqual(res['artist']['contains'], [])
+        self.assertCountEqual(res['artist']['exact'], [])
+        self.assertCountEqual(res['work']['contains'], [])
+        self.assertCountEqual(res['work']['exact'], [])
+        self.assertCountEqual(res['work_type'].keys(), [])
+
     def test_parse_old_worktype(self):
         """
         This test attempts to reproduce a bug where old work types were kept in memory
