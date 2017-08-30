@@ -121,6 +121,10 @@ class SongListAPIViewTestCase(BaseAPITestCase):
         # Should only return song2
         self.song_query_test("wt1:Work1", [self.song2])
 
+        # Get songs list with query = "wt1:""Work1"""
+        # Should only return song2
+        self.song_query_test("""wt1:""Work1"" """, [self.song2])
+
         # Get songs list with query = "wt2:Work1"
         # Should not return any result since Work1 is not of type workType2
         self.song_query_test("wt2:Work1", [])
@@ -135,6 +139,10 @@ class SongListAPIViewTestCase(BaseAPITestCase):
         # Get songs list with query = "title:1"
         # Should only return song1
         self.song_query_test("title:1", [self.song1])
+
+        # Get songs list with query = "title:""Song1"""
+        # Should only return song1
+        self.song_query_test(""" title:""Song1"" """, [self.song1])
 
         # Get songs list with query = "title:Artist"
         # Should not return any result

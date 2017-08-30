@@ -97,7 +97,7 @@ class BaseAPITestCase(APITestCase):
         for song, expected_song in zip(results, expected_songs):
             self.assertEqual(song['id'], expected_song.id)
 
-    def artist_query_test(self, query, expected_artists):
+    def artist_query_test(self, query, expected_artists, remaining=None):
         """
         Method to test a artist request with a given query
         Returned artist should be the same as expected_artists,
@@ -111,3 +111,6 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(len(results), len(expected_artists))
         for artist, expected_artist in zip(results, expected_artists):
             self.assertEqual(artist['id'], expected_artist.id)
+
+        if remaining is not None:
+            self.assertEqual(response.data['query']['remaining'], remaining)

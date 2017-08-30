@@ -67,3 +67,30 @@ class ArtistListAPIViewTestCase(BaseAPITestCase):
         # Get artists list with query = ""
         # Should return all artists
         self.artist_query_test("", [self.artist1, self.artist2])
+
+    def test_get_artist_list_with_query_no_keywords(self):
+        """
+        Test to verify artist query do not parse keywords
+        """
+        # Login as simple user 
+        self.authenticate(self.user)
+
+        # Get artists list with query = "title:Artist1"
+        # Should not return anything since it searched for the whole string 
+        self.artist_query_test("title:Artist1", [], ['title:Artist1'])
+
+    def test_get_artists_list_with_query__multi_words(self):
+        """
+        Test query parse with multi words remaining
+        """
+        # Login as simple user 
+        self.authenticate(self.user)
+
+        # Get artists list with escaped space query
+        # Should not return anything but check query
+        self.artist_query_test(r"word words\ words\ words remain", [], ['word', 'words words words', 'remain'])
+
+        # Get artists list with quoted query
+        # Should not return anything but check query
+        self.artist_query_test(""" word"words words words" remain""", [], ['word', 'words words words','remain'])
+
