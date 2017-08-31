@@ -310,6 +310,29 @@ class PasswordViewTestCase(BaseAPITestCase):
         user = UserModel.objects.get(id=self.user.id)
         self.assertTrue(user.check_password(new_password))
 
+    def test_put_password_wrong_password(self):
+        """
+        Test to verify password can't be updated if old pass is invalid
+        """
+        new_password = "newPassword"
+        # Pre-assertion: user password is not 'newPassword'
+        user = UserModel.objects.get(id=self.user.id)
+        self.assertFalse(user.check_password(new_password))
+
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # update own password
+        response = self.client.put(self.user_url, {
+            "old_password": "WrongOldpassword",
+            "password": new_password
+            })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Post-assertion: user password is still not 'newPassword'
+        user = UserModel.objects.get(id=self.user.id)
+        self.assertFalse(user.check_password(new_password))
+
     def test_put_password_forbidden(self):
         """
         Test to verify one can't update other password
