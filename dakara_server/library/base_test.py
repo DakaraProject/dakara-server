@@ -75,42 +75,55 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(json['detail'], expected_song.detail)
         self.assertEqual(json['detail_video'], expected_song.detail_video)
 
-    def check_artist_json(self, json, expected_song):
+        #tags
+        expected_tags = expected_song.tags.all()
+        self.assertEqual(len(json['tags']),len(expected_tags))
+        for tag, expected_tag in zip(json['tags'], expected_tags):
+            self.check_tag_json(tag, expected_tag)
+
+        #artists
+        expected_artists = expected_song.artists.all()
+        self.assertEqual(len(json['artists']),len(expected_artists))
+        for artist, expected_artist in zip(json['artists'], expected_artists):
+            self.check_artist_json(artist, expected_artist)
+
+        #works
+        expected_works = expected_song.songworklink_set.all()
+        self.assertEqual(len(json['works']),len(expected_works))
+        for work, expected_work in zip(json['works'], expected_works):
+            self.check_work_json(work['work'], expected_work.work)
+            self.assertEqual(work['link_type'], expected_work.link_type)
+            self.assertEqual(work['link_type_number'], expected_work.link_type_number)
+            self.assertEqual(work['episodes'], expected_work.episodes)
+
+    def check_tag_json(self, json, expected_artist):
+        """
+        Method to test an representation against the expected tag
+        """
+        self.assertEqual(json['name'], expected_artist.name)
+        self.assertEqual(json['color_id'], expected_artist.color_id)
+
+
+    def check_artist_json(self, json, expected_artist):
         """
         Method to test an representation against the expected artist
         """
-        self.assertEqual(json['id'], expected_song.id)
-        self.assertEqual(json['name'], expected_song.name)
+        self.assertEqual(json['id'], expected_artist.id)
+        self.assertEqual(json['name'], expected_artist.name)
 
-    def song_query_test(self, query, expected_songs):
+    def check_work_json(self, json, expected_work):
         """
-        Method to test a song request with a given query
-        Returned songs should be the same as expected_songs,
-        in the same order
+        Method to test an representation against the expected work
         """
-        # TODO This only works when there is only one page of songs
-        response = self.client.get(self.url, {'query': query})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], len(expected_songs))
-        results = response.data['results']
-        self.assertEqual(len(results), len(expected_songs))
-        for song, expected_song in zip(results, expected_songs):
-            self.assertEqual(song['id'], expected_song.id)
+        self.assertEqual(json['id'], expected_work.id)
+        self.assertEqual(json['title'], expected_work.title)
+        self.assertEqual(json['subtitle'], expected_work.subtitle)
+        self.check_work_type_json(json['work_type'], expected_work.work_type)
 
-    def artist_query_test(self, query, expected_artists, remaining=None):
+    def check_work_type_json(self, json, expected_work):
         """
-        Method to test a artist request with a given query
-        Returned artist should be the same as expected_artists,
-        in the same order
+        Method to test an representation against the expected work type
         """
-        # TODO This only works when there is only one page of artists
-        response = self.client.get(self.url, {'query': query})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], len(expected_artists))
-        results = response.data['results']
-        self.assertEqual(len(results), len(expected_artists))
-        for artist, expected_artist in zip(results, expected_artists):
-            self.assertEqual(artist['id'], expected_artist.id)
-
-        if remaining is not None:
-            self.assertEqual(response.data['query']['remaining'], remaining)
+        self.assertEqual(json['name'], expected_work.name)
+        self.assertEqual(json['query_name'], expected_work.query_name)
+        self.assertEqual(json['icon_name'], expected_work.icon_name)

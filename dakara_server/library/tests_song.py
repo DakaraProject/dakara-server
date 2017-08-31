@@ -187,3 +187,18 @@ class SongListAPIViewTestCase(BaseAPITestCase):
         self.assertCountEqual(query['work_type'].keys(), ['wt1'])
         self.assertCountEqual(query['work_type']['wt1']['contains'], ['workName'])
         self.assertCountEqual(query['work_type']['wt1']['exact'], [])
+
+    def song_query_test(self, query, expected_songs):
+        """
+        Method to test a song request with a given query
+        Returned songs should be the same as expected_songs,
+        in the same order
+        """
+        # TODO This only works when there is only one page of songs
+        response = self.client.get(self.url, {'query': query})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], len(expected_songs))
+        results = response.data['results']
+        self.assertEqual(len(results), len(expected_songs))
+        for song, expected_song in zip(results, expected_songs):
+            self.assertEqual(song['id'], expected_song.id)

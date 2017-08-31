@@ -34,6 +34,10 @@ class ArtistListAPIViewTestCase(BaseAPITestCase):
         self.check_artist_json(response.data['results'][0], self.artist1)
         self.check_artist_json(response.data['results'][1], self.artist2)
 
+        # Check song count
+        self.assertEqual(response.data['results'][0]['song_count'], 1)
+        self.assertEqual(response.data['results'][1]['song_count'], 0)
+
     def test_get_artist_list_forbidden(self):
         """
         Test to verify unauthenticated user can't get artist list 
@@ -93,4 +97,22 @@ class ArtistListAPIViewTestCase(BaseAPITestCase):
         # Get artists list with quoted query
         # Should not return anything but check query
         self.artist_query_test(""" word"words words words" remain""", [], ['word', 'words words words','remain'])
+
+    def artist_query_test(self, query, expected_artists, remaining=None):
+        """
+        Method to test a artist request with a given query
+        Returned artist should be the same as expected_artists,
+        in the same order
+        """
+        # TODO This only works when there is only one page of artists
+        response = self.client.get(self.url, {'query': query})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], len(expected_artists))
+        results = response.data['results']
+        self.assertEqual(len(results), len(expected_artists))
+        for artist, expected_artist in zip(results, expected_artists):
+            self.assertEqual(artist['id'], expected_artist.id)
+
+        if remaining is not None:
+            self.assertEqual(response.data['query']['remaining'], remaining)
 
