@@ -72,7 +72,4 @@ docs/_build/
 *.vim
 
 # Template and static files
-**/templates/*
-!**/templates/*.md
-**/static/*
-!**/static/*.md
+**/static

@@ -37,7 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
     """ Serializer for creation and view
     """
     password = serializers.CharField(write_only=True)
-    id = serializers.CharField(read_only=True)
+    id = serializers.IntegerField(read_only=True)
     is_superuser = serializers.BooleanField(read_only=True)
     users_permission_level = PermissionLevelField(
             target="users_permission_level",

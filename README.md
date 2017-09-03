@@ -62,3 +62,21 @@ python kara.py
 ```
 
 Now, just grab some friends and have fun!
+
+### Developpement
+
+#### Hooks
+
+Git hooks are included in the `hooks` directory.
+
+Use the following config to use this hook folder for the project:
+
+```
+git config core.hooksPath hooks
+```
+
+If you're using git < 2.9 you can make a simlink instead:
+
+```
+ln -s -f ../../hooks/pre-commit .git/hooks/pre-commit
+```

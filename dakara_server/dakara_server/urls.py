@@ -32,29 +32,29 @@ urlpatterns = [
     url(r'^api/token-auth/', obtain_auth_token),
 
     # Api routes for the users
-    url(r'^api/users/$', UserList.as_view()),
-    url(r'^api/users/(?P<pk>[0-9]+)/$', UserView.as_view()),
-    url(r'^api/users/(?P<pk>[0-9]+)/password/$', PasswordView.as_view()),
-    url(r'^api/users/current/$', CurrentUser.as_view()),
+    url(r'^api/users/$', UserList.as_view(), name='users-list'),
+    url(r'^api/users/(?P<pk>[0-9]+)/$', UserView.as_view(), name='users-detail'),
+    url(r'^api/users/(?P<pk>[0-9]+)/password/$', PasswordView.as_view(), name='users-password'),
+    url(r'^api/users/current/$', CurrentUser.as_view(), name='users-current'),
 
     # Api routes for the player
-    url(r'^api/player/status/$', PlayerForPlayerView.as_view()),
-    url(r'^api/player/error/$', PlayerErrorForPlayerView.as_view()),
+    url(r'^api/player/status/$', PlayerForPlayerView.as_view(), name='player-status'),
+    url(r'^api/player/error/$', PlayerErrorForPlayerView.as_view(), name='player-error'),
 
     # Api routes for the playlist
-    url(r'^api/playlist/player/manage/$', PlayerCommandForUserView.as_view()),
-    url(r'^api/playlist/player/status/$', PlayerForUserView.as_view()),
-    url(r'^api/playlist/player/errors/$', PlayerErrorsForUserView.as_view()),
-    url(r'^api/playlist/player/$', PlayerDetailsCommandErrorsForUserView.as_view()),
-    url(r'^api/playlist/$', PlaylistEntryList.as_view()),
-    url(r'^api/playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
+    url(r'^api/playlist/player/manage/$', PlayerCommandForUserView.as_view(), name='playlist-player-manage'),
+    url(r'^api/playlist/player/status/$', PlayerForUserView.as_view(), name='playlist-player-status'),
+    url(r'^api/playlist/player/errors/$', PlayerErrorsForUserView.as_view(), name='playlist-player-errors'),
+    url(r'^api/playlist/player/$', PlayerDetailsCommandErrorsForUserView.as_view(), name='playlist-player'),
+    url(r'^api/playlist/$', PlaylistEntryList.as_view(), name='playlist-list'),
+    url(r'^api/playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view(), name='playlist-detail'),
 
     # Api routes for the library
-    url(r'^api/library/songs/$', SongList.as_view()),
-    url(r'^api/library/artists/$', ArtistList.as_view()),
-    url(r'^api/library/works/$', WorkList.as_view()),
-    url(r'^api/library/work-types/$', WorkTypeList.as_view()),
-    url(r'^api/library/songs/(?P<pk>[0-9]+)/$', SongDetailView.as_view(), name='song-detail'),
+    url(r'^api/library/songs/$', SongList.as_view(), name='library-song-list'),
+    url(r'^api/library/artists/$', ArtistList.as_view(), name='library-artist-list'),
+    url(r'^api/library/works/$', WorkList.as_view(), name='library-work-list'),
+    url(r'^api/library/work-types/$', WorkTypeList.as_view(), name='library-worktype-list'),
+    url(r'^api/library/songs/(?P<pk>[0-9]+)/$', SongDetailView.as_view(), name='library-song-detail'),
 
     # Default case for api routes
     url(r'^api/', page_not_found),
