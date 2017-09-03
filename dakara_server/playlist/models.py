@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import timedelta
+from users.models import DakaraUser
 from django.core.cache import cache
 
 
@@ -8,6 +9,7 @@ class PlaylistEntry(models.Model):
     """
     song = models.ForeignKey('library.Song', null=False)
     date_created = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(DakaraUser, null=False)
 
     def __str__(self):
         return str(self.song)

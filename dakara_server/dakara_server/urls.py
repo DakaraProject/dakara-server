@@ -20,6 +20,7 @@ from django.views.defaults import page_not_found
 from rest_framework.authtoken.views import obtain_auth_token
 from library.views import *
 from playlist.views import *
+from users.views import *
 
 urlpatterns = [
 
@@ -30,17 +31,25 @@ urlpatterns = [
     url(r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/token-auth/', obtain_auth_token),
 
+    # Api routes for the users
+    url(r'^api/users/$', UserList.as_view()),
+    url(r'^api/users/(?P<pk>[0-9]+)/$', UserView.as_view()),
+    url(r'^api/users/(?P<pk>[0-9]+)/password/$', PasswordView.as_view()),
+    url(r'^api/users/current/$', CurrentUser.as_view()),
+
     # Api routes for the player
     url(r'^api/player/status/$', PlayerForPlayerView.as_view()),
     url(r'^api/player/error/$', PlayerErrorForPlayerView.as_view()),
 
-    # Api routes for the front
+    # Api routes for the playlist
     url(r'^api/playlist/player/manage/$', PlayerCommandForUserView.as_view()),
     url(r'^api/playlist/player/status/$', PlayerForUserView.as_view()),
     url(r'^api/playlist/player/errors/$', PlayerErrorsForUserView.as_view()),
     url(r'^api/playlist/player/$', PlayerDetailsCommandErrorsForUserView.as_view()),
     url(r'^api/playlist/$', PlaylistEntryList.as_view()),
     url(r'^api/playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view()),
+
+    # Api routes for the library
     url(r'^api/library/songs/$', SongList.as_view()),
     url(r'^api/library/artists/$', ArtistList.as_view()),
     url(r'^api/library/works/$', WorkList.as_view()),
@@ -48,7 +57,7 @@ urlpatterns = [
     url(r'^api/library/songs/(?P<pk>[0-9]+)/$', SongDetailView.as_view(), name='song-detail'),
 
     # Default case for api routes
-    url(r'^api', page_not_found),
+    url(r'^api/', page_not_found),
 
 ]
 
