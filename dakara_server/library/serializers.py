@@ -10,7 +10,7 @@ class SecondsDurationField(serializers.DurationField):
     def to_representation(self, obj):
         """ Method for serializing duration in right format
         """
-        return str(int(round(obj.total_seconds())))
+        return int(round(obj.total_seconds()))
 
 
 class ArtistNoCountSerializer(serializers.ModelSerializer):
