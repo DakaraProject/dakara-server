@@ -99,3 +99,19 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         return response
+
+    def player_send_error(self, playlist_entry_id, message):
+        """
+        Simulate the player reporting an error
+        """
+        url = reverse('player-error')
+        # Login as player
+        self.authenticate(self.player)
+        # Put as if playing next song
+        response = self.client.post(url,
+                {
+                    'playlist_entry': playlist_entry_id,
+                    'error_message': message,
+                }
+            )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

@@ -319,3 +319,53 @@ class PlayerCommandForUserViewTestCase(BaseAPITestCase):
 
 
 # TODO: Player errors check
+class PlayerErrorsForUserViewTestCase(BaseAPITestCase):
+    url = reverse('playlist-player-errors')
+    url_aggregated = reverse('playlist-player')
+
+    def setUp(self):
+        self.create_test_data()
+
+    def test_get_player_errors(self):
+        """
+        Test to test player errrors
+        """
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Get player errrors
+        # Should not have any
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+        # Get player errors again but through aggregated route
+        response = self.client.get(self.url_aggregated)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['errors']), 0)
+
+        # Simulate player sending and error
+        error_message = "Error occured"
+        self.player_send_error(self.pe1.id, error_message)
+
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Get player errors
+        # Should have one error
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        error = response.data[0]
+        self.assertIsNotNone(error.get('id'))
+        self.assertEqual(error['song']['id'], self.song1.id)
+        self.assertEqual(error['error_message'], error_message)
+
+        # Get player errors again but through aggregated route
+        response = self.client.get(self.url_aggregated)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['errors']), 1)
+        error = response.data['errors'][0]
+        self.assertIsNotNone(error.get('id'))
+        self.assertEqual(error['song']['id'], self.song1.id)
+        self.assertEqual(error['error_message'], error_message)
