@@ -1,6 +1,6 @@
 from django.db import models
 from datetime import timedelta
-from library.fields import SafeDurationField, UpperCaseCharField
+from library.fields import UpperCaseCharField
 
 
 class Song(models.Model):
@@ -9,7 +9,7 @@ class Song(models.Model):
     title = models.CharField(max_length=255)
     filename = models.CharField(max_length=255)
     directory = models.CharField(max_length=255)
-    duration = SafeDurationField(default=timedelta(0))
+    duration = models.DurationField(default=timedelta(0))
     version = models.CharField(max_length=255, blank=True)
     detail = models.CharField(max_length=255, blank=True)
     detail_video = models.CharField(max_length=255, blank=True)
