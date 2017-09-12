@@ -113,15 +113,36 @@ REST_FRAMEWORK = {
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': '[%(asctime)s] %(levelname)s %(message)s'
+        }
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
     'handlers': {
         'console': {
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
+            'formatter': 'default',
+            'filters': ['require_debug_true'],
+        },
+        'console_playlist': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
         },
     },
     'loggers': {
         'playlist.views': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
+            'handlers': ['console_playlist'],
+            'level': 'INFO',
         },
         'django': {
             'handlers': ['console'],
@@ -132,5 +153,6 @@ LOGGING = {
 
 try:
     from .local_settings import *
+
 except ImportError:
     from .default_settings import *
