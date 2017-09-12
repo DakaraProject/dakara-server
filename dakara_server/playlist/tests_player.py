@@ -345,7 +345,7 @@ class PlayerErrorsForUserViewTestCase(BaseAPITestCase):
         self.assertEqual(len(response.data['errors']), 0)
 
         # Simulate player sending and error
-        error_message = "Error occured"
+        error_message = "Testing Errors from the player"
         self.player_send_error(self.pe1.id, error_message)
 
         # Login as simple user
