@@ -1,3 +1,4 @@
+import logging
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.core.cache import cache
@@ -7,7 +8,13 @@ from rest_framework import status
 from library.models import *
 from .models import *
 
+
 UserModel = get_user_model()
+
+
+logging.disable(logging.CRITICAL)
+
+
 class BaseAPITestCase(APITestCase):
 
     def tearDown(self):
