@@ -1,12 +1,7 @@
 from django.core.urlresolvers import reverse
-from django.contrib.auth import get_user_model
-from rest_framework.test import APITestCase
 from rest_framework import status
 from .base_test import BaseAPITestCase
-from library.models import *
-from .models import *
-
-UserModel = get_user_model()
+from .models import PlaylistEntry
 
 class PlaylistEntryListCreateAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-list')

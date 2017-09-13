@@ -5,8 +5,8 @@ from django.core.cache import cache
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 from rest_framework import status
-from library.models import *
-from .models import *
+from library.models import Song
+from .models import PlaylistEntry
 
 
 UserModel = get_user_model()
