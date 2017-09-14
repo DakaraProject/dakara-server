@@ -34,7 +34,7 @@ class Command(BaseCommandWithConfig):
                     )
 
             # process extra field
-            if tag['color_id']:
+            if 'color_id' in tag:
                 tag_entry.color_id = int(tag['color_id'])
                 tag_entry.save()
 
