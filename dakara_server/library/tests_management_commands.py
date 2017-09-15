@@ -110,6 +110,46 @@ class QueryLanguageParserTestCase(TestCase):
         finally:
             shutil.rmtree(dirpath)
 
+    def test_feed_command_with_trailing_slash(self):
+        """
+        Test feed command when path contains a trailling slash
+        There was a bug, when a path with trailing slash was given,
+        The directory field was empty instead of containing the containing folder name
+        """
+        # Pre-Assertions
+        songs = Song.objects.order_by('title')
+        self.assertEqual(len(songs), 0)
+
+        dirpath = tempfile.mkdtemp()
+        try:
+            dirname = os.path.basename(dirpath)
+
+            first_file_filename = "The first file.mp4"
+            with open(os.path.join(dirpath, first_file_filename), 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            second_file_filename = "The second file.mp4"
+            with open(os.path.join(dirpath, second_file_filename), 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            # Call command
+            # Join with empty string to add a trailing slash if it's not already there
+            args = [os.path.join(dirpath, '')]
+            opts = {}
+            call_command('feed', *args, **opts)
+
+            songs = Song.objects.order_by('title')
+            self.assertEqual(len(songs), 2)
+            self.assertEqual(songs[0].filename, first_file_filename)
+            self.assertEqual(songs[0].directory, dirname)
+            self.assertEqual(songs[0].title, os.path.splitext(first_file_filename)[0])
+            self.assertEqual(songs[1].filename, second_file_filename)
+            self.assertEqual(songs[1].directory, dirname)
+            self.assertEqual(songs[1].title, os.path.splitext(second_file_filename)[0])
+
+        finally:
+            shutil.rmtree(dirpath)
+
     def test_feed_command_with_parser(self):
         """
         Test feed command with parser

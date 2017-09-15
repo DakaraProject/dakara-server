@@ -843,6 +843,10 @@ By default parse error still add the file unparsed.",
     def handle(self, *args, **options):
         """ Process the feeding
         """
+        # directory-source
+        # Normalize path to remove trailing slash
+        directory_source = os.path.normpath(options['directory-source'])
+
         # debug SQL
         if options.get('debug_sql'):
             logger = logging.getLogger('django.db.backends')
@@ -878,7 +882,7 @@ By default parse error still add the file unparsed.",
 
         # create feeder object
         database_feeder = DatabaseFeeder.from_directory(
-                directory_source=options['directory-source'],
+                directory_source=directory_source,
                 directory=directory,
                 dry_run=options.get('dry_run'),
                 append_only=options.get('append_only'),
