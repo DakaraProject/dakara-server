@@ -2,10 +2,9 @@
 
 echo "Running django tests"
 
-git stash -q --keep-index
 (cd ./dakara_server && python ./manage.py test)
 returned_value=$?
-git stash pop -q
+
 if [[ $returned_value -gt 0 ]]
 then
     >&2 echo "Commit denied, there were test failures."

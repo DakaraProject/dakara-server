@@ -1,6 +1,6 @@
 from django.db import models
 from datetime import timedelta
-from library.fields import SafeDurationField
+from library.fields import UpperCaseCharField
 
 
 class Song(models.Model):
@@ -9,7 +9,7 @@ class Song(models.Model):
     title = models.CharField(max_length=255)
     filename = models.CharField(max_length=255)
     directory = models.CharField(max_length=255)
-    duration = SafeDurationField(default=timedelta(0))
+    duration = models.DurationField(default=timedelta(0))
     version = models.CharField(max_length=255, blank=True)
     detail = models.CharField(max_length=255, blank=True)
     detail_video = models.CharField(max_length=255, blank=True)
@@ -78,24 +78,6 @@ class SongWorkLink(models.Model):
     def __str__(self):
         return str(self.work.title) + ' ' + str(self.link_type) + \
             (' ' + str(self.link_type_number) if self.link_type_number else '')
-
-
-class UpperCaseCharField(models.CharField):
-    """ Override a Django Model Field and make it upper-case as of Django 1.8
-        http://stackoverflow.com/a/33354171
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(UpperCaseCharField, self).__init__(*args, **kwargs)
-
-    def pre_save(self, model_instance, add):
-        value = getattr(model_instance, self.attname, None)
-        if value:
-            value = value.upper()
-            setattr(model_instance, self.attname, value)
-            return value
-        else:
-            return super(UpperCaseCharField, self).pre_save(model_instance, add)
 
 
 class SongTag(models.Model):

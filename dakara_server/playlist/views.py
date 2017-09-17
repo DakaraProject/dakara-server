@@ -235,65 +235,63 @@ class PlayerForPlayerView(APIView):
             player_command = PlayerCommand.get_or_create()
             player_old = Player.get_or_create()
             player = Player(**player_serializer.validated_data)
-            try:
-                playing_old_id = player_old.playlist_entry_id
-                playing_id = player.playlist_entry_id
-                next_entry = PlaylistEntry.get_next(playing_old_id)
-                next_id = next_entry.id if next_entry else None
 
-                # check player status is consistent
-                # playing entry has to be either same as before,
-                # or the value returned by get_next_song
-                if playing_old_id == playing_id or playing_id == next_id:
+            playing_old_id = player_old.playlist_entry_id
+            playing_id = player.playlist_entry_id
+            next_entry = PlaylistEntry.get_next(playing_old_id)
+            next_id = next_entry.id if next_entry else None
 
-                    # if we're playing something new
-                    if playing_id != playing_old_id:
+            # check player status is consistent
+            # playing entry has to be either same as before,
+            # or the value returned by get_next_song
+            if not (playing_old_id == playing_id or playing_id == next_id):
+                message = """Player is not supposed to do that,
+is playing {playing} but should be playing
+{old} or {next}""".format(
+                      playing=playing_id,
+                      old=playing_old_id,
+                      next=next_id)
 
-                        # reset skip flag if present
-                        if player_command.skip:
-                            player_command.skip = False
-                            player_command.save()
+                raise RuntimeError(message)
 
-                        # remove previous entry from playlist if there was any
-                        if playing_old_id:
-                            PlaylistEntry.objects.get(
-                                    id=playing_old_id
-                                    ).delete()
+            # if we're playing something new
+            if playing_id != playing_old_id:
 
-                        if player.playlist_entry_id:
-                            logger.info(
-                                "INFO The player has started {song}".format(
-                                    song=PlaylistEntry.objects.get(
-                                        id=player.playlist_entry_id
-                                        )
-                                    )
+                # reset skip flag if present
+                if player_command.skip:
+                    player_command.skip = False
+                    player_command.save()
+
+                # remove previous entry from playlist if there was any
+                if playing_old_id:
+                    PlaylistEntry.objects.get(
+                            id=playing_old_id
+                            ).delete()
+
+                if player.playlist_entry_id:
+                    logger.info(
+                        "The player has started '{song}'".format(
+                            song=PlaylistEntry.objects.get(
+                                id=player.playlist_entry_id
                                 )
-
-                        else:
-                            logger.info("INFO The player has stopped playing")
-
-                    # save new player
-                    player.save()
-
-                    # Send commands to the player
-                    player_command_serializer = PlayerCommandSerializer(
-                            player_command
                             )
-
-                    return Response(
-                            player_command_serializer.data,
-                            status=status.HTTP_202_ACCEPTED
-                            )
+                        )
 
                 else:
-                        # TODO the player is not doing what it's supposed to do
-                        message = 'ERROR Player is not supposed to do that'
-                        logger.error(message)
-                        raise Exception(message)
+                    logger.info("The player has stopped playing")
 
-            except Exception:
-                logger.exception('EXCEPTION Unexpected error')
-                raise
+            # save new player
+            player.save()
+
+            # Send commands to the player
+            player_command_serializer = PlayerCommandSerializer(
+                    player_command
+                    )
+
+            return Response(
+                    player_command_serializer.data,
+                    status=status.HTTP_202_ACCEPTED
+                    )
 
         # if invalid data from the player
         return Response(
@@ -344,15 +342,13 @@ class PlayerErrorForPlayerView(APIView):
                 PlaylistEntry.objects.get(id=entry_id_next).delete()
 
             else:
-                # TODO error
-                message = 'ERROR Player is not supposed to do that'
-                logger.error(message)
-                raise Exception(message)
+                message = 'The player is not supposed to do that'
+                raise RuntimeError(message)
 
             # log the event
-            logger.warning("WARNING Unable to play {song}, \
-remove from playlist\n\
-Error message: {error_message}".format(
+            logger.warning(
+                """Unable to play '{song}', remove from playlist; error message:
+{error_message}""".format(
                 song=error_song,
                 error_message=player_error.validated_data['error_message']
                 ))
@@ -367,7 +363,7 @@ Error message: {error_message}".format(
             player_errors_pool.save()
 
             return Response(
-                    status=status.HTTP_200_OK
+                    status=status.HTTP_201_CREATED
                     )
 
         return Response(
