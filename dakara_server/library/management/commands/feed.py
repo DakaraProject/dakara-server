@@ -62,6 +62,7 @@ class DatabaseFeeder:
             directory_source="",
             directory=None,
             progress_show=False,
+            output_show=False,
             no_add_on_error=False,
             custom_parser=None,
             metadata_parser='ffprobe',
@@ -76,6 +77,7 @@ class DatabaseFeeder:
                 dry_run (bool): flag for test mode (no save in database).
                 directory_source (str): parent directory of the songs.
                 progress_show (bool): show the progress bar.
+                output_show (bool): show any output.
                 no_add_on_error (bool): when true do not add song when parse
                     fails.
                 custom_parser (module): name of a custom python module used to
@@ -109,6 +111,7 @@ class DatabaseFeeder:
         self.dry_run = dry_run
         self.directory_source = directory_source
         self.progress_show = progress_show
+        self.output_show = output_show
         self.no_add_on_error = no_add_on_error
         self.custom_parser = custom_parser
         self.stdout = stdout
@@ -271,6 +274,9 @@ class DatabaseFeeder:
             Returns:
                 Progress bar object.
         """
+        if not self.output_show:
+            return progressbar.NullBar
+
         if show is None:
             show = self.progress_show
 
@@ -785,6 +791,12 @@ class Command(BaseCommand):
                 )
 
         parser.add_argument(
+                "--quiet",
+                help="Do not display anything on run.",
+                action="store_true"
+                )
+
+        parser.add_argument(
                 "-r",
                 "--dry-run",
                 help="Run script in test mode, don't save anything in database.",
@@ -889,6 +901,7 @@ By default parse error still add the file unparsed.",
                 dry_run=options.get('dry_run'),
                 append_only=options.get('append_only'),
                 progress_show=not options.get('no_progress'),
+                output_show=not options.get('quiet'),
                 custom_parser=custom_parser,
                 no_add_on_error=options.get('no_add_on_error'),
                 metadata_parser=metadata_parser,
