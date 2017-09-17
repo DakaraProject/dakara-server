@@ -56,13 +56,12 @@ urlpatterns = [
     url(r'^api/library/work-types/$', WorkTypeList.as_view(), name='library-worktype-list'),
     url(r'^api/library/songs/(?P<pk>[0-9]+)/$', SongDetailView.as_view(), name='library-song-detail'),
 
-    # Default case for api routes
-    url(r'^api/', page_not_found),
-
 ]
 
 if settings.DEBUG:
     urlpatterns.extend([
+            # Default case for api routes
+            url(r'^api/', page_not_found),
             # Default to main page
             url(r'', 'django.contrib.staticfiles.views.serve', kwargs={
                             'path': 'index.html'})
