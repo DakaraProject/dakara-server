@@ -27,6 +27,12 @@ class BaseCommandWithConfig(BaseCommand):
                 help="Config file."
                 )
 
+        parser.add_argument(
+                "--quiet",
+                help="Do not display anything on run.",
+                action="store_true"
+                )
+
         self.add_arguments_custom(parser)
 
     def add_arguments_custom(self, parser):

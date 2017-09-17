@@ -38,4 +38,5 @@ class Command(BaseCommandWithConfig):
                 tag_entry.color_id = int(tag['color_id'])
                 tag_entry.save()
 
-        self.stdout.write("Tags successfuly created")
+        if not options.get('quiet'):
+            self.stdout.write("Tags successfuly created")

@@ -57,4 +57,5 @@ class Command(BaseCommandWithConfig):
                 setattr(work_type_entry, subkey, work_type[subkey])
                 work_type_entry.save()
 
-        self.stdout.write("Work types successfuly created")
+        if not options.get('quiet'):
+            self.stdout.write("Work types successfuly created")
