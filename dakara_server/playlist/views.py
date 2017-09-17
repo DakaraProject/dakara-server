@@ -287,7 +287,12 @@ class PlayerForPlayerView(APIView):
 
                 else:
                         # TODO the player is not doing what it's supposed to do
-                        message = 'ERROR Player is not supposed to do that'
+                        message = r"""ERROR Player is not supposed to do that,
+                                      is playing {playing} but should be playing
+                                      {old} or {next}""".format(
+                                                  playing=playing_id,
+                                                  old=playing_old_id,
+                                                  next=next_id)
                         logger.error(message)
                         raise Exception(message)
 
@@ -367,7 +372,7 @@ Error message: {error_message}".format(
             player_errors_pool.save()
 
             return Response(
-                    status=status.HTTP_200_OK
+                    status=status.HTTP_201_CREATED
                     )
 
         return Response(
