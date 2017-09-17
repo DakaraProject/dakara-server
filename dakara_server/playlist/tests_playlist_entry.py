@@ -26,11 +26,11 @@ class PlaylistEntryListCreateAPIViewTestCase(BaseAPITestCase):
         self.check_playlist_entry_json(response.data['results'][0], self.pe1)
         self.check_playlist_entry_json(response.data['results'][1], self.pe2)
 
-    def test_get_users_list_forbidden(self):
+    def test_get_playlist_entries_list_forbidden(self):
         """
-        Test to verify users list is not available when not logged in
+        Test to verify playlist entries list is not available when not logged in
         """
-        # Get users list
+        # Get playlist entries list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
