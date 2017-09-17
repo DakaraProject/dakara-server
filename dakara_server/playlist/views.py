@@ -245,7 +245,13 @@ class PlayerForPlayerView(APIView):
             # playing entry has to be either same as before,
             # or the value returned by get_next_song
             if not (playing_old_id == playing_id or playing_id == next_id):
-                message = 'Player is not supposed to do that'
+                message = """Player is not supposed to do that,
+is playing {playing} but should be playing
+{old} or {next}""".format(
+                      playing=playing_id,
+                      old=playing_old_id,
+                      next=next_id)
+
                 raise RuntimeError(message)
 
             # if we're playing something new
@@ -357,7 +363,7 @@ class PlayerErrorForPlayerView(APIView):
             player_errors_pool.save()
 
             return Response(
-                    status=status.HTTP_200_OK
+                    status=status.HTTP_201_CREATED
                     )
 
         return Response(
