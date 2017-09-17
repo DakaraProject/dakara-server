@@ -597,9 +597,10 @@ class TextProgressBar(progressbar.ProgressBar):
 
 
 class TextNullBar(progressbar.NullBar):
-    """ Muted bar wich displays one line of text instead.
+    """ Muted bar wich displays one line of text instead
+        with the amount of actions to process
     """
-    def __init__(self, *args, text=None, **kwargs):
+    def __init__(self, *args, max_value=None, text=None, **kwargs):
         """ Constructor
 
             Args:
@@ -607,9 +608,10 @@ class TextNullBar(progressbar.NullBar):
         """
         super(TextNullBar, self).__init__(*args, **kwargs)
         self.text = text
+        self.max_value = max_value
 
         if self.text:
-            print(self.text)
+            print("{} ({})".format(self.text, self.max_value))
 
 
 class MetadataParser:
