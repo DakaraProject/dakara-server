@@ -16,11 +16,17 @@ import subprocess
 import json
 from pymediainfo import MediaInfo
 from datetime import timedelta
+from difflib import SequenceMatcher
+
 from django.core.management.base import BaseCommand, CommandError
+from django.core.exceptions import MultipleObjectsReturned
+
 from library.models import *
+
 
 # get logger
 logger = logging.getLogger(__file__)
+
 
 # wrap a special stream for warnings
 # the wrapping done by progressbar seems to reassign the ouput and flush it when
@@ -34,17 +40,21 @@ original_stderr = sys.stderr
 wrapped_stderr = progressbar.streams.wrap_stderr()
 sys.stderr = original_stderr
 
+
 # define a less verbose custom warnings formatting
 def custom_formatwarning(message, *args, **kwargs):
     return "Warning: {}\n".format(message)
+
 
 # assign warnings to write in the wrapped stream
 def custom_showwarning(*args, **kwargs):
     wrapped_stderr.write(custom_formatwarning(*args, **kwargs))
 
+
 # patch warnings output
 warnings.formatwarning = custom_formatwarning
 warnings.showwarning = custom_showwarning
+
 
 # get file system encoding
 file_coding = sys.getfilesystemencoding()
@@ -59,8 +69,8 @@ class DatabaseFeeder:
             self,
             listing,
             dry_run=False,
-            directory_source="",
-            directory=None,
+            directory_kara="",
+            directory="",
             progress_show=False,
             no_add_on_error=False,
             custom_parser=None,
@@ -72,9 +82,10 @@ class DatabaseFeeder:
 
             Args
                 listing (list): list of file names.
-                directory (str): directory to store in the database.
                 dry_run (bool): flag for test mode (no save in database).
-                directory_source (str): parent directory of the songs.
+                directory_kara (str): base directory of the karaoke library.
+                directory (str): directory of the songs to parse, relative to
+                    `directory_kara`.
                 progress_show (bool): show the progress bar.
                 no_add_on_error (bool): when true do not add song when parse
                     fails.
@@ -107,62 +118,23 @@ class DatabaseFeeder:
 
         self.listing = listing
         self.dry_run = dry_run
-        self.directory_source = directory_source
+        self.directory_kara = directory_kara
+        self.directory = directory
         self.progress_show = progress_show
         self.no_add_on_error = no_add_on_error
         self.custom_parser = custom_parser
         self.stdout = stdout
         self.stderr = stderr
         self.metadata_parser = DatabaseFeeder.select_metadata_parser(metadata_parser)
-        self.directory = DatabaseFeeder.select_directory(directory,
-                directory_source)
 
-
-    @staticmethod
-    def select_directory(directory, directory_source):
-        """ Select the directory to store in the database
-
-            If no directory is provided, it gives the parent directory of the
-            scanned songs.
-
-            If a directory is provided as a string, it gives this string.
-
-            If a directory is provided as a level (ie: as negative integer), it
-                gives the folder structure up to this level from the directory
-                of the scanned song.
-
-            Args:
-                directory (str): directory given from command.
-                directory_source (str): directory of the songs to scan.
-
-            Returns:
-                (str) directory structure to store in database.
+    def find_removed_songs(self, directory_listing):
+        """ Find all songs in database which file has been removed
         """
-        # if no directory is provided, return the last folder of directory
-        # source, which is the parent directory of scanned files
-        if directory is None:
-            return os.path.basename(directory_source)
+        songs = Song.objects\
+                .filter(directory=self.directory)\
+                .exclude(filename__in=[e.decode(file_coding) for e in directory_listing])
 
-        # try to convert directory in numeric value, and return the string of n
-        # folders ahead from directory source, which is the nth parent directory
-        # of scanned files
-        try:
-            directory_num = int(directory)
-            directory_source_list = directory_source.split(os.path.sep)
-
-            # check if the level is negative
-            if directory_num >= 0:
-                raise ValueError
-
-            # check if the level is too deep
-            if -directory_num > len(directory_source_list):
-                raise ValueError
-
-            return os.path.join(*directory_source_list[directory_num:])
-
-        # otherwize, just return the directory string
-        except ValueError:
-            return directory
+        self.removed_songs = songs
 
     @staticmethod
     def select_metadata_parser(parser_name):
@@ -202,9 +174,10 @@ class DatabaseFeeder:
             Extract files from directory
 
             Args:
-                directory (str): directory to store in the database.
                 dry_run (bool): flag for test mode (no save in database).
-                directory_source (str): parent directory of the songs.
+                directory_kara (str): base directory of the karaoke library.
+                directory (str): directory of the songs to parse, relative to
+                    `directory_kara`.
                 progress_show (bool): show the progress bar.
                 no_add_on_error (bool): when true do not add song when parse
                     fails.
@@ -223,35 +196,39 @@ class DatabaseFeeder:
         # create instance of feeder with no feeder entries yet
         feeder = cls([], *args, **kwargs)
 
-        # manage directory
-        directory_source_encoded = feeder.directory_source.encode(file_coding)
-        if not os.path.isdir(directory_source_encoded):
-            raise CommandError("Directory '{}' does not exist"\
-                    .format(directory_source))
+        # manage directory to scan
+        directory_to_scan = os.path.join(feeder.directory_kara,
+                feeder.directory)
 
-        directory = os.listdir(directory_source_encoded)
+        directory_to_scan_encoded = directory_to_scan.encode(file_coding)
+        if not os.path.isdir(directory_to_scan_encoded):
+            raise CommandError("Directory '{}' does not exist"\
+                    .format(directory_to_scan))
+
+        directory_listing = os.listdir(directory_to_scan_encoded)
+        feeder.find_removed_songs(directory_listing)
 
         # create progress bar
         text = "Collecting files"
         ProgressBar = feeder._get_progress_bar()
-        bar = ProgressBar(max_value=len(directory), text=text)
+        bar = ProgressBar(max_value=len(directory_listing), text=text)
 
         # scan directory
         listing = []
-        for filename_encoded in bar(directory):
+        for filename_encoded in bar(directory_listing):
             filename = filename_encoded.decode(file_coding)
-            if file_is_valid(feeder.directory_source, filename,
-                    directory_source_encoded, filename_encoded):
+            if file_is_valid(directory_to_scan, filename,
+                    directory_to_scan_encoded, filename_encoded):
 
                 entry = DatabaseFeederEntry(
                         filename,
-                        feeder.directory,
-                        metadata_parser=feeder.metadata_parser
+                        feeder=feeder,
+                        metadata_parser=feeder.metadata_parser,
                         )
 
                 # only add entry to feeder list if we are not in append only
                 # mode, otherwise only if the entry is new in the database
-                if entry.created or not append_only:
+                if entry.to_save or not append_only:
                     listing.append(entry)
 
         # put listing in feeder
@@ -318,7 +295,7 @@ class DatabaseFeeder:
 
         # extract metadata
         for entry in bar(self.listing):
-            entry.set_from_metadata(self.directory_source)
+            entry.set_from_metadata()
 
     def save(self):
         """ Save list in database
@@ -356,7 +333,7 @@ class DatabaseFeederEntry:
     """ Class representing a song to upgrade or create in the database
     """
 
-    def __init__(self, filename, directory, metadata_parser=None):
+    def __init__(self, filename, feeder, metadata_parser=None):
         """ Constructor
 
             Detect if a song already exists in the database, then take it or
@@ -369,23 +346,75 @@ class DatabaseFeederEntry:
                 metadata_parser (:obj:`MetadataParser`): metadata parser class.
                     Default is `MetadataParser`.
         """
-        # we do not use get_or_create as it will automatically create a new Song
-        # in the database
-        try:
-            song = Song.objects.get(filename=filename, directory=directory)
-            created = False
-
-        except Song.DoesNotExist:
-            song = Song(filename=filename, directory=directory)
-            created = True
-
         self.filename = filename
-        self.directory = directory
-        self.created = created
-        self.song = song
+        self.directory = feeder.directory
+        self.directory_kara = feeder.directory_kara
+        self.removed_songs = feeder.removed_songs
 
         # if no metadata parser is provided, use the default one
         self.metadata_parser = metadata_parser or MetadataParser
+
+        # get the song
+        self.set_song()
+
+    def set_song(self):
+        """ Set song if it exists or create a new one
+
+            Logic scheme:
+                1. Song exists in database for the same filename and
+                    directory;
+                2. Song exists in database for the same filename and a
+                    different directory;
+                3. Song exists in database for a similar filename in the same
+                    directory.
+        """
+        songs = Song.objects.filter(filename=self.filename, directory=self.directory)
+
+        # several songs should not have the same filename and directory
+        if len(songs) > 1:
+            raise MultipleObjectsReturned
+
+        # song exists with the same filename and directory
+        if len(songs) == 1:
+            self.song = songs.first()
+            self.to_save = False
+
+            return
+
+        songs = Song.objects.filter(filename=self.filename)
+
+        for song in songs:
+            filepath = os.path.join(self.directory_kara,
+                    song.directory, self.filename)
+
+            # song exists with the same filename and a different directory
+            # its previous location should be invalid
+            if not os.path.isfile(filepath.encode(file_coding)):
+                song.directory = self.directory
+                self.song = song
+                self.to_save = True
+
+                return
+
+        removed_song_matched = (None, 0.5)
+        for song in self.removed_songs:
+            ratio = SequenceMatcher(None, self.filename, song.filename).ratio()
+
+            if ratio > removed_song_matched[1]:
+                removed_song_matched = (song, ratio)
+
+        # song exists in database for a similar filename in the same
+        # directory
+        if removed_song_matched[0] is not None:
+            song.filename = self.filename
+            self.song = song
+            self.to_save = True
+
+            return
+
+        # the song doesn't exist at all in the database
+        self.song = Song(filename=self.filename, directory=self.directory)
+        self.to_save = True
 
     def set_from_filename(self, custom_parser):
         """ Set attributes by extracting them from file name
@@ -419,7 +448,7 @@ class DatabaseFeederEntry:
 
                         ) from error
 
-            # fill fields
+                # fill fields
             self.song.title = data.get('title_music')
             self.song.version = data.get('version')
             self.song.detail = data.get('detail')
@@ -433,13 +462,12 @@ class DatabaseFeederEntry:
             self.artists = data.get('artists')
             self.tags = data.get('tags')
 
-    def set_from_metadata(self, directory_source):
+    def set_from_metadata(self):
         """ Set attributes by extracting them from metadata
-
-            Args:
-                directory_source (str): parent directory of the file.
         """
-        file_path = os.path.join(directory_source, self.filename)
+        file_path = os.path.join(self.directory_kara,
+                self.directory, self.filename)
+
         metadata = self.metadata_parser.parse(file_path)
         self.song.duration = metadata.duration
 
@@ -462,15 +490,15 @@ class DatabaseFeederEntry:
                 if k not in ('_state')}
 
         fields.update({k: v for k, v in self.__dict__.items() \
-                if k not in ('filename', 'directory', 'song', 'metadata_parser')})
+                if k not in ('filename', 'directory', 'directory_kara',
+                    'song', 'metadata_parser')})
 
         for key, value in fields.items():
             stdout.write("{key:{length}s} {value}".format(
                 key=key,
                 value=repr(value),
                 length=length
-                )
-            )
+                ))
 
     def save(self):
         """ Save song in database.
@@ -531,7 +559,7 @@ class DatabaseFeederEntryError(Exception):
     """
 
 
-def file_is_valid(directory_source, filename, directory_source_encoded, filename_encoded):
+def file_is_valid(directory, filename, directory_encoded, filename_encoded):
     """ Check the file validity
 
         A valid file is:
@@ -540,9 +568,9 @@ def file_is_valid(directory_source, filename, directory_source_encoded, filename
             Not a hidden file.
 
         Args:
-            directory_source (str): path to tthe directory of the file.
+            directory (str): path to tthe directory of the file.
             filename (str): name of the file.
-            directory_source_encoded (byte): path to the directory of the file.
+            directory_encoded (byte): path to the directory of the file.
             filename_encoded (byte): name of the file.
 
         Returns:
@@ -551,7 +579,7 @@ def file_is_valid(directory_source, filename, directory_source_encoded, filename
     return all((
         # valid file
         os.path.isfile(os.path.join(
-            directory_source_encoded,
+            directory_encoded,
             filename_encoded
             )),
 
@@ -752,7 +780,7 @@ class FFProbeMetadataParser(MetadataParser):
                     self.metadata['format']['duration']
                     ))
 
-        # try in the streams
+                # try in the streams
         if 'streams' in self.metadata:
             # commonly stream 0 is the video
             for s in self.metadata['streams']:
@@ -772,8 +800,8 @@ class Command(BaseCommand):
         """ Extend arguments for the command
         """
         parser.add_argument(
-                "directory-source",
-                help="Path of the directory to scan."
+                "directory-kara",
+                help="Base directory of the karaoke library."
                 )
 
         parser.add_argument(
@@ -792,34 +820,23 @@ class Command(BaseCommand):
         parser.add_argument(
                 "-D",
                 "--directory",
-                help="Directory stored in database for the files scanned. By \
-default, it will be the name of the scanned directory. If indicated as a \
-negative number, it will be the directory structure up to this number ahead \
-from the scanned directory. Example: for -2 and a/b/c, will give b/c. \
-Overriden by the 'no-directory' option.",
-                default=None
-                )
-
-        parser.add_argument(
-                "--no-directory",
-                help="Do not set directory for the files scanned. \
-This overrides the 'directory' option.",
-                action="store_true"
+                help="Directory to scan, relative to 'directory-kara'.",
+                default=""
                 )
 
         parser.add_argument(
                 "--parser",
                 help="Name of a custom python module used to extract data from \
-file name; see internal doc for what is expected for this module.",
-                default=None
-                )
+                        file name; see internal doc for what is expected for this module.",
+                        default=None
+                        )
 
         parser.add_argument(
                 "--metadata-parser",
                 help="Which program to extract metadata from: \
-none (no parser), mediainfo or ffprobe (default).",
-                default='ffprobe'
-                )
+                        none (no parser), mediainfo or ffprobe (default).",
+                        default='ffprobe'
+                        )
 
         parser.add_argument(
                 "--append-only",
@@ -830,9 +847,9 @@ none (no parser), mediainfo or ffprobe (default).",
         parser.add_argument(
                 "--no-add-on-error",
                 help="Do not add file when parse failed. \
-By default parse error still add the file unparsed.",
-                action="store_true"
-                )
+                        By default parse error still add the file unparsed.",
+                        action="store_true"
+                        )
 
         parser.add_argument(
                 "--debug-sql",
@@ -845,7 +862,11 @@ By default parse error still add the file unparsed.",
         """
         # directory-source
         # Normalize path to remove trailing slash
-        directory_source = os.path.normpath(options['directory-source'])
+        directory_kara = os.path.normpath(options['directory-kara'])
+        directory = options['directory']
+
+        if directory:
+            directory = os.path.normpath(directory)
 
         # debug SQL
         if options.get('debug_sql'):
@@ -865,16 +886,6 @@ By default parse error still add the file unparsed.",
             sys.path.append(parser_directory)
             custom_parser = importlib.import_module(parser_name)
 
-        # directory
-        if options.get('no_directory'):
-            directory = ''
-
-        else:
-            directory = options.get('directory')
-            if directory:
-                # clean provided directory string
-                directory = os.path.normpath(directory)
-
         # metadata parser
         metadata_parser = options.get('metadata_parser')
         if metadata_parser == 'none':
@@ -882,7 +893,7 @@ By default parse error still add the file unparsed.",
 
         # create feeder object
         database_feeder = DatabaseFeeder.from_directory(
-                directory_source=directory_source,
+                directory_kara=directory_kara,
                 directory=directory,
                 dry_run=options.get('dry_run'),
                 append_only=options.get('append_only'),
