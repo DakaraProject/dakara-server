@@ -1,4 +1,5 @@
-import tempfile, os, shutil
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+import os
 from django.core.management import call_command
 from django.test import TestCase
 from .models import WorkType, SongTag, Song, Artist
@@ -20,22 +21,22 @@ class QueryLanguageParserTestCase(TestCase):
     color_id: 5"""
 
         # Create temporary config file
-        config_file = tempfile.NamedTemporaryFile(mode='wt')
-        config_file.write(file_content)
-        config_file.flush()
+        with NamedTemporaryFile(mode='wt') as config_file:
+            config_file.write(file_content)
+            config_file.flush()
 
-        # Call command
-        args = [config_file.name]
-        opts = {}
-        call_command('createtags', *args, **opts)
+            # Call command
+            args = [config_file.name]
+            opts = {}
+            call_command('createtags', *args, **opts)
 
-        # Post-Assertions
-        tags = SongTag.objects.order_by('name')
-        self.assertEqual(len(tags), 2)
-        self.assertEqual(tags[0].name, "TAGNAME1")
-        self.assertEqual(tags[0].color_id, 0)
-        self.assertEqual(tags[1].name, "TAGNAME2")
-        self.assertEqual(tags[1].color_id, 5)
+            # Post-Assertions
+            tags = SongTag.objects.order_by('name')
+            self.assertEqual(len(tags), 2)
+            self.assertEqual(tags[0].name, "TAGNAME1")
+            self.assertEqual(tags[0].color_id, 0)
+            self.assertEqual(tags[1].name, "TAGNAME2")
+            self.assertEqual(tags[1].color_id, 5)
 
     def test_createworktypes_command(self):
         """
@@ -54,24 +55,24 @@ class QueryLanguageParserTestCase(TestCase):
     icon_name: cat"""
 
         # Create temporary config file
-        config_file = tempfile.NamedTemporaryFile(mode='wt')
-        config_file.write(file_content)
-        config_file.flush()
+        with NamedTemporaryFile(mode='wt') as config_file:
+            config_file.write(file_content)
+            config_file.flush()
 
-        # Call command
-        args = [config_file.name]
-        opts = {}
-        call_command('createworktypes', *args, **opts)
+            # Call command
+            args = [config_file.name]
+            opts = {}
+            call_command('createworktypes', *args, **opts)
 
-        # Post-Assertions
-        work_types = WorkType.objects.order_by('query_name')
-        self.assertEqual(len(work_types), 2)
-        self.assertEqual(work_types[0].query_name, "work-type-one")
-        self.assertEqual(work_types[0].name, "Work type one")
-        self.assertEqual(work_types[0].icon_name, "elephant")
-        self.assertEqual(work_types[1].query_name, "work-type-two")
-        self.assertEqual(work_types[1].name, "Work type two")
-        self.assertEqual(work_types[1].icon_name, "cat")
+            # Post-Assertions
+            work_types = WorkType.objects.order_by('query_name')
+            self.assertEqual(len(work_types), 2)
+            self.assertEqual(work_types[0].query_name, "work-type-one")
+            self.assertEqual(work_types[0].name, "Work type one")
+            self.assertEqual(work_types[0].icon_name, "elephant")
+            self.assertEqual(work_types[1].query_name, "work-type-two")
+            self.assertEqual(work_types[1].name, "Work type two")
+            self.assertEqual(work_types[1].icon_name, "cat")
 
     def test_feed_command(self):
         """
@@ -81,8 +82,7 @@ class QueryLanguageParserTestCase(TestCase):
         songs = Song.objects.order_by('title')
         self.assertEqual(len(songs), 0)
 
-        dirpath = tempfile.mkdtemp()
-        try:
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
             dirname = os.path.basename(dirpath)
 
             first_file_filename = "The first file.mp4"
@@ -107,9 +107,6 @@ class QueryLanguageParserTestCase(TestCase):
             self.assertEqual(songs[1].directory, dirname)
             self.assertEqual(songs[1].title, os.path.splitext(second_file_filename)[0])
 
-        finally:
-            shutil.rmtree(dirpath)
-
     def test_feed_command_with_trailing_slash(self):
         """
         Test feed command when path contains a trailling slash
@@ -120,8 +117,7 @@ class QueryLanguageParserTestCase(TestCase):
         songs = Song.objects.order_by('title')
         self.assertEqual(len(songs), 0)
 
-        dirpath = tempfile.mkdtemp()
-        try:
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
             dirname = os.path.basename(dirpath)
 
             first_file_filename = "The first file.mp4"
@@ -147,9 +143,6 @@ class QueryLanguageParserTestCase(TestCase):
             self.assertEqual(songs[1].directory, dirname)
             self.assertEqual(songs[1].title, os.path.splitext(second_file_filename)[0])
 
-        finally:
-            shutil.rmtree(dirpath)
-
     def test_feed_command_with_parser(self):
         """
         Test feed command with parser
@@ -160,8 +153,7 @@ class QueryLanguageParserTestCase(TestCase):
         artists = Artist.objects.order_by('name')
         self.assertEqual(len(artists), 0)
 
-        dirpath = tempfile.mkdtemp()
-        try:
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
             dirname = os.path.basename(dirpath)
 
             first_file_filename = "The first song name - Artist name.mp4"
@@ -195,6 +187,3 @@ class QueryLanguageParserTestCase(TestCase):
             self.assertEqual(songs[1].title, "The second song name")
             self.assertEqual(len(songs[1].artists.all()), 1)
             self.assertEqual(songs[1].artists.all()[0].id, artist.id)
-
-        finally:
-            shutil.rmtree(dirpath)
