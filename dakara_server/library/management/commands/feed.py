@@ -72,7 +72,6 @@ class DatabaseFeeder:
             directory_kara="",
             directory="",
             progress_show=False,
-            prune=False,
             no_add_on_error=False,
             custom_parser=None,
             metadata_parser='ffprobe',
@@ -88,7 +87,6 @@ class DatabaseFeeder:
                 directory (str): directory of the songs to parse, relative to
                     `directory_kara`.
                 progress_show (bool): show the progress bar.
-                prune (bool): remove databases entries not on disk.
                 no_add_on_error (bool): when true do not add song when parse
                     fails.
                 custom_parser (module): name of a custom python module used to
@@ -123,7 +121,6 @@ class DatabaseFeeder:
         self.directory_kara = directory_kara
         self.directory = directory
         self.progress_show = progress_show
-        self.prune = prune
         self.no_add_on_error = no_add_on_error
         self.custom_parser = custom_parser
         self.stdout = stdout
@@ -175,6 +172,7 @@ class DatabaseFeeder:
             cls,
             *args,
             append_only=False,
+            prune=False,
             **kwargs
             ):
         """ Overloaded constructor
@@ -186,7 +184,6 @@ class DatabaseFeeder:
                 directory (str): directory of the songs to parse, relative to
                     `directory_kara`.
                 progress_show (bool): show the progress bar.
-                prune (bool): remove databases entries not on disk.
                 no_add_on_error (bool): when true do not add song when parse
                     fails.
                 custom_parser (module): name of a custom python module used to
@@ -197,6 +194,7 @@ class DatabaseFeeder:
                 stderr (file descriptor): standard error.
                 append_only (bool): create only new songs, do not update
                     existing ones.
+                prune (bool): remove databases entries not on disk.
 
             Returns:
                 (:obj:`DatabaseFeeder`) feeder object.
@@ -243,7 +241,7 @@ class DatabaseFeeder:
         feeder.listing = listing
 
         # Remove database entries whose file is no more
-        if feeder.prune:
+        if prune:
             feeder.prune_removed_songs()
 
         return feeder
@@ -916,8 +914,8 @@ class Command(BaseCommand):
                 directory=directory,
                 dry_run=options.get('dry_run'),
                 append_only=options.get('append_only'),
-                progress_show=not options.get('no_progress'),
                 prune=options.get('prune'),
+                progress_show=not options.get('no_progress'),
                 custom_parser=custom_parser,
                 no_add_on_error=options.get('no_add_on_error'),
                 metadata_parser=metadata_parser,
