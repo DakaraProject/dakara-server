@@ -431,3 +431,93 @@ class QueryLanguageParserTestCase(TestCase):
             # check third song
             self.assertEqual(third_song.filename, third_file_filename)
             self.assertEqual(third_song.directory, second_directory)
+
+    def test_feed_command_rename_and_new(self):
+        """
+        Test feed command when a file has been renamed
+        and a new file simillar name is added
+        """
+        # Pre-Assertions
+        songs = Song.objects.order_by('title')
+        self.assertEqual(len(songs), 0)
+
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
+            # create the first file
+            first_file_filename = "The first file.mp4"
+            first_file_filepath = os.path.join(dirpath, first_file_filename)
+
+            with open(first_file_filepath, 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            # create the second file
+            second_file_filename = "The second file.mp4"
+            second_file_filepath = os.path.join(dirpath, second_file_filename)
+            with open(second_file_filepath, 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            # call command first to populate
+            args = [dirpath]
+            opts = {'no_progress': True}
+            call_command('feed', *args, **opts)
+
+            # 2 files should exist
+            songs = Song.objects.order_by('title')
+            self.assertEqual(len(songs), 2)
+            first_song = songs[0]
+            second_song = songs[1]
+
+            # check the databases entries are conform with the files
+            self.assertEqual(first_song.filename, first_file_filename)
+            self.assertEqual(first_song.directory, '')
+            self.assertEqual(first_song.title, os.path.splitext(first_file_filename)[0])
+            self.assertEqual(second_song.filename, second_file_filename)
+            self.assertEqual(second_song.directory, '')
+            self.assertEqual(second_song.title, os.path.splitext(second_file_filename)[0])
+
+            # suddenly, rename the first file
+            first_file_filename_new = "The first new file.mp4"
+            first_file_filepath_new = os.path.join(dirpath, first_file_filename_new)
+            os.rename(first_file_filepath, first_file_filepath_new)
+
+            # create new file with similar name
+            third_file_filename = "The zew first file.mp4"
+            third_file_filepath = os.path.join(dirpath, third_file_filename)
+            with open(third_file_filepath, 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+
+            # call command again to populate
+            args = [dirpath]
+            opts = {'no_progress': True}
+            call_command('feed', *args, **opts)
+
+            # there should be 3 entries in the database
+            # since the renamed filed should be matched with its old name
+            # and the new file added
+            songs = Song.objects.order_by('title')
+            self.assertEqual(len(songs), 3)
+            first_song_new = songs[0]
+            second_song_new = songs[1]
+            third_song_new = songs[2]
+
+            # check new first file
+            self.assertEqual(first_song_new.filename, first_file_filename_new)
+            self.assertEqual(first_song_new.directory, '')
+            self.assertEqual(first_song_new.title,
+                    os.path.splitext(first_file_filename_new)[0])
+
+            # check second file which has not changed
+            self.assertEqual(second_song_new.filename, second_file_filename)
+            self.assertEqual(second_song_new.directory, '')
+            self.assertEqual(second_song_new.title,
+                    os.path.splitext(second_file_filename)[0])
+
+            # check third file which is new
+            self.assertEqual(third_song_new.filename, third_file_filename)
+            self.assertEqual(third_song_new.directory, '')
+            self.assertEqual(third_song_new.title,
+                    os.path.splitext(third_file_filename)[0])
+
+            # Check that old first file is still in database with the same id
+            # and is now new first or third file
+            self.assertTrue(first_song.id == first_song_new.id or first_song.id == third_song_new.id )

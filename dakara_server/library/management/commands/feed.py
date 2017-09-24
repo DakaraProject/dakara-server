@@ -134,7 +134,7 @@ class DatabaseFeeder:
                 .filter(directory=self.directory)\
                 .exclude(filename__in=[e.decode(file_coding) for e in directory_listing])
 
-        self.removed_songs = songs
+        self.removed_songs = list(songs)
 
     @staticmethod
     def select_metadata_parser(parser_name):
@@ -396,12 +396,12 @@ class DatabaseFeederEntry:
 
                 return
 
-        removed_song_matched = (None, 0.5)
-        for song in self.removed_songs:
+        removed_song_matched = (None, 0.5, 0)
+        for i, song in enumerate(self.removed_songs):
             ratio = SequenceMatcher(None, self.filename, song.filename).ratio()
 
             if ratio > removed_song_matched[1]:
-                removed_song_matched = (song, ratio)
+                removed_song_matched = (song, ratio, i)
 
         # song exists in database for a similar filename in the same
         # directory
@@ -410,6 +410,7 @@ class DatabaseFeederEntry:
             self.song = song
             self.to_save = True
 
+            self.removed_songs.pop(removed_song_matched[2])
             return
 
         # the song doesn't exist at all in the database
