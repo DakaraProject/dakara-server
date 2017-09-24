@@ -521,3 +521,45 @@ class QueryLanguageParserTestCase(TestCase):
             # Check that old first file is still in database with the same id
             # and is now new first or third file
             self.assertTrue(first_song.id == first_song_new.id or first_song.id == third_song_new.id )
+
+    def test_feed_command_prune(self):
+        """
+        Test feed command with prune argument
+        """
+        # Pre-Assertions
+        songs = Song.objects.order_by('title')
+        self.assertEqual(len(songs), 0)
+
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
+            first_file_filename = "The first file.mp4"
+            first_file_path = os.path.join(dirpath, first_file_filename)
+            with open(first_file_path, 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            second_file_filename = "The second file.mp4"
+            second_file_path = os.path.join(dirpath, second_file_filename)
+            with open(second_file_path, 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            # Call command
+            args = [dirpath]
+            opts = {'no_progress': True}
+            call_command('feed', *args, **opts)
+
+            songs = Song.objects.order_by('title')
+            self.assertEqual(len(songs), 2)
+            self.assertEqual(songs[0].filename, first_file_filename)
+            self.assertEqual(songs[1].filename, second_file_filename)
+
+            # Suddenly a file disappears
+            os.remove(first_file_path)
+
+            # Call command again with prune option
+            args = [dirpath]
+            opts = {'no_progress': True, 'prune': True}
+            call_command('feed', *args, **opts)
+
+            # Only second file in database
+            songs = Song.objects.order_by('title')
+            self.assertEqual(len(songs), 1)
+            self.assertEqual(songs[0].filename, second_file_filename)

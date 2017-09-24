@@ -72,6 +72,7 @@ class DatabaseFeeder:
             directory_kara="",
             directory="",
             progress_show=False,
+            prune=False,
             no_add_on_error=False,
             custom_parser=None,
             metadata_parser='ffprobe',
@@ -87,6 +88,7 @@ class DatabaseFeeder:
                 directory (str): directory of the songs to parse, relative to
                     `directory_kara`.
                 progress_show (bool): show the progress bar.
+                prune (bool): remove databases entries not on disk.
                 no_add_on_error (bool): when true do not add song when parse
                     fails.
                 custom_parser (module): name of a custom python module used to
@@ -121,6 +123,7 @@ class DatabaseFeeder:
         self.directory_kara = directory_kara
         self.directory = directory
         self.progress_show = progress_show
+        self.prune = prune
         self.no_add_on_error = no_add_on_error
         self.custom_parser = custom_parser
         self.stdout = stdout
@@ -135,6 +138,10 @@ class DatabaseFeeder:
                 .exclude(filename__in=[e.decode(file_coding) for e in directory_listing])
 
         self.removed_songs = list(songs)
+
+    def prune_removed_songs(self):
+        for song in self.removed_songs:
+            song.delete()
 
     @staticmethod
     def select_metadata_parser(parser_name):
@@ -179,6 +186,7 @@ class DatabaseFeeder:
                 directory (str): directory of the songs to parse, relative to
                     `directory_kara`.
                 progress_show (bool): show the progress bar.
+                prune (bool): remove databases entries not on disk.
                 no_add_on_error (bool): when true do not add song when parse
                     fails.
                 custom_parser (module): name of a custom python module used to
@@ -233,6 +241,10 @@ class DatabaseFeeder:
 
         # put listing in feeder
         feeder.listing = listing
+
+        # Remove database entries whose file is no more
+        if feeder.prune:
+            feeder.prune_removed_songs()
 
         return feeder
 
@@ -846,6 +858,12 @@ class Command(BaseCommand):
                 )
 
         parser.add_argument(
+                "--prune",
+                help="Remove database entries for files no longer on disk.",
+                action="store_true"
+                )
+
+        parser.add_argument(
                 "--no-add-on-error",
                 help="Do not add file when parse failed. \
                         By default parse error still add the file unparsed.",
@@ -899,6 +917,7 @@ class Command(BaseCommand):
                 dry_run=options.get('dry_run'),
                 append_only=options.get('append_only'),
                 progress_show=not options.get('no_progress'),
+                prune=options.get('prune'),
                 custom_parser=custom_parser,
                 no_add_on_error=options.get('no_add_on_error'),
                 metadata_parser=metadata_parser,
