@@ -137,6 +137,8 @@ class DatabaseFeeder:
         self.removed_songs = list(songs)
 
     def prune_removed_songs(self):
+        """ Delete from database songs in removed_songs list
+        """
         for song in self.removed_songs:
             song.delete()
 
@@ -459,7 +461,7 @@ class DatabaseFeederEntry:
 
                         ) from error
 
-                # fill fields
+            # fill fields
             self.song.title = data.get('title_music')
             self.song.version = data.get('version')
             self.song.detail = data.get('detail')
@@ -791,7 +793,7 @@ class FFProbeMetadataParser(MetadataParser):
                     self.metadata['format']['duration']
                     ))
 
-                # try in the streams
+        # try in the streams
         if 'streams' in self.metadata:
             # commonly stream 0 is the video
             for s in self.metadata['streams']:
@@ -838,16 +840,16 @@ class Command(BaseCommand):
         parser.add_argument(
                 "--parser",
                 help="Name of a custom python module used to extract data from \
-                        file name; see internal doc for what is expected for this module.",
-                        default=None
-                        )
+                file name; see internal doc for what is expected for this module.",
+                default=None
+                )
 
         parser.add_argument(
                 "--metadata-parser",
                 help="Which program to extract metadata from: \
-                        none (no parser), mediainfo or ffprobe (default).",
-                        default='ffprobe'
-                        )
+                none (no parser), mediainfo or ffprobe (default).",
+                default='ffprobe'
+                )
 
         parser.add_argument(
                 "--append-only",
@@ -864,9 +866,9 @@ class Command(BaseCommand):
         parser.add_argument(
                 "--no-add-on-error",
                 help="Do not add file when parse failed. \
-                        By default parse error still add the file unparsed.",
-                        action="store_true"
-                        )
+                By default parse error still add the file unparsed.",
+                action="store_true"
+                )
 
         parser.add_argument(
                 "--debug-sql",
