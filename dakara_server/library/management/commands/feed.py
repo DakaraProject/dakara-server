@@ -396,11 +396,11 @@ class DatabaseFeederEntry:
 
                 return
 
-        removed_song_matched = (None, 0.5, 0)
+        removed_song_matched = (None, 0, 0)
         for i, song in enumerate(self.removed_songs):
-            ratio = SequenceMatcher(None, self.filename, song.filename).ratio()
+            ratio = is_similar(self.filename, song.filename)
 
-            if ratio > removed_song_matched[1]:
+            if ratio and ratio > removed_song_matched[1]:
                 removed_song_matched = (song, ratio, i)
 
         # song exists in database for a similar filename in the same
@@ -909,3 +909,19 @@ class Command(BaseCommand):
         database_feeder.set_from_filename()
         database_feeder.set_from_metadata()
         database_feeder.save()
+
+
+def is_similar(string1, string2):
+    """ Detect if string1 and strin2 are similar
+
+        Returns:
+            None if strings are not similar
+            A float between 0 and 1 representing similarity, bigger is more similar.
+    """
+    THRESHOLD = 0.8
+    ratio = SequenceMatcher(None, string1, string2).ratio()
+
+    if ratio >= THRESHOLD:
+        return ratio
+
+    return None
