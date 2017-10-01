@@ -319,12 +319,14 @@ class DatabaseFeeder:
             entry.set_from_metadata()
 
     def set_from_subtitle(self):
+        """ Set song lyrics attribute by extracting it from subtitle if any
+        """
         # create progress bar
-        text = "Extracting data from subtitle file"
+        text = "Extracting lyrics from subtitle file"
         ProgressBar = self._get_progress_bar()
         bar = ProgressBar(max_value=len(self.listing), text=text)
 
-        # extract metadata
+        # extract lyrics
         for entry in bar(self.listing):
             entry.set_from_subtitle()
 
@@ -506,22 +508,27 @@ class DatabaseFeederEntry:
     def set_from_subtitle(self):
         """ Set song lyrics attribute by extracting it from subtitle if any
         """
+        # obtain path to extensionless file
         file_name, _ = os.path.splitext(self.filename)
         file_path_base = os.path.join(self.directory_kara,
                 self.directory, file_name)
 
+        # add extension
         file_path = file_path_base + '.ass'
 
         if os.path.isfile(file_path):
+            # try to parse the subtitle file and extract lyrics
             try:
                 parser = ASSParser(file_path)
                 self.song.lyrics = parser.get_lyrics()
 
             except Exception as error:
-                warnings.warn("Invalid subtitle file '{filename}': {error}".format(
-                    filename=os.path.basename(file_path),
-                    error=error
-                    ))
+                warnings.warn(
+                    "Invalid subtitle file '{filename}': {error}".format(
+                        filename=os.path.basename(file_path),
+                        error=error
+                        )
+                    )
 
 
     def show(self, stdout=sys.stdout):
@@ -847,6 +854,14 @@ class FFProbeMetadataParser(MetadataParser):
 
 
 class ASSParser:
+    """ ASS file parser
+
+        This parser extracts cleaned lyrics from the provided subtitle file.
+
+        It uses the `ass` package to parse the ASS file first. Due to the
+        inactivity of the package maintainer, there is an unfixed bug that
+        prevent from extracting cleaned text lines, so we've done this here.
+    """
     tags_regex = re.compile(r"\{.+?\}")
 
     def __init__(self, filepath):
@@ -854,13 +869,29 @@ class ASSParser:
             self.content = ass.parse(file)
 
     def get_lyrics(self):
+        """ Gives the cleaned text of the Event block
+
+            The text is cleaned in two ways:
+                - All tags are removed;
+                - Consecutive lines with the same content, the same start and
+                      end time are merged. This prevents from getting "extra
+                      effect lines" in the file.
+
+            Returns:
+                (str) Cleaned lyrics.
+        """
         lyrics = []
 
+        # previous line handles
         event_previous = None
         line_previous = ""
+
+        # loop over each dialog line
         for event in self.content.events:
+            # clean the line
             line = self.tags_regex.sub("", event.text)
 
+            # append the cleaned line conditionnaly
             if not (event_previous and
                     line_previous == line and
                     event_previous.fields['Start'] == event.fields['Start'] and
@@ -868,6 +899,7 @@ class ASSParser:
 
                 lyrics.append(line)
 
+            # update previous line handles
             event_previous = event
             line_previous = line
 

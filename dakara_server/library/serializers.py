@@ -156,6 +156,9 @@ class SongSerializer(serializers.ModelSerializer):
                 )
 
     def get_lyrics(self, song):
+        """ Give at most `MAX_LINES` lines of lyrics and tell if more lines
+            remain.
+        """
         MAX_LINES = 5
 
         if not song.lyrics:
