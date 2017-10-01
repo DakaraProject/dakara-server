@@ -135,11 +135,12 @@ class DatabaseFeeder:
     def find_removed_songs(self, directory_listing):
         """ Find all songs in database which file has been removed
         """
-        songs = Song.objects\
-                .filter(directory=self.directory)\
-                .exclude(filename__in=[e.decode(file_coding) for e in directory_listing])
+        removed_songs = []
+        for song in Song.objects.filter(directory=self.directory):
+            if song.filename not in directory_listing:
+                removed_songs.append(song)
 
-        self.removed_songs = list(songs)
+        self.removed_songs = removed_songs
 
     def prune_removed_songs(self):
         """ Delete from database songs in removed_songs list
