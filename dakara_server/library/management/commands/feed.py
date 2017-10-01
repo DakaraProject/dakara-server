@@ -518,7 +518,10 @@ class DatabaseFeederEntry:
                 self.song.lyrics = parser.get_lyrics()
 
             except Exception as error:
-                warnings.warn("Invalid ASS file: {}".format(error))
+                warnings.warn("Invalid subtitle file '{filename}': {error}".format(
+                    filename=os.path.basename(file_path),
+                    error=error
+                    ))
 
 
     def show(self, stdout=sys.stdout):
@@ -852,9 +855,21 @@ class ASSParser:
 
     def get_lyrics(self):
         lyrics = []
+
+        event_previous = None
+        line_previous = ""
         for event in self.content.events:
             line = self.tags_regex.sub("", event.text)
-            lyrics.append(line)
+
+            if not (event_previous and
+                    line_previous == line and
+                    event_previous.fields['Start'] == event.fields['Start'] and
+                    event_previous.fields['End'] == event.fields['End']):
+
+                lyrics.append(line)
+
+            event_previous = event
+            line_previous = line
 
         return '\n'.join(lyrics)
 

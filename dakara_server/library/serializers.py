@@ -156,16 +156,18 @@ class SongSerializer(serializers.ModelSerializer):
                 )
 
     def get_lyrics(self, song):
+        MAX_LINES = 5
+
         if not song.lyrics:
             return None
 
         lyrics_list = song.lyrics.splitlines()
 
-        if len(lyrics_list) <= 5:
+        if len(lyrics_list) <= MAX_LINES:
             return {'text': song.lyrics}
 
         return {
-                'text': '\n'.join(lyrics_list[:5]),
+                'text': '\n'.join(lyrics_list[:MAX_LINES]),
                 'truncated': True
                 }
 
