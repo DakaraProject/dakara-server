@@ -134,6 +134,7 @@ class SongSerializer(serializers.ModelSerializer):
     artists = ArtistNoCountSerializer(many=True, read_only=True)
     tags = SongTagSerializer(many=True, read_only=True)
     works = SongWorkLinkSerializer(many=True, read_only=True, source='songworklink_set')
+    lyrics = serializers.SerializerMethodField()
 
     class Meta:
         model = Song
@@ -149,9 +150,24 @@ class SongSerializer(serializers.ModelSerializer):
                 'tags',
                 'artists',
                 'works',
+                'lyrics',
                 'date_created',
                 'date_updated',
                 )
+
+    def get_lyrics(self, song):
+        if not song.lyrics:
+            return None
+
+        lyrics_list = song.lyrics.splitlines()
+
+        if len(lyrics_list) <= 5:
+            return {'text': song.lyrics}
+
+        return {
+                'text': '\n'.join(lyrics_list[:5]),
+                'truncated': True
+                }
 
 
 class SongForPlayerSerializer(serializers.ModelSerializer):

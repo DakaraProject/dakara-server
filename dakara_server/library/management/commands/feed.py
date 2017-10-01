@@ -7,6 +7,7 @@
 
 import os
 import sys
+import re
 import logging
 import importlib
 import progressbar
@@ -18,6 +19,7 @@ from pymediainfo import MediaInfo
 from datetime import timedelta
 from difflib import SequenceMatcher
 
+import ass
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import MultipleObjectsReturned
 
@@ -315,6 +317,16 @@ class DatabaseFeeder:
         for entry in bar(self.listing):
             entry.set_from_metadata()
 
+    def set_from_subtitle(self):
+        # create progress bar
+        text = "Extracting data from subtitle file"
+        ProgressBar = self._get_progress_bar()
+        bar = ProgressBar(max_value=len(self.listing), text=text)
+
+        # extract metadata
+        for entry in bar(self.listing):
+            entry.set_from_subtitle()
+
     def save(self):
         """ Save list in database
 
@@ -489,6 +501,24 @@ class DatabaseFeederEntry:
 
         metadata = self.metadata_parser.parse(file_path)
         self.song.duration = metadata.duration
+
+    def set_from_subtitle(self):
+        """ Set song lyrics attribute by extracting it from subtitle if any
+        """
+        file_name, _ = os.path.splitext(self.filename)
+        file_path_base = os.path.join(self.directory_kara,
+                self.directory, file_name)
+
+        file_path = file_path_base + '.ass'
+
+        if os.path.isfile(file_path):
+            try:
+                parser = ASSParser(file_path)
+                self.song.lyrics = parser.get_lyrics()
+
+            except Exception as error:
+                warnings.warn("Invalid ASS file: {}".format(error))
+
 
     def show(self, stdout=sys.stdout):
         """ Show the song content
@@ -812,6 +842,22 @@ class FFProbeMetadataParser(MetadataParser):
         return timedelta(0)
 
 
+class ASSParser:
+    tags_regex = re.compile(r"\{.+?\}")
+
+    def __init__(self, filepath):
+        with open(filepath) as file:
+            self.content = ass.parse(file)
+
+    def get_lyrics(self):
+        lyrics = []
+        for event in self.content.events:
+            line = self.tags_regex.sub("", event.text)
+            lyrics.append(line)
+
+        return '\n'.join(lyrics)
+
+
 class Command(BaseCommand):
     """ Command available for `manage.py` for feeding the library database
     """
@@ -942,6 +988,7 @@ class Command(BaseCommand):
 
         database_feeder.set_from_filename()
         database_feeder.set_from_metadata()
+        database_feeder.set_from_subtitle()
         database_feeder.save()
 
 

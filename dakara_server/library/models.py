@@ -16,6 +16,7 @@ class Song(models.Model):
     tags = models.ManyToManyField('SongTag')
     artists = models.ManyToManyField('Artist')
     works = models.ManyToManyField('Work', through='SongWorkLink')
+    lyrics = models.TextField(blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 
