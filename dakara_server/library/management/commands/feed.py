@@ -19,7 +19,7 @@ from pymediainfo import MediaInfo
 from datetime import timedelta
 from difflib import SequenceMatcher
 
-import ass
+import pysubs2
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import MultipleObjectsReturned
 
@@ -858,15 +858,11 @@ class ASSParser:
 
         This parser extracts cleaned lyrics from the provided subtitle file.
 
-        It uses the `ass` package to parse the ASS file first. Due to the
-        inactivity of the package maintainer, there is an unfixed bug that
-        prevent from extracting cleaned text lines, so we've done this here.
+        It uses the `pysubs2` package to parse the ASS file.
     """
-    tags_regex = re.compile(r"\{.+?\}")
 
     def __init__(self, filepath):
-        with open(filepath) as file:
-            self.content = ass.parse(file)
+        self.content = pysubs2.load(filepath)
 
     def get_lyrics(self):
         """ Gives the cleaned text of the Event block
@@ -884,24 +880,23 @@ class ASSParser:
 
         # previous line handles
         event_previous = None
-        line_previous = ""
 
         # loop over each dialog line
-        for event in self.content.events:
+        for event in self.content:
             # clean the line
-            line = self.tags_regex.sub("", event.text)
+            line = event.plaintext
 
             # append the cleaned line conditionnaly
+            # don't append if the line is a duplicate of previous line
             if not (event_previous and
-                    line_previous == line and
-                    event_previous.fields['Start'] == event.fields['Start'] and
-                    event_previous.fields['End'] == event.fields['End']):
+                    event_previous.plaintext == line and
+                    event_previous.start == event.start and
+                    event_previous.end == event.end):
 
                 lyrics.append(line)
 
             # update previous line handles
             event_previous = event
-            line_previous = line
 
         return '\n'.join(lyrics)
 

@@ -3,4 +3,4 @@ djangorestframework==3.3.1
 pymediainfo==2.1.9
 progressbar2==3.30.2
 PyYAML==3.12
-ass==0.4.2
+pysubs2==0.2.2
