@@ -885,7 +885,7 @@ class ASSParser:
         for event in self.content:
 
             # Ignore comments
-            if event.type != 'Dialogue':
+            if event.is_comment:
                 continue
 
             # clean the line
