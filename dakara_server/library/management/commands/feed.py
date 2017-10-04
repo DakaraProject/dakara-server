@@ -883,13 +883,19 @@ class ASSParser:
 
         # loop over each dialog line
         for event in self.content:
+
+            # Ignore comments
+            if event.type != 'Dialogue':
+                continue
+
             # clean the line
-            line = event.plaintext
+            line = event.plaintext.strip()
 
             # append the cleaned line conditionnaly
-            # don't append if the line is a duplicate of previous line
-            if not (event_previous and
-                    event_previous.plaintext == line and
+            # Only if not empty
+            # And don't append if the line is a duplicate of previous line
+            if line and not (event_previous and
+                    event_previous.plaintext.strip() == line and
                     event_previous.start == event.start and
                     event_previous.end == event.end):
 
