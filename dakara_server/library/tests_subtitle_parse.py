@@ -19,17 +19,17 @@ class ASSParserTestCase(TestCase):
         """
         directory = os.path.join(APP_DIR, RESSOURCES_DIR)
         for file_name in os.listdir(directory):
-            if not file_name.endswith("_expected"):
+            if not file_name.endswith(".ass"):
+                continue
 
-                file_path = os.path.join(directory, file_name)
+            file_path = os.path.join(directory, file_name)
 
-                parser = ASSParser(file_path)
-                lyrics = parser.get_lyrics()
+            parser = ASSParser(file_path)
+            lyrics = parser.get_lyrics()
+            lines = lyrics.splitlines()
 
-                # Check against expected file
+            # Check against expected file
+            with open(file_path + "_expected") as expected:
+                expected_lines = expected.read().splitlines()
 
-                with open(file_path + "_expected") as expected:
-                    lines = lyrics.splitlines()
-                    expected_lines = expected.read().splitlines()
-
-                    self.assertEqual(lines, expected_lines, "In file: {}".format(file_name))
+            self.assertEqual(lines, expected_lines, "In file: {}".format(file_name))
