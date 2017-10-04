@@ -859,7 +859,26 @@ class ASSParser:
         This parser extracts cleaned lyrics from the provided subtitle file.
 
         It uses the `pysubs2` package to parse the ASS file.
+
+        Attributes:
+            content (pysubs2 object): parsed subtitle.
+            override_sequence (regex matcher): regex that matches any tag and
+                any drawing area.
     """
+    override_sequence = re.compile(
+            r"""
+                \{.*?\\p1.*?\}      # look for drawing area start tag
+                .*?                 # select draw instructions
+                (?:                 # until...
+                    \{.*?\\p0.*?\}  # draw area end tag
+                    |
+                    $               # or end of line
+                )
+                |
+                \{.*?\}             # or simply select tags
+            """,
+            re.UNICODE | re.VERBOSE
+            )
 
     def __init__(self, filepath):
         self.content = pysubs2.load(filepath)
@@ -887,6 +906,9 @@ class ASSParser:
             # Ignore comments
             if event.is_comment:
                 continue
+
+            # alter the cleaning regex
+            event.OVERRIDE_SEQUENCE = self.override_sequence
 
             # clean the line
             line = event.plaintext.strip()
