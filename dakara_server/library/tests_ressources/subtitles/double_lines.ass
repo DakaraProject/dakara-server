@@ -29,4 +29,6 @@ Dialogue: 1,0:00:04.36,0:00:07.93,style2,,0,0,0,,{\pos(640,80)}{\k100}{\fad(100,
 Dialogue: 0,0:00:06.99,0:00:10.28,style2,,0,0,0,,{\pos(640,30)}{\k100}{\fad(100,100)\1c&HC2F3FF&\bord3.5\3c&H6EE0E4&\blur1\yshad4\xshad3\4a&H77&}{\k12}pa{\k21}t{\k20}to {\k15}ya{\k17}t{\k32}te {\k13}ze{\k18}n{\k18}bu {\k15}pa{\k15}a{\k32}tii?
 Dialogue: 1,0:00:06.99,0:00:10.28,style2,,0,0,0,,{\pos(640,30)}{\k100}{\fad(100,100)}{\k12}pa{\k21}t{\k20}to {\k15}ya{\k17}t{\k32}te {\k13}ze{\k18}n{\k18}bu {\k15}pa{\k15}a{\k32}tii?
 Dialogue: 0,0:00:09.63,0:00:12.09,style2,,0,0,0,,{\pos(640,80)}{\k100}{\fad(100,100)\1c&HC2F3FF&\bord3.5\3c&H6EE0E4&\blur1\yshad4\xshad3\4a&H77&}{\k17}juu{\k12}su {\k13}e{\k10}ga{\k15}o {\k12}ko{\k21}bo{\k16}re{\k32}ta
+; Check lines are deduplicated even when there is an empty line between them
+Dialogue: 1,0:00:09.63,0:00:12.09,style2,,0,0,0,,{\pos(640,80)}{\k100}{EmptyLine}
 Dialogue: 1,0:00:09.63,0:00:12.09,style2,,0,0,0,,{\pos(640,80)}{\k100}{\fad(100,100)}{\k17}juu{\k12}su {\k13}e{\k10}ga{\k15}o {\k12}ko{\k21}bo{\k16}re{\k32}ta

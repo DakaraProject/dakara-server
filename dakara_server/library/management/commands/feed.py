@@ -913,10 +913,13 @@ class ASSParser:
             # clean the line
             line = event.plaintext.strip()
 
+            # Ignore empty lines
+            if not line:
+                continue
+
             # append the cleaned line conditionnaly
-            # Only if not empty
-            # And don't append if the line is a duplicate of previous line
-            if line and not (event_previous and
+            # Don't append if the line is a duplicate of previous line
+            if not (event_previous and
                     event_previous.plaintext.strip() == line and
                     event_previous.start == event.start and
                     event_previous.end == event.end):
