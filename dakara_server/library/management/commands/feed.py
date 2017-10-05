@@ -867,7 +867,7 @@ class ASSParser:
     """
     override_sequence = re.compile(
             r"""
-                \{.*?\\p1.*?\}      # look for drawing area start tag
+                \{.*?\\p\d.*?\}     # look for drawing area start tag
                 .*?                 # select draw instructions
                 (?:                 # until...
                     \{.*?\\p0.*?\}  # draw area end tag
