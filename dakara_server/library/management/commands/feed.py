@@ -551,7 +551,7 @@ class DatabaseFeederEntry:
 
         fields.update({k: v for k, v in self.__dict__.items() \
                 if k not in ('filename', 'directory', 'directory_kara',
-                    'song', 'metadata_parser')})
+                    'song', 'metadata_parser', 'removed_songs')})
 
         for key, value in fields.items():
             stdout.write("{key:{length}s} {value}".format(
