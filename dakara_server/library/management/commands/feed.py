@@ -219,7 +219,11 @@ class DatabaseFeeder:
             raise CommandError("Directory '{}' does not exist"\
                     .format(directory_to_scan))
 
-        directory_listing = os.listdir(directory_to_scan_encoded)
+        directory_listing_encoded = os.listdir(directory_to_scan_encoded)
+        directory_listing = [f.decode(file_coding)
+                for f in directory_listing_encoded
+                if os.path.isfile(os.path.join(directory_to_scan_encoded, f))]
+
         feeder.find_removed_songs(directory_listing)
 
         # create progress bar
@@ -229,11 +233,8 @@ class DatabaseFeeder:
 
         # scan directory
         listing = []
-        for filename_encoded in bar(directory_listing):
-            filename = filename_encoded.decode(file_coding)
-            if file_is_valid(directory_to_scan, filename,
-                    directory_to_scan_encoded, filename_encoded):
-
+        for filename in bar(directory_listing):
+            if file_is_valid(filename):
                 entry = DatabaseFeederEntry(
                         filename,
                         feeder=feeder,
@@ -619,30 +620,20 @@ class DatabaseFeederEntryError(Exception):
     """
 
 
-def file_is_valid(directory, filename, directory_encoded, filename_encoded):
+def file_is_valid(filename):
     """ Check the file validity
 
         A valid file is:
-            An existing file,
             A media file,
             Not a hidden file.
 
         Args:
-            directory (str): path to tthe directory of the file.
             filename (str): name of the file.
-            directory_encoded (byte): path to the directory of the file.
-            filename_encoded (byte): name of the file.
 
         Returns:
             (bool) true if the file is valid.
     """
     return all((
-        # valid file
-        os.path.isfile(os.path.join(
-            directory_encoded,
-            filename_encoded
-            )),
-
         # media file
         os.path.splitext(filename)[1] not in (
             '.ssa', '.ass', '.srt', '.db', '.txt',
