@@ -1,6 +1,6 @@
 import os
 from django.test import TestCase
-from .management.commands.feed import ASSParser
+from .management.commands.feed import Pysubs2SubtitleParser
 
 RESSOURCES_DIR = os.path.join("tests_ressources", "subtitles")
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -24,7 +24,7 @@ class ASSParserTestCase(TestCase):
 
             file_path = os.path.join(directory, file_name)
 
-            parser = ASSParser(file_path)
+            parser = Pysubs2SubtitleParser(file_path)
             lyrics = parser.get_lyrics()
             lines = lyrics.splitlines()
 

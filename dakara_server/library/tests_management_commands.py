@@ -568,9 +568,9 @@ class QueryLanguageParserTestCase(TestCase):
             self.assertEqual(len(songs), 1)
             self.assertEqual(songs[0].filename, second_file_filename)
 
-    def test_feed_command_with_subtitle(self):
+    def test_feed_command_with_lyrics(self):
         """
-        Test feed command with subtitle
+        Test feed command with lyrics extracted from ass file
         """
         # Pre-Assertions
         songs = Song.objects.all()
@@ -604,4 +604,32 @@ class QueryLanguageParserTestCase(TestCase):
             with open(subtitle_file_filepath_origin + "_expected") as expected:
                 expected_lyrics_lines = expected.read().splitlines()
                 self.assertEqual(songs[0].lyrics.splitlines(), expected_lyrics_lines)
+
+    def test_feed_command_with_lyrics_txt(self):
+        """
+        Test feed command with lyrics extract from text file
+        """
+        # Pre-Assertions
+        songs = Song.objects.all()
+        self.assertEqual(len(songs), 0)
+
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
+            media_file_filename = "The file.mp4"
+            with open(os.path.join(dirpath, media_file_filename), 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            lyrics = "lalalalalala\nlunlunlun"
+            subtitle_file_filename = "The file.txt"
+            with open(os.path.join(dirpath, subtitle_file_filename), 'wt') as f:
+                f.write(lyrics)
+
+            # Call command
+            args = [dirpath]
+            opts = {'quiet': True}
+            call_command('feed', *args, **opts)
+
+            songs = Song.objects.all()
+            self.assertEqual(len(songs), 1)
+            self.assertEqual(songs[0].filename, media_file_filename)
+            self.assertEqual(songs[0].lyrics.splitlines(), lyrics.splitlines())
 

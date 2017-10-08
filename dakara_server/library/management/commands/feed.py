@@ -15,6 +15,7 @@ import warnings
 import argparse
 import subprocess
 import json
+from collections import defaultdict, OrderedDict
 from pymediainfo import MediaInfo
 from datetime import timedelta
 from difflib import SequenceMatcher
@@ -131,6 +132,7 @@ class DatabaseFeeder:
         self.stdout = stdout
         self.stderr = stderr
         self.metadata_parser = DatabaseFeeder.select_metadata_parser(metadata_parser)
+        self.removed_songs = []
 
     def find_removed_songs(self, directory_listing):
         """ Find all songs in database which file has been removed
@@ -219,32 +221,53 @@ class DatabaseFeeder:
             raise CommandError("Directory '{}' does not exist"\
                     .format(directory_to_scan))
 
+        # list files in directory and split between media and subtitle
+        directory_listing_media = []
+        subtitle_by_filename = defaultdict(lambda: [], {})
         directory_listing_encoded = os.listdir(directory_to_scan_encoded)
-        directory_listing = [f.decode(file_coding)
-                for f in directory_listing_encoded
-                if os.path.isfile(os.path.join(directory_to_scan_encoded, f))]
+        for filename_encoded in directory_listing_encoded:
+            if not os.path.isfile(os.path.join(
+                directory_to_scan_encoded,
+                filename_encoded
+                )):
 
-        feeder.find_removed_songs(directory_listing)
+                continue
+
+            filename = filename_encoded.decode(file_coding)
+            if not file_is_valid(filename):
+                continue
+
+            if file_is_subtitle(filename):
+                name, extension = os.path.splitext(filename)
+                subtitle_by_filename[name].append(extension)
+
+            else:
+                directory_listing_media.append(filename)
+
+
+        feeder.find_removed_songs(directory_listing_media)
 
         # create progress bar
         text = "Collecting files"
         ProgressBar = feeder._get_progress_bar()
-        bar = ProgressBar(max_value=len(directory_listing), text=text)
+        bar = ProgressBar(max_value=len(directory_listing_media), text=text)
 
         # scan directory
         listing = []
-        for filename in bar(directory_listing):
-            if file_is_valid(filename):
-                entry = DatabaseFeederEntry(
-                        filename,
-                        feeder=feeder,
-                        metadata_parser=feeder.metadata_parser,
-                        )
+        for filename in bar(directory_listing_media):
+            entry = DatabaseFeederEntry(
+                    filename,
+                    feeder=feeder,
+                    metadata_parser=feeder.metadata_parser,
+                    associated_subtitles=subtitle_by_filename[
+                        os.path.splitext(filename)[0]
+                        ]
+                    )
 
-                # only add entry to feeder list if we are not in append only
-                # mode, otherwise only if the entry is new in the database
-                if entry.to_save or not append_only:
-                    listing.append(entry)
+            # only add entry to feeder list if we are not in append only
+            # mode, otherwise only if the entry is new in the database
+            if entry.to_save or not append_only:
+                listing.append(entry)
 
         # put listing in feeder
         feeder.listing = listing
@@ -367,7 +390,7 @@ class DatabaseFeederEntry:
     """ Class representing a song to upgrade or create in the database
     """
 
-    def __init__(self, filename, feeder, metadata_parser=None):
+    def __init__(self, filename, feeder, associated_subtitles, metadata_parser=None):
         """ Constructor
 
             Detect if a song already exists in the database, then take it or
@@ -379,11 +402,14 @@ class DatabaseFeederEntry:
                     database, serves as ID.
                 metadata_parser (:obj:`MetadataParser`): metadata parser class.
                     Default is `MetadataParser`.
+                associated_subtitles (list): contains a list of extentions for
+                    each subtitle file with the same name in the same directory.
         """
         self.filename = filename
         self.directory = feeder.directory
         self.directory_kara = feeder.directory_kara
         self.removed_songs = feeder.removed_songs
+        self.associated_subtitles = associated_subtitles
 
         # if no metadata parser is provided, use the default one
         self.metadata_parser = metadata_parser or MetadataParser
@@ -509,27 +535,33 @@ class DatabaseFeederEntry:
     def set_from_subtitle(self):
         """ Set song lyrics attribute by extracting it from subtitle if any
         """
-        # obtain path to extensionless file
-        file_name, _ = os.path.splitext(self.filename)
-        file_path_base = os.path.join(self.directory_kara,
-                self.directory, file_name)
+        for extension, Parser in PARSER_BY_EXTENSION.items():
 
-        # add extension
-        file_path = file_path_base + '.ass'
+            if extension in [e.lower() for e in self.associated_subtitles]:
+                # obtain path to extensionless file
+                file_name, _ = os.path.splitext(self.filename)
+                file_path_base = os.path.join(self.directory_kara,
+                        self.directory, file_name)
 
-        if os.path.isfile(file_path):
-            # try to parse the subtitle file and extract lyrics
-            try:
-                parser = ASSParser(file_path)
-                self.song.lyrics = parser.get_lyrics()
+                # add extension
+                file_path = file_path_base + extension
 
-            except Exception as error:
-                warnings.warn(
-                    "Invalid subtitle file '{filename}': {error}".format(
-                        filename=os.path.basename(file_path),
-                        error=error
+                # try to parse the subtitle file and extract lyrics
+                try:
+                    parser = Parser(file_path)
+                    self.song.lyrics = parser.get_lyrics()
+
+                    # If we extracted lyrics successfully,
+                    # We can stop now, no need to check other subtitles
+                    break
+
+                except Exception as error:
+                    warnings.warn(
+                        "Invalid subtitle file '{filename}': {error}".format(
+                            filename=os.path.basename(file_path),
+                            error=error
+                            )
                         )
-                    )
 
 
     def show(self, stdout=sys.stdout):
@@ -624,8 +656,7 @@ def file_is_valid(filename):
     """ Check the file validity
 
         A valid file is:
-            A media file,
-            Not a hidden file.
+            Not a hidden file or blacklisted extension
 
         Args:
             filename (str): name of the file.
@@ -636,12 +667,24 @@ def file_is_valid(filename):
     return all((
         # media file
         os.path.splitext(filename)[1] not in (
-            '.ssa', '.ass', '.srt', '.db', '.txt',
+            '.db'
             ),
 
         # not hidden file
         filename[0] != ".",
         ))
+
+
+def file_is_subtitle(filename):
+    """ Check that the file is a subtitle
+
+        Args:
+            filename (str): name of the file.
+
+        Returns:
+            (bool) true if the file is a subtitle file.
+    """
+    return os.path.splitext(filename)[1] in list(PARSER_BY_EXTENSION.keys())
 
 
 class TextProgressBar(progressbar.ProgressBar):
@@ -844,8 +887,27 @@ class FFProbeMetadataParser(MetadataParser):
         return timedelta(0)
 
 
-class ASSParser:
-    """ ASS file parser
+class SubtitleParser:
+    """ Abstract class for subtitle parser
+    """
+    def __init__(self, filepath):
+        pass
+
+    def get_lyrics(self):
+        return ""
+
+class TXTSubtitleParser(SubtitleParser):
+    """ Subtitle parser for txt files
+    """
+    def __init__(self, filepath):
+        with open(filepath) as file:
+            self.content = file.read()
+
+    def get_lyrics(self):
+        return self.content
+
+class Pysubs2SubtitleParser(SubtitleParser):
+    """ Subtitle parser for ass, ssa and srt files
 
         This parser extracts cleaned lyrics from the provided subtitle file.
 
@@ -921,6 +983,14 @@ class ASSParser:
             event_previous = event
 
         return '\n'.join(lyrics)
+
+
+PARSER_BY_EXTENSION = OrderedDict((
+    ('.ass', Pysubs2SubtitleParser),
+    ('.ssa', Pysubs2SubtitleParser),
+    ('.srt', Pysubs2SubtitleParser),
+    ('.txt', TXTSubtitleParser)
+    ))
 
 
 class Command(BaseCommand):
