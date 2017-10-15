@@ -31,3 +31,53 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
+# Loggin config
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': '[%(asctime)s] %(levelname)s %(message)s'
+        },
+        'no_time': {
+            'format': '%(levelname)s %(message)s'
+        }
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+            'filters': ['require_debug_true'],
+        },
+        'console_playlist': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        },
+        'console_interactive': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'no_time',
+        },
+    },
+    'loggers': {
+        'playlist.views': {
+            'handlers': ['console_playlist'],
+            'level': 'INFO',
+        },
+        'library.management.commands.feed': {
+            'handlers': ['console_interactive'],
+            'level': 'INFO',
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
+    },
+}

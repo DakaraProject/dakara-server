@@ -11,7 +11,6 @@ import re
 import logging
 import importlib
 import progressbar
-import warnings
 import argparse
 import subprocess
 import json
@@ -27,11 +26,6 @@ from django.core.exceptions import MultipleObjectsReturned
 
 from library.models import *
 
-
-# get logger
-logger = logging.getLogger(__file__)
-
-
 # wrap a special stream for warnings
 # the wrapping done by progressbar seems to reassign the ouput and flush it when
 # needed, and not automatically
@@ -40,24 +34,15 @@ logger = logging.getLogger(__file__)
 # so, we create a custom wrapped stream and assign warnings to use it
 # since we cannot specify a new stream, we use stderr for that, and reassign
 # it to its origineal value right after
-original_stderr = sys.stderr
+origin_stderr = sys.stderr
 wrapped_stderr = progressbar.streams.wrap_stderr()
-sys.stderr = original_stderr
+sys.stderr = origin_stderr
 
+# get logger
+logger = logging.getLogger(__name__)
 
-# define a less verbose custom warnings formatting
-def custom_formatwarning(message, *args, **kwargs):
-    return "Warning: {}\n".format(message)
-
-
-# assign warnings to write in the wrapped stream
-def custom_showwarning(*args, **kwargs):
-    wrapped_stderr.write(custom_formatwarning(*args, **kwargs))
-
-
-# patch warnings output
-warnings.formatwarning = custom_formatwarning
-warnings.showwarning = custom_showwarning
+# hack the logger handler to use the wrapped stderr
+logger.handlers[0].stream = wrapped_stderr
 
 
 # get file system encoding
@@ -320,7 +305,7 @@ class DatabaseFeeder:
 
             except DatabaseFeederEntryError as error:
                 # only show a warning in case of error
-                warnings.warn("Cannot parse file '{filename}': {error}"\
+                logger.warning("Cannot parse file '{filename}': {error}"\
                         .format(
                             filename=entry.filename,
                             error=error
@@ -612,7 +597,7 @@ class DatabaseFeederEntry:
             # We can stop now, no need to check other subtitles
 
         except Exception as error:
-            warnings.warn(
+            logger.warning(
                 "Invalid subtitle file '{filename}': {error}".format(
                     filename=os.path.basename(file_path),
                     error=error
