@@ -19,6 +19,7 @@ from collections import defaultdict, OrderedDict
 from pymediainfo import MediaInfo
 from datetime import timedelta
 from difflib import SequenceMatcher
+from tempfile import TemporaryDirectory
 
 import pysubs2
 from django.core.management.base import BaseCommand, CommandError
@@ -80,7 +81,8 @@ class DatabaseFeeder:
             custom_parser=None,
             metadata_parser='ffprobe',
             stdout=sys.stdout,
-            stderr=sys.stderr
+            stderr=sys.stderr,
+            tempdir="."
             ):
         """ Constructor
 
@@ -100,6 +102,7 @@ class DatabaseFeeder:
                     ('ffprobe', 'mediainfo' or `None`).
                 stdout (file descriptor): standard output.
                 stderr (file descriptor): standard error.
+                tempdir (str): path to a temporary directory.
 
             About custom_parser:
                 This module should define a method called `parse_file_name`
@@ -131,6 +134,7 @@ class DatabaseFeeder:
         self.custom_parser = custom_parser
         self.stdout = stdout
         self.stderr = stderr
+        self.tempdir = tempdir
         self.metadata_parser = DatabaseFeeder.select_metadata_parser(metadata_parser)
         self.removed_songs = []
 
@@ -409,6 +413,7 @@ class DatabaseFeederEntry:
         self.directory = feeder.directory
         self.directory_kara = feeder.directory_kara
         self.removed_songs = feeder.removed_songs
+        self.tempdir = feeder.tempdir
         self.associated_subtitles = associated_subtitles
 
         # if no metadata parser is provided, use the default one
@@ -536,7 +541,6 @@ class DatabaseFeederEntry:
         """ Set song lyrics attribute by extracting it from subtitle if any
         """
         for extension, Parser in PARSER_BY_EXTENSION.items():
-
             if extension in [e.lower() for e in self.associated_subtitles]:
                 # obtain path to extensionless file
                 file_name, _ = os.path.splitext(self.filename)
@@ -546,22 +550,76 @@ class DatabaseFeederEntry:
                 # add extension
                 file_path = file_path_base + extension
 
-                # try to parse the subtitle file and extract lyrics
-                try:
-                    parser = Parser(file_path)
-                    self.song.lyrics = parser.get_lyrics()
+                lyrics = self.get_lyrics_from_file(file_path, Parser)
+                if lyrics:
+                    logger.debug("Extracted lyrics from '{}'".format(file_path))
+                    self.song.lyrics = lyrics
+                    return
 
-                    # If we extracted lyrics successfully,
-                    # We can stop now, no need to check other subtitles
-                    break
+        # here, we have tested all the subtitles extensions known, we searh a
+        # subtitile in the video itself
+        subtitle_file_path = os.path.join(self.tempdir, "subtitle.ass")
+        if not FFmpegWrapper.is_available():
+            return
 
-                except Exception as error:
-                    warnings.warn(
-                        "Invalid subtitle file '{filename}': {error}".format(
-                            filename=os.path.basename(file_path),
-                            error=error
+        media_file_path = os.path.join(self.directory_kara, self.directory,
+                self.filename)
+
+        # try to get the lyrics
+        try:
+            if FFmpegWrapper.extract_subtitle(media_file_path, subtitle_file_path):
+                lyrics = self.get_lyrics_from_file(subtitle_file_path,
+                        PARSER_BY_EXTENSION['.ass'])
+
+                if lyrics:
+                    logger.debug(
+                        "Extracted embedded lyrics from '{}'".format(
+                            media_file_path
                             )
                         )
+
+                    self.song.lyrics = lyrics
+                    return
+
+        finally:
+            try:
+                os.remove(subtitle_file_path)
+
+            except OSError:
+                pass
+
+        logger.debug("No subtitle found for '{}'".format(
+            media_file_path
+            ))
+
+    @staticmethod
+    def get_lyrics_from_file(file_path, Parser):
+        """ Parse the subtitle file to extract its lyrics
+
+            Args:
+                file_path (str): path to the subtitle file.
+                Parser (object): parser to use.
+
+            Returns:
+                (str) lyrics, or `None` if the parser failed.
+        """
+        # try to parse the subtitle file and extract lyrics
+        try:
+            parser = Parser(file_path)
+            return parser.get_lyrics()
+
+            # If we extracted lyrics successfully,
+            # We can stop now, no need to check other subtitles
+
+        except Exception as error:
+            warnings.warn(
+                "Invalid subtitle file '{filename}': {error}".format(
+                    filename=os.path.basename(file_path),
+                    error=error
+                    )
+                )
+
+        return None
 
 
     def show(self, stdout=sys.stdout):
@@ -887,6 +945,57 @@ class FFProbeMetadataParser(MetadataParser):
         return timedelta(0)
 
 
+class FFmpegWrapper:
+    """ Wrapper for FFmpeg
+    """
+    @staticmethod
+    def is_available():
+        """ Check if the parser is callable
+        """
+        try:
+            with open(os.devnull, 'w') as tempf:
+                subprocess.check_call(
+                        ["ffmpeg", "-version"],
+                        stdout=tempf,
+                        stderr=tempf
+                        )
+
+                return True
+
+        except:
+            return False
+
+    @staticmethod
+    def extract_subtitle(input_file_path, output_file_path):
+        """ Try to extract the first subtitle of the given input file into the
+            output file given.
+
+            Args:
+                input_file_path (str): path to the input file.
+                output_file_path (str): path to the requested output file.
+
+            Returns:
+                (bool) true if the extraction process is successful.
+        """
+        try:
+            with open(os.devnull, 'w') as tempf:
+                subprocess.check_call(
+                        [
+                            "ffmpeg",
+                            "-i", input_file_path,
+                            "-map", "0:s:0",
+                            output_file_path
+                            ],
+                        stdout=tempf,
+                        stderr=tempf
+                        )
+
+                return True
+
+        except:
+            return False
+
+
 class SubtitleParser:
     """ Abstract class for subtitle parser
     """
@@ -1105,26 +1214,28 @@ class Command(BaseCommand):
         if metadata_parser == 'none':
             metadata_parser = None
 
-        # create feeder object
-        database_feeder = DatabaseFeeder.from_directory(
-                directory_kara=directory_kara,
-                directory=directory,
-                dry_run=options.get('dry_run'),
-                append_only=options.get('append_only'),
-                prune=options.get('prune'),
-                progress_show=not options.get('no_progress'),
-                output_show=not options.get('quiet'),
-                custom_parser=custom_parser,
-                no_add_on_error=options.get('no_add_on_error'),
-                metadata_parser=metadata_parser,
-                stdout=self.stdout,
-                stderr=self.stderr
-                )
+        with TemporaryDirectory(prefix="dakara.") as tempdir:
+            # create feeder object
+            database_feeder = DatabaseFeeder.from_directory(
+                    directory_kara=directory_kara,
+                    directory=directory,
+                    dry_run=options.get('dry_run'),
+                    append_only=options.get('append_only'),
+                    prune=options.get('prune'),
+                    progress_show=not options.get('no_progress'),
+                    output_show=not options.get('quiet'),
+                    custom_parser=custom_parser,
+                    no_add_on_error=options.get('no_add_on_error'),
+                    metadata_parser=metadata_parser,
+                    stdout=self.stdout,
+                    stderr=self.stderr,
+                    tempdir=tempdir
+                    )
 
-        database_feeder.set_from_filename()
-        database_feeder.set_from_metadata()
-        database_feeder.set_from_subtitle()
-        database_feeder.save()
+            database_feeder.set_from_filename()
+            database_feeder.set_from_metadata()
+            database_feeder.set_from_subtitle()
+            database_feeder.save()
 
 
 def is_similar(string1, string2):

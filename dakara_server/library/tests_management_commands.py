@@ -5,10 +5,11 @@ from django.core.management import call_command
 from django.test import TestCase
 from .models import WorkType, SongTag, Song, Artist
 
-RESSOURCES_DIR = os.path.join("tests_ressources", "subtitles")
+RESSOURCES_DIR = "tests_ressources"
+SUBTITLES_DIR = "subtitles"
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
-class QueryLanguageParserTestCase(TestCase):
+class CommandsTestCase(TestCase):
 
     def test_createtags_command(self):
         """
@@ -585,6 +586,7 @@ class QueryLanguageParserTestCase(TestCase):
             subtitle_file_filepath_origin = os.path.join(
                     APP_DIR,
                     RESSOURCES_DIR,
+                    SUBTITLES_DIR,
                     'simple.ass'
                     )
 
@@ -633,3 +635,35 @@ class QueryLanguageParserTestCase(TestCase):
             self.assertEqual(songs[0].filename, media_file_filename)
             self.assertEqual(songs[0].lyrics.splitlines(), lyrics.splitlines())
 
+    def test_feed_command_with_lyrics_embedded(self):
+        """
+        Test feed command with lyrics embedded into a media file
+        """
+        # Pre-Assertions
+        songs = Song.objects.all()
+        self.assertEqual(len(songs), 0)
+
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
+            media_file_filename = "The file.mkv"
+            media_file_filepath_origin = os.path.join(
+                    APP_DIR,
+                    RESSOURCES_DIR,
+                    'lyrics_embedded.mkv'
+                    )
+
+            shutil.copy(media_file_filepath_origin,
+                    os.path.join(dirpath, media_file_filename))
+
+            # Call command
+            args = [dirpath]
+            opts = {'quiet': True}
+            call_command('feed', *args, **opts)
+
+            songs = Song.objects.all()
+            self.assertEqual(len(songs), 1)
+            self.assertEqual(songs[0].filename, media_file_filename)
+
+            # Check against expected file
+            with open(media_file_filepath_origin + "_expected") as expected:
+                expected_lyrics_lines = expected.read().splitlines()
+                self.assertEqual(songs[0].lyrics.splitlines(), expected_lyrics_lines)
