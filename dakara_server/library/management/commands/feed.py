@@ -42,7 +42,8 @@ sys.stderr = origin_stderr
 logger = logging.getLogger(__name__)
 
 # hack the logger handler to use the wrapped stderr
-logger.handlers[0].stream = wrapped_stderr
+if len(logger.handlers) > 0:
+    logger.handlers[0].stream = wrapped_stderr
 
 
 # get file system encoding
