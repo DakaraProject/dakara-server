@@ -13,7 +13,7 @@ Installation guidelines are provided over here:
 #### System requirements
 
 * Python3, to make everything up and running;
-* [ffmpeg](https://www.ffmpeg.org/), to extract metadata from files (preferred way);
+* [ffmpeg](https://www.ffmpeg.org/), to extract lyrics and extract metadata from files (preferred way);
 * [MediaInfo](https://mediaarea.net/fr/MediaInfo/), to extract metadata from files (slower, alternative way, may not work on Windows).
 
 #### Virtual environment
@@ -71,6 +71,7 @@ All imported files will have a path relative to the kara folder.
 
 This may take some time, depending of your collection.
 You'll need `ffprobe`, provided by Ffmpeg, for this process to extract files duration (which is slow).
+You'll need `ffmpeg` as well to extract embedded lyrics from files.
 Pass the `-h` parameter to get some help and all the options of the feeder.
 
 Build and link the dist folder from the [client](https://github.com/Nadeflore/dakara-client-web) to `dakara_server/static`.
