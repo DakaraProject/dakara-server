@@ -52,7 +52,14 @@ dakara_server/manage.py createworktypes ./config.yaml # for work types
 ```
 
 It's time to feed the hungry database with your kara library!
-Suppose you have a anime songs folder and a Jpop songs folder in a parent kara folder:
+Suppose you have only one kara folder with all your files inside, you simply call the feeder this way:
+
+```sh
+dakara_server/manage.py feed path/to/kara
+```
+
+Suppose now you have an anime songs folder and a Jpop songs folder in a parent kara folder.
+The files are located in those two subdirectories:
 
 ```
 kara
@@ -63,11 +70,12 @@ kara
 You simply feed the database this way:
 
 ```sh
-dakara_server/manage.py feed path/to/kara/anime
-dakara_server/manage.py feed path/to/kara/jpop
+dakara_server/manage.py feed path/to/kara --directory anime
+dakara_server/manage.py feed path/to/kara --directory jpop
 ```
 
-All imported files will have a path relative to the kara folder.
+In this case, all imported files will have a path relative to the parent folder.
+When setting up the Dakara player, you shall specify the path of this kara folder.
 
 This may take some time, depending of your collection.
 You'll need `ffprobe`, provided by Ffmpeg, for this process to extract files duration (which is slow).
@@ -89,19 +97,19 @@ Don't forget to start the player as well.
 
 Now, just grab some friends and have fun!
 
-### Developpement
+### Development
 
 #### Hooks
 
 Git hooks are included in the `hooks` directory.
 
-Use the following config to use this hook folder for the project:
+Use the following command to use this hook folder for the project:
 
 ```
 git config core.hooksPath hooks
 ```
 
-If you're using git < 2.9 you can make a simlink instead:
+If you're using git < 2.9 you can make a symlink instead:
 
 ```
 ln -s -f ../../hooks/pre-commit .git/hooks/pre-commit
