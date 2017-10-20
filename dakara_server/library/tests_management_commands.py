@@ -1,10 +1,15 @@
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 import os
+import shutil
 from django.core.management import call_command
 from django.test import TestCase
 from .models import WorkType, SongTag, Song, Artist
 
-class QueryLanguageParserTestCase(TestCase):
+RESSOURCES_DIR = "tests_ressources"
+SUBTITLES_DIR = "subtitles"
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+
+class CommandsTestCase(TestCase):
 
     def test_createtags_command(self):
         """
@@ -563,3 +568,102 @@ class QueryLanguageParserTestCase(TestCase):
             songs = Song.objects.order_by('title')
             self.assertEqual(len(songs), 1)
             self.assertEqual(songs[0].filename, second_file_filename)
+
+    def test_feed_command_with_lyrics(self):
+        """
+        Test feed command with lyrics extracted from ass file
+        """
+        # Pre-Assertions
+        songs = Song.objects.all()
+        self.assertEqual(len(songs), 0)
+
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
+            media_file_filename = "The file.mp4"
+            with open(os.path.join(dirpath, media_file_filename), 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            subtitle_file_filename = "The file.ass"
+            subtitle_file_filepath_origin = os.path.join(
+                    APP_DIR,
+                    RESSOURCES_DIR,
+                    SUBTITLES_DIR,
+                    'simple.ass'
+                    )
+
+            shutil.copy(subtitle_file_filepath_origin,
+                    os.path.join(dirpath, subtitle_file_filename))
+
+            # Call command
+            args = [dirpath]
+            opts = {'quiet': True}
+            call_command('feed', *args, **opts)
+
+            songs = Song.objects.all()
+            self.assertEqual(len(songs), 1)
+            self.assertEqual(songs[0].filename, media_file_filename)
+
+            # Check against expected file
+            with open(subtitle_file_filepath_origin + "_expected") as expected:
+                expected_lyrics_lines = expected.read().splitlines()
+                self.assertEqual(songs[0].lyrics.splitlines(), expected_lyrics_lines)
+
+    def test_feed_command_with_lyrics_txt(self):
+        """
+        Test feed command with lyrics extract from text file
+        """
+        # Pre-Assertions
+        songs = Song.objects.all()
+        self.assertEqual(len(songs), 0)
+
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
+            media_file_filename = "The file.mp4"
+            with open(os.path.join(dirpath, media_file_filename), 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            lyrics = "lalalalalala\nlunlunlun"
+            subtitle_file_filename = "The file.txt"
+            with open(os.path.join(dirpath, subtitle_file_filename), 'wt') as f:
+                f.write(lyrics)
+
+            # Call command
+            args = [dirpath]
+            opts = {'quiet': True}
+            call_command('feed', *args, **opts)
+
+            songs = Song.objects.all()
+            self.assertEqual(len(songs), 1)
+            self.assertEqual(songs[0].filename, media_file_filename)
+            self.assertEqual(songs[0].lyrics.splitlines(), lyrics.splitlines())
+
+    def test_feed_command_with_lyrics_embedded(self):
+        """
+        Test feed command with lyrics embedded into a media file
+        """
+        # Pre-Assertions
+        songs = Song.objects.all()
+        self.assertEqual(len(songs), 0)
+
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
+            media_file_filename = "The file.mkv"
+            media_file_filepath_origin = os.path.join(
+                    APP_DIR,
+                    RESSOURCES_DIR,
+                    'lyrics_embedded.mkv'
+                    )
+
+            shutil.copy(media_file_filepath_origin,
+                    os.path.join(dirpath, media_file_filename))
+
+            # Call command
+            args = [dirpath]
+            opts = {'quiet': True}
+            call_command('feed', *args, **opts)
+
+            songs = Song.objects.all()
+            self.assertEqual(len(songs), 1)
+            self.assertEqual(songs[0].filename, media_file_filename)
+
+            # Check against expected file
+            with open(media_file_filepath_origin + "_expected") as expected:
+                expected_lyrics_lines = expected.read().splitlines()
+                self.assertEqual(songs[0].lyrics.splitlines(), expected_lyrics_lines)
