@@ -22,6 +22,11 @@ from library.views import *
 from playlist.views import *
 from users.views import *
 
+import logging
+
+logger = logging.getLogger("django")
+logger.info("Dakara server {} ({})".format(settings.VERSION, settings.DATE))
+
 urlpatterns = [
 
     # Admin route
