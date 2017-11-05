@@ -20,7 +20,10 @@ class BaseAPITestCase(APITestCase):
 
     def create_library_test_data(self):
         # Create work types
-        self.wt1 = WorkType(name="WorkType1", query_name="wt1")
+        self.wt1 = WorkType(
+                name="WorkType1",
+                name_plural="WorkTypes1",
+                query_name="wt1")
         self.wt1.save()
         self.wt2 = WorkType(name="WorkType2", query_name="wt2")
         self.wt2.save()
@@ -124,5 +127,6 @@ class BaseAPITestCase(APITestCase):
         Method to test an representation against the expected work type
         """
         self.assertEqual(json['name'], expected_work.name)
+        self.assertEqual(json['name_plural'], expected_work.name_plural)
         self.assertEqual(json['query_name'], expected_work.query_name)
         self.assertEqual(json['icon_name'], expected_work.icon_name)

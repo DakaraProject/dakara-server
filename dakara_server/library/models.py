@@ -48,6 +48,7 @@ class WorkType(models.Model):
     """ Class for the type of a work: anime, games and so on 
     """
     name = models.CharField(max_length=255)
+    name_plural = models.CharField(max_length=255)
     query_name = models.CharField(max_length=255, unique=True)
     # icon_name refers to a fontawesome icon name
     icon_name = models.CharField(max_length=255, null=True)
