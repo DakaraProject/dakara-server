@@ -33,6 +33,7 @@ INSTALLED_APPS = (
     'library',
     'playlist',
     'users',
+    'internal',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -102,7 +103,7 @@ STATICFILES_DIRS = [
 # Django REST config
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.DjangoModelPermissions',
+        'rest_framework.permissions.IsAuthenticated',
         ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
