@@ -102,7 +102,7 @@ class CommandsTestCase(TestCase):
 
             # Call command
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             songs = Song.objects.order_by('title')
@@ -136,7 +136,7 @@ class CommandsTestCase(TestCase):
             # Call command
             # Join with empty string to add a trailing slash if it's not already there
             args = [os.path.join(dirpath, '')]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             songs = Song.objects.order_by('title')
@@ -169,7 +169,7 @@ class CommandsTestCase(TestCase):
 
             # Call command
             args = [dirpath]
-            opts = {'parser': "library/parser_test.py", 'quiet': True}
+            opts = {'parser': "library/parser_test.py", 'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
 
@@ -215,7 +215,7 @@ class CommandsTestCase(TestCase):
 
             # call command first to populate
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             # 2 files should exist
@@ -239,7 +239,7 @@ class CommandsTestCase(TestCase):
 
             # call command first to populate
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             # there should be still 2 entries in the database
@@ -284,7 +284,7 @@ class CommandsTestCase(TestCase):
 
             # Call command first to populate
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             # basic test: the two files are in database as expected
@@ -306,7 +306,7 @@ class CommandsTestCase(TestCase):
 
             # call command first to populate
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             # there should be 3 files, because the new one is too different
@@ -378,11 +378,11 @@ class CommandsTestCase(TestCase):
 
             # call command on each subdirectories
             args = [dirpath]
-            opts = {'quiet': True, 'directory': first_directory}
+            opts = {'quiet': True, 'metadata-parser': 'none', 'directory': first_directory}
             call_command('feed', *args, **opts)
 
             args = [dirpath]
-            opts = {'quiet': True, 'directory': second_directory}
+            opts = {'quiet': True, 'metadata-parser': 'none', 'directory': second_directory}
             call_command('feed', *args, **opts)
 
             # there should be 3 songs
@@ -413,11 +413,11 @@ class CommandsTestCase(TestCase):
 
             # call command on each subdirectories another time
             args = [dirpath]
-            opts = {'quiet': True, 'directory': first_directory}
+            opts = {'quiet': True, 'metadata-parser': 'none', 'directory': first_directory}
             call_command('feed', *args, **opts)
 
             args = [dirpath]
-            opts = {'quiet': True, 'directory': second_directory}
+            opts = {'quiet': True, 'metadata-parser': 'none', 'directory': second_directory}
             call_command('feed', *args, **opts)
 
             # there should be 3 songs
@@ -466,7 +466,7 @@ class CommandsTestCase(TestCase):
 
             # call command first to populate
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             # 2 files should exist
@@ -497,7 +497,7 @@ class CommandsTestCase(TestCase):
 
             # call command again to populate
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             # there should be 3 entries in the database
@@ -552,7 +552,7 @@ class CommandsTestCase(TestCase):
 
             # Call command
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             songs = Song.objects.order_by('title')
@@ -565,7 +565,7 @@ class CommandsTestCase(TestCase):
 
             # Call command again with prune option
             args = [dirpath]
-            opts = {'quiet': True, 'prune': True}
+            opts = {'quiet': True, 'metadata-parser': 'none', 'prune': True}
             call_command('feed', *args, **opts)
 
             # Only second file in database
@@ -599,7 +599,7 @@ class CommandsTestCase(TestCase):
 
             # Call command
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             songs = Song.objects.all()
@@ -631,7 +631,7 @@ class CommandsTestCase(TestCase):
 
             # Call command
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             songs = Song.objects.all()
@@ -660,7 +660,7 @@ class CommandsTestCase(TestCase):
 
             # Call command
             args = [dirpath]
-            opts = {'quiet': True}
+            opts = {'quiet': True, 'metadata-parser': 'none'}
             call_command('feed', *args, **opts)
 
             songs = Song.objects.all()
