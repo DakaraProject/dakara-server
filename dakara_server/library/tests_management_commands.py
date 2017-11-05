@@ -1,9 +1,11 @@
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 import os
 import shutil
+import unittest
 from django.core.management import call_command
 from django.test import TestCase
 from .models import WorkType, SongTag, Song, Artist
+from .management.commands.feed import FFmpegWrapper
 
 RESSOURCES_DIR = "tests_ressources"
 SUBTITLES_DIR = "subtitles"
@@ -639,6 +641,10 @@ class CommandsTestCase(TestCase):
             self.assertEqual(songs[0].filename, media_file_filename)
             self.assertEqual(songs[0].lyrics.splitlines(), lyrics.splitlines())
 
+    @unittest.skipUnless(
+            FFmpegWrapper.is_available(),
+            "FFmpeg is not available."
+            )
     def test_feed_command_with_lyrics_embedded(self):
         """
         Test feed command with lyrics embedded into a media file
