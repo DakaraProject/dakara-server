@@ -54,9 +54,11 @@ class CommandsTestCase(TestCase):
         file_content = """worktypes:
   - query_name: work-type-one
     name: Work type one
+    name_plural: Work type one plural
     icon_name: elephant
   - query_name: work-type-two
     name: Work type two
+    name_plural: Work type two plural
     icon_name: cat"""
 
         # Create temporary config file
@@ -74,9 +76,11 @@ class CommandsTestCase(TestCase):
             self.assertEqual(len(work_types), 2)
             self.assertEqual(work_types[0].query_name, "work-type-one")
             self.assertEqual(work_types[0].name, "Work type one")
+            self.assertEqual(work_types[0].name_plural, "Work type one plural")
             self.assertEqual(work_types[0].icon_name, "elephant")
             self.assertEqual(work_types[1].query_name, "work-type-two")
             self.assertEqual(work_types[1].name, "Work type two")
+            self.assertEqual(work_types[1].name_plural, "Work type two plural")
             self.assertEqual(work_types[1].icon_name, "cat")
 
     def test_feed_command(self):
