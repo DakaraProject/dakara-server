@@ -21,6 +21,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from library.views import *
 from playlist.views import *
 from users.views import *
+from internal.views import *
 
 import logging
 
@@ -35,6 +36,9 @@ urlpatterns = [
     # Authentication routes
     url(r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/token-auth/', obtain_auth_token),
+
+    # Api routes for internal
+    url(r'^api/version/$', VersionView.as_view(), name='version'),
 
     # Api routes for the users
     url(r'^api/users/$', UserList.as_view(), name='users-list'),
