@@ -1,5 +1,7 @@
 # Dakara server
 
+[![Build Status](https://travis-ci.org/DakaraProject/dakara-server.svg?branch=develop)](https://travis-ci.org/DakaraProject/dakara-server)
+
 Server for the Dakara project.
 
 ### Installation
