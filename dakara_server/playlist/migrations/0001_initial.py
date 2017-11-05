@@ -2,20 +2,23 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+from django.conf import settings
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('library', '0003_auto_20160313_1822'),
+        ('library', '0001_initial'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
             name='PlaylistEntry',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
+                ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True, serialize=False)),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
+                ('owner', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
                 ('song', models.ForeignKey(to='library.Song')),
             ],
         ),
