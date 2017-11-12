@@ -2,11 +2,19 @@ language: python
 python:
   - "3.5"
 
+# restrict to branches
+branches:
+  only:
+    - master
+    - develop
+
 # command to install python dependencies
 install:
   - pip install -r requirements.txt
 
+before_script:
+  - cd dakara_server
+
 # command to run tests
 script:
-  - cd dakara_server
   - ./manage.py test
