@@ -13,58 +13,141 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
+import logging
+
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.conf import settings
 from django.views.defaults import page_not_found
 from rest_framework.authtoken.views import obtain_auth_token
-from library.views import *
-from playlist.views import *
-from users.views import *
-from internal.views import *
 
-import logging
+from library import views as library_views
+from playlist import views as playlist_views
+from users import views as users_views
+from internal import views as internal_views
 
+
+# log server version
 logger = logging.getLogger("django")
 logger.info("Dakara server {} ({})".format(settings.VERSION, settings.DATE))
 
-urlpatterns = [
 
+urlpatterns = [
     # Admin route
-    url(r'^admin/', include(admin.site.urls)),
+    url(
+        r'^admin/',
+        include(admin.site.urls)
+        ),
 
     # Authentication routes
-    url(r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^api/token-auth/', obtain_auth_token),
+    url(
+        r'^api/auth/',
+        include('rest_framework.urls', namespace='rest_framework')
+        ),
+    url(
+        r'^api/token-auth/',
+        obtain_auth_token
+        ),
 
-    # Api routes for internal
-    url(r'^api/version/$', VersionView.as_view(), name='version'),
+    # API routes for internal
+    url(
+        r'^api/version/$',
+        internal_views.VersionView.as_view(),
+        name='version'
+        ),
 
-    # Api routes for the users
-    url(r'^api/users/$', UserList.as_view(), name='users-list'),
-    url(r'^api/users/(?P<pk>[0-9]+)/$', UserView.as_view(), name='users-detail'),
-    url(r'^api/users/(?P<pk>[0-9]+)/password/$', PasswordView.as_view(), name='users-password'),
-    url(r'^api/users/current/$', CurrentUser.as_view(), name='users-current'),
+    # API routes for the users
+    url(
+        r'^api/users/$',
+        users_views.UserListView.as_view(),
+        name='users-list'
+        ),
+    url(
+        r'^api/users/(?P<pk>[0-9]+)/$',
+        users_views.UserView.as_view(),
+        name='users-detail'
+        ),
+    url(
+        r'^api/users/(?P<pk>[0-9]+)/password/$',
+        users_views.PasswordView.as_view(),
+        name='users-password'
+        ),
+    url(
+        r'^api/users/current/$',
+        users_views.CurrentUserView.as_view(),
+        name='users-current'
+        ),
 
-    # Api routes for the player
-    url(r'^api/player/status/$', PlayerForPlayerView.as_view(), name='player-status'),
-    url(r'^api/player/error/$', PlayerErrorForPlayerView.as_view(), name='player-error'),
+    # API routes for the playlist, player side
+    url(
+        r'^api/player/status/$',
+        playlist_views.player.PlayerView.as_view(),
+        name='player-status'
+        ),
+    url(
+        r'^api/player/error/$',
+        playlist_views.player.PlayerErrorView.as_view(),
+        name='player-error'
+        ),
 
-    # Api routes for the playlist
-    url(r'^api/playlist/player/manage/$', PlayerCommandForUserView.as_view(), name='playlist-player-manage'),
-    url(r'^api/playlist/player/status/$', PlayerForUserView.as_view(), name='playlist-player-status'),
-    url(r'^api/playlist/player/errors/$', PlayerErrorsForUserView.as_view(), name='playlist-player-errors'),
-    url(r'^api/playlist/player/$', PlayerDetailsCommandErrorsForUserView.as_view(), name='playlist-player'),
-    url(r'^api/playlist/$', PlaylistEntryList.as_view(), name='playlist-list'),
-    url(r'^api/playlist/(?P<pk>[0-9]+)/$', PlaylistEntryDetail.as_view(), name='playlist-detail'),
+    # API routes for the playlist, front side
+    url(
+        r'^api/playlist/player/manage/$',
+        playlist_views.front.PlayerManageView.as_view(),
+        name='playlist-player-manage'
+        ),
+    url(
+        r'^api/playlist/player/status/$',
+        playlist_views.front.PlayerStatusView.as_view(),
+        name='playlist-player-status'
+        ),
+    url(
+        r'^api/playlist/player/errors/$',
+        playlist_views.front.PlayerErrorsPoolView.as_view(),
+        name='playlist-player-errors'
+        ),
+    url(
+        r'^api/playlist/player/$',
+        playlist_views.front.PlayerView.as_view(),
+        name='playlist-player'
+        ),
+    url(
+        r'^api/playlist/$',
+        playlist_views.front.PlaylistEntryListView.as_view(),
+        name='playlist-list'
+        ),
+    url(
+        r'^api/playlist/(?P<pk>[0-9]+)/$',
+        playlist_views.front.PlaylistEntryView.as_view(),
+        name='playlist-detail'
+        ),
 
-    # Api routes for the library
-    url(r'^api/library/songs/$', SongList.as_view(), name='library-song-list'),
-    url(r'^api/library/artists/$', ArtistList.as_view(), name='library-artist-list'),
-    url(r'^api/library/works/$', WorkList.as_view(), name='library-work-list'),
-    url(r'^api/library/work-types/$', WorkTypeList.as_view(), name='library-worktype-list'),
-    url(r'^api/library/songs/(?P<pk>[0-9]+)/$', SongDetailView.as_view(), name='library-song-detail'),
-
+    # API routes for the library
+    url(
+        r'^api/library/songs/$',
+        library_views.SongListView.as_view(),
+        name='library-song-list'
+        ),
+    url(
+        r'^api/library/artists/$',
+        library_views.ArtistListView.as_view(),
+        name='library-artist-list'
+        ),
+    url(
+        r'^api/library/works/$',
+        library_views.WorkListView.as_view(),
+        name='library-work-list'
+        ),
+    url(
+        r'^api/library/work-types/$',
+        library_views.WorkTypeListView.as_view(),
+        name='library-worktype-list'
+        ),
+    url(
+        r'^api/library/songs/(?P<pk>[0-9]+)/$',
+        library_views.SongView.as_view(),
+        name='library-song-detail'
+        ),
 ]
 
 if settings.DEBUG:

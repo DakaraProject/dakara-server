@@ -1,19 +1,22 @@
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, \
-                                    ListCreateAPIView
+from rest_framework.generics import (
+        RetrieveUpdateDestroyAPIView,
+        ListCreateAPIView,
+        )
+
 from django.db.models.functions import Lower
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from library.models import Song, Artist, Work, WorkType
-from library.serializers import SongSerializer, \
-                                ArtistSerializer, \
-                                WorkSerializer, \
-                                WorkTypeSerializer
 from django.db.models import Q
+
+from . import models
+from . import serializers
 from .query_language import QueryLanguageParser
 
+
 class LibraryPagination(PageNumberPagination):
-    """ Class for pagination
-        gives current page number and last page number
+    """Pagination
+
+    Gives current page number and last page number
     """
     def get_paginated_response(self, data):
         return Response({
@@ -24,100 +27,102 @@ class LibraryPagination(PageNumberPagination):
             })
 
 
-class SongList(ListCreateAPIView):
-    """ Class for listing songs
+class SongListView(ListCreateAPIView):
+    """List of songs
     """
-    serializer_class = SongSerializer
+    serializer_class = serializers.SongSerializer
     pagination_class = LibraryPagination
 
     def get_queryset(self):
-        """ Search and filter the songs
+        """Search and filter the songs
         """
-        query_set = Song.objects.all()
-        # if 'query' is in the query string
-        # then perform search
-        if 'query' in self.request.query_params:
-            query = self.request.query_params.get('query', None)
-            if query:
-                # the query can use a syntax, the query language, to specify
-                # which term to search where
-                # the language manages the simple search as well
-                # the parser is provided from query_language.py
-                language_parser = QueryLanguageParser()
-                res = language_parser.parse(query)
-                q = []
-                q_many = []
-                # specific terms of the research, i.e. artists, works and titles
-                for artist in res['artist']['contains']:
-                    q_many.append(Q(artists__name__icontains=artist))
+        query_set = models.Song.objects.all()
 
-                for artist in res['artist']['exact']:
-                    q_many.append(Q(artists__name__iexact=artist))
+        # if 'query' is in the query string then perform search otherwise
+        # return all songs
+        if 'query' not in self.request.query_params:
+            return query_set.order_by(Lower('title'))
 
-                for title in res['title']['contains']:
-                    q.append(Q(title__icontains=title))
+        query = self.request.query_params.get('query', None)
+        if query:
+            # the query can use a syntax, the query language, to specify which
+            # term to search and where
+            # the language manages the simple search as well the parser is
+            # provided from query_language.py
+            language_parser = QueryLanguageParser()
+            res = language_parser.parse(query)
+            q = []
+            q_many = []
+            # specific terms of the research, i.e. artists, works and titles
+            for artist in res['artist']['contains']:
+                q_many.append(Q(artists__name__icontains=artist))
 
-                for title in res['title']['exact']:
-                    q.append(Q(title__iexact=title))
+            for artist in res['artist']['exact']:
+                q_many.append(Q(artists__name__iexact=artist))
 
-                for work in res['work']['contains']:
-                    q.append(Q(works__title__icontains=work))
+            for title in res['title']['contains']:
+                q.append(Q(title__icontains=title))
 
-                for work in res['work']['exact']:
-                    q.append(Q(works__title__iexact=work))
+            for title in res['title']['exact']:
+                q.append(Q(title__iexact=title))
 
-                # specific terms of the research derivating from work
-                for query_name, search_keywords in res['work_type'].items():
-                    for keyword in search_keywords['contains']:
-                        q.append(
-                                Q(works__title__icontains=keyword) &
-                                Q(works__work_type__query_name=query_name)
-                                )
+            for work in res['work']['contains']:
+                q.append(Q(works__title__icontains=work))
 
-                    for keyword in search_keywords['exact']:
-                        q.append(
-                                Q(works__title__iexact=keyword) &
-                                Q(works__work_type__query_name=query_name)
-                                )
+            for work in res['work']['exact']:
+                q.append(Q(works__title__iexact=work))
 
-                    # one may want to factor the duplicated query on the work type
-                    # but it is very unlikely someone will define severals animes
-                    # (by instance) for a song at the same time
-                    # IMHO a factorization will make the code less clear and
-                    # just heavier, for no practical reason
-
-                # unspecific terms of the research
-                for remain in res['remaining']:
+            # specific terms of the research derivating from work
+            for query_name, search_keywords in res['work_type'].items():
+                for keyword in search_keywords['contains']:
                     q.append(
-                            Q(title__icontains=remain) |
-                            Q(artists__name__icontains=remain) |
-                            Q(works__title__icontains=remain)
-                        )
+                            Q(works__title__icontains=keyword) &
+                            Q(works__work_type__query_name=query_name)
+                            )
 
-                # tags
-                for tag in res['tag']:
-                    q_many.append(Q(tags__name=tag))
+                for keyword in search_keywords['exact']:
+                    q.append(
+                            Q(works__title__iexact=keyword) &
+                            Q(works__work_type__query_name=query_name)
+                            )
 
-                # now, gather the query objects
-                filter_query = Q()
-                for item in q:
-                    filter_query &= item
+                # one may want to factor the duplicated query on the work type
+                # but it is very unlikely someone will define severals animes
+                # (by instance) for a song at the same time
+                # IMHO a factorization will make the code less clear and just
+                # heavier, for no practical reason
 
-                query_set = query_set.filter(filter_query)
-                # gather the query objects involving custom many to many relation
-                for item in q_many:
-                    query_set = query_set.filter(item)
+            # unspecific terms of the research
+            for remain in res['remaining']:
+                q.append(
+                        Q(title__icontains=remain) |
+                        Q(artists__name__icontains=remain) |
+                        Q(works__title__icontains=remain)
+                    )
 
-                # saving the parsed query to give it back to the client
-                self.query_parsed = res
+            # tags
+            for tag in res['tag']:
+                q_many.append(Q(tags__name=tag))
 
-        # otherwise return all songs
+            # now, gather the query objects
+            filter_query = Q()
+            for item in q:
+                filter_query &= item
+
+            query_set = query_set.filter(filter_query)
+            # gather the query objects involving custom many to many relation
+            for item in q_many:
+                query_set = query_set.filter(item)
+
+            # saving the parsed query to give it back to the client
+            self.query_parsed = res
+
         return query_set.distinct().order_by(Lower('title'))
 
     def list(self, request, *args, **kwargs):
-        """ Send a listing of songs
+        """Send a listing of songs
         """
-        response = super(SongList, self).list(request, args, kwargs)
+        response = super().list(request, args, kwargs)
 
         # pass the query words to highlight to the response
         # the words have been passed to the object in the get_queryset method
@@ -129,55 +134,56 @@ class SongList(ListCreateAPIView):
         return response
 
 
-class SongDetailView(RetrieveUpdateDestroyAPIView):
-    """ Class for displaying song details
+class SongView(RetrieveUpdateDestroyAPIView):
+    """Edition and display of a song
     """
-    queryset = Song.objects.all()
-    serializer_class = SongSerializer
+    queryset = models.Song.objects.all()
+    serializer_class = serializers.SongSerializer
 
 
-class ArtistList(ListCreateAPIView):
-    """ Class for listing artists
+class ArtistListView(ListCreateAPIView):
+    """List of artists
     """
-    serializer_class = ArtistSerializer
+    serializer_class = serializers.ArtistSerializer
     pagination_class = LibraryPagination
 
     def get_queryset(self):
         """ Search and filter the artists
         """
-        query_set = Artist.objects.all()
+        query_set = models.Artist.objects.all()
 
-        # if 'query' is in the query string
-        # then perform search
-        if 'query' in self.request.query_params:
-            query = self.request.query_params.get('query', None)
-            if query:
-                # there is no need for query language for artists
-                # it is used to split terms and for uniformity
-                res = QueryLanguageParser.split_remaining(query)
-                q = []
-                # only unspecific terms are used
-                for remain in res:
-                    q.append(
-                            Q(name__icontains=remain)
-                        )
+        # if 'query' is in the query string then perform search return results
+        # of the corresponding query
+        if 'query' not in self.request.query_params:
+            return query_set.order_by(Lower("name"))
 
-                # gather the query objects
-                filter_query = Q()
-                for item in q:
-                    filter_query &= item
+        query = self.request.query_params.get('query', None)
+        if query:
+            # there is no need for query language for artists
+            # it is used to split terms and for uniformity
+            res = QueryLanguageParser.split_remaining(query)
+            q = []
+            # only unspecific terms are used
+            for remain in res:
+                q.append(
+                        Q(name__icontains=remain)
+                    )
 
-                query_set = query_set.filter(filter_query)
-                # saving the parsed query to give it back to the client
-                self.query_parsed = {'remaining': res}
+            # gather the query objects
+            filter_query = Q()
+            for item in q:
+                filter_query &= item
 
-        # return results of the corresponding query
+            query_set = query_set.filter(filter_query)
+            # saving the parsed query to give it back to the client
+            self.query_parsed = {'remaining': res}
+
         return query_set.order_by(Lower("name"))
 
     def list(self, request, *args, **kwargs):
         """ Send a listing of artists
         """
-        response = super(ArtistList, self).list(request, args, kwargs)
+        response = super().list(request, args, kwargs)
 
         # pass the query words to highlight to the response
         # the words have been passed to the object in the get_queryset method
@@ -189,16 +195,16 @@ class ArtistList(ListCreateAPIView):
         return response
 
 
-class WorkList(ListCreateAPIView):
+class WorkListView(ListCreateAPIView):
     """ Class for listing works
     """
-    serializer_class = WorkSerializer
+    serializer_class = serializers.WorkSerializer
     pagination_class = LibraryPagination
 
     def get_queryset(self):
         """ Search and filter the works
         """
-        query_set = Work.objects.all()
+        query_set = models.Work.objects.all()
 
         # if 'type' is in the query string
         # then filter work type
@@ -207,38 +213,39 @@ class WorkList(ListCreateAPIView):
             if work_type:
                 query_set = query_set.filter(work_type__query_name=work_type)
 
-        # if 'query' is in the query string
-        # then perform search
-        if 'query' in self.request.query_params:
-            query = self.request.query_params.get('query', None)
-            if query:
-                # there is no need for query language for works
-                # it is used to split terms and for uniformity
-                res = QueryLanguageParser.split_remaining(query)
-                q = []
-                # only unspecific terms are used
-                for remain in res:
-                    q.append(
-                            Q(title__icontains=remain) |
-                            Q(subtitle__icontains=remain)
-                        )
+        # if 'query' is in the query string then perform search return results
+        # of the corresponding query and type filter
+        if 'query' not in self.request.query_params:
+            return query_set.order_by(Lower("title"), Lower("subtitle"))
 
-                # gather the query objects
-                filter_query = Q()
-                for item in q:
-                    filter_query &= item
+        query = self.request.query_params.get('query', None)
+        if query:
+            # there is no need for query language for works it is used to split
+            # terms and for uniformity
+            res = QueryLanguageParser.split_remaining(query)
+            q = []
+            # only unspecific terms are used
+            for remain in res:
+                q.append(
+                        Q(title__icontains=remain) |
+                        Q(subtitle__icontains=remain)
+                    )
 
-                query_set = query_set.filter(filter_query)
-                # saving the parsed query to give it back to the client
-                self.query_parsed = {'remaining': res}
+            # gather the query objects
+            filter_query = Q()
+            for item in q:
+                filter_query &= item
 
-        # return results of the corresponding query and type filter
+            query_set = query_set.filter(filter_query)
+            # saving the parsed query to give it back to the client
+            self.query_parsed = {'remaining': res}
+
         return query_set.order_by(Lower("title"), Lower("subtitle"))
 
     def list(self, request, *args, **kwargs):
         """ Send a listing of works
         """
-        response = super(WorkList, self).list(request, args, kwargs)
+        response = super().list(request, args, kwargs)
 
         # pass the query words to highlight to the response
         # the words have been passed to the object in the get_queryset method
@@ -250,6 +257,6 @@ class WorkList(ListCreateAPIView):
         return response
 
 
-class WorkTypeList(ListCreateAPIView):
-    queryset = WorkType.objects.all().order_by(Lower("name"))
-    serializer_class = WorkTypeSerializer
+class WorkTypeListView(ListCreateAPIView):
+    queryset = models.WorkType.objects.all().order_by(Lower("name"))
+    serializer_class = serializers.WorkTypeSerializer

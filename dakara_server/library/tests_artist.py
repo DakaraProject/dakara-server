@@ -2,7 +2,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from .base_test import BaseAPITestCase
 
-class ArtistListAPIViewTestCase(BaseAPITestCase):
+class ArtistListViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('library-artist-list')
 
     def setUp(self):

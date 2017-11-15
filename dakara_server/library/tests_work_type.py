@@ -2,7 +2,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from .base_test import BaseAPITestCase
 
-class WorkTypeListAPIViewTestCase(BaseAPITestCase):
+class WorkTypeListViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('library-worktype-list')
 
     def setUp(self):

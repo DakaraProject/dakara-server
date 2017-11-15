@@ -3,7 +3,7 @@ from rest_framework import status
 from .base_test import BaseAPITestCase
 from .models import PlaylistEntry
 
-class PlaylistEntryListCreateAPIViewTestCase(BaseAPITestCase):
+class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-list')
 
     def setUp(self):
@@ -83,7 +83,7 @@ class PlaylistEntryListCreateAPIViewTestCase(BaseAPITestCase):
         # Playlist entries are in order of creation
         self.check_playlist_entry_json(response.data['results'][0], self.pe2)
 
-class PlaylistEntryRetrieveUpdateDestroyAPIViewTestCase(BaseAPITestCase):
+class PlaylistEntryViewRetrieveUpdateDestroyAPIViewTestCase(BaseAPITestCase):
 
     def setUp(self):
         self.create_test_data()

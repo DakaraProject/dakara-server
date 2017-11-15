@@ -2,7 +2,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from .base_test import BaseAPITestCase
 
-class PlayerForUserViewTestCase(BaseAPITestCase):
+class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-player-status')
     url_aggregated = reverse('playlist-player')
 
@@ -120,7 +120,7 @@ class PlayerForUserViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['status']['paused'], False)
 
 
-class PlayerCommandForUserViewTestCase(BaseAPITestCase):
+class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-player-manage')
     url_aggregated = reverse('playlist-player')
 
@@ -313,7 +313,7 @@ class PlayerCommandForUserViewTestCase(BaseAPITestCase):
 
 
 # TODO: Player errors check
-class PlayerErrorsForUserViewTestCase(BaseAPITestCase):
+class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-player-errors')
     url_aggregated = reverse('playlist-player')
 
