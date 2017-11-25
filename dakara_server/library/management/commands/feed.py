@@ -456,7 +456,9 @@ class DatabaseFeederEntry:
 
         # song exists in database for a similar filename in the same
         # directory
-        if removed_song_matched[0] is not None:
+        song = removed_song_matched[0]
+        if song is not None:
+            # Set the song in database now refers to this file
             song.filename = self.filename
             self.song = song
             self.to_save = True
