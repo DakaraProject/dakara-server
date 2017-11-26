@@ -643,6 +643,11 @@ class DatabaseFeederEntry:
         """
         self.song.save()
 
+        # Remove link to existing works, artists and tags
+        self.song.works.clear()
+        self.song.artists.clear()
+        self.song.tags.clear()
+
         # Create link to work if there is one
         if self.title_work:
             if self.work_type_query_name:

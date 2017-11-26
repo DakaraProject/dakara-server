@@ -157,15 +157,13 @@ class CommandsTestCase(TestCase):
         # Pre-Assertions
         songs = Song.objects.order_by('title')
         self.assertEqual(len(songs), 0)
-        artists = Artist.objects.order_by('name')
-        self.assertEqual(len(artists), 0)
 
         with TemporaryDirectory(prefix="dakara.") as dirpath:
-            first_file_filename = "The first song name - Artist name.mp4"
+            first_file_filename = "The first song name - First artist name - First work title - FIRSTTAG.mp4"
             with open(os.path.join(dirpath, first_file_filename), 'wt') as f:
                 f.write("This is supposed to be an mp4 file content")
 
-            second_file_filename = "The second song name - Artist name.mp4"
+            second_file_filename = "The second song name - Second artist name - Second work title - SECONDTAG.mp4"
             with open(os.path.join(dirpath, second_file_filename), 'wt') as f:
                 f.write("This is supposed to be an mp4 file content")
 
@@ -174,24 +172,36 @@ class CommandsTestCase(TestCase):
             opts = {'parser': "library/parser_test.py", 'quiet': True, 'metadata_parser': 'none'}
             call_command('feed', *args, **opts)
 
-
-            artists = Artist.objects.order_by('name')
-            self.assertEqual(len(artists), 1)
-            artist = artists[0]
-            self.assertEqual(artist.name, "Artist name")
-
             songs = Song.objects.order_by('title')
             self.assertEqual(len(songs), 2)
-            self.assertEqual(songs[0].filename, first_file_filename)
-            self.assertEqual(songs[0].directory, '')
-            self.assertEqual(songs[0].title, "The first song name")
-            self.assertEqual(len(songs[0].artists.all()), 1)
-            self.assertEqual(songs[0].artists.all()[0].id, artist.id)
-            self.assertEqual(songs[1].filename, second_file_filename)
-            self.assertEqual(songs[1].directory, '')
-            self.assertEqual(songs[1].title, "The second song name")
-            self.assertEqual(len(songs[1].artists.all()), 1)
-            self.assertEqual(songs[1].artists.all()[0].id, artist.id)
+            first_song = songs[0]
+            second_song = songs[1]
+
+            self.assertEqual(first_song.filename, first_file_filename)
+            self.assertEqual(first_song.directory, '')
+            self.assertEqual(first_song.title, "The first song name")
+            # check artist
+            self.assertEqual(len(first_song.artists.all()), 1)
+            self.assertEqual(first_song.artists.all()[0].name, "First artist name")
+            # check work
+            self.assertEqual(len(first_song.works.all()), 1)
+            self.assertEqual(first_song.works.all()[0].title, "First work title")
+            # check tag
+            self.assertEqual(len(first_song.tags.all()), 1)
+            self.assertEqual(first_song.tags.all()[0].name, "FIRSTTAG")
+
+            self.assertEqual(second_song.filename, second_file_filename)
+            self.assertEqual(second_song.directory, '')
+            self.assertEqual(second_song.title, "The second song name")
+            # check artist
+            self.assertEqual(len(second_song.artists.all()), 1)
+            self.assertEqual(second_song.artists.all()[0].name, "Second artist name")
+            # check work
+            self.assertEqual(len(second_song.works.all()), 1)
+            self.assertEqual(second_song.works.all()[0].title, "Second work title")
+            # check tag
+            self.assertEqual(len(second_song.tags.all()), 1)
+            self.assertEqual(second_song.tags.all()[0].name, "SECONDTAG")
 
     def test_feed_command_rename(self):
         """
@@ -756,3 +766,64 @@ class CommandsTestCase(TestCase):
             self.assertEqual(second_song_new.directory, '')
             self.assertEqual(second_song_new.title,
                     os.path.splitext(second_file_filename_new)[0])
+
+
+    def test_feed_command_artist_work_tag_change(self):
+        """
+        Test feed command when a song is updated with a different artist, work and tag
+        """
+        # Pre-Assertions
+        songs = Song.objects.all()
+        self.assertEqual(len(songs), 0)
+
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
+
+            # Create a file to be feed
+            filename = "The song name - Artist name - Work title - TAG.mp4"
+            filepath = os.path.join(dirpath, filename)
+            with open(os.path.join(dirpath, filename), 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            # Call command
+            args = [dirpath]
+            opts = {'parser': "library/parser_test.py", 'quiet': True, 'metadata_parser': 'none'}
+            call_command('feed', *args, **opts)
+
+            songs = Song.objects.all()
+            self.assertEqual(len(songs), 1)
+            song = songs[0]
+            self.assertEqual(song.filename, filename)
+            # Check artist
+            self.assertEqual(len(song.artists.all()), 1)
+            self.assertEqual(song.artists.all()[0].name, "Artist name")
+            # Check work
+            self.assertEqual(len(song.works.all()), 1)
+            self.assertEqual(song.works.all()[0].title, "Work title")
+            # Check tag
+            self.assertEqual(len(song.tags.all()), 1)
+            self.assertEqual(song.tags.all()[0].name, "TAG")
+
+            # The file is renamed with a different artist name
+            filename_new = "The song name - New artist name - New work title - NEWTAG.mp4"
+            filepath_new = os.path.join(dirpath, filename_new)
+            os.rename(filepath, filepath_new)
+
+            # Call command again
+            args = [dirpath]
+            opts = {'parser': "library/parser_test.py", 'quiet': True, 'metadata_parser': 'none'}
+            call_command('feed', *args, **opts)
+
+            songs = Song.objects.all()
+            self.assertEqual(len(songs), 1)
+            song_new = songs[0]
+            # Same song
+            self.assertEqual(song_new.id, song.id)
+            # New artist
+            self.assertEqual(len(song_new.artists.all()), 1)
+            self.assertEqual(song_new.artists.all()[0].name, "New artist name")
+            # New work
+            self.assertEqual(len(song_new.works.all()), 1)
+            self.assertEqual(song_new.works.all()[0].title, "New work title")
+            # New tag
+            self.assertEqual(len(song_new.tags.all()), 1)
+            self.assertEqual(song_new.tags.all()[0].name, "NEWTAG")
