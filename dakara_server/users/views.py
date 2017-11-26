@@ -1,43 +1,53 @@
-from rest_framework import permissions
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from rest_framework import views
 from rest_framework.response import Response
-from django.contrib.auth import get_user_model # If used custom user model
+from django.contrib.auth import get_user_model
 from library.views import LibraryPagination as UsersPagination
+
 from . import serializers
-from . import permissions as users_permissions
+from . import permissions
+
 
 UserModel = get_user_model()
 
 
-class CurrentUser(views.APIView):
+class CurrentUserView(views.APIView):
+    """View of the current user
+    """
     permission_classes = [
-            permissions.IsAuthenticated
+            IsAuthenticated
             ]
 
     def get(self, request):
+        """Retrieve the user
+        """
         user = request.user
         serializer = serializers.UserSerializer(user)
 
         return Response(serializer.data)
 
 
-class UserList(generics.ListCreateAPIView):
+class UserListView(generics.ListCreateAPIView):
+    """List and creation of users
+    """
     model = UserModel
     queryset = UserModel.objects.all()
     serializer_class = serializers.UserSerializer
     pagination_class = UsersPagination
     permission_classes = [
-            users_permissions.IsUsersManagerOrReadOnly
+            permissions.IsUsersManagerOrReadOnly
     ]
 
 
 class UserView(generics.RetrieveUpdateDestroyAPIView):
+    """Edition and view of a user
+    """
     model = UserModel
     queryset = UserModel.objects.all()
     permission_classes = [
-            users_permissions.IsUsersManagerOrReadOnly,
-            users_permissions.IsNotSelfOrReadOnly
+            permissions.IsUsersManagerOrReadOnly,
+            permissions.IsNotSelfOrReadOnly
     ]
 
     def get_serializer_class(self, *args, **kwargs):
@@ -48,9 +58,11 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PasswordView(generics.UpdateAPIView):
+    """Edition of a user password
+    """
     model = UserModel
     queryset = UserModel.objects.all()
     serializer_class = serializers.PasswordSerializer
     permission_classes = [
-            users_permissions.IsSelf
+            permissions.IsSelf
             ]
