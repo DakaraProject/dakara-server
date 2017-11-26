@@ -677,3 +677,82 @@ class CommandsTestCase(TestCase):
             with open(media_file_filepath_origin + "_expected") as expected:
                 expected_lyrics_lines = expected.read().splitlines()
                 self.assertEqual(songs[0].lyrics.splitlines(), expected_lyrics_lines)
+
+
+    def test_feed_command_rename_multiple(self):
+        """
+        Test feed command when multiple files has been renamed
+        """
+        # Pre-Assertions
+        songs = Song.objects.order_by('title')
+        self.assertEqual(len(songs), 0)
+
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
+            # create the first file
+            first_file_filename = "The first file.mp4"
+            first_file_filepath = os.path.join(dirpath, first_file_filename)
+
+            with open(first_file_filepath, 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            # create the second file
+            second_file_filename = "The second file.mp4"
+            second_file_filepath = os.path.join(dirpath, second_file_filename)
+            with open(second_file_filepath, 'wt') as f:
+                f.write("This is supposed to be an mp4 file content")
+
+            # call command first to populate
+            args = [dirpath]
+            opts = {'quiet': True, 'metadata_parser': 'none'}
+            call_command('feed', *args, **opts)
+
+            # 2 files should exist
+            songs = Song.objects.order_by('title')
+            self.assertEqual(len(songs), 2)
+            first_song = songs[0]
+            second_song = songs[1]
+
+            # check the databases entries are conform with the files
+            self.assertEqual(first_song.filename, first_file_filename)
+            self.assertEqual(first_song.directory, '')
+            self.assertEqual(first_song.title, os.path.splitext(first_file_filename)[0])
+            self.assertEqual(second_song.filename, second_file_filename)
+            self.assertEqual(second_song.directory, '')
+            self.assertEqual(second_song.title, os.path.splitext(second_file_filename)[0])
+
+            # suddenly, rename the first and second files
+            first_file_filename_new = "The first new file.mp4"
+            first_file_filepath_new = os.path.join(dirpath, first_file_filename_new)
+            os.rename(first_file_filepath, first_file_filepath_new)
+
+            second_file_filename_new = "The second new file.mp4"
+            second_file_filepath_new = os.path.join(dirpath, second_file_filename_new)
+            os.rename(second_file_filepath, second_file_filepath_new)
+
+            # call command to update database
+            args = [dirpath]
+            opts = {'quiet': True, 'metadata_parser': 'none'}
+            call_command('feed', *args, **opts)
+
+            # there should be still 2 entries in the database
+            # since the filenames are close to the original filenames
+            songs = Song.objects.order_by('title')
+            first_song_new = songs[0]
+            second_song_new = songs[1]
+            self.assertEqual(len(songs), 2)
+
+            # check new first file, which is the same as initial first file
+            # the identity is checked by ID
+            self.assertEqual(first_song_new.id, first_song.id)
+            self.assertEqual(first_song_new.filename, first_file_filename_new)
+            self.assertEqual(first_song_new.directory, '')
+            self.assertEqual(first_song_new.title,
+                    os.path.splitext(first_file_filename_new)[0])
+
+            # check new second file, which is the same as initial second file
+            # the identity is checked by ID
+            self.assertEqual(second_song_new.id, second_song.id)
+            self.assertEqual(second_song_new.filename, second_file_filename_new)
+            self.assertEqual(second_song_new.directory, '')
+            self.assertEqual(second_song_new.title,
+                    os.path.splitext(second_file_filename_new)[0])
