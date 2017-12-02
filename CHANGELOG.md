@@ -30,6 +30,12 @@
 
 ## Unreleased
 
+### Added
+- Prune option to createtags and createworktypes commands
+
+### Fixed
+- When the feeder update a song, the song is no longer associated with old artists, works and tags
+
 ## 1.0.0 - 2017-11-12
 
 ### Added
