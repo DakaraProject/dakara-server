@@ -1,10 +1,10 @@
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import TemporaryDirectory
 import os
 import shutil
 import unittest
 from django.core.management import call_command
 from django.test import TestCase
-from .models import WorkType, SongTag, Song, Artist
+from .models import Song, Artist
 from .management.commands.feed_components.ffmpeg_wrapper import FFmpegWrapper
 
 RESSOURCES_DIR = "tests_ressources"
@@ -13,77 +13,23 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class CommandsTestCase(TestCase):
 
-    def test_createtags_command(self):
+    def call_feed_command(self, directory_path, options={}):
+        args = [directory_path]
+        opts = {'quiet': True, 'metadata_parser': 'none'}
+        opts.update(options)
+
+        call_command('feed', *args, **opts)
+
+    def create_media_file(self, path, filename):
         """
-        Test create tags command
+        Create file in path
+        returns path to file
         """
-        # Pre-Assertions
-        tags = SongTag.objects.order_by('name')
-        self.assertEqual(len(tags), 0)
+        filepath = os.path.join(path, filename)
+        with open(filepath, 'wt') as f:
+            f.write("This is supposed to be an mp4 file content")
 
-        file_content = """tags:
-  - name: TAGNAME1
-    color_id: 0
-  - name: TAGNAME2
-    color_id: 5"""
-
-        # Create temporary config file
-        with NamedTemporaryFile(mode='wt') as config_file:
-            config_file.write(file_content)
-            config_file.flush()
-
-            # Call command
-            args = [config_file.name]
-            opts = {'quiet': True}
-            call_command('createtags', *args, **opts)
-
-            # Post-Assertions
-            tags = SongTag.objects.order_by('name')
-            self.assertEqual(len(tags), 2)
-            self.assertEqual(tags[0].name, "TAGNAME1")
-            self.assertEqual(tags[0].color_id, 0)
-            self.assertEqual(tags[1].name, "TAGNAME2")
-            self.assertEqual(tags[1].color_id, 5)
-
-    def test_createworktypes_command(self):
-        """
-        Test create work types command
-        """
-        # Pre-Assertions
-        work_types = WorkType.objects.order_by('query_name')
-        self.assertEqual(len(work_types), 0)
-
-        file_content = """worktypes:
-  - query_name: work-type-one
-    name: Work type one
-    name_plural: Work type one plural
-    icon_name: elephant
-  - query_name: work-type-two
-    name: Work type two
-    name_plural: Work type two plural
-    icon_name: cat"""
-
-        # Create temporary config file
-        with NamedTemporaryFile(mode='wt') as config_file:
-            config_file.write(file_content)
-            config_file.flush()
-
-            # Call command
-            args = [config_file.name]
-            opts = {'quiet': True}
-            call_command('createworktypes', *args, **opts)
-
-            # Post-Assertions
-            work_types = WorkType.objects.order_by('query_name')
-            self.assertEqual(len(work_types), 2)
-            self.assertEqual(work_types[0].query_name, "work-type-one")
-            self.assertEqual(work_types[0].name, "Work type one")
-            self.assertEqual(work_types[0].name_plural, "Work type one plural")
-            self.assertEqual(work_types[0].icon_name, "elephant")
-            self.assertEqual(work_types[1].query_name, "work-type-two")
-            self.assertEqual(work_types[1].name, "Work type two")
-            self.assertEqual(work_types[1].name_plural, "Work type two plural")
-            self.assertEqual(work_types[1].icon_name, "cat")
+        return filepath
 
     def test_feed_command(self):
         """
@@ -95,17 +41,13 @@ class CommandsTestCase(TestCase):
 
         with TemporaryDirectory(prefix="dakara.") as dirpath:
             first_file_filename = "The first file.mp4"
-            with open(os.path.join(dirpath, first_file_filename), 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            self.create_media_file(dirpath, first_file_filename)
 
             second_file_filename = "The second file.mp4"
-            with open(os.path.join(dirpath, second_file_filename), 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            self.create_media_file(dirpath, second_file_filename)
 
             # Call command
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             songs = Song.objects.order_by('title')
             self.assertEqual(len(songs), 2)
@@ -128,18 +70,14 @@ class CommandsTestCase(TestCase):
 
         with TemporaryDirectory(prefix="dakara.") as dirpath:
             first_file_filename = "The first file.mp4"
-            with open(os.path.join(dirpath, first_file_filename), 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            self.create_media_file(dirpath, first_file_filename)
 
             second_file_filename = "The second file.mp4"
-            with open(os.path.join(dirpath, second_file_filename), 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            self.create_media_file(dirpath, second_file_filename)
 
             # Call command
             # Join with empty string to add a trailing slash if it's not already there
-            args = [os.path.join(dirpath, '')]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(os.path.join(dirpath, ''))
 
             songs = Song.objects.order_by('title')
             self.assertEqual(len(songs), 2)
@@ -160,17 +98,13 @@ class CommandsTestCase(TestCase):
 
         with TemporaryDirectory(prefix="dakara.") as dirpath:
             first_file_filename = "The first song name - First artist name - First work title - FIRSTTAG.mp4"
-            with open(os.path.join(dirpath, first_file_filename), 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            self.create_media_file(dirpath, first_file_filename)
 
             second_file_filename = "The second song name - Second artist name - Second work title - SECONDTAG.mp4"
-            with open(os.path.join(dirpath, second_file_filename), 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            self.create_media_file(dirpath, second_file_filename)
 
             # Call command
-            args = [dirpath]
-            opts = {'parser': "library/parser_test.py", 'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath, {'parser': "library/parser_test.py"})
 
             songs = Song.objects.order_by('title')
             self.assertEqual(len(songs), 2)
@@ -214,21 +148,14 @@ class CommandsTestCase(TestCase):
         with TemporaryDirectory(prefix="dakara.") as dirpath:
             # create the first file
             first_file_filename = "The first file.mp4"
-            first_file_filepath = os.path.join(dirpath, first_file_filename)
-
-            with open(first_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            first_file_filepath = self.create_media_file(dirpath, first_file_filename)
 
             # create the second file
             second_file_filename = "The second file.mp4"
-            second_file_filepath = os.path.join(dirpath, second_file_filename)
-            with open(second_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            second_file_filepath = self.create_media_file(dirpath, second_file_filename)
 
             # call command first to populate
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             # 2 files should exist
             songs = Song.objects.order_by('title')
@@ -250,9 +177,7 @@ class CommandsTestCase(TestCase):
             os.rename(first_file_filepath, first_file_filepath_new)
 
             # call command first to populate
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             # there should be still 2 entries in the database
             # since its filename is close enough to the original filename
@@ -284,20 +209,16 @@ class CommandsTestCase(TestCase):
         self.assertEqual(len(songs), 0)
 
         with TemporaryDirectory(prefix="dakara.") as dirpath:
+            # create the first file
             first_file_filename = "The first file.mp4"
-            first_file_filepath = os.path.join(dirpath, first_file_filename)
-            with open(first_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            first_file_filepath = self.create_media_file(dirpath, first_file_filename)
 
+            # create the second file
             second_file_filename = "The second file.mp4"
-            second_file_filepath = os.path.join(dirpath, second_file_filename)
-            with open(second_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            second_file_filepath = self.create_media_file(dirpath, second_file_filename)
 
             # Call command first to populate
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             # basic test: the two files are in database as expected
             songs = Song.objects.order_by('title')
@@ -317,9 +238,7 @@ class CommandsTestCase(TestCase):
             os.rename(first_file_filepath, first_file_filepath_new)
 
             # call command first to populate
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             # there should be 3 files, because the new one is too different
             # from before
@@ -367,35 +286,27 @@ class CommandsTestCase(TestCase):
 
             # create 2 file in first directory
             first_file_filename = "The first file.mp4"
-            first_file_filepath = os.path.join(dirpath, first_directory,
-                first_file_filename)
-
-            with open(first_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            first_file_filepath = self.create_media_file(
+                    os.path.join(dirpath, first_directory),
+                    first_file_filename
+                    )
 
             second_file_filename = "The second file.mp4"
-            second_file_filepath = os.path.join(dirpath, first_directory,
-                second_file_filename)
-
-            with open(second_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            second_file_filepath = self.create_media_file(
+                    os.path.join(dirpath, first_directory),
+                    second_file_filename
+                    )
 
             # create 1 file in second directory
             third_file_filename = "The third file.mp4"
-            third_file_filepath = os.path.join(dirpath, second_directory,
-                third_file_filename)
-
-            with open(third_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            third_file_filepath = self.create_media_file(
+                    os.path.join(dirpath, second_directory),
+                    third_file_filename
+                    )
 
             # call command on each subdirectories
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none', 'directory': first_directory}
-            call_command('feed', *args, **opts)
-
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none', 'directory': second_directory}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath, {'directory': first_directory})
+            self.call_feed_command(dirpath, {'directory': second_directory})
 
             # there should be 3 songs
             songs = Song.objects.order_by('title')
@@ -424,13 +335,8 @@ class CommandsTestCase(TestCase):
                 ))
 
             # call command on each subdirectories another time
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none', 'directory': first_directory}
-            call_command('feed', *args, **opts)
-
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none', 'directory': second_directory}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath, {'directory': first_directory})
+            self.call_feed_command(dirpath, {'directory': second_directory})
 
             # there should be 3 songs
             songs = Song.objects.order_by('title')
@@ -465,21 +371,14 @@ class CommandsTestCase(TestCase):
         with TemporaryDirectory(prefix="dakara.") as dirpath:
             # create the first file
             first_file_filename = "The first file.mp4"
-            first_file_filepath = os.path.join(dirpath, first_file_filename)
-
-            with open(first_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            first_file_filepath = self.create_media_file(dirpath, first_file_filename)
 
             # create the second file
             second_file_filename = "The second file.mp4"
-            second_file_filepath = os.path.join(dirpath, second_file_filename)
-            with open(second_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            second_file_filepath = self.create_media_file(dirpath, second_file_filename)
 
             # call command first to populate
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             # 2 files should exist
             songs = Song.objects.order_by('title')
@@ -502,15 +401,11 @@ class CommandsTestCase(TestCase):
 
             # create new file with similar name
             third_file_filename = "The zew first file.mp4"
-            third_file_filepath = os.path.join(dirpath, third_file_filename)
-            with open(third_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            third_file_filepath = self.create_media_file(dirpath, third_file_filename)
 
 
             # call command again to populate
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             # there should be 3 entries in the database
             # since the renamed filed should be matched with its old name
@@ -552,20 +447,16 @@ class CommandsTestCase(TestCase):
         self.assertEqual(len(songs), 0)
 
         with TemporaryDirectory(prefix="dakara.") as dirpath:
+            # create the first file
             first_file_filename = "The first file.mp4"
-            first_file_path = os.path.join(dirpath, first_file_filename)
-            with open(first_file_path, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            first_file_filepath = self.create_media_file(dirpath, first_file_filename)
 
+            # create the second file
             second_file_filename = "The second file.mp4"
-            second_file_path = os.path.join(dirpath, second_file_filename)
-            with open(second_file_path, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            second_file_filepath = self.create_media_file(dirpath, second_file_filename)
 
             # Call command
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             songs = Song.objects.order_by('title')
             self.assertEqual(len(songs), 2)
@@ -573,12 +464,10 @@ class CommandsTestCase(TestCase):
             self.assertEqual(songs[1].filename, second_file_filename)
 
             # Suddenly a file disappears
-            os.remove(first_file_path)
+            os.remove(first_file_filepath)
 
             # Call command again with prune option
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none', 'prune': True}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath, {'prune': True})
 
             # Only second file in database
             songs = Song.objects.order_by('title')
@@ -595,8 +484,7 @@ class CommandsTestCase(TestCase):
 
         with TemporaryDirectory(prefix="dakara.") as dirpath:
             media_file_filename = "The file.mp4"
-            with open(os.path.join(dirpath, media_file_filename), 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            self.create_media_file(dirpath, media_file_filename)
 
             subtitle_file_filename = "The file.ass"
             subtitle_file_filepath_origin = os.path.join(
@@ -610,9 +498,7 @@ class CommandsTestCase(TestCase):
                     os.path.join(dirpath, subtitle_file_filename))
 
             # Call command
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             songs = Song.objects.all()
             self.assertEqual(len(songs), 1)
@@ -633,8 +519,7 @@ class CommandsTestCase(TestCase):
 
         with TemporaryDirectory(prefix="dakara.") as dirpath:
             media_file_filename = "The file.mp4"
-            with open(os.path.join(dirpath, media_file_filename), 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            self.create_media_file(dirpath, media_file_filename)
 
             lyrics = "lalalalalala\nlunlunlun"
             subtitle_file_filename = "The file.txt"
@@ -642,9 +527,7 @@ class CommandsTestCase(TestCase):
                 f.write(lyrics)
 
             # Call command
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             songs = Song.objects.all()
             self.assertEqual(len(songs), 1)
@@ -675,9 +558,7 @@ class CommandsTestCase(TestCase):
                     os.path.join(dirpath, media_file_filename))
 
             # Call command
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             songs = Song.objects.all()
             self.assertEqual(len(songs), 1)
@@ -700,21 +581,14 @@ class CommandsTestCase(TestCase):
         with TemporaryDirectory(prefix="dakara.") as dirpath:
             # create the first file
             first_file_filename = "The first file.mp4"
-            first_file_filepath = os.path.join(dirpath, first_file_filename)
-
-            with open(first_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            first_file_filepath = self.create_media_file(dirpath, first_file_filename)
 
             # create the second file
             second_file_filename = "The second file.mp4"
-            second_file_filepath = os.path.join(dirpath, second_file_filename)
-            with open(second_file_filepath, 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            second_file_filepath = self.create_media_file(dirpath, second_file_filename)
 
             # call command first to populate
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             # 2 files should exist
             songs = Song.objects.order_by('title')
@@ -740,9 +614,7 @@ class CommandsTestCase(TestCase):
             os.rename(second_file_filepath, second_file_filepath_new)
 
             # call command to update database
-            args = [dirpath]
-            opts = {'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath)
 
             # there should be still 2 entries in the database
             # since the filenames are close to the original filenames
@@ -780,14 +652,10 @@ class CommandsTestCase(TestCase):
 
             # Create a file to be feed
             filename = "The song name - Artist name - Work title - TAG.mp4"
-            filepath = os.path.join(dirpath, filename)
-            with open(os.path.join(dirpath, filename), 'wt') as f:
-                f.write("This is supposed to be an mp4 file content")
+            filepath = self.create_media_file(dirpath, filename)
 
             # Call command
-            args = [dirpath]
-            opts = {'parser': "library/parser_test.py", 'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath, {'parser': "library/parser_test.py"})
 
             songs = Song.objects.all()
             self.assertEqual(len(songs), 1)
@@ -809,9 +677,7 @@ class CommandsTestCase(TestCase):
             os.rename(filepath, filepath_new)
 
             # Call command again
-            args = [dirpath]
-            opts = {'parser': "library/parser_test.py", 'quiet': True, 'metadata_parser': 'none'}
-            call_command('feed', *args, **opts)
+            self.call_feed_command(dirpath, {'parser': "library/parser_test.py"})
 
             songs = Song.objects.all()
             self.assertEqual(len(songs), 1)
