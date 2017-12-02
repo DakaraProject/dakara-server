@@ -25,7 +25,7 @@ class Command(BaseCommandWithConfig):
         """
         parser.add_argument(
                 "--prune",
-                help="Remove from database work types not found in config file",
+                help="Remove from database, work types not found in config file",
                 action="store_true"
                 )
 
