@@ -32,6 +32,7 @@
 
 ### Added
 - Prune option to createtags and createworktypes commands
+- New Command: prune, to remove works and artists no longer linked to a song.
 
 ### Fixed
 - When the feeder update a song, the song is no longer associated with old artists, works and tags
