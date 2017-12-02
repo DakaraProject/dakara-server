@@ -11,7 +11,7 @@ RESSOURCES_DIR = "tests_ressources"
 SUBTITLES_DIR = "subtitles"
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
-class CommandsTestCase(TestCase):
+class FeedCommandTestCase(TestCase):
 
     def call_feed_command(self, directory_path, options={}):
         args = [directory_path]
