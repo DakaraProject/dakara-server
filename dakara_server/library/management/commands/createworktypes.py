@@ -23,6 +23,12 @@ class Command(BaseCommandWithConfig):
     def add_arguments_custom(self, parser):
         """ Extra arguments for the command
         """
+        parser.add_argument(
+                "--prune",
+                help="Remove from database work types not found in config file",
+                action="store_true"
+                )
+
         parser.epilog = (
                 "Authorized subkeys for work types are '" +
                 "', '".join(self._get_subkeys()) +
@@ -36,6 +42,8 @@ class Command(BaseCommandWithConfig):
                 of dictionnaries with different keys. Among them, the
                 `query_name` key is mandatory.
         """
+        created_or_updated_work_type_ids = []
+
         for work_type in work_types:
             # check there is a query name
             if 'query_name' not in work_type:
@@ -55,5 +63,10 @@ class Command(BaseCommandWithConfig):
                 # alter the work type attribute
                 setattr(work_type_entry, subkey, work_type[subkey])
                 work_type_entry.save()
+
+            created_or_updated_work_type_ids.append(work_type_entry.id)
+
+        if options.get('prune'):
+            WorkType.objects.exclude(id__in=created_or_updated_work_type_ids).delete()
 
         self.stdout.write("Work types successfuly created")
