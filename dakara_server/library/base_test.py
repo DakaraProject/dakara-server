@@ -104,6 +104,7 @@ class BaseAPITestCase(APITestCase):
         """
         self.assertEqual(json['name'], expected_artist.name)
         self.assertEqual(json['color_id'], expected_artist.color_id)
+        self.assertEqual(json['disabled'], expected_artist.disabled)
 
 
     def check_artist_json(self, json, expected_artist):

@@ -1,6 +1,8 @@
 from rest_framework.generics import (
         RetrieveUpdateDestroyAPIView,
+        UpdateAPIView,
         ListCreateAPIView,
+        ListAPIView,
         )
 
 from django.db.models.functions import Lower
@@ -37,6 +39,11 @@ class SongListView(ListCreateAPIView):
         """Search and filter the songs
         """
         query_set = models.Song.objects.all()
+
+        # hide all songs with disabled tags for non-managers or non-superusers
+        user = self.request.user
+        if not (user.is_superuser or user.has_library_permission_level('m')):
+            query_set = query_set.exclude(tags__disabled=True)
 
         # if 'query' is in the query string then perform search otherwise
         # return all songs
@@ -260,3 +267,13 @@ class WorkListView(ListCreateAPIView):
 class WorkTypeListView(ListCreateAPIView):
     queryset = models.WorkType.objects.all().order_by(Lower("name"))
     serializer_class = serializers.WorkTypeSerializer
+
+
+class SongTagListView(ListAPIView):
+    queryset = models.SongTag.objects.all().order_by(Lower("name"))
+    serializer_class = serializers.SongTagSerializer
+
+
+class SongTagView(UpdateAPIView):
+    queryset = models.SongTag.objects.all()
+    serializer_class = serializers.SongTagSerializer

@@ -83,6 +83,40 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Playlist entries are in order of creation
         self.check_playlist_entry_json(response.data['results'][0], self.pe2)
 
+    def test_post_create_playlist_entry_disabled_tag(self):
+        """
+        Test to verify playlist entry creation is forbidden for a song with a
+        disabled tag
+        """
+        # Login as playlist user
+        self.authenticate(self.p_user)
+
+        # Set tag1 disabled
+        self.tag1.disabled = True
+        self.tag1.save()
+
+        # Post new playlist entry with disabled Tag 1
+        response = self.client.post(self.url, {"song": self.song1.id})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_post_create_playlist_entry_disabled_tag_manager(self):
+        """
+        Test to verify playlist entry creation is allowed for a song with a
+        disabled tag when the user is manager for playlist and library
+        """
+        # Login as playlist user
+        user = self.create_user('manager', playlist_level='m',
+                                library_level='m')
+        self.authenticate(user)
+
+        # Set tag1 disabled
+        self.tag1.disabled = True
+        self.tag1.save()
+
+        # Post new playlist entry with disabled Tag 1
+        response = self.client.post(self.url, {"song": self.song1.id})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 class PlaylistEntryViewRetrieveUpdateDestroyAPIViewTestCase(BaseAPITestCase):
 
     def setUp(self):

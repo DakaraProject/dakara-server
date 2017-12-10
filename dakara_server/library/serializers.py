@@ -125,6 +125,7 @@ class SongTagSerializer(serializers.ModelSerializer):
         fields = (
                 'name',
                 'color_id',
+                'disabled',
                 )
 
 

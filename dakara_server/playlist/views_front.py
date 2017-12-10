@@ -43,7 +43,8 @@ class PlaylistEntryListView(ListCreateAPIView):
     """
     pagination_class = PlaylistEntryPagination
     permission_classes = [
-            permissions.IsPlaylistUserOrReadOnly
+            permissions.IsPlaylistUserOrReadOnly,
+            permissions.IsPlaylistAndLibraryManagerOrSongCanBeAdded
             ]
 
     def get_serializer_class(self, *args, **kwargs):
