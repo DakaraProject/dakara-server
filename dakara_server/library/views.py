@@ -272,6 +272,7 @@ class WorkTypeListView(ListCreateAPIView):
 class SongTagListView(ListAPIView):
     queryset = models.SongTag.objects.all().order_by(Lower("name"))
     serializer_class = serializers.SongTagSerializer
+    pagination_class = LibraryPagination
 
 
 class SongTagView(UpdateAPIView):
