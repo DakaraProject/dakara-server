@@ -7,24 +7,23 @@
 
 import os
 import sys
-import re
 import logging
 import importlib
 import progressbar
 import argparse
-import subprocess
-import json
-from collections import defaultdict, OrderedDict
-from pymediainfo import MediaInfo
-from datetime import timedelta
-from difflib import SequenceMatcher
+from collections import defaultdict
 from tempfile import TemporaryDirectory
 
-import pysubs2
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import MultipleObjectsReturned
 
 from library.models import *
+
+from .feed_components.utils import is_similar, file_is_valid, file_is_subtitle
+from .feed_components.subtitle_parser import PARSER_BY_EXTENSION
+from .feed_components.ffmpeg_wrapper import FFmpegWrapper
+from .feed_components.metadata_parser import MetadataParser, MediainfoMetadataParser, FFProbeMetadataParser
+from .feed_components.progress_bar import TextProgressBar, TextNullBar
 
 # wrap a special stream for warnings
 # the wrapping done by progressbar seems to reassign the ouput and flush it when
@@ -644,6 +643,11 @@ class DatabaseFeederEntry:
         """
         self.song.save()
 
+        # Remove link to existing works, artists and tags
+        self.song.works.clear()
+        self.song.artists.clear()
+        self.song.tags.clear()
+
         # Create link to work if there is one
         if self.title_work:
             if self.work_type_query_name:
@@ -696,398 +700,6 @@ class DatabaseFeederEntryError(Exception):
     """ Class for handling errors raised when dealing with
         a file gathered by the feeder
     """
-
-
-def file_is_valid(filename):
-    """ Check the file validity
-
-        A valid file is:
-            Not a hidden file or blacklisted extension
-
-        Args:
-            filename (str): name of the file.
-
-        Returns:
-            (bool) true if the file is valid.
-    """
-    return all((
-        # media file
-        os.path.splitext(filename)[1] not in (
-            '.db'
-            ),
-
-        # not hidden file
-        filename[0] != ".",
-        ))
-
-
-def file_is_subtitle(filename):
-    """ Check that the file is a subtitle
-
-        Args:
-            filename (str): name of the file.
-
-        Returns:
-            (bool) true if the file is a subtitle file.
-    """
-    return os.path.splitext(filename)[1] in list(PARSER_BY_EXTENSION.keys())
-
-
-class TextProgressBar(progressbar.ProgressBar):
-    """ Progress bar with text in the widgets
-    """
-    def __init__(self, *args, text=None, **kwargs):
-        """ Constructor
-
-            Args:
-                text (str): text to display at the left of the line.
-        """
-        super(TextProgressBar, self).__init__(*args, **kwargs)
-
-        # customize the widget if text is provided
-        if text is not None:
-            # space padded length for text
-            # set length to one quarter of terminal width
-            width, _ = progressbar.utils.get_terminal_size()
-            length = int(width * 0.25)
-
-            # truncate text if necessary
-            if len(text) > length:
-                half = int(length * 0.5)
-                text = text[:half - 2].strip() + '...' + text[-half + 1:].strip()
-
-            widgets = [
-                    "{:{length}s} ".format(text, length=length)
-                    ]
-
-            widgets.extend(self.default_widgets())
-            self.widgets = widgets
-
-
-class TextNullBar(progressbar.NullBar):
-    """ Muted bar wich displays one line of text instead
-        with the amount of actions to process
-    """
-    def __init__(self, *args, max_value=None, text=None, **kwargs):
-        """ Constructor
-
-            Args:
-                text (str): text to display.
-        """
-        super(TextNullBar, self).__init__(*args, **kwargs)
-        self.text = text
-        self.max_value = max_value
-
-        if self.text:
-            print("{} ({})".format(self.text, self.max_value))
-
-
-class MetadataParser:
-    """ Base class for metadata parser
-
-        The class works as an interface for the various metadata parsers
-        available.
-
-        This class itself is a null parser that always returns a timedelta 0
-        duration.
-    """
-    def __init__(self, metadata):
-        self.metadata = metadata
-
-    @staticmethod
-    def is_available():
-        """ Check if the parser is callable
-        """
-        return True
-
-    @classmethod
-    def parse(cls, filename):
-        """ Parse metadata from file name
-
-            Args:
-                filename (str): path of the file to parse.
-        """
-        return cls(None)
-
-    @property
-    def duration(self):
-        """ Get duration as timedelta object
-
-            Returns timedelta 0 if unable to get duration.
-        """
-        return timedelta(0)
-
-
-class MediainfoMetadataParser(MetadataParser):
-    """ Metadata parser based on PyMediaInfo (wrapper for MediaInfo)
-
-        The class works as an interface for the MediaInfo class, provided by the
-        pymediainfo module.
-
-        It does not seem to work on Windows, as the mediainfo DLL cannot be
-        found.
-    """
-    @staticmethod
-    def is_available():
-        """ Check if the parser is callable
-        """
-        return MediaInfo.can_parse()
-
-    @classmethod
-    def parse(cls, filename):
-        """ Parse metadata from file name
-
-            Args:
-                filename (str): path of the file to parse.
-        """
-        metadata = MediaInfo.parse(filename)
-        return cls(metadata)
-
-    @property
-    def duration(self):
-        """ Get duration as timedelta object
-
-            Returns timedelta 0 if unable to get duration.
-        """
-        general_track = self.metadata.tracks[0]
-        duration = getattr(general_track, 'duration', 0) or 0
-        return timedelta(milliseconds=int(duration))
-
-
-class FFProbeMetadataParser(MetadataParser):
-    """ Metadata parser based on ffprobe
-
-        The class works as a wrapper for the `ffprobe` command. The ffprobe3
-        module does not work, so we do our own here.
-
-        The command is invoked through `subprocess`, so it should work on
-        Windows as long as ffmpeg is installed and callable from the command
-        line. Data are passed as JSON string.
-
-        Freely inspired from [this proposed
-        wrapper](https://stackoverflow.com/a/36743499) and the [code of
-        ffprobe3](https://github.com/DheerendraRathor/ffprobe3/blob/master/ffprobe3/ffprobe.py).
-    """
-    @staticmethod
-    def is_available():
-        """ Check if the parser is callable
-        """
-        try:
-            with open(os.devnull, 'w') as tempf:
-                subprocess.check_call(
-                        ["ffprobe", "-h"],
-                        stdout=tempf,
-                        stderr=tempf
-                        )
-
-                return True
-
-        except:
-            return False
-
-    @classmethod
-    def parse(cls, filename):
-        """ Parse metadata from file name
-
-            Args:
-                filename (str): path of the file to parse.
-        """
-        command = ["ffprobe",
-                "-loglevel",  "quiet",
-                "-print_format", "json",
-                "-show_format",
-                "-show_streams",
-                filename
-                ]
-
-        pipe = subprocess.Popen(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT
-                )
-
-        out, err = pipe.communicate()
-        return cls(json.loads(out.decode(sys.stdout.encoding)))
-
-    @property
-    def duration(self):
-        """ Get duration as timedelta object
-
-            Returns timedelta 0 if unable to get duration.
-        """
-        # try in generic location
-        if 'format' in self.metadata:
-            if 'duration' in self.metadata['format']:
-                return timedelta(seconds=float(
-                    self.metadata['format']['duration']
-                    ))
-
-        # try in the streams
-        if 'streams' in self.metadata:
-            # commonly stream 0 is the video
-            for s in self.metadata['streams']:
-                if 'duration' in s:
-                    return timedelta(seconds=float(s['duration']))
-
-        # if nothing is found
-        return timedelta(0)
-
-
-class FFmpegWrapper:
-    """ Wrapper for FFmpeg
-    """
-    @staticmethod
-    def is_available():
-        """ Check if the parser is callable
-        """
-        try:
-            with open(os.devnull, 'w') as tempf:
-                subprocess.check_call(
-                        ["ffmpeg", "-version"],
-                        stdout=tempf,
-                        stderr=tempf
-                        )
-
-                return True
-
-        except:
-            return False
-
-    @staticmethod
-    def extract_subtitle(input_file_path, output_file_path):
-        """ Try to extract the first subtitle of the given input file into the
-            output file given.
-
-            Args:
-                input_file_path (str): path to the input file.
-                output_file_path (str): path to the requested output file.
-
-            Returns:
-                (bool) true if the extraction process is successful.
-        """
-        try:
-            with open(os.devnull, 'w') as tempf:
-                subprocess.check_call(
-                        [
-                            "ffmpeg",
-                            "-i", input_file_path,
-                            "-map", "0:s:0",
-                            output_file_path
-                            ],
-                        stdout=tempf,
-                        stderr=tempf
-                        )
-
-                return True
-
-        except:
-            return False
-
-
-class SubtitleParser:
-    """ Abstract class for subtitle parser
-    """
-    def __init__(self, filepath):
-        pass
-
-    def get_lyrics(self):
-        return ""
-
-class TXTSubtitleParser(SubtitleParser):
-    """ Subtitle parser for txt files
-    """
-    def __init__(self, filepath):
-        with open(filepath) as file:
-            self.content = file.read()
-
-    def get_lyrics(self):
-        return self.content
-
-class Pysubs2SubtitleParser(SubtitleParser):
-    """ Subtitle parser for ass, ssa and srt files
-
-        This parser extracts cleaned lyrics from the provided subtitle file.
-
-        It uses the `pysubs2` package to parse the ASS file.
-
-        Attributes:
-            content (pysubs2 object): parsed subtitle.
-            override_sequence (regex matcher): regex that matches any tag and
-                any drawing area.
-    """
-    override_sequence = re.compile(
-            r"""
-                \{.*?\\p\d.*?\}     # look for drawing area start tag
-                .*?                 # select draw instructions
-                (?:                 # until...
-                    \{.*?\\p0.*?\}  # draw area end tag
-                    |
-                    $               # or end of line
-                )
-                |
-                \{.*?\}             # or simply select tags
-            """,
-            re.UNICODE | re.VERBOSE
-            )
-
-    def __init__(self, filepath):
-        self.content = pysubs2.load(filepath)
-
-    def get_lyrics(self):
-        """ Gives the cleaned text of the Event block
-
-            The text is cleaned in two ways:
-                - All tags are removed;
-                - Consecutive lines with the same content, the same start and
-                      end time are merged. This prevents from getting "extra
-                      effect lines" in the file.
-
-            Returns:
-                (str) Cleaned lyrics.
-        """
-        lyrics = []
-
-        # previous line handles
-        event_previous = None
-
-        # loop over each dialog line
-        for event in self.content:
-
-            # Ignore comments
-            if event.is_comment:
-                continue
-
-            # alter the cleaning regex
-            event.OVERRIDE_SEQUENCE = self.override_sequence
-
-            # clean the line
-            line = event.plaintext.strip()
-
-            # Ignore empty lines
-            if not line:
-                continue
-
-            # append the cleaned line conditionnaly
-            # Don't append if the line is a duplicate of previous line
-            if not (event_previous and
-                    event_previous.plaintext.strip() == line and
-                    event_previous.start == event.start and
-                    event_previous.end == event.end):
-
-                lyrics.append(line)
-
-            # update previous line handles
-            event_previous = event
-
-        return '\n'.join(lyrics)
-
-
-PARSER_BY_EXTENSION = OrderedDict((
-    ('.ass', Pysubs2SubtitleParser),
-    ('.ssa', Pysubs2SubtitleParser),
-    ('.srt', Pysubs2SubtitleParser),
-    ('.txt', TXTSubtitleParser)
-    ))
 
 
 class Command(BaseCommand):
@@ -1224,19 +836,3 @@ class Command(BaseCommand):
             database_feeder.set_from_metadata()
             database_feeder.set_from_subtitle()
             database_feeder.save()
-
-
-def is_similar(string1, string2):
-    """ Detect if string1 and strin2 are similar
-
-        Returns:
-            None if strings are not similar
-            A float between 0 and 1 representing similarity, bigger is more similar.
-    """
-    THRESHOLD = 0.8
-    ratio = SequenceMatcher(None, string1, string2).ratio()
-
-    if ratio >= THRESHOLD:
-        return ratio
-
-    return None

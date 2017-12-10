@@ -14,6 +14,15 @@ class Command(BaseCommandWithConfig):
     help = "Setup tags."
     SECTION_NAME = "tags"
 
+    def add_arguments_custom(self, parser):
+        """ Extra arguments for the command
+        """
+        parser.add_argument(
+                "--prune",
+                help="Remove from database, tags not found in config file",
+                action="store_true"
+                )
+
     def handle_custom(self, tags,  *args, **options):
         """ Setup the tags
 
@@ -21,6 +30,8 @@ class Command(BaseCommandWithConfig):
                 of dictionnaries with the keys `name` and `color_id`. The `name`
                 key is mandatory.
         """
+        created_or_updated_tag_ids = []
+
         for tag in tags:
             # check there is a query name
             if 'name' not in tag:
@@ -36,5 +47,10 @@ class Command(BaseCommandWithConfig):
             if 'color_id' in tag:
                 tag_entry.color_id = int(tag['color_id'])
                 tag_entry.save()
+
+            created_or_updated_tag_ids.append(tag_entry.id)
+
+        if options.get('prune'):
+            SongTag.objects.exclude(id__in=created_or_updated_tag_ids).delete()
 
         self.stdout.write("Tags successfuly created")

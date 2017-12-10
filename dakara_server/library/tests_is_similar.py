@@ -1,7 +1,7 @@
 import os
 import csv
 from django.test import TestCase
-from .management.commands.feed import is_similar
+from .management.commands.feed_components.utils import is_similar
 
 
 RESSOURCES_DIR = "tests_ressources"

@@ -1,6 +1,6 @@
 import os
 from django.test import TestCase
-from .management.commands.feed import Pysubs2SubtitleParser
+from .management.commands.feed_components.subtitle_parser import Pysubs2SubtitleParser
 
 RESSOURCES_DIR = os.path.join("tests_ressources", "subtitles")
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
