@@ -58,7 +58,10 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.url_sg2 = reverse('library-songtag-detail',
                                kwargs={"pk": self.tag2.id})
 
-    def test_updute_song_tag_manager(self):
+    def test_update_song_tag_manager(self):
+        """
+        Test manager can update tag
+        """
         # login as manager
         self.authenticate(self.manager)
 
@@ -67,11 +70,28 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.assertFalse(tag.disabled)
 
         # alter one tag
-        self.client.patch(
+        response = self.client.patch(
                 self.url_sg1,
                 {"disabled": True}
                 )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # the tag should be disabled now
         tag = SongTag.objects.get(id=self.tag1.id)
         self.assertTrue(tag.disabled)
+
+    def test_update_song_tag_user(self):
+        """
+        Test simple user can not update tags
+        """
+        # login as user
+        self.authenticate(self.user)
+
+        # attempt to alter one tag
+        response = self.client.patch(
+                self.url_sg1,
+                {"disabled": True}
+                )
+
+        # user can't update tag
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

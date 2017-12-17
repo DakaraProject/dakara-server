@@ -36,6 +36,7 @@
 
 ### Fixed
 - When the feeder update a song, the song is no longer associated with old artists, works and tags
+- Only library manager can update library
 
 ## 1.0.0 - 2017-11-12
 

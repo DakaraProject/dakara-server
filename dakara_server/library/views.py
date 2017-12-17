@@ -14,6 +14,8 @@ from . import models
 from . import serializers
 from .query_language import QueryLanguageParser
 
+from .permissions import IsLibraryManagerOrReadOnly
+
 
 class LibraryPagination(PageNumberPagination):
     """Pagination
@@ -32,6 +34,8 @@ class LibraryPagination(PageNumberPagination):
 class SongListView(ListCreateAPIView):
     """List of songs
     """
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     serializer_class = serializers.SongSerializer
     pagination_class = LibraryPagination
 
@@ -144,6 +148,8 @@ class SongListView(ListCreateAPIView):
 class SongView(RetrieveUpdateDestroyAPIView):
     """Edition and display of a song
     """
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     queryset = models.Song.objects.all()
     serializer_class = serializers.SongSerializer
 
@@ -151,6 +157,8 @@ class SongView(RetrieveUpdateDestroyAPIView):
 class ArtistListView(ListCreateAPIView):
     """List of artists
     """
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     serializer_class = serializers.ArtistSerializer
     pagination_class = LibraryPagination
 
@@ -205,6 +213,8 @@ class ArtistListView(ListCreateAPIView):
 class WorkListView(ListCreateAPIView):
     """ Class for listing works
     """
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     serializer_class = serializers.WorkSerializer
     pagination_class = LibraryPagination
 
@@ -265,16 +275,22 @@ class WorkListView(ListCreateAPIView):
 
 
 class WorkTypeListView(ListCreateAPIView):
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     queryset = models.WorkType.objects.all().order_by(Lower("name"))
     serializer_class = serializers.WorkTypeSerializer
 
 
 class SongTagListView(ListAPIView):
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     queryset = models.SongTag.objects.all().order_by(Lower("name"))
     serializer_class = serializers.SongTagSerializer
     pagination_class = LibraryPagination
 
 
 class SongTagView(UpdateAPIView):
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     queryset = models.SongTag.objects.all()
     serializer_class = serializers.SongTagSerializer
