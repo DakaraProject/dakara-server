@@ -123,6 +123,7 @@ class SongTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = SongTag
         fields = (
+                'id',
                 'name',
                 'color_id',
                 'disabled',
