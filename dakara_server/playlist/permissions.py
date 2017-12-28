@@ -1,6 +1,9 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import permissions
+
 from users.permissions import BasePermissionCustom
 from .models import PlaylistEntry, Player
+from library.models import Song
 
 class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
     """ Handle permissions to modify playlist entries
@@ -100,6 +103,34 @@ class IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly(BasePermissionCustom):
 
         return playlist_entry.owner == request.user
 
+
+class IsPlaylistAndLibraryManagerOrSongCanBeAdded(BasePermissionCustom):
+    """ Handle permission for songs that can be added or not
+
+        Permission scheme:
+            Superuser can do anything;
+            Managerof playlist and library can do anything;
+            Playlist user can only access musics whose tags are not disabled.
+            Unauthenticated user cannot see anything.
+    """
+    def has_permission_custom(self, request, view):
+        # for manager of playlist and library
+        if request.user.has_playlist_permission_level('m') and \
+                request.user.has_library_permission_level('m'):
+            return True
+
+        # get song
+        song_id = request.data.get('song')
+        if not song_id:
+            return True
+
+        # check the song has no disabled tags
+        try:
+            song = Song.objects.get(pk=song_id)
+            return not any([t.disabled for t in song.tags.all()])
+
+        except ObjectDoesNotExist:
+            return True
 
 
 class IsPlayer(BasePermissionCustom):

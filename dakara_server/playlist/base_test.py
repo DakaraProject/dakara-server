@@ -5,7 +5,8 @@ from django.core.cache import cache
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 from rest_framework import status
-from library.models import Song
+
+from library.models import Song, SongTag
 from .models import PlaylistEntry
 
 
@@ -50,9 +51,14 @@ class BaseAPITestCase(APITestCase):
         # create a player
         self.player = self.create_user("testPlayer", playlist_level="p")
 
+        # Create tags
+        self.tag1 = SongTag(name='TAG1')
+        self.tag1.save()
+
         # Create songs
         self.song1 = Song(title="Song1")
         self.song1.save()
+        self.song1.tags.add(self.tag1)
         self.song2 = Song(title="Song2")
         self.song2.save()
 

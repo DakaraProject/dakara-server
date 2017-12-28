@@ -98,12 +98,14 @@ class BaseAPITestCase(APITestCase):
             self.assertEqual(work['link_type_number'], expected_work.link_type_number)
             self.assertEqual(work['episodes'], expected_work.episodes)
 
-    def check_tag_json(self, json, expected_artist):
+    def check_tag_json(self, json, expected_tag):
         """
         Method to test an representation against the expected tag
         """
-        self.assertEqual(json['name'], expected_artist.name)
-        self.assertEqual(json['color_id'], expected_artist.color_id)
+        self.assertEqual(json['id'], expected_tag.id)
+        self.assertEqual(json['name'], expected_tag.name)
+        self.assertEqual(json['color_id'], expected_tag.color_id)
+        self.assertEqual(json['disabled'], expected_tag.disabled)
 
 
     def check_artist_json(self, json, expected_artist):
@@ -122,11 +124,11 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(json['subtitle'], expected_work.subtitle)
         self.check_work_type_json(json['work_type'], expected_work.work_type)
 
-    def check_work_type_json(self, json, expected_work):
+    def check_work_type_json(self, json, expected_work_type):
         """
         Method to test an representation against the expected work type
         """
-        self.assertEqual(json['name'], expected_work.name)
-        self.assertEqual(json['name_plural'], expected_work.name_plural)
-        self.assertEqual(json['query_name'], expected_work.query_name)
-        self.assertEqual(json['icon_name'], expected_work.icon_name)
+        self.assertEqual(json['name'], expected_work_type.name)
+        self.assertEqual(json['name_plural'], expected_work_type.name_plural)
+        self.assertEqual(json['query_name'], expected_work_type.query_name)
+        self.assertEqual(json['icon_name'], expected_work_type.icon_name)

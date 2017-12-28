@@ -1,6 +1,8 @@
 from rest_framework.generics import (
         RetrieveUpdateDestroyAPIView,
+        UpdateAPIView,
         ListCreateAPIView,
+        ListAPIView,
         )
 
 from django.db.models.functions import Lower
@@ -11,6 +13,8 @@ from django.db.models import Q
 from . import models
 from . import serializers
 from .query_language import QueryLanguageParser
+
+from .permissions import IsLibraryManagerOrReadOnly
 
 
 class LibraryPagination(PageNumberPagination):
@@ -30,6 +34,8 @@ class LibraryPagination(PageNumberPagination):
 class SongListView(ListCreateAPIView):
     """List of songs
     """
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     serializer_class = serializers.SongSerializer
     pagination_class = LibraryPagination
 
@@ -37,6 +43,11 @@ class SongListView(ListCreateAPIView):
         """Search and filter the songs
         """
         query_set = models.Song.objects.all()
+
+        # hide all songs with disabled tags for non-managers or non-superusers
+        user = self.request.user
+        if not (user.is_superuser or user.has_library_permission_level('m')):
+            query_set = query_set.exclude(tags__disabled=True)
 
         # if 'query' is in the query string then perform search otherwise
         # return all songs
@@ -137,6 +148,8 @@ class SongListView(ListCreateAPIView):
 class SongView(RetrieveUpdateDestroyAPIView):
     """Edition and display of a song
     """
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     queryset = models.Song.objects.all()
     serializer_class = serializers.SongSerializer
 
@@ -144,6 +157,8 @@ class SongView(RetrieveUpdateDestroyAPIView):
 class ArtistListView(ListCreateAPIView):
     """List of artists
     """
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     serializer_class = serializers.ArtistSerializer
     pagination_class = LibraryPagination
 
@@ -198,6 +213,8 @@ class ArtistListView(ListCreateAPIView):
 class WorkListView(ListCreateAPIView):
     """ Class for listing works
     """
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     serializer_class = serializers.WorkSerializer
     pagination_class = LibraryPagination
 
@@ -258,5 +275,22 @@ class WorkListView(ListCreateAPIView):
 
 
 class WorkTypeListView(ListCreateAPIView):
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
     queryset = models.WorkType.objects.all().order_by(Lower("name"))
     serializer_class = serializers.WorkTypeSerializer
+
+
+class SongTagListView(ListAPIView):
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
+    queryset = models.SongTag.objects.all().order_by(Lower("name"))
+    serializer_class = serializers.SongTagSerializer
+    pagination_class = LibraryPagination
+
+
+class SongTagView(UpdateAPIView):
+    permission_classes = (IsLibraryManagerOrReadOnly,)
+
+    queryset = models.SongTag.objects.all()
+    serializer_class = serializers.SongTagSerializer

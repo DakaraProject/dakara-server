@@ -87,6 +87,7 @@ class SongTag(models.Model):
     """
     name = UpperCaseCharField(max_length=255)
     color_id = models.IntegerField(null=True)
+    disabled = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.name)
