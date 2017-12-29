@@ -104,7 +104,7 @@ class BaseAPITestCase(APITestCase):
         """
         self.assertEqual(json['id'], expected_tag.id)
         self.assertEqual(json['name'], expected_tag.name)
-        self.assertEqual(json['color_id'], expected_tag.color_id)
+        self.assertEqual(json['color_hue'], expected_tag.color_hue)
         self.assertEqual(json['disabled'], expected_tag.disabled)
 
 

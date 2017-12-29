@@ -15,9 +15,9 @@ class CreatetagsCommandTestCase(TestCase):
 
         file_content = """tags:
   - name: TAGNAME1
-    color_id: 0
+    color_hue: 0
   - name: TAGNAME2
-    color_id: 5"""
+    color_hue: 5"""
 
         # Create temporary config file
         with NamedTemporaryFile(mode='wt') as config_file:
@@ -33,9 +33,9 @@ class CreatetagsCommandTestCase(TestCase):
             tags = SongTag.objects.order_by('name')
             self.assertEqual(len(tags), 2)
             self.assertEqual(tags[0].name, "TAGNAME1")
-            self.assertEqual(tags[0].color_id, 0)
+            self.assertEqual(tags[0].color_hue, 0)
             self.assertEqual(tags[1].name, "TAGNAME2")
-            self.assertEqual(tags[1].color_id, 5)
+            self.assertEqual(tags[1].color_hue, 5)
 
     def test_createtags_command_prune(self):
         """
@@ -59,14 +59,14 @@ class CreatetagsCommandTestCase(TestCase):
         tags = SongTag.objects.order_by('name')
         self.assertEqual(len(tags), 2)
         self.assertEqual(tags[0].name, "TAGNAME1")
-        self.assertEqual(tags[0].color_id, None)
+        self.assertEqual(tags[0].color_hue, None)
         self.assertEqual(tags[1].name, "TAGOLD")
 
         file_content = """tags:
   - name: TAGNAME1
-    color_id: 0
+    color_hue: 0
   - name: TAGNAME2
-    color_id: 5"""
+    color_hue: 5"""
 
         # Create temporary config file
         with NamedTemporaryFile(mode='wt') as config_file:
@@ -85,7 +85,7 @@ class CreatetagsCommandTestCase(TestCase):
             # Tag 1 has updated color id but same id
             self.assertEqual(tags[0].name, "TAGNAME1")
             self.assertEqual(tags[0].id, tag1.id)
-            self.assertEqual(tags[0].color_id, 0)
+            self.assertEqual(tags[0].color_hue, 0)
             # Tag 2 was created
             self.assertEqual(tags[1].name, "TAGNAME2")
-            self.assertEqual(tags[1].color_id, 5)
+            self.assertEqual(tags[1].color_hue, 5)
