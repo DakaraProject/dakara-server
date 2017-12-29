@@ -27,7 +27,7 @@ class Command(BaseCommandWithConfig):
         """ Setup the tags
 
             In the config file providing tags, the branch contains a list
-                of dictionnaries with the keys `name` and `color_id`. The `name`
+                of dictionnaries with the keys `name` and `color_hue`. The `name`
                 key is mandatory.
         """
         created_or_updated_tag_ids = []
@@ -44,8 +44,8 @@ class Command(BaseCommandWithConfig):
                     )
 
             # process extra field
-            if 'color_id' in tag:
-                tag_entry.color_id = int(tag['color_id'])
+            if 'color_hue' in tag:
+                tag_entry.color_hue = int(tag['color_hue'])
                 tag_entry.save()
 
             created_or_updated_tag_ids.append(tag_entry.id)
