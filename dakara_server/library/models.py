@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import timedelta
+from django.core.validators import MaxValueValidator, MinValueValidator
 from library.fields import UpperCaseCharField
 
 
@@ -86,7 +87,7 @@ class SongTag(models.Model):
     """ Class to describe song tags
     """
     name = UpperCaseCharField(max_length=255)
-    color_hue = models.IntegerField(null=True)
+    color_hue = models.IntegerField(null=True, validators=[MinValueValidator(0), MaxValueValidator(360)])
     disabled = models.BooleanField(default=False)
 
     def __str__(self):
