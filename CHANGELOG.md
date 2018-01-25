@@ -30,6 +30,8 @@
 
 ## Unreleased
 
+## 1.1.0 - 2018-01-25
+
 ### Added
 - New option for createtags and createworktypes commands: --prune, to remove tags and worktypes not in config file.
 - New Command: prune, to remove works and artists no longer linked to a song.
