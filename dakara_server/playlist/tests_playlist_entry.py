@@ -53,6 +53,20 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Entry's owner is the user who created it
         self.assertEqual(new_entry.owner.id, self.p_user.id)
 
+    def test_post_create_playlist_entry_kara_status_stop_forbidden(self):
+        """
+        Test to verify playlist entry cannot be created when kara is stopped
+        """
+        # stop kara
+        self.set_kara_status_stop()
+
+        # Login as playlist user
+        self.authenticate(self.manager)
+
+        # Post new playlist entry
+        response = self.client.post(self.url, {"song": self.song1.id})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_post_create_user_forbidden(self):
         """
         Test to verify simple user cannot create playlist entries

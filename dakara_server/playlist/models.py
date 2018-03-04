@@ -29,6 +29,28 @@ class PlaylistEntry(models.Model):
         return playlist_entry
 
 
+class KaraStatus(models.Model):
+    """ Class for the current status of the kara
+
+        The status is unique for now.
+    """
+    STOP = "stop"
+    PLAY = "play"
+    PAUSE = "pause"
+    STATUSES = (
+            (STOP, "Stop"),
+            (PLAY, "Play"),
+            (PAUSE, "Pause")
+            )
+
+    status = models.CharField(
+            max_length=5,
+            choices=STATUSES,
+            default=STOP,
+            null=False,
+            )
+
+
 class Player:
     """ Class for player representation in the server
     """
@@ -60,6 +82,13 @@ class Player:
         """ Save player in cache
         """
         cache.set(self.PLAYER_NAME, self)
+
+    def reset(self):
+        """ Reset the player to its initial state
+        """
+        self.playlist_entry_id = None
+        self.timing = timedelta()
+        self.paused = False
 
 
 class PlayerCommand:

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from playlist.models import PlaylistEntry
+from playlist.models import PlaylistEntry, KaraStatus
 from library.serializers import SongSerializer, \
                                 SongForPlayerSerializer, \
                                 SecondsDurationField
@@ -116,3 +116,14 @@ class PlayerDetailsCommandErrorsSerializer(serializers.Serializer):
     status = PlayerDetailsSerializer()
     manage = PlayerCommandSerializer()
     errors = PlayerErrorsPoolSerializer(many=True)
+
+
+class KaraStatusSerializer(serializers.ModelSerializer):
+    """ Class for the current status of the kara
+    """
+
+    class Meta:
+        model = KaraStatus
+        fields = (
+                'status',
+                )

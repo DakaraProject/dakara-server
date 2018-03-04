@@ -121,6 +121,11 @@ urlpatterns = [
         playlist_views.front.PlaylistEntryView.as_view(),
         name='playlist-detail'
         ),
+    url(
+        r'^api/playlist/kara-status/$',
+        playlist_views.front.KaraStatusView.as_view(),
+        name='playlist-kara-status'
+        ),
 
     # API routes for the library
     url(

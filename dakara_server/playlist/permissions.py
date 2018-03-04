@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import permissions
 
 from users.permissions import BasePermissionCustom
-from .models import PlaylistEntry, Player
+from .models import PlaylistEntry, Player, KaraStatus
 from library.models import Song
 
 class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
@@ -144,3 +144,14 @@ class IsPlayer(BasePermissionCustom):
     """
     def has_permission_custom(self, request, view):
         return request.user.has_playlist_permission_level('p')
+
+
+class KaraStatusIsNotStoppedOrReadOnly(permissions.BasePermission):
+    """ Grant access to not safe views if the kara is not in stop mode
+    """
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        kara_status, _ = KaraStatus.objects.get_or_create(pk=1)
+        return kara_status.status != KaraStatus.STOP

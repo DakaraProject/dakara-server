@@ -51,7 +51,12 @@ class BaseAPITestCase(APITestCase):
         # Create songs
 
         # Song with no tag, artist or work
-        self.song1 = Song(title="Song1", filename="file.mp4")
+        self.song1 = Song(
+                title="Song1",
+                filename="file.mp4",
+                directory="directory"
+                )
+
         self.song1.save()
 
         # Song associated with work, artist, and tag

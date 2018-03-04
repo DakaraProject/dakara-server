@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import (
         RetrieveUpdateDestroyAPIView,
         ListCreateAPIView,
+        RetrieveUpdateAPIView
         )
 
 from . import models
@@ -25,7 +26,8 @@ class PlaylistEntryView(RetrieveUpdateDestroyAPIView):
     queryset = models.PlaylistEntry.objects.all()
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
-            permissions.IsPlaylistManagerOrOwnerOrReadOnly
+            permissions.IsPlaylistManagerOrOwnerOrReadOnly,
+            permissions.KaraStatusIsNotStoppedOrReadOnly,
             ]
 
     def destroy(self, request, *args, **kwargs):
@@ -44,7 +46,8 @@ class PlaylistEntryListView(ListCreateAPIView):
     pagination_class = PlaylistEntryPagination
     permission_classes = [
             permissions.IsPlaylistUserOrReadOnly,
-            permissions.IsPlaylistAndLibraryManagerOrSongCanBeAdded
+            permissions.IsPlaylistAndLibraryManagerOrSongCanBeAdded,
+            permissions.KaraStatusIsNotStoppedOrReadOnly,
             ]
 
     def get_serializer_class(self, *args, **kwargs):
@@ -85,7 +88,8 @@ class PlayerManageView(APIView):
     """View or edition of player commands
     """
     permission_classes = [
-            permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly
+            permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly,
+            permissions.KaraStatusIsNotStoppedOrReadOnly,
             ]
 
     def get(self, request):
@@ -169,3 +173,30 @@ class PlayerView(APIView):
                 serializer.data,
                 status.HTTP_200_OK
                 )
+
+
+class KaraStatusView(RetrieveUpdateAPIView):
+    queryset = models.KaraStatus.objects.all()
+    serializer_class = serializers.KaraStatusSerializer
+    permission_classes = [
+            permissions.IsPlaylistManagerOrReadOnly,
+            ]
+
+    def put(self, request):
+        response = super().put(request)
+
+        # empty the playlist and clear the player if the status is stop
+        if response.status_code == status.HTTP_200_OK:
+            kara_status = request.data['status']
+
+            if kara_status == models.KaraStatus.STOP:
+                player = models.Player.get_or_create()
+                player.reset()
+                player.save()
+                models.PlaylistEntry.objects.all().delete()
+
+        return response
+
+    def get_object(self, *args, **kwargs):
+        kara_status, _ = self.queryset.get_or_create(pk=1)
+        return kara_status

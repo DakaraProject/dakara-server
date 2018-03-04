@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from library.models import Song, SongTag
-from .models import PlaylistEntry
+from .models import PlaylistEntry, KaraStatus
 
 
 UserModel = get_user_model()
@@ -67,6 +67,23 @@ class BaseAPITestCase(APITestCase):
         self.pe1.save()
         self.pe2 = PlaylistEntry(song=self.song2, owner=self.p_user)
         self.pe2.save()
+
+        # Set kara status in play mode
+        kara_status, _ = KaraStatus.objects.get_or_create(pk=1)
+        kara_status.status = KaraStatus.PLAY
+        kara_status.save()
+
+    @staticmethod
+    def set_kara_status_stop():
+        kara_status, _ = KaraStatus.objects.get_or_create(pk=1)
+        kara_status.status = KaraStatus.STOP
+        kara_status.save()
+
+    @staticmethod
+    def set_kara_status_pause():
+        kara_status, _ = KaraStatus.objects.get_or_create(pk=1)
+        kara_status.status = KaraStatus.PAUSE
+        kara_status.save()
 
     def check_playlist_entry_json(self, json, expected_entry):
         """

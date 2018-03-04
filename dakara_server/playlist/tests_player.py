@@ -1,3 +1,4 @@
+import os
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from .base_test import BaseAPITestCase
@@ -252,6 +253,30 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
             )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
+    def test_set_player_pause_kara_status_stop_forbidden(self):
+        """
+        Test a user cannot pause a song if the kara is stopped
+        """
+        # Play next song
+        self.player_play_next_song()
+
+        # Authenticate manager
+        self.authenticate(self.manager)
+
+        # Set kara in pause mode
+        self.set_kara_status_stop()
+
+        # Request pause
+        response = self.client.put(
+                self.url,
+                {
+                    'pause': True,
+                    'skip': False
+                }
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_set_player_skip(self):
         """
         Test to test skiping
@@ -363,3 +388,88 @@ class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         self.assertIsNotNone(error.get('id'))
         self.assertEqual(error['song']['id'], self.song1.id)
         self.assertEqual(error['error_message'], error_message)
+
+
+class PlayerViewAPIViewTestCase(BaseAPITestCase):
+    """
+    Test player route
+    """
+    url = reverse('player-status')
+
+    def setUp(self):
+        self.create_test_data()
+
+    def test_get_next_playlist_entry(self):
+        """
+        Test a logged player can get the next playlist entry
+        """
+        # log player
+        self.authenticate(self.player)
+
+        # get next song
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.pe1.id)
+        self.assertEqual(response.data['owner']['id'], self.pe1.owner.id)
+
+        song = response.data['song']
+        self.assertEqual(song['title'], self.pe1.song.title)
+        file_path = os.path.join(self.pe1.song.directory,
+                                 self.pe1.song.filename)
+        self.assertEqual(song['file_path'], file_path)
+
+    def test_get_next_playlist_entry_forbidden(self):
+        """
+        Test a non-player user cannot access to the next playlist entry
+        """
+        # log as manager
+        self.authenticate(self.manager)
+
+        # get next song
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_next_playlis_entry_kara_status_pause(self):
+        """
+        Test a player user get no next playlist entry when the kara is paused
+        """
+        # log as player
+        self.authenticate(self.player)
+
+        # pause kara
+        self.set_kara_status_pause()
+
+        # get next song
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data)
+
+    def test_get_next_playlis_entry_kara_status_pause_with_previous(self):
+        """
+        Test there is no error when the kara is paused when the player is
+        playing a song
+        """
+        # play a song
+        self.player_play_next_song()
+
+        # pause kara
+        self.set_kara_status_pause()
+
+        # ask to play the next song
+        # and check there is no error
+        self.player_play_next_song()
+
+    def test_put_recieving_status_kara_status_stop(self):
+        """
+        Test that the player recieve a skip command if the kara status is set
+        to stop
+        """
+        # log as player
+        self.authenticate(self.player)
+
+        # stop kara
+        self.set_kara_status_stop()
+
+        # send status
+        response = self.player_play_song(self.pe1.id)
+        self.assertTrue(response.data['skip'])
