@@ -153,5 +153,5 @@ class KaraStatusIsNotStoppedOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        kara_status, _ = KaraStatus.objects.get_or_create(pk=1)
+        kara_status = KaraStatus.get_object()
         return kara_status.status != KaraStatus.STOP

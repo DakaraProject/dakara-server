@@ -50,6 +50,13 @@ class KaraStatus(models.Model):
             null=False,
             )
 
+    @classmethod
+    def get_object(cls):
+        """ Get the first instance of kara status
+        """
+        kara_status, _ = cls.objects.get_or_create(pk=1)
+        return kara_status
+
 
 class Player:
     """ Class for player representation in the server

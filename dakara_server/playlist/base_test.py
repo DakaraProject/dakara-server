@@ -69,19 +69,19 @@ class BaseAPITestCase(APITestCase):
         self.pe2.save()
 
         # Set kara status in play mode
-        kara_status, _ = KaraStatus.objects.get_or_create(pk=1)
+        kara_status = KaraStatus.get_object()
         kara_status.status = KaraStatus.PLAY
         kara_status.save()
 
     @staticmethod
     def set_kara_status_stop():
-        kara_status, _ = KaraStatus.objects.get_or_create(pk=1)
+        kara_status = KaraStatus.get_object()
         kara_status.status = KaraStatus.STOP
         kara_status.save()
 
     @staticmethod
     def set_kara_status_pause():
-        kara_status, _ = KaraStatus.objects.get_or_create(pk=1)
+        kara_status = KaraStatus.get_object()
         kara_status.status = KaraStatus.PAUSE
         kara_status.save()
 
