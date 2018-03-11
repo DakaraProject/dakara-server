@@ -46,7 +46,7 @@ class KaraStatus(models.Model):
     status = models.CharField(
             max_length=5,
             choices=STATUSES,
-            default=STOP,
+            default=PLAY,
             null=False,
             )
 
