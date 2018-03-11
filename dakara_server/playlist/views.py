@@ -167,11 +167,15 @@ class DigestView(APIView):
         # Get player errors
         player_errors_pool = models.PlayerErrorsPool.get_or_create()
 
+        # Get kara status
+        kara_status = models.KaraStatus.get_object()
+
         serializer = serializers.DigestSerializer(
                 {
                     "player_status": player,
                     "player_manage": player_command,
                     "player_errors": player_errors_pool.dump(),
+                    "kara_status": kara_status,
                 },
                 context={'request': request},
             )

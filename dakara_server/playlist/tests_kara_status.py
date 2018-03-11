@@ -6,6 +6,7 @@ from .models import KaraStatus, PlaylistEntry
 
 class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-kara-status')
+    url_digest = reverse('playlist-digest')
 
     def setUp(self):
         self.create_test_data()
@@ -21,6 +22,11 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], KaraStatus.PLAY)
+
+        # Get kara status again but through digest route
+        response = self.client.get(self.url_digest)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['kara_status']['status'], KaraStatus.PLAY)
 
     def test_get_kara_status_forbidden(self):
         """

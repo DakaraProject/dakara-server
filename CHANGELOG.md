@@ -35,6 +35,7 @@
   - play: Same as previous behaviour.
   - pause: No additional song is played by the player. The player finishes playing current song.
   - stop: Player stops playing, playlist is emptied, can't add song to playlist.
+- Kara status to digest route.
 
 ### Changed
 - Playlist routes:

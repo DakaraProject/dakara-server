@@ -25,7 +25,7 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['timing'], 0)
         self.assertEqual(response.data['paused'], False)
 
-        # Get player status again but through aggregated route
+        # Get player status again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['player_status']['playlist_entry'], None)
@@ -50,7 +50,7 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['timing'], playing_time)
         self.assertEqual(response.data['paused'], False)
 
-        # Get player status again but through aggregated route
+        # Get player status again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['player_status']['playlist_entry']['id'], self.pe1.id)
@@ -71,7 +71,7 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['timing'], playing_time)
         self.assertEqual(response.data['paused'], True)
 
-        # Get player status again but through aggregated route
+        # Get player status again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['player_status']['playlist_entry']['id'], self.pe1.id)
@@ -92,7 +92,7 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['timing'], playing_time)
         self.assertEqual(response.data['paused'], False)
 
-        # Get player status again but through aggregated route
+        # Get player status again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['player_status']['playlist_entry']['id'], self.pe2.id)
@@ -113,7 +113,7 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['timing'], playing_time)
         self.assertEqual(response.data['paused'], False)
 
-        # Get player status again but through aggregated route
+        # Get player status again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['player_status']['playlist_entry'], None)
@@ -147,7 +147,7 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['pause'], False)
         self.assertEqual(response.data['skip'], False)
 
-        # Get player commands again but through aggregated route
+        # Get player commands again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['player_manage']['pause'], False)
@@ -169,7 +169,7 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['pause'], True)
         self.assertEqual(response.data['skip'], False)
 
-        # Get player commands again but through aggregated route
+        # Get player commands again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['player_manage']['pause'], True)
@@ -296,7 +296,7 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['pause'], False)
         self.assertEqual(response.data['skip'], False)
 
-        # Get player commands again but through aggregated route
+        # Get player commands again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['player_manage']['pause'], False)
@@ -318,7 +318,7 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['pause'], False)
         self.assertEqual(response.data['skip'], True)
 
-        # Get player commands again but through aggregated route
+        # Get player commands again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['player_manage']['pause'], False)
@@ -338,7 +338,7 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
 
 
 # TODO: Player errors check
-class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
+class PlayerDeviceErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-player-errors')
     url_digest = reverse('playlist-digest')
 
@@ -358,7 +358,7 @@ class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
 
-        # Get player errors again but through aggregated route
+        # Get player errors again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['player_errors']), 0)
@@ -380,7 +380,7 @@ class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(error['song']['id'], self.song1.id)
         self.assertEqual(error['error_message'], error_message)
 
-        # Get player errors again but through aggregated route
+        # Get player errors again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['player_errors']), 1)
@@ -390,7 +390,7 @@ class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(error['error_message'], error_message)
 
 
-class PlayerViewAPIViewTestCase(BaseAPITestCase):
+class PlayerDeviceViewAPIViewTestCase(BaseAPITestCase):
     """
     Test player route
     """
