@@ -42,6 +42,10 @@
   - `/playlist/` > `/playlist/entries/`
   - `/playlist/<id>/` > `/playlist/entries/<id>/`
   - `/playlist/player/` > `/playlist/digest/`
+- Digest route (old player route) content change:
+  - `status` > `player_status`
+  - `manage` > `player_manage`
+  - `errors` > `player_errors`
 
 ## 1.1.0 - 2018-01-25
 

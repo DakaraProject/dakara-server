@@ -28,9 +28,9 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         # Get player status again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['playlist_entry'], None)
-        self.assertEqual(response.data['status']['timing'], 0)
-        self.assertEqual(response.data['status']['paused'], False)
+        self.assertEqual(response.data['player_status']['playlist_entry'], None)
+        self.assertEqual(response.data['player_status']['timing'], 0)
+        self.assertEqual(response.data['player_status']['paused'], False)
 
     def test_get_player_status_playing(self):
         """
@@ -53,9 +53,9 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         # Get player status again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['playlist_entry']['id'], self.pe1.id)
-        self.assertEqual(response.data['status']['timing'], playing_time)
-        self.assertEqual(response.data['status']['paused'], False)
+        self.assertEqual(response.data['player_status']['playlist_entry']['id'], self.pe1.id)
+        self.assertEqual(response.data['player_status']['timing'], playing_time)
+        self.assertEqual(response.data['player_status']['paused'], False)
 
         # Make player continue playing the song, but at 47 seconds and paused
         playing_time = 47
@@ -74,9 +74,9 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         # Get player status again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['playlist_entry']['id'], self.pe1.id)
-        self.assertEqual(response.data['status']['timing'], playing_time)
-        self.assertEqual(response.data['status']['paused'], True)
+        self.assertEqual(response.data['player_status']['playlist_entry']['id'], self.pe1.id)
+        self.assertEqual(response.data['player_status']['timing'], playing_time)
+        self.assertEqual(response.data['player_status']['paused'], True)
 
         # Make player play next song in playlist at 2 seconds
         playing_time = 2
@@ -95,9 +95,9 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         # Get player status again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['playlist_entry']['id'], self.pe2.id)
-        self.assertEqual(response.data['status']['timing'], playing_time)
-        self.assertEqual(response.data['status']['paused'], False)
+        self.assertEqual(response.data['player_status']['playlist_entry']['id'], self.pe2.id)
+        self.assertEqual(response.data['player_status']['timing'], playing_time)
+        self.assertEqual(response.data['player_status']['paused'], False)
 
         # No more song in playlist, player should be idle
         playing_time = 0
@@ -116,9 +116,9 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         # Get player status again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['playlist_entry'], None)
-        self.assertEqual(response.data['status']['timing'], playing_time)
-        self.assertEqual(response.data['status']['paused'], False)
+        self.assertEqual(response.data['player_status']['playlist_entry'], None)
+        self.assertEqual(response.data['player_status']['timing'], playing_time)
+        self.assertEqual(response.data['player_status']['paused'], False)
 
 
 class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
@@ -150,8 +150,8 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         # Get player commands again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['manage']['pause'], False)
-        self.assertEqual(response.data['manage']['skip'], False)
+        self.assertEqual(response.data['player_manage']['pause'], False)
+        self.assertEqual(response.data['player_manage']['skip'], False)
 
         # Request pause
         response = self.client.put(self.url,
@@ -172,8 +172,8 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         # Get player commands again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['manage']['pause'], True)
-        self.assertEqual(response.data['manage']['skip'], False)
+        self.assertEqual(response.data['player_manage']['pause'], True)
+        self.assertEqual(response.data['player_manage']['skip'], False)
 
 
         # Now, check player receive the pause request
@@ -299,8 +299,8 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         # Get player commands again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['manage']['pause'], False)
-        self.assertEqual(response.data['manage']['skip'], False)
+        self.assertEqual(response.data['player_manage']['pause'], False)
+        self.assertEqual(response.data['player_manage']['skip'], False)
 
         # Request skip
         response = self.client.put(self.url,
@@ -321,8 +321,8 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         # Get player commands again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['manage']['pause'], False)
-        self.assertEqual(response.data['manage']['skip'], True)
+        self.assertEqual(response.data['player_manage']['pause'], False)
+        self.assertEqual(response.data['player_manage']['skip'], True)
 
 
         # Now, player is still playing the same song,
@@ -361,7 +361,7 @@ class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         # Get player errors again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['errors']), 0)
+        self.assertEqual(len(response.data['player_errors']), 0)
 
         # Simulate player sending and error
         error_message = "Testing Errors from the player"
@@ -383,8 +383,8 @@ class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         # Get player errors again but through aggregated route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['errors']), 1)
-        error = response.data['errors'][0]
+        self.assertEqual(len(response.data['player_errors']), 1)
+        error = response.data['player_errors'][0]
         self.assertIsNotNone(error.get('id'))
         self.assertEqual(error['song']['id'], self.song1.id)
         self.assertEqual(error['error_message'], error_message)

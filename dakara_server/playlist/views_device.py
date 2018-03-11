@@ -12,7 +12,7 @@ from . import permissions
 logger = logging.getLogger(__name__)
 
 
-class PlayerView(APIView):
+class PlayerDeviceView(APIView):
     """Player to communicate status and commands of the player
 
     Recieve status from player
@@ -134,7 +134,7 @@ class PlayerView(APIView):
                 )
 
 
-class PlayerErrorView(APIView):
+class PlayerDeviceErrorView(APIView):
     """Handle player errors
     """
     permission_classes = [

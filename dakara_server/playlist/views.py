@@ -145,8 +145,13 @@ class PlayerErrorsPoolView(APIView):
                 )
 
 
-class PlayerView(APIView):
-    """Shorthand for the view of player data
+class DigestView(APIView):
+    """Shorthand for the view of digest data
+
+    Includes:
+        - player_status: Player status
+        - player_manage: Player manage pause/skip
+        - player_errors: Errors from the players
     """
     permission_classes = (IsAuthenticated,)
 
@@ -162,11 +167,11 @@ class PlayerView(APIView):
         # Get player errors
         player_errors_pool = models.PlayerErrorsPool.get_or_create()
 
-        serializer = serializers.PlayerDetailsCommandErrorsSerializer(
+        serializer = serializers.DigestSerializer(
                 {
-                    "status": player,
-                    "manage": player_command,
-                    "errors": player_errors_pool.dump(),
+                    "player_status": player,
+                    "player_manage": player_command,
+                    "player_errors": player_errors_pool.dump(),
                 },
                 context={'request': request},
             )

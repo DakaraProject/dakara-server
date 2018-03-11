@@ -81,12 +81,12 @@ urlpatterns = [
     # API routes for the playlist, player device side
     url(
         r'^api/playlist/device/status/$',
-        playlist_views.device.PlayerView.as_view(),
+        playlist_views.device.PlayerDeviceView.as_view(),
         name='playlist-device-status'
         ),
     url(
         r'^api/playlist/device/error/$',
-        playlist_views.device.PlayerErrorView.as_view(),
+        playlist_views.device.PlayerDeviceErrorView.as_view(),
         name='playlist-device-error'
         ),
 
@@ -108,7 +108,7 @@ urlpatterns = [
         ),
     url(
         r'^api/playlist/digest/$',
-        playlist_views.PlayerView.as_view(),
+        playlist_views.DigestView.as_view(),
         name='playlist-digest'
         ),
     url(

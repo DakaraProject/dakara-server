@@ -110,12 +110,12 @@ class PlayerErrorsPoolSerializer(serializers.Serializer):
     error_message = serializers.CharField(max_length=255)
 
 
-class PlayerDetailsCommandErrorsSerializer(serializers.Serializer):
-    """ Class combine all player serializers for front
+class DigestSerializer(serializers.Serializer):
+    """ Class combine player info and kara status
     """
-    status = PlayerDetailsSerializer()
-    manage = PlayerCommandSerializer()
-    errors = PlayerErrorsPoolSerializer(many=True)
+    player_status = PlayerDetailsSerializer()
+    player_manage = PlayerCommandSerializer()
+    player_errors = PlayerErrorsPoolSerializer(many=True)
 
 
 class KaraStatusSerializer(serializers.ModelSerializer):
