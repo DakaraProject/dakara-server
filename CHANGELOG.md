@@ -30,6 +30,13 @@
 
 ## Unreleased
 
+### Changed
+- Playlist routes:
+  - `/player/*` > `/playlist/device/*`
+  - `/playlist/` > `/playlist/entries/`
+  - `/playlist/<id>/` > `/playlist/entries/<id>/`
+  - `/playlist/player/` > `/playlist/digest/`
+
 ## 1.1.0 - 2018-01-25
 
 ### Added

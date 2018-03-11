@@ -4,7 +4,7 @@ from .base_test import BaseAPITestCase
 from .models import PlaylistEntry
 
 class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
-    url = reverse('playlist-list')
+    url = reverse('playlist-entries-list')
 
     def setUp(self):
         self.create_test_data()
@@ -137,8 +137,8 @@ class PlaylistEntryViewRetrieveUpdateDestroyAPIViewTestCase(BaseAPITestCase):
         self.create_test_data()
 
         # Create urls to access these playlist entries
-        self.url_pe1 = reverse('playlist-detail', kwargs={"pk": self.pe1.id})
-        self.url_pe2 = reverse('playlist-detail', kwargs={"pk": self.pe2.id})
+        self.url_pe1 = reverse('playlist-entries-detail', kwargs={"pk": self.pe1.id})
+        self.url_pe2 = reverse('playlist-entries-detail', kwargs={"pk": self.pe2.id})
 
 
     def test_delete_playlist_entry_manager(self):

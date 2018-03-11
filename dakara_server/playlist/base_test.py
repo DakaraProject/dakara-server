@@ -98,7 +98,7 @@ class BaseAPITestCase(APITestCase):
         Simulate player playing the next song at given time
         Return pause/skip commands directed toward the player
         """
-        url = reverse('player-status')
+        url = reverse('playlist-device-status')
         # Login as player
         self.authenticate(self.player)
 
@@ -115,7 +115,7 @@ class BaseAPITestCase(APITestCase):
         Simulate the player reporting playing the specified song
         for the given time and pause status
         """
-        url = reverse('player-status')
+        url = reverse('playlist-device-status')
         # Login as player
         self.authenticate(self.player)
         # Put as if playing next song
@@ -134,7 +134,7 @@ class BaseAPITestCase(APITestCase):
         """
         Simulate the player reporting an error
         """
-        url = reverse('player-error')
+        url = reverse('playlist-device-error')
         # Login as player
         self.authenticate(self.player)
         # Put as if playing next song
