@@ -30,6 +30,12 @@
 
 ## Unreleased
 
+### Added
+- Kara status: global status to run, pause or stop the karaoke.
+  - play: Same as previous behaviour.
+  - pause: No additional song is played by the player. The player finishes playing current song.
+  - stop: Player stops playing, playlist is emptied, can't add song to playlist.
+
 ### Changed
 - Playlist routes:
   - `/player/*` > `/playlist/device/*`
