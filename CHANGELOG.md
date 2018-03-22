@@ -30,6 +30,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Pagination information (`current` and `last`) for views that use a paginator are now gathered in the `pagination` key in the response.
+
 ## 1.1.0 - 2018-01-25
 
 ### Added
