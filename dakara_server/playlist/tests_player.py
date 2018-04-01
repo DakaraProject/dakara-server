@@ -1,10 +1,11 @@
+import os
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from .base_test import BaseAPITestCase
 
 class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-player-status')
-    url_aggregated = reverse('playlist-player')
+    url_digest = reverse('playlist-digest')
 
     def setUp(self):
         self.create_test_data()
@@ -24,12 +25,12 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['timing'], 0)
         self.assertEqual(response.data['paused'], False)
 
-        # Get player status again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player status again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['playlist_entry'], None)
-        self.assertEqual(response.data['status']['timing'], 0)
-        self.assertEqual(response.data['status']['paused'], False)
+        self.assertEqual(response.data['player_status']['playlist_entry'], None)
+        self.assertEqual(response.data['player_status']['timing'], 0)
+        self.assertEqual(response.data['player_status']['paused'], False)
 
     def test_get_player_status_playing(self):
         """
@@ -49,12 +50,12 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['timing'], playing_time)
         self.assertEqual(response.data['paused'], False)
 
-        # Get player status again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player status again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['playlist_entry']['id'], self.pe1.id)
-        self.assertEqual(response.data['status']['timing'], playing_time)
-        self.assertEqual(response.data['status']['paused'], False)
+        self.assertEqual(response.data['player_status']['playlist_entry']['id'], self.pe1.id)
+        self.assertEqual(response.data['player_status']['timing'], playing_time)
+        self.assertEqual(response.data['player_status']['paused'], False)
 
         # Make player continue playing the song, but at 47 seconds and paused
         playing_time = 47
@@ -70,12 +71,12 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['timing'], playing_time)
         self.assertEqual(response.data['paused'], True)
 
-        # Get player status again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player status again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['playlist_entry']['id'], self.pe1.id)
-        self.assertEqual(response.data['status']['timing'], playing_time)
-        self.assertEqual(response.data['status']['paused'], True)
+        self.assertEqual(response.data['player_status']['playlist_entry']['id'], self.pe1.id)
+        self.assertEqual(response.data['player_status']['timing'], playing_time)
+        self.assertEqual(response.data['player_status']['paused'], True)
 
         # Make player play next song in playlist at 2 seconds
         playing_time = 2
@@ -91,12 +92,12 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['timing'], playing_time)
         self.assertEqual(response.data['paused'], False)
 
-        # Get player status again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player status again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['playlist_entry']['id'], self.pe2.id)
-        self.assertEqual(response.data['status']['timing'], playing_time)
-        self.assertEqual(response.data['status']['paused'], False)
+        self.assertEqual(response.data['player_status']['playlist_entry']['id'], self.pe2.id)
+        self.assertEqual(response.data['player_status']['timing'], playing_time)
+        self.assertEqual(response.data['player_status']['paused'], False)
 
         # No more song in playlist, player should be idle
         playing_time = 0
@@ -112,17 +113,17 @@ class PlayerStatusViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['timing'], playing_time)
         self.assertEqual(response.data['paused'], False)
 
-        # Get player status again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player status again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['playlist_entry'], None)
-        self.assertEqual(response.data['status']['timing'], playing_time)
-        self.assertEqual(response.data['status']['paused'], False)
+        self.assertEqual(response.data['player_status']['playlist_entry'], None)
+        self.assertEqual(response.data['player_status']['timing'], playing_time)
+        self.assertEqual(response.data['player_status']['paused'], False)
 
 
 class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-player-manage')
-    url_aggregated = reverse('playlist-player')
+    url_digest = reverse('playlist-digest')
 
     def setUp(self):
         self.create_test_data()
@@ -146,11 +147,11 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['pause'], False)
         self.assertEqual(response.data['skip'], False)
 
-        # Get player commands again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player commands again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['manage']['pause'], False)
-        self.assertEqual(response.data['manage']['skip'], False)
+        self.assertEqual(response.data['player_manage']['pause'], False)
+        self.assertEqual(response.data['player_manage']['skip'], False)
 
         # Request pause
         response = self.client.put(self.url,
@@ -168,11 +169,11 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['pause'], True)
         self.assertEqual(response.data['skip'], False)
 
-        # Get player commands again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player commands again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['manage']['pause'], True)
-        self.assertEqual(response.data['manage']['skip'], False)
+        self.assertEqual(response.data['player_manage']['pause'], True)
+        self.assertEqual(response.data['player_manage']['skip'], False)
 
 
         # Now, check player receive the pause request
@@ -252,6 +253,30 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
             )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
+    def test_set_player_pause_kara_status_stop_forbidden(self):
+        """
+        Test a user cannot pause a song if the kara is stopped
+        """
+        # Play next song
+        self.player_play_next_song()
+
+        # Authenticate manager
+        self.authenticate(self.manager)
+
+        # Set kara in pause mode
+        self.set_kara_status_stop()
+
+        # Request pause
+        response = self.client.put(
+                self.url,
+                {
+                    'pause': True,
+                    'skip': False
+                }
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_set_player_skip(self):
         """
         Test to test skiping
@@ -271,11 +296,11 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['pause'], False)
         self.assertEqual(response.data['skip'], False)
 
-        # Get player commands again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player commands again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['manage']['pause'], False)
-        self.assertEqual(response.data['manage']['skip'], False)
+        self.assertEqual(response.data['player_manage']['pause'], False)
+        self.assertEqual(response.data['player_manage']['skip'], False)
 
         # Request skip
         response = self.client.put(self.url,
@@ -293,11 +318,11 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['pause'], False)
         self.assertEqual(response.data['skip'], True)
 
-        # Get player commands again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player commands again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['manage']['pause'], False)
-        self.assertEqual(response.data['manage']['skip'], True)
+        self.assertEqual(response.data['player_manage']['pause'], False)
+        self.assertEqual(response.data['player_manage']['skip'], True)
 
 
         # Now, player is still playing the same song,
@@ -313,9 +338,9 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
 
 
 # TODO: Player errors check
-class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
+class PlayerDeviceErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-player-errors')
-    url_aggregated = reverse('playlist-player')
+    url_digest = reverse('playlist-digest')
 
     def setUp(self):
         self.create_test_data()
@@ -333,10 +358,10 @@ class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
 
-        # Get player errors again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player errors again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['errors']), 0)
+        self.assertEqual(len(response.data['player_errors']), 0)
 
         # Simulate player sending and error
         error_message = "Testing Errors from the player"
@@ -355,11 +380,96 @@ class PlayerErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(error['song']['id'], self.song1.id)
         self.assertEqual(error['error_message'], error_message)
 
-        # Get player errors again but through aggregated route
-        response = self.client.get(self.url_aggregated)
+        # Get player errors again but through digest route
+        response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['errors']), 1)
-        error = response.data['errors'][0]
+        self.assertEqual(len(response.data['player_errors']), 1)
+        error = response.data['player_errors'][0]
         self.assertIsNotNone(error.get('id'))
         self.assertEqual(error['song']['id'], self.song1.id)
         self.assertEqual(error['error_message'], error_message)
+
+
+class PlayerDeviceViewAPIViewTestCase(BaseAPITestCase):
+    """
+    Test player route
+    """
+    url = reverse('playlist-device-status')
+
+    def setUp(self):
+        self.create_test_data()
+
+    def test_get_next_playlist_entry(self):
+        """
+        Test a logged player can get the next playlist entry
+        """
+        # log player
+        self.authenticate(self.player)
+
+        # get next song
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.pe1.id)
+        self.assertEqual(response.data['owner']['id'], self.pe1.owner.id)
+
+        song = response.data['song']
+        self.assertEqual(song['title'], self.pe1.song.title)
+        file_path = os.path.join(self.pe1.song.directory,
+                                 self.pe1.song.filename)
+        self.assertEqual(song['file_path'], file_path)
+
+    def test_get_next_playlist_entry_forbidden(self):
+        """
+        Test a non-player user cannot access to the next playlist entry
+        """
+        # log as manager
+        self.authenticate(self.manager)
+
+        # get next song
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_next_playlis_entry_kara_status_pause(self):
+        """
+        Test a player user get no next playlist entry when the kara is paused
+        """
+        # log as player
+        self.authenticate(self.player)
+
+        # pause kara
+        self.set_kara_status_pause()
+
+        # get next song
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data)
+
+    def test_get_next_playlis_entry_kara_status_pause_with_previous(self):
+        """
+        Test there is no error when the kara is paused when the player is
+        playing a song
+        """
+        # play a song
+        self.player_play_next_song()
+
+        # pause kara
+        self.set_kara_status_pause()
+
+        # ask to play the next song
+        # and check there is no error
+        self.player_play_next_song()
+
+    def test_put_recieving_status_kara_status_stop(self):
+        """
+        Test that the player recieve a skip command if the kara status is set
+        to stop
+        """
+        # log as player
+        self.authenticate(self.player)
+
+        # stop kara
+        self.set_kara_status_stop()
+
+        # send status
+        response = self.player_play_song(self.pe1.id)
+        self.assertTrue(response.data['skip'])

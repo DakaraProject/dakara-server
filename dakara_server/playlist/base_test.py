@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from library.models import Song, SongTag
-from .models import PlaylistEntry
+from .models import PlaylistEntry, KaraStatus
 
 
 UserModel = get_user_model()
@@ -68,6 +68,23 @@ class BaseAPITestCase(APITestCase):
         self.pe2 = PlaylistEntry(song=self.song2, owner=self.p_user)
         self.pe2.save()
 
+        # Set kara status in play mode
+        kara_status = KaraStatus.get_object()
+        kara_status.status = KaraStatus.PLAY
+        kara_status.save()
+
+    @staticmethod
+    def set_kara_status_stop():
+        kara_status = KaraStatus.get_object()
+        kara_status.status = KaraStatus.STOP
+        kara_status.save()
+
+    @staticmethod
+    def set_kara_status_pause():
+        kara_status = KaraStatus.get_object()
+        kara_status.status = KaraStatus.PAUSE
+        kara_status.save()
+
     def check_playlist_entry_json(self, json, expected_entry):
         """
         Method to check a representation against expected playlist entry
@@ -81,7 +98,7 @@ class BaseAPITestCase(APITestCase):
         Simulate player playing the next song at given time
         Return pause/skip commands directed toward the player
         """
-        url = reverse('player-status')
+        url = reverse('playlist-device-status')
         # Login as player
         self.authenticate(self.player)
 
@@ -98,7 +115,7 @@ class BaseAPITestCase(APITestCase):
         Simulate the player reporting playing the specified song
         for the given time and pause status
         """
-        url = reverse('player-status')
+        url = reverse('playlist-device-status')
         # Login as player
         self.authenticate(self.player)
         # Put as if playing next song
@@ -117,7 +134,7 @@ class BaseAPITestCase(APITestCase):
         """
         Simulate the player reporting an error
         """
-        url = reverse('player-error')
+        url = reverse('playlist-device-error')
         # Login as player
         self.authenticate(self.player)
         # Put as if playing next song

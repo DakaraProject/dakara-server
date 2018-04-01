@@ -78,48 +78,53 @@ urlpatterns = [
         name='users-current'
         ),
 
-    # API routes for the playlist, player side
+    # API routes for the playlist, player device side
     url(
-        r'^api/player/status/$',
-        playlist_views.player.PlayerView.as_view(),
-        name='player-status'
+        r'^api/playlist/device/status/$',
+        playlist_views.device.PlayerDeviceView.as_view(),
+        name='playlist-device-status'
         ),
     url(
-        r'^api/player/error/$',
-        playlist_views.player.PlayerErrorView.as_view(),
-        name='player-error'
+        r'^api/playlist/device/error/$',
+        playlist_views.device.PlayerDeviceErrorView.as_view(),
+        name='playlist-device-error'
         ),
 
     # API routes for the playlist, front side
     url(
         r'^api/playlist/player/manage/$',
-        playlist_views.front.PlayerManageView.as_view(),
+        playlist_views.PlayerManageView.as_view(),
         name='playlist-player-manage'
         ),
     url(
         r'^api/playlist/player/status/$',
-        playlist_views.front.PlayerStatusView.as_view(),
+        playlist_views.PlayerStatusView.as_view(),
         name='playlist-player-status'
         ),
     url(
         r'^api/playlist/player/errors/$',
-        playlist_views.front.PlayerErrorsPoolView.as_view(),
+        playlist_views.PlayerErrorsPoolView.as_view(),
         name='playlist-player-errors'
         ),
     url(
-        r'^api/playlist/player/$',
-        playlist_views.front.PlayerView.as_view(),
-        name='playlist-player'
+        r'^api/playlist/digest/$',
+        playlist_views.DigestView.as_view(),
+        name='playlist-digest'
         ),
     url(
-        r'^api/playlist/$',
-        playlist_views.front.PlaylistEntryListView.as_view(),
-        name='playlist-list'
+        r'^api/playlist/entries/$',
+        playlist_views.PlaylistEntryListView.as_view(),
+        name='playlist-entries-list'
         ),
     url(
-        r'^api/playlist/(?P<pk>[0-9]+)/$',
-        playlist_views.front.PlaylistEntryView.as_view(),
-        name='playlist-detail'
+        r'^api/playlist/entries/(?P<pk>[0-9]+)/$',
+        playlist_views.PlaylistEntryView.as_view(),
+        name='playlist-entries-detail'
+        ),
+    url(
+        r'^api/playlist/kara-status/$',
+        playlist_views.KaraStatusView.as_view(),
+        name='playlist-kara-status'
         ),
 
     # API routes for the library
