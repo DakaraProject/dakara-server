@@ -12,7 +12,7 @@ from . import permissions
 logger = logging.getLogger(__name__)
 
 
-class PlayerView(APIView):
+class PlayerDeviceView(APIView):
     """Player to communicate status and commands of the player
 
     Recieve status from player
@@ -26,7 +26,15 @@ class PlayerView(APIView):
         """Get next playist entry
         """
         player = models.Player.get_or_create()
-        entry = models.PlaylistEntry.get_next(player.playlist_entry_id)
+        kara_status = models.KaraStatus.get_object()
+
+        # get the next playlist entry if the kara is in play mode
+        if kara_status.status == models.KaraStatus.PLAY:
+            entry = models.PlaylistEntry.get_next(player.playlist_entry_id)
+
+        else:
+            entry = None
+
         serializer = serializers.PlaylistEntryForPlayerSerializer(entry)
 
         return Response(
@@ -47,6 +55,22 @@ class PlayerView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                     )
 
+        # skip the current playlist entry if the kara is in stop mode
+        kara_status = models.KaraStatus.get_object()
+        if kara_status.status == models.KaraStatus.STOP:
+            player_command = models.PlayerCommand()
+            player_command.skip = True
+
+            # Send commands to the player
+            player_command_serializer = serializers.PlayerCommandSerializer(
+                    player_command
+                    )
+
+            return Response(
+                    player_command_serializer.data,
+                    status=status.HTTP_202_ACCEPTED
+                    )
+
         player_command = models.PlayerCommand.get_or_create()
         player_old = models.Player.get_or_create()
         player = models.Player(**player_serializer.validated_data)
@@ -59,7 +83,10 @@ class PlayerView(APIView):
         # check player status is consistent
         # playing entry has to be either same as before,
         # or the value returned by get_next_song
-        if not (playing_old_id == playing_id or playing_id == next_id):
+        if not (
+                playing_old_id == playing_id or
+                playing_id == next_id or
+                playing_id is None):
             raise RuntimeError("""Player is not supposed to do that, is playing
 '{playing}' but should be playing '{old}' or '{next}'""".format(
                   playing=playing_id,
@@ -107,7 +134,7 @@ class PlayerView(APIView):
                 )
 
 
-class PlayerErrorView(APIView):
+class PlayerDeviceErrorView(APIView):
     """Handle player errors
     """
     permission_classes = [
