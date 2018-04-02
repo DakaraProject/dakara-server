@@ -97,7 +97,7 @@ class PlayerDetailsSerializer(serializers.Serializer):
     def get_playlist_entry(self, player):
         if player.playlist_entry_id is not None:
             entry = PlaylistEntry.objects.get(id=player.playlist_entry_id)
-            return PlaylistEntryReadSerializer(
+            return PlaylistPlayedEntryReadSerializer(
                     entry,
                     context=self.context
                     ).data
