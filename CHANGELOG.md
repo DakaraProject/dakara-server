@@ -36,6 +36,7 @@
   - pause: No additional song is played by the player. The player finishes playing current song.
   - stop: Player stops playing, playlist is emptied, can't add song to playlist.
 - Kara status to digest route.
+- Route `/playlist/played-entries/` to list played playlist entries with date played.
 
 ### Changed
 - Playlist routes:
@@ -47,6 +48,7 @@
   - `status` > `player_status`
   - `manage` > `player_manage`
   - `errors` > `player_errors`
+- Attempting to delete playing playlist entry now returns 404 instead of 403.
 
 ## 1.1.0 - 2018-01-25
 
