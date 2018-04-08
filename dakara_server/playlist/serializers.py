@@ -45,6 +45,23 @@ class PlaylistEntryReadSerializer(serializers.ModelSerializer):
                 )
 
 
+class PlaylistPlayedEntryReadSerializer(serializers.ModelSerializer):
+    """ Class for song serializer in playlist
+    """
+    song = SongSerializer(many=False, read_only=True)
+    owner = UserDisplaySerializer(read_only=True)
+
+    class Meta:
+        model = PlaylistEntry
+        fields = (
+                'id',
+                'song',
+                'date_created',
+                'owner',
+                'date_played'
+                )
+
+
 class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
     """
@@ -80,7 +97,7 @@ class PlayerDetailsSerializer(serializers.Serializer):
     def get_playlist_entry(self, player):
         if player.playlist_entry_id is not None:
             entry = PlaylistEntry.objects.get(id=player.playlist_entry_id)
-            return PlaylistEntryReadSerializer(
+            return PlaylistPlayedEntryReadSerializer(
                     entry,
                     context=self.context
                     ).data

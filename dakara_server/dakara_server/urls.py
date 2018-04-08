@@ -122,6 +122,11 @@ urlpatterns = [
         name='playlist-entries-detail'
         ),
     url(
+        r'^api/playlist/played-entries/$',
+        playlist_views.PlaylistPlayedEntryListView.as_view(),
+        name='playlist-played-entries-list'
+        ),
+    url(
         r'^api/playlist/kara-status/$',
         playlist_views.KaraStatusView.as_view(),
         name='playlist-kara-status'

@@ -10,6 +10,8 @@ class PlaylistEntry(models.Model):
     song = models.ForeignKey('library.Song', null=False)
     date_created = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(DakaraUser, null=False)
+    was_played = models.BooleanField(default=False, null=False)
+    date_played = models.DateTimeField(null=True)
 
     def __str__(self):
         return str(self.song)
@@ -17,9 +19,11 @@ class PlaylistEntry(models.Model):
     @classmethod
     def get_next(cls, id):
         """ Returns the next playlist entry in playlist
-            excluding entry with specified id
+            excluding entry with specified id and alredy played songs
         """
-        playlist = cls.objects.exclude(pk=id).order_by('date_created')
+        playlist = cls.objects.exclude(
+                models.Q(pk=id) | models.Q(was_played=True)
+                ).order_by('date_created')
 
         if not playlist:
             return None

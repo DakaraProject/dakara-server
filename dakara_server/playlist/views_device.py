@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -102,19 +103,25 @@ class PlayerDeviceView(APIView):
                 player_command.skip = False
                 player_command.save()
 
-            # remove previous entry from playlist if there was any
+            # mark previous entry from playlist as `played` if there was any
             if playing_old_id:
-                models.PlaylistEntry.objects.get(
+                previous_playlist_entry = models.PlaylistEntry.objects.get(
                         id=playing_old_id
-                        ).delete()
+                        )
+                previous_playlist_entry.was_played = True
+                previous_playlist_entry.save()
 
             if player.playlist_entry_id:
+                # Set `date_played` for new playlist entry
+                new_playlist_entry = models.PlaylistEntry.objects.get(
+                        id=player.playlist_entry_id
+                        )
+                new_playlist_entry.date_played = datetime.now()
+                new_playlist_entry.save()
+
                 logger.info(
                     "The player has started '{song}'".format(
-                        song=models.PlaylistEntry.objects.get(
-                            id=player.playlist_entry_id
-                            )
-                        )
+                        song=new_playlist_entry.song)
                     )
 
             else:
