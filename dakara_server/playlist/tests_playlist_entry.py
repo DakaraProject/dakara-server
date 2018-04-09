@@ -1,7 +1,11 @@
+from unittest.mock import patch
+from datetime import datetime, timedelta
+
 from django.core.urlresolvers import reverse
+from django.utils.dateparse import parse_datetime
 from rest_framework import status
-from .base_test import BaseAPITestCase
-from .models import PlaylistEntry
+from .base_test import BaseAPITestCase, tz
+from .models import PlaylistEntry, Player
 
 class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-entries-list')
@@ -9,23 +13,86 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
     def setUp(self):
         self.create_test_data()
 
-    def test_get_playlist_entries_list(self):
+    @patch('playlist.views.datetime',
+           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
+    def test_get_playlist_entries_list(self, mocked_datetime):
         """
         Test to verify playlist entries list
         """
-        # Login as simple user 
+        # patch the now method
+        now = datetime.now(tz)
+        mocked_datetime.now.return_value = now
+
+        # Login as simple user
         self.authenticate(self.user)
 
-        # Get playlist entries list 
+        # Get playlist entries list
         # Should only return entries with `was_played`=False
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)
         self.assertEqual(len(response.data['results']), 2)
 
         # Playlist entries are in order of creation
-        self.check_playlist_entry_json(response.data['results'][0], self.pe1)
-        self.check_playlist_entry_json(response.data['results'][1], self.pe2)
+        pe1 = response.data['results'][0]
+        pe2 = response.data['results'][1]
+        self.check_playlist_entry_json(pe1, self.pe1)
+        self.check_playlist_entry_json(pe2, self.pe2)
+
+        # check the date of the end of the playlist
+        self.assertEqual(parse_datetime(response.data['date_end']),
+                         now + self.pe1.song.duration + self.pe2.song.duration)
+
+        # check the date of play of each entries
+        self.assertEqual(parse_datetime(pe1['date_play']), now)
+        self.assertEqual(parse_datetime(pe2['date_play']),
+                         now + self.pe1.song.duration)
+
+    @patch('playlist.views.datetime',
+           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
+    def test_get_playlist_entries_list_while_playing(self, mocked_datetime):
+        """
+        Test to verify playlist entries play dates while playing
+
+        The player is currently in the middle of the song, play dates should
+        take account of the remaining time of the player.
+        """
+        # patch the now method
+        now = datetime.now(tz)
+        mocked_datetime.now.return_value = now
+
+        # set the player
+        player = Player.get_or_create()
+        player.playlist_entry_id = self.pe1.id
+        play_duration = timedelta(seconds=2)
+        player.timing = play_duration
+        player.save()
+
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Get playlist entries list
+        # Should only return entries with `was_played`=False
+        response = self.client.get(self.url)
+
+        # Get playlist entries list
+        # Should only return entries with `was_played`=False
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+
+        # Playlist entries are in order of creation
+        pe2 = response.data['results'][0]
+        self.check_playlist_entry_json(pe2, self.pe2)
+
+        # check the date of play
+        self.assertEqual(parse_datetime(response.data['date_end']),
+                         now + self.pe1.song.duration - play_duration +
+                         self.pe2.song.duration)
+
+        # check the date of play of each entries
+        self.assertEqual(parse_datetime(pe2['date_play']),
+                         now + self.pe1.song.duration - play_duration)
+
 
     def test_get_playlist_entries_list_forbidden(self):
         """
@@ -95,7 +162,6 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Get playlist entries list 
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
         self.assertEqual(len(response.data['results']), 1)
 
         # Playlist entries are in order of creation

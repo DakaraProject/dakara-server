@@ -1,8 +1,11 @@
 import logging
 from datetime import datetime, timedelta
+
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.core.cache import cache
+from django.utils.dateparse import parse_datetime
+from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 from rest_framework import status
@@ -12,6 +15,7 @@ from .models import PlaylistEntry, KaraStatus
 
 
 UserModel = get_user_model()
+tz = timezone.get_default_timezone()
 
 
 logging.disable(logging.CRITICAL)
@@ -57,10 +61,10 @@ class BaseAPITestCase(APITestCase):
         self.tag1.save()
 
         # Create songs
-        self.song1 = Song(title="Song1")
+        self.song1 = Song(title="Song1", duration=timedelta(seconds=5))
         self.song1.save()
         self.song1.tags.add(self.tag1)
-        self.song2 = Song(title="Song2")
+        self.song2 = Song(title="Song2", duration=timedelta(seconds=10))
         self.song2.save()
 
         # Create playlist entries
@@ -74,7 +78,7 @@ class BaseAPITestCase(APITestCase):
                 song=self.song2,
                 owner=self.manager,
                 was_played=True,
-                date_played=datetime.now()
+                date_played=datetime.now(tz)
                 )
         self.pe3.save()
 
@@ -82,7 +86,7 @@ class BaseAPITestCase(APITestCase):
                 song=self.song1,
                 owner=self.user,
                 was_played=True,
-                date_played=datetime.now() - timedelta(minutes=15)
+                date_played=datetime.now(tz) - timedelta(minutes=15)
                 )
         self.pe4.save()
 
@@ -116,7 +120,8 @@ class BaseAPITestCase(APITestCase):
         Method to check a representation against expected playlist played entry
         """
         self.check_playlist_entry_json(json, expected_entry)
-        self.assertEqual(datetime.strptime(json['date_played'], "%Y-%m-%dT%H:%M:%S.%fZ"), expected_entry.date_played)
+        self.assertEqual(parse_datetime(json['date_played']),
+                         expected_entry.date_played)
 
     def player_play_next_song(self, time=0, paused=False):
         """
