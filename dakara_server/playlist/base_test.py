@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.core.cache import cache
@@ -65,8 +66,25 @@ class BaseAPITestCase(APITestCase):
         # Create playlist entries
         self.pe1 = PlaylistEntry(song=self.song1, owner=self.manager)
         self.pe1.save()
+
         self.pe2 = PlaylistEntry(song=self.song2, owner=self.p_user)
         self.pe2.save()
+
+        self.pe3 = PlaylistEntry(
+                song=self.song2,
+                owner=self.manager,
+                was_played=True,
+                date_played=datetime.now()
+                )
+        self.pe3.save()
+
+        self.pe4 = PlaylistEntry(
+                song=self.song1,
+                owner=self.user,
+                was_played=True,
+                date_played=datetime.now() - timedelta(minutes=15)
+                )
+        self.pe4.save()
 
         # Set kara status in play mode
         kara_status = KaraStatus.get_object()
@@ -92,6 +110,13 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(json['id'], expected_entry.id)
         self.assertEqual(json['owner']['id'], expected_entry.owner.id)
         self.assertEqual(json['song']['id'], expected_entry.song.id)
+
+    def check_playlist_played_entry_json(self, json, expected_entry):
+        """
+        Method to check a representation against expected playlist played entry
+        """
+        self.check_playlist_entry_json(json, expected_entry)
+        self.assertEqual(datetime.strptime(json['date_played'], "%Y-%m-%dT%H:%M:%S.%fZ"), expected_entry.date_played)
 
     def player_play_next_song(self, time=0, paused=False):
         """

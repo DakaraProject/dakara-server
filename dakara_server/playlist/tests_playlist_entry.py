@@ -17,6 +17,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.user)
 
         # Get playlist entries list 
+        # Should only return entries with `was_played`=False
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)
@@ -41,12 +42,15 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Login as playlist user
         self.authenticate(self.p_user)
 
+        # Pre assert 4 entries in database
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
         # Post new playlist entry
         response = self.client.post(self.url, {"song": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check playlist entry has been created in database
-        self.assertEqual(PlaylistEntry.objects.count(), 3)
+        self.assertEqual(PlaylistEntry.objects.count(), 5)
         new_entry = PlaylistEntry.objects.order_by('-date_created')[0]
         # Entry was created with for song1
         self.assertEqual(new_entry.song.id, self.song1.id)
@@ -131,7 +135,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         response = self.client.post(self.url, {"song": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-class PlaylistEntryViewRetrieveUpdateDestroyAPIViewTestCase(BaseAPITestCase):
+class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
 
     def setUp(self):
         self.create_test_data()
@@ -139,6 +143,7 @@ class PlaylistEntryViewRetrieveUpdateDestroyAPIViewTestCase(BaseAPITestCase):
         # Create urls to access these playlist entries
         self.url_pe1 = reverse('playlist-entries-detail', kwargs={"pk": self.pe1.id})
         self.url_pe2 = reverse('playlist-entries-detail', kwargs={"pk": self.pe2.id})
+        self.url_pe3 = reverse('playlist-entries-detail', kwargs={"pk": self.pe3.id})
 
 
     def test_delete_playlist_entry_manager(self):
@@ -148,12 +153,15 @@ class PlaylistEntryViewRetrieveUpdateDestroyAPIViewTestCase(BaseAPITestCase):
         # Login as playlist manager
         self.authenticate(self.manager)
 
+        # Pre assert 4 entries in database
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
         # Delete playlist entries created by manager
         response = self.client.delete(self.url_pe1)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         # This playlist entry has been removed from database
-        self.assertEqual(PlaylistEntry.objects.count(), 1)
+        self.assertEqual(PlaylistEntry.objects.count(), 3)
         entries = PlaylistEntry.objects.filter(id=self.pe1.id)
         self.assertEqual(len(entries), 0)
 
@@ -162,7 +170,7 @@ class PlaylistEntryViewRetrieveUpdateDestroyAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         # This playlist entry has been removed from database
-        self.assertEqual(PlaylistEntry.objects.count(), 0)
+        self.assertEqual(PlaylistEntry.objects.count(), 2)
 
     def test_delete_playlist_entry_playlist_user(self):
         """
@@ -171,12 +179,15 @@ class PlaylistEntryViewRetrieveUpdateDestroyAPIViewTestCase(BaseAPITestCase):
         # Login as playlist user
         self.authenticate(self.p_user)
 
+        # Pre assert 4 entries in database
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
         # Delete playlist entries created by self
         response = self.client.delete(self.url_pe2)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         # This playlist entry has been removed from database
-        self.assertEqual(PlaylistEntry.objects.count(), 1)
+        self.assertEqual(PlaylistEntry.objects.count(), 3)
         entries = PlaylistEntry.objects.filter(id=self.pe2.id)
         self.assertEqual(len(entries), 0)
 
@@ -194,11 +205,33 @@ class PlaylistEntryViewRetrieveUpdateDestroyAPIViewTestCase(BaseAPITestCase):
         # Login as playlist manager
         self.authenticate(self.manager)
 
+        # Pre assert 4 entries in database
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
         # Attempt to delete playing entry 
         response = self.client.delete(self.url_pe1)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # This playlist entry is still there
-        self.assertEqual(PlaylistEntry.objects.count(), 2)
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
         entries = PlaylistEntry.objects.filter(id=self.pe1.id)
+        self.assertEqual(len(entries), 1)
+
+    def test_delete_playlist_entry_played(self):
+        """
+        Test to verify already played entry can not be deleted
+        """
+        # Login as playlist manager
+        self.authenticate(self.manager)
+
+        # Pre assert 4 entries in database
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+        # Attempt to delete already played entry 
+        response = self.client.delete(self.url_pe3)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # This playlist entry is still there
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+        entries = PlaylistEntry.objects.filter(id=self.pe3.id)
         self.assertEqual(len(entries), 1)

@@ -1,11 +1,13 @@
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import (
-        RetrieveUpdateDestroyAPIView,
+        DestroyAPIView,
         ListCreateAPIView,
+        ListAPIView,
         RetrieveUpdateAPIView
         )
 
@@ -22,24 +24,21 @@ class PlaylistEntryPagination(PageNumberPagination):
     page_size = 100
 
 
-class PlaylistEntryView(RetrieveUpdateDestroyAPIView):
+class PlaylistEntryView(DestroyAPIView):
     """Edition of a playlist entry
     """
-    queryset = models.PlaylistEntry.objects.all()
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
             permissions.IsPlaylistManagerOrOwnerOrReadOnly,
             permissions.KaraStatusIsNotStoppedOrReadOnly,
             ]
 
-    def destroy(self, request, *args, **kwargs):
-        playing_id = models.Player.get_or_create().playlist_entry_id
-        instance = self.get_object()
-        if playing_id == instance.id:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def get_queryset(self):
+        player = models.Player.get_or_create()
+        entry_id = player.playlist_entry_id
+        return models.PlaylistEntry.objects.exclude(
+                Q(pk=entry_id) | Q(was_played=True)
+                ).order_by('date_created')
 
 
 class PlaylistEntryListView(ListCreateAPIView):
@@ -61,8 +60,18 @@ class PlaylistEntryListView(ListCreateAPIView):
     def get_queryset(self):
         player = models.Player.get_or_create()
         entry_id = player.playlist_entry_id
-        return models.PlaylistEntry.objects.exclude(pk=entry_id) \
-            .order_by('date_created')
+        return models.PlaylistEntry.objects.exclude(
+                Q(pk=entry_id) | Q(was_played=True)
+                ).order_by('date_created')
+
+
+class PlaylistPlayedEntryListView(ListAPIView):
+    """List of played entries
+    """
+    pagination_class = PlaylistEntryPagination
+    serializer_class = serializers.PlaylistPlayedEntryReadSerializer
+    queryset = models.PlaylistEntry.objects.filter(was_played=True) \
+                .order_by('date_created')
 
 
 class PlayerStatusView(APIView):
