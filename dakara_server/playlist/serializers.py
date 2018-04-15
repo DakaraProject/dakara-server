@@ -34,6 +34,7 @@ class PlaylistEntryReadSerializer(serializers.ModelSerializer):
     """
     song = SongSerializer(many=False, read_only=True)
     owner = UserDisplaySerializer(read_only=True)
+    date_play = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = PlaylistEntry
@@ -42,7 +43,15 @@ class PlaylistEntryReadSerializer(serializers.ModelSerializer):
                 'song',
                 'date_created',
                 'owner',
+                'date_play',
                 )
+
+
+class PlaylistEntriesReadSerializer(serializers.Serializer):
+    """ Class for playlist entries with playlist end date
+    """
+    results = PlaylistEntryReadSerializer(many=True, read_only=True)
+    date_end = serializers.DateTimeField(read_only=True)
 
 
 class PlaylistPlayedEntryReadSerializer(serializers.ModelSerializer):

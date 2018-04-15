@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,6 +11,7 @@ from . import serializers
 from . import permissions
 
 
+tz = timezone.get_default_timezone()
 logger = logging.getLogger(__name__)
 
 
@@ -116,7 +118,7 @@ class PlayerDeviceView(APIView):
                 new_playlist_entry = models.PlaylistEntry.objects.get(
                         id=player.playlist_entry_id
                         )
-                new_playlist_entry.date_played = datetime.now()
+                new_playlist_entry.date_played = datetime.now(tz)
                 new_playlist_entry.save()
 
                 logger.info(

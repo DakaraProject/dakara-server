@@ -1,5 +1,10 @@
+from datetime import datetime
+
 from django.db.models import Q
+from django.utils import timezone
+from django.conf import settings
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
@@ -16,6 +21,9 @@ from . import serializers
 from . import permissions
 
 from . import views_device as device
+
+
+tz = timezone.get_default_timezone()
 
 
 class PlaylistEntryPagination(PageNumberPagination):
@@ -44,7 +52,6 @@ class PlaylistEntryView(DestroyAPIView):
 class PlaylistEntryListView(ListCreateAPIView):
     """List of entries or creation of a new entry in the playlist
     """
-    pagination_class = PlaylistEntryPagination
     permission_classes = [
             permissions.IsPlaylistUserOrReadOnly,
             permissions.IsPlaylistAndLibraryManagerOrSongCanBeAdded,
@@ -55,7 +62,7 @@ class PlaylistEntryListView(ListCreateAPIView):
         if self.request.method == 'POST':
             return serializers.PlaylistEntrySerializer
 
-        return serializers.PlaylistEntryReadSerializer
+        return serializers.PlaylistEntriesReadSerializer
 
     def get_queryset(self):
         player = models.Player.get_or_create()
@@ -63,6 +70,42 @@ class PlaylistEntryListView(ListCreateAPIView):
         return models.PlaylistEntry.objects.exclude(
                 Q(pk=entry_id) | Q(was_played=True)
                 ).order_by('date_created')
+
+    def get(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        player = models.Player.get_or_create()
+        date = datetime.now(tz)
+
+        # add player remaining time
+        if player.playlist_entry_id:
+            playlist_entry = models.PlaylistEntry.objects.get(
+                    pk=player.playlist_entry_id
+                    )
+            date += playlist_entry.song.duration - player.timing
+
+        # for each entry, compute when it is supposed to play
+        for playlist_entry in queryset:
+            playlist_entry.date_play = date
+            date += playlist_entry.song.duration
+
+        serializer = self.get_serializer({
+            'results': queryset,
+            'date_end': date,
+            })
+
+        return Response(serializer.data)
+
+    def create(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        count = queryset.count()
+
+        # deny the creation of a new playlist entry if the playlist is full
+        if count >= settings.PLAYLIST_SIZE_LIMIT:
+            raise PermissionDenied(
+                    detail="Playlist is full, please retry later."
+                    )
+
+        return super().create(request)
 
 
 class PlaylistPlayedEntryListView(ListAPIView):
