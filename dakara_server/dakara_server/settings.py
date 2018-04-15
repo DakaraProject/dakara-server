@@ -113,6 +113,9 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
 
+# limit of the playlist size
+PLAYLIST_SIZE_LIMIT = 100
+
 try:
     from .local_settings import *
 

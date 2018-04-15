@@ -2,7 +2,9 @@ from datetime import datetime
 
 from django.db.models import Q
 from django.utils import timezone
+from django.conf import settings
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
@@ -92,6 +94,18 @@ class PlaylistEntryListView(ListCreateAPIView):
             })
 
         return Response(serializer.data)
+
+    def create(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        count = queryset.count()
+
+        # deny the creation of a new playlist entry if the playlist is full
+        if count >= settings.PLAYLIST_SIZE_LIMIT:
+            raise PermissionDenied(
+                    detail="Playlist is full, please retry later."
+                    )
+
+        return super().create(request)
 
 
 class PlaylistPlayedEntryListView(ListAPIView):

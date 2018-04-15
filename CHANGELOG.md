@@ -37,6 +37,7 @@
   - stop: Player stops playing, playlist is emptied, can't add song to playlist.
 - Kara status to digest route.
 - Route `/playlist/played-entries/` to list played playlist entries with date played.
+- Add limit to playlist size (default to 100 entries).
 
 ### Changed
 - Playlist routes:
