@@ -49,6 +49,7 @@
   - `manage` > `player_manage`
   - `errors` > `player_errors`
 - Attempting to delete playing playlist entry now returns 404 instead of 403.
+- Pagination information (`current` and `last`) for views that use a paginator are now gathered in the `pagination` key in the response.
 
 ## 1.1.0 - 2018-01-25
 
