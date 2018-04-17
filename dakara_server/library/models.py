@@ -23,7 +23,7 @@ class Song(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.title)
+        return "Song '{}'".format(self.title)
 
 
 class Artist(models.Model):
@@ -32,7 +32,7 @@ class Artist(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return str(self.name)
+        return "Artist '{}'".format(self.name)
 
 
 class Work(models.Model):
@@ -45,7 +45,10 @@ class Work(models.Model):
     work_type = models.ForeignKey('WorkType', null=True)
 
     def __str__(self):
-        return str(self.title)
+        return "Work of type {} '{}'".format(
+            self.work_type.get_name() if self.work_type else 'unknown',
+            self.title
+        )
 
 
 class WorkType(models.Model):
@@ -60,7 +63,10 @@ class WorkType(models.Model):
     icon_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return str(self.name or self.query_name)
+        return "Work type '{}'".format(self.get_name())
+
+    def get_name(self):
+        return self.name or self.query_name
 
 
 class SongWorkLink(models.Model):
@@ -86,8 +92,11 @@ class SongWorkLink(models.Model):
     episodes = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
-        return str(self.work.title) + ' ' + str(self.link_type) + \
-            (' ' + str(self.link_type_number) if self.link_type_number else '')
+        return "Use of song '{}' in '{}' as {}".format(
+            self.song.title,
+            self.work.title,
+            self.link_type
+        )
 
 
 class SongTag(models.Model):
@@ -102,4 +111,4 @@ class SongTag(models.Model):
     disabled = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.name)
+        return "Song tag '{}'".format(self.name)
