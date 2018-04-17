@@ -1,6 +1,8 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
+
 from .base_test import BaseAPITestCase
+
 
 class WorkListViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('library-work-list')
@@ -16,7 +18,7 @@ class WorkListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify work list with no query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get works list
@@ -37,7 +39,7 @@ class WorkListViewAPIViewTestCase(BaseAPITestCase):
 
     def test_get_work_list_forbidden(self):
         """
-        Test to verify unauthenticated user can't get work list 
+        Test to verify unauthenticated user can't get work list
         """
         # Attempt to get works list
         response = self.client.get(self.url)
@@ -47,7 +49,7 @@ class WorkListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify work list with work type filter
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get works list for type wt1
@@ -75,7 +77,7 @@ class WorkListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify work list with query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get works list with query = "ork1"
@@ -90,7 +92,7 @@ class WorkListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify work list with empty query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get works list with query = ""
@@ -101,27 +103,31 @@ class WorkListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify work query do not parse keywords
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get works list with query = "title:work1"
-        # Should not return anything since it searched for the whole string 
+        # Should not return anything since it searched for the whole string
         self.work_query_test("title:work1", [], ['title:work1'])
 
     def test_get_works_list_with_query__multi_words(self):
         """
         Test query parse with multi words remaining
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get works list with escaped space query
         # Should not return anything but check query
-        self.work_query_test(r"word words\ words\ words remain", [], ['word', 'words words words', 'remain'])
+        self.work_query_test(
+            r"word words\ words\ words remain", [], [
+                'word', 'words words words', 'remain'])
 
         # Get works list with quoted query
         # Should not return anything but check query
-        self.work_query_test(""" word"words words words" remain""", [], ['word', 'words words words','remain'])
+        self.work_query_test(
+            """ word"words words words" remain""", [], [
+                'word', 'words words words', 'remain'])
 
     def work_query_test(self, query, expected_works, remaining=None):
         """

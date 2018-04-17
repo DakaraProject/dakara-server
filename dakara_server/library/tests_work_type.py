@@ -1,6 +1,8 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
+
 from .base_test import BaseAPITestCase
+
 
 class WorkTypeListViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('library-worktype-list')
@@ -16,7 +18,7 @@ class WorkTypeListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify work type list
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get work type list
@@ -31,7 +33,7 @@ class WorkTypeListViewAPIViewTestCase(BaseAPITestCase):
 
     def test_get_work_type_list_forbidden(self):
         """
-        Test to verify unauthenticated user can't get work type list 
+        Test to verify unauthenticated user can't get work type list
         """
         # Attempt to get work type list
         response = self.client.get(self.url)

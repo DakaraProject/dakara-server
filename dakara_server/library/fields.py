@@ -8,7 +8,7 @@ class SafeDurationField(models.DurationField):
 
     def get_db_prep_value(self, *args, **kwargs):
         value = super(SafeDurationField, self) \
-                .get_db_prep_value(*args, **kwargs)
+            .get_db_prep_value(*args, **kwargs)
         if value is None:
             return None
         return int(round(value))
@@ -29,4 +29,5 @@ class UpperCaseCharField(models.CharField):
             setattr(model_instance, self.attname, value)
             return value
         else:
-            return super(UpperCaseCharField, self).pre_save(model_instance, add)
+            return super(UpperCaseCharField, self).pre_save(
+                model_instance, add)

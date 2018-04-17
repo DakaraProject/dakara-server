@@ -1,10 +1,12 @@
 from tempfile import NamedTemporaryFile
+
 from django.core.management import call_command
 from django.test import TestCase
+
 from .models import WorkType
 
-class CommandsTestCase(TestCase):
 
+class CommandsTestCase(TestCase):
     def test_createworktypes_command(self):
         """
         Test create work types command
@@ -47,7 +49,8 @@ class CommandsTestCase(TestCase):
 
     def test_createworktypes_command_prune(self):
         """
-        Test create work types command with existing work types and prune option
+        Test create work types command with existing work types and prune
+        option
         """
         # Create existing work types
 
@@ -106,4 +109,3 @@ class CommandsTestCase(TestCase):
             self.assertEqual(work_types[1].name, "Work type two")
             self.assertEqual(work_types[1].name_plural, "Work type two plural")
             self.assertEqual(work_types[1].icon_name, "cat")
-

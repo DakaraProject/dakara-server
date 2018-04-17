@@ -1,11 +1,13 @@
 import re
+
 from library.models import WorkType
 
 KEYWORDS = [
-        "artist",
-        "work",
-        "title",
-        ]
+    "artist",
+    "work",
+    "title",
+]
+
 
 class QueryLanguageParser:
     """
@@ -15,7 +17,7 @@ class QueryLanguageParser:
 
     def __init__(self):
         self.keywords_work_type = [work_type.query_name
-                for work_type in WorkType.objects.all()]
+                                   for work_type in WorkType.objects.all()]
 
         self.keywords = KEYWORDS + self.keywords_work_type
 
@@ -24,9 +26,11 @@ class QueryLanguageParser:
             :                               # separator
             \s?
             (?:
-                ""(?P<exact>.+?)""          # exact value between double double quote
+                ""(?P<exact>.+?)""          # exact value between double double
+                                            # quote
                 |
-                "(?P<contains>.+?)"         # contains value between double quote
+                "(?P<contains>.+?)"         # contains value between double
+                                            # quote
                 |
                 (?P<contains2>(?:\\\s|\S)+) # contains with no quotes
             )
@@ -54,7 +58,7 @@ class QueryLanguageParser:
                 if in_quotes:
                     if current_expression:
                         result.append(current_expression)
-                    in_quotes = False 
+                    in_quotes = False
                     current_expression = ""
                 else:
                     current_expression = current_expression.strip()
@@ -88,8 +92,10 @@ class QueryLanguageParser:
             Returns:
                 dict: query terms arranged among the following keys:
                     `artist`:
-                        `contains`: list of list of artists names to match partially.
-                        `exact`: list of list of artists names to match exactly.
+                        `contains`: list of list of artists names to match
+                            partially.
+                        `exact`: list of list of artists names to match
+                            exactly.
                     `work`:
                         `contains`: list of works names to match partially.
                         `exact`: list of works names to match exactly.
@@ -105,22 +111,22 @@ class QueryLanguageParser:
         # create results structure
         # work_type will be filled only if necessary
         result = {
-                "artist": {
-                    "contains": [],
-                    "exact": []
-                    },
-                "work": {
-                    "contains": [],
-                    "exact": []
-                    },
-                "title": {
-                    "contains": [],
-                    "exact": []
-                    },
-                "work_type": {},
-                "remaining": [],
-                "tag": [],
-                }
+            "artist": {
+                "contains": [],
+                "exact": []
+            },
+            "work": {
+                "contains": [],
+                "exact": []
+            },
+            "title": {
+                "contains": [],
+                "exact": []
+            },
+            "work_type": {},
+            "remaining": [],
+            "tag": [],
+        }
 
         for match in self.language_matcher.finditer(query):
             group_index = match.groupdict()
@@ -129,11 +135,10 @@ class QueryLanguageParser:
             target = group_index['keyword'].strip().lower()
             value_exact = (group_index['exact'] or '').strip()
             value_contains = (
-                    group_index['contains'] or
-                    group_index['contains2'] or
-                    ''
-                    ).replace("\\", "").strip()
-
+                group_index['contains'] or
+                group_index['contains2'] or
+                ''
+            ).replace("\\", "").strip()
 
             if target in self.keywords_work_type:
                 # create worktype if not exists
@@ -141,7 +146,7 @@ class QueryLanguageParser:
                     result['work_type'][target] = {
                         "contains": [],
                         "exact": []
-                        }
+                    }
 
                 result_target = result['work_type'][target]
 

@@ -1,10 +1,12 @@
 from tempfile import NamedTemporaryFile
+
 from django.core.management import call_command
 from django.test import TestCase
+
 from .models import SongTag
 
-class CreatetagsCommandTestCase(TestCase):
 
+class CreatetagsCommandTestCase(TestCase):
     def test_createtags_command(self):
         """
         Test create tags command
@@ -46,7 +48,7 @@ class CreatetagsCommandTestCase(TestCase):
         # This tag exists in config file
         # its color id will be updated by the command
         tag1 = SongTag()
-        tag1.name= "TAGNAME1"
+        tag1.name = "TAGNAME1"
         tag1.save()
 
         # This is not in config file

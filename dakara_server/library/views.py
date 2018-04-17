@@ -1,19 +1,17 @@
-from rest_framework.generics import (
-        RetrieveUpdateDestroyAPIView,
-        UpdateAPIView,
-        ListCreateAPIView,
-        ListAPIView,
-        )
-
 from django.db.models.functions import Lower
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from django.db.models import Q
+from rest_framework.generics import (
+    RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
+    ListCreateAPIView,
+    ListAPIView,
+)
 
 from . import models
 from . import serializers
 from .query_language import QueryLanguageParser
-
 from .permissions import IsLibraryManagerOrReadOnly
 
 
@@ -22,15 +20,16 @@ class LibraryPagination(PageNumberPagination):
 
     Gives current page number and last page number
     """
+
     def get_paginated_response(self, data):
         return Response({
-                'pagination': {
-                    'current': self.page.number,
-                    'last': self.page.paginator.num_pages,
-                    },
-                'count': self.page.paginator.count,
-                'results': data,
-            })
+            'pagination': {
+                'current': self.page.number,
+                'last': self.page.paginator.num_pages,
+            },
+            'count': self.page.paginator.count,
+            'results': data,
+        })
 
 
 class SongListView(ListCreateAPIView):
@@ -89,15 +88,15 @@ class SongListView(ListCreateAPIView):
             for query_name, search_keywords in res['work_type'].items():
                 for keyword in search_keywords['contains']:
                     q.append(
-                            Q(works__title__icontains=keyword) &
-                            Q(works__work_type__query_name=query_name)
-                            )
+                        Q(works__title__icontains=keyword) &
+                        Q(works__work_type__query_name=query_name)
+                    )
 
                 for keyword in search_keywords['exact']:
                     q.append(
-                            Q(works__title__iexact=keyword) &
-                            Q(works__work_type__query_name=query_name)
-                            )
+                        Q(works__title__iexact=keyword) &
+                        Q(works__work_type__query_name=query_name)
+                    )
 
                 # one may want to factor the duplicated query on the work type
                 # but it is very unlikely someone will define severals animes
@@ -108,10 +107,10 @@ class SongListView(ListCreateAPIView):
             # unspecific terms of the research
             for remain in res['remaining']:
                 q.append(
-                        Q(title__icontains=remain) |
-                        Q(artists__name__icontains=remain) |
-                        Q(works__title__icontains=remain)
-                    )
+                    Q(title__icontains=remain) |
+                    Q(artists__name__icontains=remain) |
+                    Q(works__title__icontains=remain)
+                )
 
             # tags
             for tag in res['tag']:
@@ -183,8 +182,8 @@ class ArtistListView(ListCreateAPIView):
             # only unspecific terms are used
             for remain in res:
                 q.append(
-                        Q(name__icontains=remain)
-                    )
+                    Q(name__icontains=remain)
+                )
 
             # gather the query objects
             filter_query = Q()
@@ -246,9 +245,9 @@ class WorkListView(ListCreateAPIView):
             # only unspecific terms are used
             for remain in res:
                 q.append(
-                        Q(title__icontains=remain) |
-                        Q(subtitle__icontains=remain)
-                    )
+                    Q(title__icontains=remain) |
+                    Q(subtitle__icontains=remain)
+                )
 
             # gather the query objects
             filter_query = Q()

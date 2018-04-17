@@ -1,6 +1,7 @@
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import permissions
+
 from users.permissions import BasePermissionCustom
+
 
 class IsLibraryManagerOrReadOnly(BasePermissionCustom):
     """ Handle permissions for updating library
@@ -11,6 +12,7 @@ class IsLibraryManagerOrReadOnly(BasePermissionCustom):
             Authenticated can only display;
             Unauthenticated user cannot see anything.
     """
+
     def has_permission_custom(self, request, view):
         # for safe methods only
         if request.method in permissions.SAFE_METHODS:

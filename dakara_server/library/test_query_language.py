@@ -1,6 +1,8 @@
 from django.test import TestCase
+
 from .query_language import QueryLanguageParser
 from .models import WorkType
+
 
 class QueryLanguageParserTestCase(TestCase):
 
@@ -18,8 +20,14 @@ class QueryLanguageParserTestCase(TestCase):
         """
         Test complex query parse
         """
-        res = self.parser.parse("""hey  artist: me work:you wt1:workName title: test\ Test remain stuff #tagg wt3:test artist:"my artist" work:""exact Work"" i   """)
-        self.assertCountEqual(res['remaining'], ['remain', 'stuff', 'hey', 'i', 'wt3:test'])
+        res = self.parser.parse(
+            """hey  artist: me work:you wt1:workName title: test\ Test """
+            """remain stuff #tagg wt3:test artist:"my artist" work:""exact """
+            """Work"" i   """
+        )
+        self.assertCountEqual(
+            res['remaining'], [
+                'remain', 'stuff', 'hey', 'i', 'wt3:test'])
         self.assertCountEqual(res['tag'], ['TAGG'])
         self.assertCountEqual(res['title']['contains'], ['test Test'])
         self.assertCountEqual(res['title']['exact'], [])
@@ -28,7 +36,9 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work']['contains'], ['you'])
         self.assertCountEqual(res['work']['exact'], ["exact Work"])
         self.assertCountEqual(res['work_type'].keys(), ['wt1'])
-        self.assertCountEqual(res['work_type']['wt1']['contains'], ['workName'])
+        self.assertCountEqual(
+            res['work_type']['wt1']['contains'],
+            ['workName'])
         self.assertCountEqual(res['work_type']['wt1']['exact'], [])
 
     def test_parse_only_remaining(self):
@@ -36,7 +46,9 @@ class QueryLanguageParserTestCase(TestCase):
         Test simple query parse
         """
         res = self.parser.parse("This is just text with: nothing specific")
-        self.assertCountEqual(res['remaining'], ['This', 'is', 'just', 'text', 'with:', 'nothing', 'specific'])
+        self.assertCountEqual(
+            res['remaining'], [
+                'This', 'is', 'just', 'text', 'with:', 'nothing', 'specific'])
         self.assertCountEqual(res['tag'], [])
         self.assertCountEqual(res['title']['contains'], [])
         self.assertCountEqual(res['title']['exact'], [])
@@ -216,7 +228,9 @@ class QueryLanguageParserTestCase(TestCase):
         Test query parse with multi words remaining
         """
         res = self.parser.parse(r"word words\ words\ words remain")
-        self.assertCountEqual(res['remaining'], ['word', 'words words words', 'remain'])
+        self.assertCountEqual(
+            res['remaining'], [
+                'word', 'words words words', 'remain'])
         self.assertCountEqual(res['tag'], [])
         self.assertCountEqual(res['title']['contains'], [])
         self.assertCountEqual(res['title']['exact'], [])
@@ -227,7 +241,9 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
         res = self.parser.parse(""" word"words words words" remain""")
-        self.assertCountEqual(res['remaining'], ['word', 'words words words','remain'])
+        self.assertCountEqual(
+            res['remaining'], [
+                'word', 'words words words', 'remain'])
         self.assertCountEqual(res['tag'], [])
         self.assertCountEqual(res['title']['contains'], [])
         self.assertCountEqual(res['title']['exact'], [])
@@ -239,10 +255,13 @@ class QueryLanguageParserTestCase(TestCase):
 
     def test_parse_old_worktype(self):
         """
-        This test attempts to reproduce a bug where old work types were kept in memory
+        This test attempts to reproduce a bug where old work types were kept in
+        memory
         """
         # Pre-assertion, keywords contains wt1 and wt2
-        self.assertCountEqual(self.parser.keywords, ["artist", "work", "title", "wt1", "wt2"])
+        self.assertCountEqual(
+            self.parser.keywords, [
+                "artist", "work", "title", "wt1", "wt2"])
 
         # Request with work type 2
         res = self.parser.parse("wt2:mywork")
@@ -261,13 +280,17 @@ class QueryLanguageParserTestCase(TestCase):
         # Now remove work type 2
         self.wt2.delete()
 
-        # Create a new parser so that keywords are re-initialized with current workTypes
+        # Create a new parser so that keywords are re-initialized with current
+        # workTypes
         self.parser = QueryLanguageParser()
 
         # Check parser keywords, should not include wt2 anymore
-        self.assertCountEqual(self.parser.keywords, ["artist", "work", "title", "wt1"])
+        self.assertCountEqual(
+            self.parser.keywords, [
+                "artist", "work", "title", "wt1"])
 
-        # Now the request with wt2 should not be parsed since wt2 is not a keyword anymore
+        # Now the request with wt2 should not be parsed since wt2 is not a
+        # keyword anymore
         res = self.parser.parse("wt2:mywork")
         self.assertCountEqual(res['remaining'], ["wt2:mywork"])
         self.assertCountEqual(res['tag'], [])

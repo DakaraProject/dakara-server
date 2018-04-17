@@ -1,9 +1,10 @@
 from django.core.management import call_command
 from django.test import TestCase
+
 from .models import Artist, Work, Song, SongWorkLink
 
-class PruneCommandTestCase(TestCase):
 
+class PruneCommandTestCase(TestCase):
     def test_prune_command_artists(self):
         """
         Test prune command for artists
@@ -62,8 +63,6 @@ class PruneCommandTestCase(TestCase):
         link1.song = song1
         link1.link_type = 'OP'
         link1.save()
-
-
 
         # Pre-assertions
         works = Work.objects.order_by('title')

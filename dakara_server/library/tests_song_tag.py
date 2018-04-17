@@ -1,7 +1,7 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
-from .base_test import BaseAPITestCase
 
+from .base_test import BaseAPITestCase
 from .models import SongTag
 
 
@@ -71,9 +71,9 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
 
         # alter one tag
         response = self.client.patch(
-                self.url_sg1,
-                {"disabled": True}
-                )
+            self.url_sg1,
+            {"disabled": True}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # the tag should be disabled now
@@ -89,9 +89,9 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
 
         # attempt to alter one tag
         response = self.client.patch(
-                self.url_sg1,
-                {"disabled": True}
-                )
+            self.url_sg1,
+            {"disabled": True}
+        )
 
         # user can't update tag
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

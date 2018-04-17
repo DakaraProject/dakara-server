@@ -4,13 +4,16 @@ from rest_framework.test import APITestCase
 from .models import WorkType, Work, Artist, SongTag, Song, SongWorkLink
 
 UserModel = get_user_model()
+
+
 class BaseAPITestCase(APITestCase):
 
     def authenticate(self, user):
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
-    def create_user(self, username, playlist_level=None, library_level=None, users_level=None):
+    def create_user(self, username, playlist_level=None,
+                    library_level=None, users_level=None):
         user = UserModel.objects.create_user(username, "", "password")
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
@@ -21,9 +24,9 @@ class BaseAPITestCase(APITestCase):
     def create_library_test_data(self):
         # Create work types
         self.wt1 = WorkType(
-                name="WorkType1",
-                name_plural="WorkTypes1",
-                query_name="wt1")
+            name="WorkType1",
+            name_plural="WorkTypes1",
+            query_name="wt1")
         self.wt1.save()
         self.wt2 = WorkType(name="WorkType2", query_name="wt2")
         self.wt2.save()
@@ -52,10 +55,10 @@ class BaseAPITestCase(APITestCase):
 
         # Song with no tag, artist or work
         self.song1 = Song(
-                title="Song1",
-                filename="file.mp4",
-                directory="directory"
-                )
+            title="Song1",
+            filename="file.mp4",
+            directory="directory"
+        )
 
         self.song1.save()
 
@@ -65,10 +68,10 @@ class BaseAPITestCase(APITestCase):
         self.song2.tags.add(self.tag1)
         self.song2.artists.add(self.artist1)
         SongWorkLink(
-                song_id=self.song2.id,
-                work_id=self.work1.id,
-                link_type=SongWorkLink.OPENING
-                ).save()
+            song_id=self.song2.id,
+            work_id=self.work1.id,
+            link_type=SongWorkLink.OPENING
+        ).save()
 
     def check_song_json(self, json, expected_song):
         """
@@ -82,25 +85,27 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(json['detail'], expected_song.detail)
         self.assertEqual(json['detail_video'], expected_song.detail_video)
 
-        #tags
+        # tags
         expected_tags = expected_song.tags.all()
-        self.assertEqual(len(json['tags']),len(expected_tags))
+        self.assertEqual(len(json['tags']), len(expected_tags))
         for tag, expected_tag in zip(json['tags'], expected_tags):
             self.check_tag_json(tag, expected_tag)
 
-        #artists
+        # artists
         expected_artists = expected_song.artists.all()
-        self.assertEqual(len(json['artists']),len(expected_artists))
+        self.assertEqual(len(json['artists']), len(expected_artists))
         for artist, expected_artist in zip(json['artists'], expected_artists):
             self.check_artist_json(artist, expected_artist)
 
-        #works
+        # works
         expected_works = expected_song.songworklink_set.all()
-        self.assertEqual(len(json['works']),len(expected_works))
+        self.assertEqual(len(json['works']), len(expected_works))
         for work, expected_work in zip(json['works'], expected_works):
             self.check_work_json(work['work'], expected_work.work)
             self.assertEqual(work['link_type'], expected_work.link_type)
-            self.assertEqual(work['link_type_number'], expected_work.link_type_number)
+            self.assertEqual(
+                work['link_type_number'],
+                expected_work.link_type_number)
             self.assertEqual(work['episodes'], expected_work.episodes)
 
     def check_tag_json(self, json, expected_tag):
@@ -111,7 +116,6 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(json['name'], expected_tag.name)
         self.assertEqual(json['color_hue'], expected_tag.color_hue)
         self.assertEqual(json['disabled'], expected_tag.disabled)
-
 
     def check_artist_json(self, json, expected_artist):
         """

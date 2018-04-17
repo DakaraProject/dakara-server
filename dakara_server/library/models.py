@@ -46,7 +46,7 @@ class Work(models.Model):
 
 
 class WorkType(models.Model):
-    """ Class for the type of a work: anime, games and so on 
+    """ Class for the type of a work: anime, games and so on
     """
     name = models.CharField(max_length=255)
     name_plural = models.CharField(max_length=255)
@@ -66,11 +66,11 @@ class SongWorkLink(models.Model):
     INSERT = 'IN'
     IMAGE = 'IS'
     LINK_TYPE_CHOICES = (
-            (OPENING, "Opening"),
-            (ENDING, "Ending"),
-            (INSERT, "Insert song"),
-            (IMAGE, "Image somg"),
-            )
+        (OPENING, "Opening"),
+        (ENDING, "Ending"),
+        (INSERT, "Insert song"),
+        (IMAGE, "Image somg"),
+    )
 
     song = models.ForeignKey(Song, on_delete=models.CASCADE)
     work = models.ForeignKey(Work, on_delete=models.CASCADE)
@@ -87,7 +87,11 @@ class SongTag(models.Model):
     """ Class to describe song tags
     """
     name = UpperCaseCharField(max_length=255)
-    color_hue = models.IntegerField(null=True, validators=[MinValueValidator(0), MaxValueValidator(360)])
+    color_hue = models.IntegerField(
+        null=True,
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(360)])
     disabled = models.BooleanField(default=False)
 
     def __str__(self):

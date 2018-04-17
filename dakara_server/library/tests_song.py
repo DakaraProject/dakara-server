@@ -1,8 +1,8 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
+
 from .base_test import BaseAPITestCase
 
-from .models import SongTag
 
 class SongListViewAPIViewTestCase(BaseAPITestCase):
     url = reverse('library-song-list')
@@ -21,7 +21,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify song list with no query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get songs list
@@ -36,7 +36,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
 
     def test_get_song_list_forbidden(self):
         """
-        Test to verify unauthenticated user can't get songs list 
+        Test to verify unauthenticated user can't get songs list
         """
         # Attempte to get songs list
         response = self.client.get(self.url)
@@ -46,7 +46,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify song list with simple query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get songs list with query = "ong1"
@@ -65,7 +65,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify song list with empty query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get songs list with query = ""
@@ -76,7 +76,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify song list with tag query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get songs list with query = "#TAG1"
@@ -91,7 +91,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify song list with artist query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get songs list with query = "artist:1"
@@ -114,7 +114,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify song list with work query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get songs list with query = "wt1:Work1"
@@ -133,7 +133,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify song list with title query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get songs list with query = "title:1"
@@ -152,7 +152,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify song list with title query
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Get songs list with query = "artist:Artist1 title:1"
@@ -163,10 +163,14 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify parsed query is returned
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
-        query = """hey  artist: me work:you wt1:workName title: test\ Test remain stuff #tagg wt3:test artist:"my artist" work:""exact Work"" i   """
+        query = (
+            """hey  artist: me work:you wt1:workName title: test\ Test """
+            """remain stuff #tagg wt3:test artist:"my artist" work:""exact """
+            """Work"" i   """
+        )
 
         # Get song list with a complex query
         # should not return any song, but we'll check returned parsed query
@@ -176,7 +180,9 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         results = response.data['results']
         self.assertEqual(len(results), 0)
         query = response.data['query']
-        self.assertCountEqual(query['remaining'], ['remain', 'stuff', 'hey', 'i', 'wt3:test'])
+        self.assertCountEqual(
+            query['remaining'], [
+                'remain', 'stuff', 'hey', 'i', 'wt3:test'])
         self.assertCountEqual(query['tag'], ['TAGG'])
         self.assertCountEqual(query['title']['contains'], ['test Test'])
         self.assertCountEqual(query['title']['exact'], [])
@@ -185,7 +191,9 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.assertCountEqual(query['work']['contains'], ['you'])
         self.assertCountEqual(query['work']['exact'], ["exact Work"])
         self.assertCountEqual(query['work_type'].keys(), ['wt1'])
-        self.assertCountEqual(query['work_type']['wt1']['contains'], ['workName'])
+        self.assertCountEqual(
+            query['work_type']['wt1']['contains'],
+            ['workName'])
         self.assertCountEqual(query['work_type']['wt1']['exact'], [])
 
     def song_query_test(self, query, expected_songs):
