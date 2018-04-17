@@ -1,7 +1,7 @@
 from django.db.models.functions import Lower
+from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from django.db.models import Q
 from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     UpdateAPIView,
@@ -32,7 +32,30 @@ class LibraryPagination(PageNumberPagination):
         })
 
 
-class SongListView(ListCreateAPIView):
+class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
+    """API View with a parsed query attribute
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.query_parsed = None
+
+    def list(self, request, *args, **kwargs):
+        """Add the parsed query to the serialized response
+        """
+        response = super().list(request, *args, **kwargs)
+
+        # pass the query words to highlight to the response
+        # the words have been passed to the object in the get_queryset method
+        # now, they have to be passed to the response
+        # this is why this function in overloaded
+        if self.query_parsed is not None:
+            response.data['query'] = self.query_parsed
+
+        return response
+
+
+class SongListView(ListCreateAPIViewWithQueryParsed):
     """List of songs
     """
     permission_classes = (IsLibraryManagerOrReadOnly,)
@@ -63,37 +86,37 @@ class SongListView(ListCreateAPIView):
             # provided from query_language.py
             language_parser = QueryLanguageParser()
             res = language_parser.parse(query)
-            q = []
-            q_many = []
+            query_list = []
+            query_list_many = []
             # specific terms of the research, i.e. artists, works and titles
             for artist in res['artist']['contains']:
-                q_many.append(Q(artists__name__icontains=artist))
+                query_list_many.append(Q(artists__name__icontains=artist))
 
             for artist in res['artist']['exact']:
-                q_many.append(Q(artists__name__iexact=artist))
+                query_list_many.append(Q(artists__name__iexact=artist))
 
             for title in res['title']['contains']:
-                q.append(Q(title__icontains=title))
+                query_list.append(Q(title__icontains=title))
 
             for title in res['title']['exact']:
-                q.append(Q(title__iexact=title))
+                query_list.append(Q(title__iexact=title))
 
             for work in res['work']['contains']:
-                q.append(Q(works__title__icontains=work))
+                query_list.append(Q(works__title__icontains=work))
 
             for work in res['work']['exact']:
-                q.append(Q(works__title__iexact=work))
+                query_list.append(Q(works__title__iexact=work))
 
             # specific terms of the research derivating from work
             for query_name, search_keywords in res['work_type'].items():
                 for keyword in search_keywords['contains']:
-                    q.append(
+                    query_list.append(
                         Q(works__title__icontains=keyword) &
                         Q(works__work_type__query_name=query_name)
                     )
 
                 for keyword in search_keywords['exact']:
-                    q.append(
+                    query_list.append(
                         Q(works__title__iexact=keyword) &
                         Q(works__work_type__query_name=query_name)
                     )
@@ -106,7 +129,7 @@ class SongListView(ListCreateAPIView):
 
             # unspecific terms of the research
             for remain in res['remaining']:
-                q.append(
+                query_list.append(
                     Q(title__icontains=remain) |
                     Q(artists__name__icontains=remain) |
                     Q(works__title__icontains=remain)
@@ -114,36 +137,22 @@ class SongListView(ListCreateAPIView):
 
             # tags
             for tag in res['tag']:
-                q_many.append(Q(tags__name=tag))
+                query_list_many.append(Q(tags__name=tag))
 
             # now, gather the query objects
             filter_query = Q()
-            for item in q:
+            for item in query_list:
                 filter_query &= item
 
             query_set = query_set.filter(filter_query)
             # gather the query objects involving custom many to many relation
-            for item in q_many:
+            for item in query_list_many:
                 query_set = query_set.filter(item)
 
             # saving the parsed query to give it back to the client
             self.query_parsed = res
 
         return query_set.distinct().order_by(Lower('title'))
-
-    def list(self, request, *args, **kwargs):
-        """Send a listing of songs
-        """
-        response = super().list(request, args, kwargs)
-
-        # pass the query words to highlight to the response
-        # the words have been passed to the object in the get_queryset method
-        # now, they have to be passed to the response
-        # this is why this function in overloaded
-        if hasattr(self, 'query_parsed'):
-            response.data['query'] = self.query_parsed
-
-        return response
 
 
 class SongView(RetrieveUpdateDestroyAPIView):
@@ -155,7 +164,7 @@ class SongView(RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.SongSerializer
 
 
-class ArtistListView(ListCreateAPIView):
+class ArtistListView(ListCreateAPIViewWithQueryParsed):
     """List of artists
     """
     permission_classes = (IsLibraryManagerOrReadOnly,)
@@ -178,16 +187,16 @@ class ArtistListView(ListCreateAPIView):
             # there is no need for query language for artists
             # it is used to split terms and for uniformity
             res = QueryLanguageParser.split_remaining(query)
-            q = []
+            query_list = []
             # only unspecific terms are used
             for remain in res:
-                q.append(
+                query_list.append(
                     Q(name__icontains=remain)
                 )
 
             # gather the query objects
             filter_query = Q()
-            for item in q:
+            for item in query_list:
                 filter_query &= item
 
             query_set = query_set.filter(filter_query)
@@ -196,22 +205,8 @@ class ArtistListView(ListCreateAPIView):
 
         return query_set.order_by(Lower("name"))
 
-    def list(self, request, *args, **kwargs):
-        """Send a listing of artists
-        """
-        response = super().list(request, args, kwargs)
 
-        # pass the query words to highlight to the response
-        # the words have been passed to the object in the get_queryset method
-        # now, they have to be passed to the response
-        # this is why this function in overloaded
-        if hasattr(self, 'query_parsed'):
-            response.data['query'] = self.query_parsed
-
-        return response
-
-
-class WorkListView(ListCreateAPIView):
+class WorkListView(ListCreateAPIViewWithQueryParsed):
     """List of works
     """
     permission_classes = (IsLibraryManagerOrReadOnly,)
@@ -241,17 +236,17 @@ class WorkListView(ListCreateAPIView):
             # there is no need for query language for works it is used to split
             # terms and for uniformity
             res = QueryLanguageParser.split_remaining(query)
-            q = []
+            query_list = []
             # only unspecific terms are used
             for remain in res:
-                q.append(
+                query_list.append(
                     Q(title__icontains=remain) |
                     Q(subtitle__icontains=remain)
                 )
 
             # gather the query objects
             filter_query = Q()
-            for item in q:
+            for item in query_list:
                 filter_query &= item
 
             query_set = query_set.filter(filter_query)
@@ -259,20 +254,6 @@ class WorkListView(ListCreateAPIView):
             self.query_parsed = {'remaining': res}
 
         return query_set.order_by(Lower("title"), Lower("subtitle"))
-
-    def list(self, request, *args, **kwargs):
-        """Send a listing of works
-        """
-        response = super().list(request, args, kwargs)
-
-        # pass the query words to highlight to the response
-        # the words have been passed to the object in the get_queryset method
-        # now, they have to be passed to the response
-        # this is why this function in overloaded
-        if hasattr(self, 'query_parsed'):
-            response.data['query'] = self.query_parsed
-
-        return response
 
 
 class WorkTypeListView(ListCreateAPIView):

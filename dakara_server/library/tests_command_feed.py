@@ -22,13 +22,14 @@ class FeedCommandTestCase(TestCase):
 
         call_command('feed', *args, **opts)
 
-    def create_media_file(self, path, filename):
+    @staticmethod
+    def create_media_file(path, filename):
         """Create file in path
         returns path to file
         """
         filepath = os.path.join(path, filename)
-        with open(filepath, 'wt') as f:
-            f.write("This is supposed to be an mp4 file content")
+        with open(filepath, 'wt') as file:
+            file.write("This is supposed to be an mp4 file content")
 
         return filepath
 
@@ -556,8 +557,8 @@ class FeedCommandTestCase(TestCase):
             lyrics = "lalalalalala\nlunlunlun"
             subtitle_file_filename = "The file.txt"
             with open(os.path.join(dirpath, subtitle_file_filename),
-                      'wt') as f:
-                f.write(lyrics)
+                      'wt') as file:
+                file.write(lyrics)
 
             # Call command
             self.call_feed_command(dirpath)

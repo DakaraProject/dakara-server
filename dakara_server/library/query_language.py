@@ -19,22 +19,22 @@ class QueryLanguageParser:
 
         self.keywords = KEYWORDS + self.keywords_work_type
 
-        self.language_matcher = re.compile(r"""
-            \b(?P<keyword>{keywords_regex}) # keyword
-            :                               # separator
-            \s?
-            (?:
-                ""(?P<exact>.+?)""          # exact value between double double
-                                            # quote
-                |
-                "(?P<contains>.+?)"         # contains value between double
-                                            # quote
-                |
-                (?P<contains2>(?:\\\s|\S)+) # contains with no quotes
-            )
-            """.format(keywords_regex=r'|'.join(self.keywords)),
-            re.I | re.X
+        regex = r"""
+        \b(?P<keyword>{keywords_regex}) # keyword
+        :                               # separator
+        \s?
+        (?:
+            ""(?P<exact>.+?)""          # exact value between double double
+                                        # quote
+            |
+            "(?P<contains>.+?)"         # contains value between double
+                                        # quote
+            |
+            (?P<contains2>(?:\\\s|\S)+) # contains with no quotes
         )
+        """.format(keywords_regex=r'|'.join(self.keywords))
+
+        self.language_matcher = re.compile(regex, re.I | re.X)
 
     @staticmethod
     def split_remaining(string):

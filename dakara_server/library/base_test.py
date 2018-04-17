@@ -9,11 +9,16 @@ UserModel = get_user_model()
 
 class BaseAPITestCase(APITestCase):
     def authenticate(self, user):
+        """Authenticate against the given user
+        """
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
-    def create_user(self, username, playlist_level=None,
+    @staticmethod
+    def create_user(username, playlist_level=None,
                     library_level=None, users_level=None):
+        """Create an user with the given permissions
+        """
         user = UserModel.objects.create_user(username, "", "password")
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
@@ -22,6 +27,8 @@ class BaseAPITestCase(APITestCase):
         return user
 
     def create_library_test_data(self):
+        """Populate the library with dummy data
+        """
         # Create work types
         self.wt1 = WorkType(
             name="WorkType1",

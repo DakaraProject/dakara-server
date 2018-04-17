@@ -1,5 +1,6 @@
-from django.db import models
 from datetime import timedelta
+
+from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from library.fields import UpperCaseCharField
@@ -66,6 +67,8 @@ class WorkType(models.Model):
         return "Work type '{}'".format(self.get_name())
 
     def get_name(self):
+        """Get the pretty name of the work type or the default one
+        """
         return self.name or self.query_name
 
 

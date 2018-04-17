@@ -9,10 +9,10 @@ class SecondsDurationField(serializers.DurationField):
     """Field that displays only seconds
     """
 
-    def to_representation(self, obj):
+    def to_representation(self, value):
         """Method for serializing duration in right format
         """
-        return int(round(obj.total_seconds()))
+        return int(round(value.total_seconds()))
 
 
 class ArtistNoCountSerializer(serializers.ModelSerializer):
@@ -44,7 +44,10 @@ class ArtistSerializer(serializers.ModelSerializer):
             'song_count'
         )
 
-    def get_song_count(self, artist):
+    @staticmethod
+    def get_song_count(artist):
+        """Count the amount of songs associated to the artist
+        """
         return Song.objects.filter(artists=artist).count()
 
 
@@ -92,7 +95,10 @@ class WorkSerializer(serializers.ModelSerializer):
             'song_count'
         )
 
-    def get_song_count(self, work):
+    @staticmethod
+    def get_song_count(work):
+        """Count the amount of songs associated to the work
+        """
         return Song.objects.filter(works=work).count()
 
 
@@ -112,7 +118,10 @@ class SongWorkLinkSerializer(serializers.ModelSerializer):
             'episodes',
         )
 
-    def get_link_type_name(self, song_work_link):
+    @staticmethod
+    def get_link_type_name(song_work_link):
+        """Get the explicit name of a work link
+        """
         link_type_name = [
             choice[1]
             for choice in SongWorkLink.LINK_TYPE_CHOICES
@@ -168,7 +177,8 @@ class SongSerializer(serializers.ModelSerializer):
             'date_updated',
         )
 
-    def get_lyrics(self, song):
+    @staticmethod
+    def get_lyrics(song):
         """Get an extract of the lyrics
 
         Give at most `MAX_LINES` lines of lyrics and tell if more lines remain.
@@ -210,5 +220,8 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
             'file_path',
         )
 
-    def get_file_path(self, song):
+    @staticmethod
+    def get_file_path(song):
+        """Add directory to song file name
+        """
         return os.path.join(song.directory, song.filename)

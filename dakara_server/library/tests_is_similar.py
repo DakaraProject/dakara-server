@@ -11,6 +11,8 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class IsSimilarTestCase(TestCase):
     def test_is_similar_from_file(self):
+        """Rum similarity tests among several strings
+        """
         # load test data
         file_path = os.path.join(APP_DIR, RESSOURCES_DIR, 'is_similar.csv')
         with open(file_path, "r") as csv_file:
