@@ -19,9 +19,7 @@ def file_is_valid(filename):
     """
     return all((
         # media file
-        os.path.splitext(filename)[1] not in (
-            '.db'
-        ),
+        os.path.splitext(filename)[1] not in ('.db',),
 
         # not hidden file
         filename[0] != ".",
