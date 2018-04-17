@@ -1,19 +1,29 @@
 import re
 from collections import OrderedDict
+
 import pysubs2
 
+
 class SubtitleParser:
-    """ Abstract class for subtitle parser
+    """Abstract class for subtitle parser
+
+    Args:
+        filepath (str): path of the file to extract lyrics from.
     """
+
     def __init__(self, filepath):
         pass
 
     def get_lyrics(self):
+        """Extract lyrics
+        """
         return ""
 
+
 class TXTSubtitleParser(SubtitleParser):
-    """ Subtitle parser for txt files
+    """Subtitle parser for txt files
     """
+
     def __init__(self, filepath):
         with open(filepath) as file:
             self.content = file.read()
@@ -21,20 +31,21 @@ class TXTSubtitleParser(SubtitleParser):
     def get_lyrics(self):
         return self.content
 
+
 class Pysubs2SubtitleParser(SubtitleParser):
-    """ Subtitle parser for ass, ssa and srt files
+    """Subtitle parser for ass, ssa and srt files
 
-        This parser extracts cleaned lyrics from the provided subtitle file.
+    This parser extracts cleaned lyrics from the provided subtitle file.
 
-        It uses the `pysubs2` package to parse the ASS file.
+    It uses the `pysubs2` package to parse the ASS file.
 
-        Attributes:
-            content (pysubs2 object): parsed subtitle.
-            override_sequence (regex matcher): regex that matches any tag and
-                any drawing area.
+    Attributes:
+        content (pysubs2 object): parsed subtitle.
+        override_sequence (regex matcher): regex that matches any tag and any
+            drawing area.
     """
     override_sequence = re.compile(
-            r"""
+        r"""
                 \{.*?\\p\d.*?\}     # look for drawing area start tag
                 .*?                 # select draw instructions
                 (?:                 # until...
@@ -45,23 +56,23 @@ class Pysubs2SubtitleParser(SubtitleParser):
                 |
                 \{.*?\}             # or simply select tags
             """,
-            re.UNICODE | re.VERBOSE
-            )
+        re.UNICODE | re.VERBOSE
+    )
 
     def __init__(self, filepath):
         self.content = pysubs2.load(filepath)
 
     def get_lyrics(self):
-        """ Gives the cleaned text of the Event block
+        """Gives the cleaned text of the Event block
 
-            The text is cleaned in two ways:
-                - All tags are removed;
-                - Consecutive lines with the same content, the same start and
-                      end time are merged. This prevents from getting "extra
-                      effect lines" in the file.
+        The text is cleaned in two ways:
+            - All tags are removed;
+            - Consecutive lines with the same content, the same start and end
+                time are merged. This prevents from getting "extra effect
+                lines" in the file.
 
-            Returns:
-                (str) Cleaned lyrics.
+        Returns:
+            (str) Cleaned lyrics.
         """
         lyrics = []
 
@@ -105,4 +116,4 @@ PARSER_BY_EXTENSION = OrderedDict((
     ('.ssa', Pysubs2SubtitleParser),
     ('.srt', Pysubs2SubtitleParser),
     ('.txt', TXTSubtitleParser)
-    ))
+))
