@@ -15,6 +15,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='songtag',
             name='color_hue',
-            field=models.IntegerField(validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(360)], null=True),
+            field=models.IntegerField(
+                validators=[
+                    django.core.validators.MinValueValidator(0),
+                    django.core.validators.MaxValueValidator(360)],
+                null=True),
         ),
     ]

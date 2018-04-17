@@ -15,18 +15,21 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Artist',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID', serialize=False,
+                                        auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=255)),
             ],
         ),
         migrations.CreateModel(
             name='Song',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID', serialize=False,
+                                        auto_created=True, primary_key=True)),
                 ('title', models.CharField(max_length=255)),
                 ('filename', models.CharField(max_length=255)),
                 ('directory', models.CharField(max_length=255)),
-                ('duration', models.DurationField(default=datetime.timedelta(0))),
+                ('duration',
+                 models.DurationField(default=datetime.timedelta(0))),
                 ('version', models.CharField(blank=True, max_length=255)),
                 ('detail', models.CharField(blank=True, max_length=255)),
                 ('detail_video', models.CharField(blank=True, max_length=255)),
@@ -39,7 +42,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SongTag',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID', serialize=False,
+                                        auto_created=True, primary_key=True)),
                 ('name', library.fields.UpperCaseCharField(max_length=255)),
                 ('color_id', models.IntegerField(null=True)),
             ],
@@ -47,8 +51,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SongWorkLink',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('link_type', models.CharField(max_length=2, choices=[('OP', 'Opening'), ('ED', 'Ending'), ('IN', 'Insert song'), ('IS', 'Image somg')])),
+                ('id', models.AutoField(verbose_name='ID', serialize=False,
+                                        auto_created=True, primary_key=True)),
+                ('link_type', models.CharField(
+                    max_length=2,
+                    choices=[('OP', 'Opening'),
+                             ('ED', 'Ending'),
+                             ('IN', 'Insert song'),
+                             ('IS', 'Image somg')])),
                 ('link_type_number', models.IntegerField(null=True)),
                 ('episodes', models.CharField(blank=True, max_length=255)),
                 ('song', models.ForeignKey(to='library.Song')),
@@ -57,7 +67,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Work',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID', serialize=False,
+                                        auto_created=True, primary_key=True)),
                 ('title', models.CharField(max_length=255)),
                 ('subtitle', models.CharField(blank=True, max_length=255)),
             ],
@@ -65,7 +76,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='WorkType',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID', serialize=False,
+                                        auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=255)),
                 ('name_plural', models.CharField(max_length=255)),
                 ('query_name', models.CharField(max_length=255, unique=True)),
@@ -90,6 +102,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='song',
             name='works',
-            field=models.ManyToManyField(through='library.SongWorkLink', to='library.Work'),
+            field=models.ManyToManyField(
+                through='library.SongWorkLink', to='library.Work'),
         ),
     ]
