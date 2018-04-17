@@ -14,6 +14,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='karastatus',
             name='status',
-            field=models.CharField(default='play', max_length=5, choices=[('stop', 'Stop'), ('play', 'Play'), ('pause', 'Pause')]),
+            field=models.CharField(
+                default='play', max_length=5, choices=[
+                    ('stop', 'Stop'), ('play', 'Play'), ('pause', 'Pause')]),
         ),
     ]

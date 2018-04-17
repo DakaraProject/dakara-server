@@ -4,8 +4,10 @@ from datetime import datetime, timedelta
 from django.core.urlresolvers import reverse
 from django.utils.dateparse import parse_datetime
 from rest_framework import status
+
 from .base_test import BaseAPITestCase, tz
 from .models import PlaylistEntry, Player
+
 
 class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-entries-list')
@@ -93,10 +95,10 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(parse_datetime(pe2['date_play']),
                          now + self.pe1.song.duration - play_duration)
 
-
     def test_get_playlist_entries_list_forbidden(self):
         """
-        Test to verify playlist entries list is not available when not logged in
+        Test to verify playlist entries list is not available when not logged
+        in
         """
         # Get playlist entries list
         response = self.client.get(self.url)
@@ -141,7 +143,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
     @patch('playlist.views.settings')
     def test_post_create_playlist_entry_playlist_full_forbidden(
             self, mock_settings
-            ):
+    ):
         """
         Test to verify playlist entry creation
         """
@@ -163,7 +165,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         """
         Test to verify simple user cannot create playlist entries
         """
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
         # Attempt to post new playlist entry
@@ -177,10 +179,10 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Simulate a player playing next song
         self.player_play_next_song()
 
-        # Login as simple user 
+        # Login as simple user
         self.authenticate(self.user)
 
-        # Get playlist entries list 
+        # Get playlist entries list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 1)
@@ -222,16 +224,25 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         response = self.client.post(self.url, {"song": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+
 class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
 
     def setUp(self):
         self.create_test_data()
 
         # Create urls to access these playlist entries
-        self.url_pe1 = reverse('playlist-entries-detail', kwargs={"pk": self.pe1.id})
-        self.url_pe2 = reverse('playlist-entries-detail', kwargs={"pk": self.pe2.id})
-        self.url_pe3 = reverse('playlist-entries-detail', kwargs={"pk": self.pe3.id})
-
+        self.url_pe1 = reverse(
+            'playlist-entries-detail',
+            kwargs={
+                "pk": self.pe1.id})
+        self.url_pe2 = reverse(
+            'playlist-entries-detail',
+            kwargs={
+                "pk": self.pe2.id})
+        self.url_pe3 = reverse(
+            'playlist-entries-detail',
+            kwargs={
+                "pk": self.pe3.id})
 
     def test_delete_playlist_entry_manager(self):
         """
@@ -295,7 +306,7 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
         # Pre assert 4 entries in database
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
-        # Attempt to delete playing entry 
+        # Attempt to delete playing entry
         response = self.client.delete(self.url_pe1)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -314,7 +325,7 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
         # Pre assert 4 entries in database
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
-        # Attempt to delete already played entry 
+        # Attempt to delete already played entry
         response = self.client.delete(self.url_pe3)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 

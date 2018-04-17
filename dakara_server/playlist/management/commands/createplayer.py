@@ -1,8 +1,8 @@
+from getpass import getpass
+
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from getpass import getpass
 from django.db.utils import IntegrityError
-
 
 UserModel = get_user_model()
 

@@ -16,7 +16,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PlaylistEntry',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True, serialize=False)),
+                ('id', models.AutoField(verbose_name='ID', primary_key=True,
+                                        auto_created=True, serialize=False)),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('owner', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
                 ('song', models.ForeignKey(to='library.Song')),

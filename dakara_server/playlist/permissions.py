@@ -5,15 +5,18 @@ from users.permissions import BasePermissionCustom
 from .models import PlaylistEntry, Player, KaraStatus
 from library.models import Song
 
+
 class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
     """ Handle permissions to modify playlist entries
 
         Permission scheme:
             Superuser can edit anything;
             Playlist manager can edit anything;
-            Authenticated user can only edit their own data and display anything;
+            Authenticated user can only edit their own data and display
+                anything;
             Unauthenticated user cannot see anything.
     """
+
     def has_object_permission(self, request, view, obj):
         # for safe methods only
         if request.method in permissions.SAFE_METHODS:
@@ -40,6 +43,7 @@ class IsPlaylistUserOrReadOnly(BasePermissionCustom):
             Authenticated can only display;
             Unauthenticated user cannot see anything.
     """
+
     def has_permission_custom(self, request, view):
         # for safe methods only
         if request.method in permissions.SAFE_METHODS:
@@ -58,6 +62,7 @@ class IsPlaylistManagerOrReadOnly(BasePermissionCustom):
             Authenticated can only display;
             Unauthenticated user cannot see anything.
     """
+
     def has_permission_custom(self, request, view):
         # for safe methods only
         if request.method in permissions.SAFE_METHODS:
@@ -77,6 +82,7 @@ class IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly(BasePermissionCustom):
                 playing entry and display anything;
             Unauthenticated user cannot see anything.
     """
+
     def has_permission_custom(self, request, view):
         # for safe methods only
         if request.method in permissions.SAFE_METHODS:
@@ -113,6 +119,7 @@ class IsPlaylistAndLibraryManagerOrSongCanBeAdded(BasePermissionCustom):
             Playlist user can only access musics whose tags are not disabled.
             Unauthenticated user cannot see anything.
     """
+
     def has_permission_custom(self, request, view):
         # for manager of playlist and library
         if request.user.has_playlist_permission_level('m') and \
@@ -142,6 +149,7 @@ class IsPlayer(BasePermissionCustom):
             Authenticated cannot do anything;
             Unauthenticated user cannot see anything.
     """
+
     def has_permission_custom(self, request, view):
         return request.user.has_playlist_permission_level('p')
 
@@ -149,6 +157,7 @@ class IsPlayer(BasePermissionCustom):
 class KaraStatusIsNotStoppedOrReadOnly(permissions.BasePermission):
     """ Grant access to not safe views if the kara is not in stop mode
     """
+
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True

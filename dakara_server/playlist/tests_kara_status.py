@@ -1,5 +1,6 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
+
 from .base_test import BaseAPITestCase
 from .models import KaraStatus, PlaylistEntry
 
@@ -26,7 +27,9 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         # Get kara status again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['kara_status']['status'], KaraStatus.PLAY)
+        self.assertEqual(
+            response.data['kara_status']['status'],
+            KaraStatus.PLAY)
 
     def test_get_kara_status_forbidden(self):
         """

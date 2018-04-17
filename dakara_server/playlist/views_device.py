@@ -10,7 +10,6 @@ from . import models
 from . import serializers
 from . import permissions
 
-
 tz = timezone.get_default_timezone()
 logger = logging.getLogger(__name__)
 
@@ -22,8 +21,8 @@ class PlayerDeviceView(APIView):
     Send commands to player
     """
     permission_classes = [
-            permissions.IsPlayer
-            ]
+        permissions.IsPlayer
+    ]
 
     def get(self, request):
         """Get next playist entry
@@ -41,22 +40,22 @@ class PlayerDeviceView(APIView):
         serializer = serializers.PlaylistEntryForPlayerSerializer(entry)
 
         return Response(
-                serializer.data,
-                status.HTTP_200_OK
-                )
+            serializer.data,
+            status.HTTP_200_OK
+        )
 
     def put(self, request):
         """Send commands on recieveing status
         """
         player_serializer = serializers.PlayerSerializer(
-                data=request.data
-                )
+            data=request.data
+        )
 
         if not player_serializer.is_valid():
             return Response(
-                    player_serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+                player_serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # skip the current playlist entry if the kara is in stop mode
         kara_status = models.KaraStatus.get_object()
@@ -66,13 +65,13 @@ class PlayerDeviceView(APIView):
 
             # Send commands to the player
             player_command_serializer = serializers.PlayerCommandSerializer(
-                    player_command
-                    )
+                player_command
+            )
 
             return Response(
-                    player_command_serializer.data,
-                    status=status.HTTP_202_ACCEPTED
-                    )
+                player_command_serializer.data,
+                status=status.HTTP_202_ACCEPTED
+            )
 
         player_command = models.PlayerCommand.get_or_create()
         player_old = models.Player.get_or_create()
@@ -92,10 +91,10 @@ class PlayerDeviceView(APIView):
                 playing_id is None):
             raise RuntimeError("""Player is not supposed to do that, is playing
 '{playing}' but should be playing '{old}' or '{next}'""".format(
-                  playing=playing_id,
-                  old=playing_old_id,
-                  next=next_id
-                  ))
+                playing=playing_id,
+                old=playing_old_id,
+                next=next_id
+            ))
 
         # if we're playing something new
         if playing_id != playing_old_id:
@@ -108,23 +107,23 @@ class PlayerDeviceView(APIView):
             # mark previous entry from playlist as `played` if there was any
             if playing_old_id:
                 previous_playlist_entry = models.PlaylistEntry.objects.get(
-                        id=playing_old_id
-                        )
+                    id=playing_old_id
+                )
                 previous_playlist_entry.was_played = True
                 previous_playlist_entry.save()
 
             if player.playlist_entry_id:
                 # Set `date_played` for new playlist entry
                 new_playlist_entry = models.PlaylistEntry.objects.get(
-                        id=player.playlist_entry_id
-                        )
+                    id=player.playlist_entry_id
+                )
                 new_playlist_entry.date_played = datetime.now(tz)
                 new_playlist_entry.save()
 
                 logger.info(
                     "The player has started '{song}'".format(
                         song=new_playlist_entry.song)
-                    )
+                )
 
             else:
                 logger.info("The player has stopped playing")
@@ -134,21 +133,21 @@ class PlayerDeviceView(APIView):
 
         # Send commands to the player
         player_command_serializer = serializers.PlayerCommandSerializer(
-                player_command
-                )
+            player_command
+        )
 
         return Response(
-                player_command_serializer.data,
-                status=status.HTTP_202_ACCEPTED
-                )
+            player_command_serializer.data,
+            status=status.HTTP_202_ACCEPTED
+        )
 
 
 class PlayerDeviceErrorView(APIView):
     """Handle player errors
     """
     permission_classes = [
-            permissions.IsPlayer
-            ]
+        permissions.IsPlayer
+    ]
 
     def post(self, request):
         """Recieve error message, log it, keep it in cache and delete
@@ -162,9 +161,9 @@ class PlayerDeviceErrorView(APIView):
 
         if not player_error.is_valid():
             return Response(
-                    player_error.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+                player_error.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         player = models.Player.get_or_create()
         entry_id_error = player_error.validated_data['playlist_entry']
@@ -199,17 +198,17 @@ class PlayerDeviceErrorView(APIView):
 message: {error_message}""".format(
                 song=error_song,
                 error_message=player_error.validated_data['error_message']
-                ))
+            ))
 
         # store the event in player error pool
         player_errors_pool = models.PlayerErrorsPool.get_or_create()
         player_errors_pool.add(
-                song=error_song,
-                error_message=player_error.validated_data['error_message']
-                )
+            song=error_song,
+            error_message=player_error.validated_data['error_message']
+        )
 
         player_errors_pool.save()
 
         return Response(
-                status=status.HTTP_201_CREATED
-                )
+            status=status.HTTP_201_CREATED
+        )

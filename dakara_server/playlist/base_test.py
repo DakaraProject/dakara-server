@@ -13,16 +13,13 @@ from rest_framework import status
 from library.models import Song, SongTag
 from .models import PlaylistEntry, KaraStatus
 
-
 UserModel = get_user_model()
 tz = timezone.get_default_timezone()
-
 
 logging.disable(logging.CRITICAL)
 
 
 class BaseAPITestCase(APITestCase):
-
     def tearDown(self):
         # Clear cache between tests, so that stored player state is re-init
         cache.clear()
@@ -32,7 +29,8 @@ class BaseAPITestCase(APITestCase):
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
-    def create_user(self, username, playlist_level=None, library_level=None, users_level=None):
+    def create_user(self, username, playlist_level=None,
+                    library_level=None, users_level=None):
         user = UserModel.objects.create_user(username, "", "password")
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
@@ -51,7 +49,8 @@ class BaseAPITestCase(APITestCase):
         self.p_user = self.create_user("TestPlaylistUser", playlist_level="u")
 
         # create a playlist manager
-        self.manager = self.create_user("testPlaylistManager", playlist_level="m")
+        self.manager = self.create_user(
+            "testPlaylistManager", playlist_level="m")
 
         # create a player
         self.player = self.create_user("testPlayer", playlist_level="p")
@@ -75,19 +74,19 @@ class BaseAPITestCase(APITestCase):
         self.pe2.save()
 
         self.pe3 = PlaylistEntry(
-                song=self.song2,
-                owner=self.manager,
-                was_played=True,
-                date_played=datetime.now(tz)
-                )
+            song=self.song2,
+            owner=self.manager,
+            was_played=True,
+            date_played=datetime.now(tz)
+        )
         self.pe3.save()
 
         self.pe4 = PlaylistEntry(
-                song=self.song1,
-                owner=self.user,
-                was_played=True,
-                date_played=datetime.now(tz) - timedelta(minutes=15)
-                )
+            song=self.song1,
+            owner=self.user,
+            was_played=True,
+            date_played=datetime.now(tz) - timedelta(minutes=15)
+        )
         self.pe4.save()
 
         # Set kara status in play mode
@@ -139,7 +138,6 @@ class BaseAPITestCase(APITestCase):
 
         return self.player_play_song(next_id, time, paused)
 
-
     def player_play_song(self, playlist_entry_id, time=0, paused=False):
         """
         Simulate the player reporting playing the specified song
@@ -150,12 +148,12 @@ class BaseAPITestCase(APITestCase):
         self.authenticate(self.player)
         # Put as if playing next song
         response = self.client.put(url,
-                {
-                    'playlist_entry_id': playlist_entry_id,
-                    'timing': time,
-                    'paused': paused
-                }
-            )
+                                   {
+                                       'playlist_entry_id': playlist_entry_id,
+                                       'timing': time,
+                                       'paused': paused
+                                   }
+                                   )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         return response
@@ -169,9 +167,9 @@ class BaseAPITestCase(APITestCase):
         self.authenticate(self.player)
         # Put as if playing next song
         response = self.client.post(url,
-                {
-                    'playlist_entry': playlist_entry_id,
-                    'error_message': message,
-                }
-            )
+                                    {
+                                        'playlist_entry': playlist_entry_id,
+                                        'error_message': message,
+                                    }
+                                    )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

@@ -14,8 +14,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='KaraStatus',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
-                ('status', models.CharField(max_length=5, default='stop', choices=[('stop', 'Stop'), ('play', 'Play'), ('pause', 'Pause')])),
+                ('id', models.AutoField(verbose_name='ID', primary_key=True,
+                                        serialize=False, auto_created=True)),
+                ('status', models.CharField(
+                    max_length=5,
+                    default='stop',
+                    choices=[('stop', 'Stop'),
+                             ('play', 'Play'),
+                             ('pause', 'Pause')])),
             ],
         ),
     ]

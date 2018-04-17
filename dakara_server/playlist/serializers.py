@@ -1,32 +1,34 @@
 from rest_framework import serializers
-from playlist.models import PlaylistEntry, KaraStatus
-from library.serializers import SongSerializer, \
-                                SongForPlayerSerializer, \
-                                SecondsDurationField
 
+from playlist.models import PlaylistEntry, KaraStatus
+from library.serializers import (
+    SongSerializer,
+    SongForPlayerSerializer,
+    SecondsDurationField,
+)
 from users.serializers import (
-        UserDisplaySerializer,
-        )
+    UserDisplaySerializer,
+)
 
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
     """ Class for song serializer in playlist
     """
     owner = serializers.PrimaryKeyRelatedField(
-            read_only=True,
-            default=serializers.CreateOnlyDefault(
-                serializers.CurrentUserDefault()
-                )
-            )
+        read_only=True,
+        default=serializers.CreateOnlyDefault(
+            serializers.CurrentUserDefault()
+        )
+    )
 
     class Meta:
         model = PlaylistEntry
         fields = (
-                'id',
-                'song',
-                'date_created',
-                'owner',
-                )
+            'id',
+            'song',
+            'date_created',
+            'owner',
+        )
 
 
 class PlaylistEntryReadSerializer(serializers.ModelSerializer):
@@ -39,12 +41,12 @@ class PlaylistEntryReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaylistEntry
         fields = (
-                'id',
-                'song',
-                'date_created',
-                'owner',
-                'date_play',
-                )
+            'id',
+            'song',
+            'date_created',
+            'owner',
+            'date_play',
+        )
 
 
 class PlaylistEntriesReadSerializer(serializers.Serializer):
@@ -63,12 +65,12 @@ class PlaylistPlayedEntryReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaylistEntry
         fields = (
-                'id',
-                'song',
-                'date_created',
-                'owner',
-                'date_played'
-                )
+            'id',
+            'song',
+            'date_created',
+            'owner',
+            'date_played'
+        )
 
 
 class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
@@ -80,11 +82,11 @@ class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaylistEntry
         fields = (
-                'id',
-                'song',
-                'date_created',
-                'owner',
-                )
+            'id',
+            'song',
+            'date_created',
+            'owner',
+        )
 
 
 class PlayerSerializer(serializers.Serializer):
@@ -107,9 +109,9 @@ class PlayerDetailsSerializer(serializers.Serializer):
         if player.playlist_entry_id is not None:
             entry = PlaylistEntry.objects.get(id=player.playlist_entry_id)
             return PlaylistPlayedEntryReadSerializer(
-                    entry,
-                    context=self.context
-                    ).data
+                entry,
+                context=self.context
+            ).data
 
         return None
 
@@ -143,8 +145,8 @@ class KaraStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = KaraStatus
         fields = (
-                'status',
-                )
+            'status',
+        )
 
 
 class DigestSerializer(serializers.Serializer):

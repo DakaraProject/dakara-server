@@ -1,7 +1,9 @@
-from django.db import models
 from datetime import timedelta
-from users.models import DakaraUser
+
+from django.db import models
 from django.core.cache import cache
+
+from users.models import DakaraUser
 
 
 class PlaylistEntry(models.Model):
@@ -22,8 +24,8 @@ class PlaylistEntry(models.Model):
             excluding entry with specified id and alredy played songs
         """
         playlist = cls.objects.exclude(
-                models.Q(pk=id) | models.Q(was_played=True)
-                ).order_by('date_created')
+            models.Q(pk=id) | models.Q(was_played=True)
+        ).order_by('date_created')
 
         if not playlist:
             return None
@@ -42,17 +44,17 @@ class KaraStatus(models.Model):
     PLAY = "play"
     PAUSE = "pause"
     STATUSES = (
-            (STOP, "Stop"),
-            (PLAY, "Play"),
-            (PAUSE, "Pause")
-            )
+        (STOP, "Stop"),
+        (PLAY, "Play"),
+        (PAUSE, "Pause")
+    )
 
     status = models.CharField(
-            max_length=5,
-            choices=STATUSES,
-            default=PLAY,
-            null=False,
-            )
+        max_length=5,
+        choices=STATUSES,
+        default=PLAY,
+        null=False,
+    )
 
     @classmethod
     def get_object(cls):
@@ -72,7 +74,7 @@ class Player:
             playlist_entry_id=None,
             timing=timedelta(),
             paused=False
-            ):
+    ):
         self.playlist_entry_id = playlist_entry_id
         self.timing = timing
         self.paused = paused
@@ -111,7 +113,7 @@ class PlayerCommand:
             self,
             pause=False,
             skip=False
-            ):
+    ):
         self.pause = pause
         self.skip = skip
 
@@ -137,11 +139,11 @@ class PlayerError:
     """ Class for error encountered by the player
 
         Each error is stored in cache for `PLAYER_ERROR_TIME_OF_LIFE` seconds
-        and will be then removed. Each of them has a distinct name made from the
-        `PLAYER_ERROR_PATTERN` pattern with its `id` as a suffix.
+        and will be then removed. Each of them has a distinct name made from
+        the `PLAYER_ERROR_PATTERN` pattern with its `id` as a suffix.
 
-        The error is not stored automatically in memory when created. The `save`
-        method has to be called for this.
+        The error is not stored automatically in memory when created. The
+        `save` method has to be called for this.
 
         This class should not be manipulated directly outside of this module.
     """
@@ -173,8 +175,8 @@ class PlayerErrorsPool:
         The class manages the pool of errors and the errors themselve. Both of
         them are stored in cache.
 
-        Each method should be followed by the `save` method, otherwize the cache
-        is not updated.
+        Each method should be followed by the `save` method, otherwize the
+        cache is not updated.
     """
     PLAYER_ERROR_POOL_NAME = 'player_error_pool'
 
@@ -226,9 +228,9 @@ class PlayerErrorsPool:
         """ Remove old errors from pool
         """
         self.ids_pool = [
-                id for id in self.ids_pool
-                if PlayerError.get(id) is not None
-                ]
+            id for id in self.ids_pool
+            if PlayerError.get(id) is not None
+        ]
 
     def dump(self):
         """ Gives the pool as a list
