@@ -121,8 +121,9 @@ class PlayerStatusView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        """ Get player status
-            Create one if it doesn't exist
+        """Get player status
+
+        Create one if it doesn't exist.
         """
         player = models.Player.get_or_create()
         serializer = serializers.PlayerDetailsSerializer(
@@ -199,9 +200,9 @@ class DigestView(APIView):
     """Shorthand for the view of digest data
 
     Includes:
-        - player_status: Player status
-        - player_manage: Player manage pause/skip
-        - player_errors: Errors from the players
+        - player_status: Player status;
+        - player_manage: Player manage pause/skip;
+        - player_errors: Errors from the players.
     """
     permission_classes = (IsAuthenticated,)
 
@@ -237,6 +238,8 @@ class DigestView(APIView):
 
 
 class KaraStatusView(RetrieveUpdateAPIView):
+    """Get or edit the kara status
+    """
     queryset = models.KaraStatus.objects.all()
     serializer_class = serializers.KaraStatusSerializer
     permission_classes = [
@@ -244,6 +247,8 @@ class KaraStatusView(RetrieveUpdateAPIView):
     ]
 
     def put(self, request):
+        """Update the kara status
+        """
         response = super().put(request)
 
         # empty the playlist and clear the player if the status is stop
@@ -259,5 +264,4 @@ class KaraStatusView(RetrieveUpdateAPIView):
         return response
 
     def get_object(self, *args, **kwargs):
-        kara_status, _ = self.queryset.get_or_create(pk=1)
-        return kara_status
+        return models.KaraStatus.get_object()

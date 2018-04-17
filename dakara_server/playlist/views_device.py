@@ -17,8 +17,7 @@ logger = logging.getLogger(__name__)
 class PlayerDeviceView(APIView):
     """Player to communicate status and commands of the player
 
-    Recieve status from player
-    Send commands to player
+    Recieve status from player and send commands to player.
     """
     permission_classes = [
         permissions.IsPlayer
@@ -150,8 +149,10 @@ class PlayerDeviceErrorView(APIView):
     ]
 
     def post(self, request):
-        """Recieve error message, log it, keep it in cache and delete
-        entry from playlist
+        """Handle error message
+
+        Recieve it, log it, keep it in cache and delete
+        entry from playlist.
 
         The error can happen at the middle of the song, or at its very
         beginning. In that case, the player may have had no time to actualize

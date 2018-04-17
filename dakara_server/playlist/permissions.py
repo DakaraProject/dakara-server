@@ -7,14 +7,13 @@ from library.models import Song
 
 
 class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
-    """ Handle permissions to modify playlist entries
+    """Handle permissions to modify playlist entries
 
-        Permission scheme:
-            Superuser can edit anything;
-            Playlist manager can edit anything;
-            Authenticated user can only edit their own data and display
-                anything;
-            Unauthenticated user cannot see anything.
+    Permission scheme:
+        Superuser can edit anything;
+        Playlist manager can edit anything;
+        Authenticated user can only edit their own data and display anything;
+        Unauthenticated user cannot see anything.
     """
 
     def has_object_permission(self, request, view, obj):
@@ -35,13 +34,13 @@ class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
 
 
 class IsPlaylistUserOrReadOnly(BasePermissionCustom):
-    """ Handle permissions for creating playlist entries
+    """Handle permissions for creating playlist entries
 
-        Permission scheme:
-            Superuser can do anything;
-            Playlist user can do anything;
-            Authenticated can only display;
-            Unauthenticated user cannot see anything.
+    Permission scheme:
+        Superuser can do anything;
+        Playlist user can do anything;
+        Authenticated can only display;
+        Unauthenticated user cannot see anything.
     """
 
     def has_permission_custom(self, request, view):
@@ -54,13 +53,13 @@ class IsPlaylistUserOrReadOnly(BasePermissionCustom):
 
 
 class IsPlaylistManagerOrReadOnly(BasePermissionCustom):
-    """ Handle permissions for changing player status
+    """Handle permissions for changing player status
 
-        Permission scheme:
-            Superuser can do anything;
-            Playlist manager can do anything;
-            Authenticated can only display;
-            Unauthenticated user cannot see anything.
+    Permission scheme:
+        Superuser can do anything;
+        Playlist manager can do anything;
+        Authenticated can only display;
+        Unauthenticated user cannot see anything.
     """
 
     def has_permission_custom(self, request, view):
@@ -73,14 +72,14 @@ class IsPlaylistManagerOrReadOnly(BasePermissionCustom):
 
 
 class IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly(BasePermissionCustom):
-    """ Handle permissions for views related to playing entry
+    """Handle permissions for views related to playing entry
 
-        Permission scheme:
-            Superuser can edit anything;
-            Playlist manager can edit anything;
-            Authenticated user can only edit data if related to their own
-                playing entry and display anything;
-            Unauthenticated user cannot see anything.
+    Permission scheme:
+        Superuser can edit anything;
+        Playlist manager can edit anything;
+        Authenticated user can only edit data if related to their own playing
+            entry and display anything;
+        Unauthenticated user cannot see anything.
     """
 
     def has_permission_custom(self, request, view):
@@ -111,13 +110,13 @@ class IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly(BasePermissionCustom):
 
 
 class IsPlaylistAndLibraryManagerOrSongCanBeAdded(BasePermissionCustom):
-    """ Handle permission for songs that can be added or not
+    """Handle permission for songs that can be added or not
 
-        Permission scheme:
-            Superuser can do anything;
-            Managerof playlist and library can do anything;
-            Playlist user can only access musics whose tags are not disabled.
-            Unauthenticated user cannot see anything.
+    Permission scheme:
+        Superuser can do anything;
+        Managerof playlist and library can do anything;
+        Playlist user can only access musics whose tags are not disabled.
+        Unauthenticated user cannot see anything.
     """
 
     def has_permission_custom(self, request, view):
@@ -141,13 +140,13 @@ class IsPlaylistAndLibraryManagerOrSongCanBeAdded(BasePermissionCustom):
 
 
 class IsPlayer(BasePermissionCustom):
-    """ Handle permissions player management
+    """Handle permissions player management
 
-        Permission scheme:
-            Superuser can do anything;
-            Player can do anything;
-            Authenticated cannot do anything;
-            Unauthenticated user cannot see anything.
+    Permission scheme:
+        Superuser can do anything;
+        Player can do anything;
+        Authenticated cannot do anything;
+        Unauthenticated user cannot see anything.
     """
 
     def has_permission_custom(self, request, view):
@@ -155,7 +154,7 @@ class IsPlayer(BasePermissionCustom):
 
 
 class KaraStatusIsNotStoppedOrReadOnly(permissions.BasePermission):
-    """ Grant access to not safe views if the kara is not in stop mode
+    """Grant access to not safe views if the kara is not in stop mode
     """
 
     def has_permission(self, request, view):

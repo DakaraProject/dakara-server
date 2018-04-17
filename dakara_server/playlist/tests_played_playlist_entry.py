@@ -11,8 +11,7 @@ class PlaylistPlayedEntryListViewListAPIViewTestCase(BaseAPITestCase):
         self.create_test_data()
 
     def test_get_playlist_entries_list(self):
-        """
-        Test to verify playlist played entries list
+        """Test to verify playlist played entries list
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -31,9 +30,7 @@ class PlaylistPlayedEntryListViewListAPIViewTestCase(BaseAPITestCase):
             response.data['results'][1], self.pe4)
 
     def test_get_playlist_entries_list_forbidden(self):
-        """
-        Test to verify playlist entries list is not available when not logged
-        in
+        """Test to verify playlist entries list forbidden when not logged in
         """
         # Get playlist entries list
         response = self.client.get(self.url)

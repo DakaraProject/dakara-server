@@ -25,12 +25,16 @@ class BaseAPITestCase(APITestCase):
         cache.clear()
 
     def authenticate(self, user):
+        """Authenticate against the provided user
+        """
         token, created = Token.objects.get_or_create(user=user)
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
     def create_user(self, username, playlist_level=None,
                     library_level=None, users_level=None):
+        """Create a user with the provided permissions
+        """
         user = UserModel.objects.create_user(username, "", "password")
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
@@ -39,8 +43,7 @@ class BaseAPITestCase(APITestCase):
         return user
 
     def create_test_data(self):
-        """
-        Create test users songs, and playlist entries
+        """Create test users songs, and playlist entries
         """
         # create a user without any rights
         self.user = self.create_user("TestUser")
@@ -107,25 +110,23 @@ class BaseAPITestCase(APITestCase):
         kara_status.save()
 
     def check_playlist_entry_json(self, json, expected_entry):
-        """
-        Method to check a representation against expected playlist entry
+        """Method to check a representation against expected playlist entry
         """
         self.assertEqual(json['id'], expected_entry.id)
         self.assertEqual(json['owner']['id'], expected_entry.owner.id)
         self.assertEqual(json['song']['id'], expected_entry.song.id)
 
     def check_playlist_played_entry_json(self, json, expected_entry):
-        """
-        Method to check a representation against expected playlist played entry
+        """Method to check a representation against expected playlist played entry
         """
         self.check_playlist_entry_json(json, expected_entry)
         self.assertEqual(parse_datetime(json['date_played']),
                          expected_entry.date_played)
 
     def player_play_next_song(self, time=0, paused=False):
-        """
-        Simulate player playing the next song at given time
-        Return pause/skip commands directed toward the player
+        """Simulate player playing the next song at given time
+
+        Return pause/skip commands directed toward the player.
         """
         url = reverse('playlist-device-status')
         # Login as player
@@ -139,9 +140,10 @@ class BaseAPITestCase(APITestCase):
         return self.player_play_song(next_id, time, paused)
 
     def player_play_song(self, playlist_entry_id, time=0, paused=False):
-        """
-        Simulate the player reporting playing the specified song
-        for the given time and pause status
+        """Test player playing
+
+        Simulate the player reporting playing the specified song for the given
+        time and pause status.
         """
         url = reverse('playlist-device-status')
         # Login as player
@@ -159,8 +161,7 @@ class BaseAPITestCase(APITestCase):
         return response
 
     def player_send_error(self, playlist_entry_id, message):
-        """
-        Simulate the player reporting an error
+        """Simulate the player reporting an error
         """
         url = reverse('playlist-device-error')
         # Login as player
