@@ -1,11 +1,12 @@
 from django.db import models
 from datetime import timedelta
 from django.core.validators import MaxValueValidator, MinValueValidator
+
 from library.fields import UpperCaseCharField
 
 
 class Song(models.Model):
-    """ Class for songs
+    """Song object
     """
     title = models.CharField(max_length=255)
     filename = models.CharField(max_length=255)
@@ -26,7 +27,7 @@ class Song(models.Model):
 
 
 class Artist(models.Model):
-    """ Class for artists
+    """Artist object
     """
     name = models.CharField(max_length=255)
 
@@ -35,7 +36,9 @@ class Artist(models.Model):
 
 
 class Work(models.Model):
-    """ Class for anime, games and so on that use songs
+    """Work object that uses a song
+
+    Example: an anime, a game and so on.
     """
     title = models.CharField(max_length=255)
     subtitle = models.CharField(max_length=255, blank=True)
@@ -46,7 +49,9 @@ class Work(models.Model):
 
 
 class WorkType(models.Model):
-    """ Class for the type of a work: anime, games and so on
+    """Type of a work
+
+    Example: anime, games and so on.
     """
     name = models.CharField(max_length=255)
     name_plural = models.CharField(max_length=255)
@@ -59,7 +64,9 @@ class WorkType(models.Model):
 
 
 class SongWorkLink(models.Model):
-    """ Class to describe the use of a song in a work
+    """Relation between a song and a work
+
+    It describes the use of a song within a work.
     """
     OPENING = 'OP'
     ENDING = 'ED'
@@ -84,7 +91,7 @@ class SongWorkLink(models.Model):
 
 
 class SongTag(models.Model):
-    """ Class to describe song tags
+    """Song tag object
     """
     name = UpperCaseCharField(max_length=255)
     color_hue = models.IntegerField(

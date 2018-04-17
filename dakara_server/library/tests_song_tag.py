@@ -16,8 +16,7 @@ class SongTagListViewListAPIViewTestCase(BaseAPITestCase):
         self.create_library_test_data()
 
     def test_get_tag_list(self):
-        """
-        Test to verify tag list
+        """Test to verify tag list
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -33,8 +32,7 @@ class SongTagListViewListAPIViewTestCase(BaseAPITestCase):
         self.check_tag_json(response.data['results'][1], self.tag2)
 
     def test_get_tag_list_forbidden(self):
-        """
-        Test to verify unauthenticated user can't get tag list
+        """Test to verify unauthenticated user can't get tag list
         """
         # Attempt to get work type list
         response = self.client.get(self.url)
@@ -59,8 +57,7 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
                                kwargs={"pk": self.tag2.id})
 
     def test_update_song_tag_manager(self):
-        """
-        Test manager can update tag
+        """Test manager can update tag
         """
         # login as manager
         self.authenticate(self.manager)
@@ -81,8 +78,7 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.assertTrue(tag.disabled)
 
     def test_update_song_tag_user(self):
-        """
-        Test simple user can not update tags
+        """Test simple user can not update tags
         """
         # login as user
         self.authenticate(self.user)

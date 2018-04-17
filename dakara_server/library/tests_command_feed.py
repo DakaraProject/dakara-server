@@ -15,7 +15,6 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class FeedCommandTestCase(TestCase):
-
     def call_feed_command(self, directory_path, options={}):
         args = [directory_path]
         opts = {'quiet': True, 'metadata_parser': 'none'}
@@ -24,8 +23,7 @@ class FeedCommandTestCase(TestCase):
         call_command('feed', *args, **opts)
 
     def create_media_file(self, path, filename):
-        """
-        Create file in path
+        """Create file in path
         returns path to file
         """
         filepath = os.path.join(path, filename)
@@ -35,8 +33,7 @@ class FeedCommandTestCase(TestCase):
         return filepath
 
     def test_feed_command(self):
-        """
-        Test feed command
+        """Test feed command
         """
         # Pre-Assertions
         songs = Song.objects.order_by('title')
@@ -64,11 +61,11 @@ class FeedCommandTestCase(TestCase):
                              os.path.splitext(second_file_filename)[0])
 
     def test_feed_command_with_trailing_slash(self):
-        """
-        Test feed command when path contains a trailling slash
+        """Test feed command when path contains a trailling slash
+
         There was a bug, when a path with trailing slash was given,
         The directory field was empty instead of containing the containing
-        folder name
+        folder name.
         """
         # Pre-Assertions
         songs = Song.objects.order_by('title')
@@ -98,8 +95,7 @@ class FeedCommandTestCase(TestCase):
                              os.path.splitext(second_file_filename)[0])
 
     def test_feed_command_with_parser(self):
-        """
-        Test feed command with parser
+        """Test feed command with parser
         """
         # Pre-Assertions
         songs = Song.objects.order_by('title')
@@ -162,8 +158,7 @@ class FeedCommandTestCase(TestCase):
             self.assertEqual(second_song.tags.all()[0].name, "SECONDTAG")
 
     def test_feed_command_rename(self):
-        """
-        Test feed command when a file has been renamed
+        """Test feed command when a file has been renamed
         """
         # Pre-Assertions
         songs = Song.objects.order_by('title')
@@ -229,8 +224,7 @@ class FeedCommandTestCase(TestCase):
                              os.path.splitext(second_file_filename)[0])
 
     def test_feed_command_rename_different(self):
-        """
-        Test feed command when a file has been completely renamed
+        """Test feed command when a file has been completely renamed
         """
         # Pre-Assertions
         songs = Song.objects.order_by('title')
@@ -301,8 +295,7 @@ class FeedCommandTestCase(TestCase):
                              os.path.splitext(second_file_filename)[0])
 
     def test_feed_command_directory_change(self):
-        """
-        Test feed command
+        """Test feed command
         """
         # Pre-Assertions
         songs = Song.objects.order_by('title')
@@ -392,9 +385,10 @@ class FeedCommandTestCase(TestCase):
             self.assertEqual(third_song.directory, second_directory)
 
     def test_feed_command_rename_and_new(self):
-        """
+        """Test feed command file renamed and new file similar name
+
         Test feed command when a file has been renamed
-        and a new file simillar name is added
+        and a new file simillar name is added.
         """
         # Pre-Assertions
         songs = Song.objects.order_by('title')
@@ -477,8 +471,7 @@ class FeedCommandTestCase(TestCase):
             )
 
     def test_feed_command_prune(self):
-        """
-        Test feed command with prune argument
+        """Test feed command with prune argument
         """
         # Pre-Assertions
         songs = Song.objects.order_by('title')
@@ -514,8 +507,7 @@ class FeedCommandTestCase(TestCase):
             self.assertEqual(songs[0].filename, second_file_filename)
 
     def test_feed_command_with_lyrics(self):
-        """
-        Test feed command with lyrics extracted from ass file
+        """Test feed command with lyrics extracted from ass file
         """
         # Pre-Assertions
         songs = Song.objects.all()
@@ -551,8 +543,7 @@ class FeedCommandTestCase(TestCase):
                     expected_lyrics_lines)
 
     def test_feed_command_with_lyrics_txt(self):
-        """
-        Test feed command with lyrics extract from text file
+        """Test feed command with lyrics extract from text file
         """
         # Pre-Assertions
         songs = Song.objects.all()
@@ -581,8 +572,7 @@ class FeedCommandTestCase(TestCase):
         "FFmpeg is not available."
     )
     def test_feed_command_with_lyrics_embedded(self):
-        """
-        Test feed command with lyrics embedded into a media file
+        """Test feed command with lyrics embedded into a media file
         """
         # Pre-Assertions
         songs = Song.objects.all()
@@ -614,8 +604,7 @@ class FeedCommandTestCase(TestCase):
                     expected_lyrics_lines)
 
     def test_feed_command_rename_multiple(self):
-        """
-        Test feed command when multiple files has been renamed
+        """Test feed command when multiple files has been renamed
         """
         # Pre-Assertions
         songs = Song.objects.order_by('title')
@@ -691,9 +680,9 @@ class FeedCommandTestCase(TestCase):
                              os.path.splitext(second_file_filename_new)[0])
 
     def test_feed_command_artist_work_tag_change(self):
-        """
-        Test feed command when a song is updated with a different artist, work
-        and tag
+        """Test feed command when a song is updated
+
+        The song has a different artist, work and tag.
         """
         # Pre-Assertions
         songs = Song.objects.all()

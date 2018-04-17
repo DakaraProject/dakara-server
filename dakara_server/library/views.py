@@ -18,7 +18,7 @@ from .permissions import IsLibraryManagerOrReadOnly
 class LibraryPagination(PageNumberPagination):
     """Pagination
 
-    Gives current page number and last page number
+    Gives current page number and last page number.
     """
 
     def get_paginated_response(self, data):
@@ -164,7 +164,7 @@ class ArtistListView(ListCreateAPIView):
     pagination_class = LibraryPagination
 
     def get_queryset(self):
-        """ Search and filter the artists
+        """Search and filter the artists
         """
         query_set = models.Artist.objects.all()
 
@@ -197,7 +197,7 @@ class ArtistListView(ListCreateAPIView):
         return query_set.order_by(Lower("name"))
 
     def list(self, request, *args, **kwargs):
-        """ Send a listing of artists
+        """Send a listing of artists
         """
         response = super().list(request, args, kwargs)
 
@@ -212,7 +212,7 @@ class ArtistListView(ListCreateAPIView):
 
 
 class WorkListView(ListCreateAPIView):
-    """ Class for listing works
+    """List of works
     """
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
@@ -220,7 +220,7 @@ class WorkListView(ListCreateAPIView):
     pagination_class = LibraryPagination
 
     def get_queryset(self):
-        """ Search and filter the works
+        """Search and filter the works
         """
         query_set = models.Work.objects.all()
 
@@ -261,7 +261,7 @@ class WorkListView(ListCreateAPIView):
         return query_set.order_by(Lower("title"), Lower("subtitle"))
 
     def list(self, request, *args, **kwargs):
-        """ Send a listing of works
+        """Send a listing of works
         """
         response = super().list(request, args, kwargs)
 
@@ -276,6 +276,8 @@ class WorkListView(ListCreateAPIView):
 
 
 class WorkTypeListView(ListCreateAPIView):
+    """List of work types
+    """
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     queryset = models.WorkType.objects.all().order_by(Lower("name"))
@@ -283,6 +285,8 @@ class WorkTypeListView(ListCreateAPIView):
 
 
 class SongTagListView(ListAPIView):
+    """List of song tags
+    """
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     queryset = models.SongTag.objects.all().order_by(Lower("name"))
@@ -291,6 +295,8 @@ class SongTagListView(ListAPIView):
 
 
 class SongTagView(UpdateAPIView):
+    """Update a song tag
+    """
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     queryset = models.SongTag.objects.all()

@@ -18,8 +18,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.create_library_test_data()
 
     def test_get_song_list(self):
-        """
-        Test to verify song list with no query
+        """Test to verify song list with no query
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -35,16 +34,14 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.check_song_json(response.data['results'][1], self.song2)
 
     def test_get_song_list_forbidden(self):
-        """
-        Test to verify unauthenticated user can't get songs list
+        """Test to verify unauthenticated user can't get songs list
         """
         # Attempte to get songs list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_get_song_list_with_query(self):
-        """
-        Test to verify song list with simple query
+        """Test to verify song list with simple query
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -62,8 +59,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.song_query_test("ork1", [self.song2])
 
     def test_get_song_list_with_query_empty(self):
-        """
-        Test to verify song list with empty query
+        """Test to verify song list with empty query
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -73,8 +69,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.song_query_test("", [self.song1, self.song2])
 
     def test_get_song_list_with_query_tag(self):
-        """
-        Test to verify song list with tag query
+        """Test to verify song list with tag query
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -88,8 +83,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.song_query_test("#TAG2", [])
 
     def test_get_song_list_with_query_artist(self):
-        """
-        Test to verify song list with artist query
+        """Test to verify song list with artist query
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -111,8 +105,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.song_query_test("artist:\"\"tist1\"\"", [])
 
     def test_get_song_list_with_query_work(self):
-        """
-        Test to verify song list with work query
+        """Test to verify song list with work query
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -130,8 +123,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.song_query_test("wt2:Work1", [])
 
     def test_get_song_list_with_query_title(self):
-        """
-        Test to verify song list with title query
+        """Test to verify song list with title query
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -149,8 +141,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.song_query_test("title:Artist", [])
 
     def test_get_song_list_with_query_multiple(self):
-        """
-        Test to verify song list with title query
+        """Test to verify song list with title query
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -160,8 +151,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.song_query_test("artist:Artist1 title:1", [])
 
     def test_get_song_list_with_query_complex(self):
-        """
-        Test to verify parsed query is returned
+        """Test to verify parsed query is returned
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -197,10 +187,10 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.assertCountEqual(query['work_type']['wt1']['exact'], [])
 
     def song_query_test(self, query, expected_songs):
-        """
-        Method to test a song request with a given query
+        """Method to test a song request with a given query
+
         Returned songs should be the same as expected_songs,
-        in the same order
+        in the same order.
         """
         # TODO This only works when there is only one page of songs
         response = self.client.get(self.url, {'query': query})
@@ -212,8 +202,9 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
             self.assertEqual(song['id'], expected_song.id)
 
     def test_get_song_list_disabled_tag(self):
-        """
-        Test to verify that song list does not include disabled songs with tags
+        """Test to verify songs with disabled for user
+
+        For a simple user, song list does not include disabled songs with tags.
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -233,9 +224,9 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.check_song_json(response.data['results'][0], self.song1)
 
     def test_get_song_list_disabled_tag_manager(self):
-        """
-        Test to verify that song list includes disabled songs with tags if the
-        user is a manager
+        """Test to verify songs with disabled tags for manager
+
+        For a manager, song list includes disabled songs with tags.
         """
         # Login as simple user
         self.authenticate(self.manager)

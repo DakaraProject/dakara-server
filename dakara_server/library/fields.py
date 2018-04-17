@@ -2,8 +2,9 @@ from django.db import models
 
 
 class SafeDurationField(models.DurationField):
-    """ Safe version of DurationField which returns integer to
-        the database
+    """Safe version of DurationField
+
+    It returns integer to the database.
     """
 
     def get_db_prep_value(self, *args, **kwargs):
@@ -15,8 +16,10 @@ class SafeDurationField(models.DurationField):
 
 
 class UpperCaseCharField(models.CharField):
-    """ Override a Django Model Field and make it upper-case as of Django 1.8
-        http://stackoverflow.com/a/33354171
+    """ Override a Django Model Field and make it upper-case
+
+    As of Django 1.8.
+    Snippet from http://stackoverflow.com/a/33354171
     """
 
     def __init__(self, *args, **kwargs):

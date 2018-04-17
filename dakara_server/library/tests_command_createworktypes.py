@@ -8,8 +8,7 @@ from .models import WorkType
 
 class CommandsTestCase(TestCase):
     def test_createworktypes_command(self):
-        """
-        Test create work types command
+        """Test create work types command
         """
         # Pre-Assertions
         work_types = WorkType.objects.order_by('query_name')
@@ -48,8 +47,7 @@ class CommandsTestCase(TestCase):
             self.assertEqual(work_types[1].icon_name, "cat")
 
     def test_createworktypes_command_prune(self):
-        """
-        Test create work types command with existing work types and prune
+        """Test create work types command with existing work types and prune
         option
         """
         # Create existing work types

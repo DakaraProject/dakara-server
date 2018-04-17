@@ -5,7 +5,6 @@ from .models import WorkType
 
 
 class QueryLanguageParserTestCase(TestCase):
-
     def setUp(self):
         # Create work types
         self.wt1 = WorkType(name="WorkType1", query_name="wt1")
@@ -17,8 +16,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.parser = QueryLanguageParser()
 
     def test_parse_multiple(self):
-        """
-        Test complex query parse
+        """Test complex query parse
         """
         res = self.parser.parse(
             """hey  artist: me work:you wt1:workName title: test\ Test """
@@ -42,8 +40,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type']['wt1']['exact'], [])
 
     def test_parse_only_remaining(self):
-        """
-        Test simple query parse
+        """Test simple query parse
         """
         res = self.parser.parse("This is just text with: nothing specific")
         self.assertCountEqual(
@@ -59,8 +56,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
     def test_parse_tag(self):
-        """
-        Test tag query parse
+        """Test tag query parse
         """
         res = self.parser.parse("#TG")
         self.assertCountEqual(res['remaining'], [])
@@ -74,8 +70,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
     def test_parse_title(self):
-        """
-        Test title query parse
+        """Test title query parse
         """
         res = self.parser.parse("title:mytitle")
         self.assertCountEqual(res['remaining'], [])
@@ -89,8 +84,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
     def test_parse_title_exact(self):
-        """
-        Test title exact query parse
+        """Test title exact query parse
         """
         res = self.parser.parse(""" title:""mytitle"" """)
         self.assertCountEqual(res['remaining'], [])
@@ -104,8 +98,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
     def test_parse_artist(self):
-        """
-        Test artist query parse
+        """Test artist query parse
         """
         res = self.parser.parse("artist:myartist")
         self.assertCountEqual(res['remaining'], [])
@@ -119,8 +112,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
     def test_parse_artist_exact(self):
-        """
-        Test artist exact query parse
+        """Test artist exact query parse
         """
         res = self.parser.parse(""" artist:""myartist"" """)
         self.assertCountEqual(res['remaining'], [])
@@ -134,8 +126,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
     def test_parse_work(self):
-        """
-        Test work query parse
+        """Test work query parse
         """
         res = self.parser.parse("work:mywork")
         self.assertCountEqual(res['remaining'], [])
@@ -149,8 +140,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
     def test_parse_work_exact(self):
-        """
-        Test work exact query parse
+        """Test work exact query parse
         """
         res = self.parser.parse(""" work:""mywork"" """)
         self.assertCountEqual(res['remaining'], [])
@@ -164,8 +154,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
     def test_parse_work_type(self):
-        """
-        Test work type query parse
+        """Test work type query parse
         """
         res = self.parser.parse("wt2:mywork")
         self.assertCountEqual(res['remaining'], [])
@@ -181,8 +170,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type']['wt2']['exact'], [])
 
     def test_parse_work_type_exact(self):
-        """
-        Test work type exact query parse
+        """Test work type exact query parse
         """
         res = self.parser.parse(""" wt2:""mywork"" """)
         self.assertCountEqual(res['remaining'], [])
@@ -198,8 +186,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type']['wt2']['exact'], ['mywork'])
 
     def test_parse_contains_multi_words(self):
-        """
-        Test query parse with multi words criteria
+        """Test query parse with multi words criteria
         """
         res = self.parser.parse(r"title: words\ words\ words remain")
         self.assertCountEqual(res['remaining'], ['remain'])
@@ -224,8 +211,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
     def test_parse_remaining_multi_words(self):
-        """
-        Test query parse with multi words remaining
+        """Test query parse with multi words remaining
         """
         res = self.parser.parse(r"word words\ words\ words remain")
         self.assertCountEqual(
@@ -254,8 +240,7 @@ class QueryLanguageParserTestCase(TestCase):
         self.assertCountEqual(res['work_type'].keys(), [])
 
     def test_parse_old_worktype(self):
-        """
-        This test attempts to reproduce a bug where old work types were kept in
+        """This test attempts to reproduce a bug where old work types were kept in
         memory
         """
         # Pre-assertion, keywords contains wt1 and wt2

@@ -4,13 +4,13 @@ from users.permissions import BasePermissionCustom
 
 
 class IsLibraryManagerOrReadOnly(BasePermissionCustom):
-    """ Handle permissions for updating library
+    """Handle permissions for updating library
 
-        Permission scheme:
-            Superuser can do anything;
-            Library manager can do anything;
-            Authenticated can only display;
-            Unauthenticated user cannot see anything.
+    Permission scheme:
+        Superuser can do anything;
+        Library manager can do anything;
+        Authenticated can only display;
+        Unauthenticated user cannot see anything.
     """
 
     def has_permission_custom(self, request, view):

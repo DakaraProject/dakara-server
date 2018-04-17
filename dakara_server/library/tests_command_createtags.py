@@ -8,8 +8,7 @@ from .models import SongTag
 
 class CreatetagsCommandTestCase(TestCase):
     def test_createtags_command(self):
-        """
-        Test create tags command
+        """Test create tags command
         """
         # Pre-Assertions
         tags = SongTag.objects.order_by('name')
@@ -40,8 +39,7 @@ class CreatetagsCommandTestCase(TestCase):
             self.assertEqual(tags[1].color_hue, 5)
 
     def test_createtags_command_prune(self):
-        """
-        Test create tags command with existing tags and prune option
+        """Test create tags command with existing tags and prune option
         """
 
         # Create existing tags

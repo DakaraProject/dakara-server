@@ -1,13 +1,13 @@
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
+
 from .models import WorkType, Work, Artist, SongTag, Song, SongWorkLink
 
 UserModel = get_user_model()
 
 
 class BaseAPITestCase(APITestCase):
-
     def authenticate(self, user):
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
@@ -74,8 +74,7 @@ class BaseAPITestCase(APITestCase):
         ).save()
 
     def check_song_json(self, json, expected_song):
-        """
-        Method to test a song representation against the expected song
+        """Method to test a song representation against the expected song
         """
         self.assertEqual(json['id'], expected_song.id)
         self.assertEqual(json['title'], expected_song.title)
@@ -109,8 +108,7 @@ class BaseAPITestCase(APITestCase):
             self.assertEqual(work['episodes'], expected_work.episodes)
 
     def check_tag_json(self, json, expected_tag):
-        """
-        Method to test an representation against the expected tag
+        """Method to test an representation against the expected tag
         """
         self.assertEqual(json['id'], expected_tag.id)
         self.assertEqual(json['name'], expected_tag.name)
@@ -118,15 +116,13 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(json['disabled'], expected_tag.disabled)
 
     def check_artist_json(self, json, expected_artist):
-        """
-        Method to test an representation against the expected artist
+        """Method to test an representation against the expected artist
         """
         self.assertEqual(json['id'], expected_artist.id)
         self.assertEqual(json['name'], expected_artist.name)
 
     def check_work_json(self, json, expected_work):
-        """
-        Method to test an representation against the expected work
+        """Method to test an representation against the expected work
         """
         self.assertEqual(json['id'], expected_work.id)
         self.assertEqual(json['title'], expected_work.title)
@@ -134,8 +130,7 @@ class BaseAPITestCase(APITestCase):
         self.check_work_type_json(json['work_type'], expected_work.work_type)
 
     def check_work_type_json(self, json, expected_work_type):
-        """
-        Method to test an representation against the expected work type
+        """Method to test an representation against the expected work type
         """
         self.assertEqual(json['name'], expected_work_type.name)
         self.assertEqual(json['name_plural'], expected_work_type.name_plural)
