@@ -84,16 +84,19 @@ class PlayerDeviceView(APIView):
         # check player status is consistent
         # playing entry has to be either same as before,
         # or the value returned by get_next_song
-        if not (
-                playing_old_id == playing_id or
+        if not (playing_old_id == playing_id or
                 playing_id == next_id or
                 playing_id is None):
-            raise RuntimeError("""Player is not supposed to do that, is playing
-'{playing}' but should be playing '{old}' or '{next}'""".format(
-                playing=playing_id,
-                old=playing_old_id,
-                next=next_id
-            ))
+            raise RuntimeError(
+                (
+                    """Player is not supposed to do that, is playing """
+                    """'{playing}' but should be playing '{old}' or '{next}'"""
+                ).format(
+                    playing=playing_id,
+                    old=playing_old_id,
+                    next=next_id
+                )
+            )
 
         # if we're playing something new
         if playing_id != playing_old_id:
@@ -195,11 +198,14 @@ class PlayerDeviceErrorView(APIView):
 
         # log the event
         logger.warning(
-            """Unable to play '{song}', remove from playlist; error
-message: {error_message}""".format(
+            (
+                """Unable to play '{song}', remove from playlist; error """
+                """message: {error_message}"""
+            ).format(
                 song=error_song,
                 error_message=player_error.validated_data['error_message']
-            ))
+            )
+        )
 
         # store the event in player error pool
         player_errors_pool = models.PlayerErrorsPool.get_or_create()

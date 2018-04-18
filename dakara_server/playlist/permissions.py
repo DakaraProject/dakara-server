@@ -2,8 +2,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import permissions
 
 from users.permissions import BasePermissionCustom
-from .models import PlaylistEntry, Player, KaraStatus
 from library.models import Song
+from .models import PlaylistEntry, Player, KaraStatus
 
 
 class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):

@@ -56,7 +56,7 @@ class PlaylistEntryListView(ListCreateAPIView):
         permissions.KaraStatusIsNotStoppedOrReadOnly,
     ]
 
-    def get_serializer_class(self, *args, **kwargs):
+    def get_serializer_class(self):
         if self.request.method == 'POST':
             return serializers.PlaylistEntrySerializer
 
@@ -69,7 +69,7 @@ class PlaylistEntryListView(ListCreateAPIView):
             Q(pk=entry_id) | Q(was_played=True)
         ).order_by('date_created')
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         player = models.Player.get_or_create()
         date = datetime.now(tz)
@@ -93,7 +93,7 @@ class PlaylistEntryListView(ListCreateAPIView):
 
         return Response(serializer.data)
 
-    def create(self, request):
+    def post(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         count = queryset.count()
 
@@ -145,7 +145,7 @@ class PlayerManageView(APIView):
         permissions.KaraStatusIsNotStoppedOrReadOnly,
     ]
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         """Get pause or skip status
         """
         player_command = models.PlayerCommand.get_or_create()
@@ -156,7 +156,7 @@ class PlayerManageView(APIView):
             status.HTTP_200_OK
         )
 
-    def put(self, request):
+    def put(self, request, *args, **kwargs):
         """Send pause or skip requests
         """
         serializer = serializers.PlayerCommandSerializer(data=request.data)
@@ -180,7 +180,7 @@ class PlayerErrorsPoolView(APIView):
     """
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         """Send player error pool
         """
         player_errors_pool = models.PlayerErrorsPool.get_or_create()
@@ -206,7 +206,7 @@ class DigestView(APIView):
     """
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         """Send aggregated player data
         """
         # Get player
@@ -246,7 +246,7 @@ class KaraStatusView(RetrieveUpdateAPIView):
         permissions.IsPlaylistManagerOrReadOnly,
     ]
 
-    def put(self, request):
+    def put(self, request, *args, **kwargs):
         """Update the kara status
         """
         response = super().put(request)
@@ -263,5 +263,5 @@ class KaraStatusView(RetrieveUpdateAPIView):
 
         return response
 
-    def get_object(self, *args, **kwargs):
+    def get_object(self):
         return models.KaraStatus.get_object()

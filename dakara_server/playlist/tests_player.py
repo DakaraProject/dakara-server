@@ -170,12 +170,13 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['player_manage']['skip'], False)
 
         # Request pause
-        response = self.client.put(self.url,
-                                   {
-                                       'pause': True,
-                                       'skip': False
-                                   }
-                                   )
+        response = self.client.put(
+            self.url,
+            {
+                'pause': True,
+                'skip': False
+            }
+        )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         # Get current commands
@@ -207,12 +208,13 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
 
         # Request pause
         # able to pause own entry
-        response = self.client.put(self.url,
-                                   {
-                                       'pause': True,
-                                       'skip': False
-                                   }
-                                   )
+        response = self.client.put(
+            self.url,
+            {
+                'pause': True,
+                'skip': False
+            }
+        )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         # Play next song
@@ -223,12 +225,13 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
 
         # Request pause
         # able to pause other's entry
-        response = self.client.put(self.url,
-                                   {
-                                       'pause': True,
-                                       'skip': False
-                                   }
-                                   )
+        response = self.client.put(
+            self.url,
+            {
+                'pause': True,
+                'skip': False
+            }
+        )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_set_player_pause_user(self):
@@ -242,12 +245,13 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
 
         # Request pause
         # not able to pause other's entry
-        response = self.client.put(self.url,
-                                   {
-                                       'pause': True,
-                                       'skip': False
-                                   }
-                                   )
+        response = self.client.put(
+            self.url,
+            {
+                'pause': True,
+                'skip': False
+            }
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Play next song
@@ -258,12 +262,13 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
 
         # Request pause
         # able to pause own entry
-        response = self.client.put(self.url,
-                                   {
-                                       'pause': True,
-                                       'skip': False
-                                   }
-                                   )
+        response = self.client.put(
+            self.url,
+            {
+                'pause': True,
+                'skip': False
+            }
+        )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_set_player_pause_kara_status_stop_forbidden(self):
@@ -314,12 +319,13 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.data['player_manage']['skip'], False)
 
         # Request skip
-        response = self.client.put(self.url,
-                                   {
-                                       'pause': False,
-                                       'skip': True
-                                   }
-                                   )
+        response = self.client.put(
+            self.url,
+            {
+                'pause': False,
+                'skip': True
+            }
+        )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         # Get current commands

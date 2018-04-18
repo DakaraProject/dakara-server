@@ -46,8 +46,8 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         # set kara status
         response = self.client.put(self.url, {'status': KaraStatus.PAUSE})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        ks = KaraStatus.objects.first()
-        self.assertEqual(ks.status, KaraStatus.PAUSE)
+        kara_status = KaraStatus.objects.first()
+        self.assertEqual(kara_status.status, KaraStatus.PAUSE)
 
     def test_put_kara_status_forbidden(self):
         """Test a simple user or an unauthenticated user cannot modify the kara

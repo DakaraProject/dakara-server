@@ -27,11 +27,12 @@ class BaseAPITestCase(APITestCase):
     def authenticate(self, user):
         """Authenticate against the provided user
         """
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
-    def create_user(self, username, playlist_level=None,
+    @staticmethod
+    def create_user(username, playlist_level=None,
                     library_level=None, users_level=None):
         """Create a user with the provided permissions
         """
@@ -99,12 +100,16 @@ class BaseAPITestCase(APITestCase):
 
     @staticmethod
     def set_kara_status_stop():
+        """Put the karaoke in stop state
+        """
         kara_status = KaraStatus.get_object()
         kara_status.status = KaraStatus.STOP
         kara_status.save()
 
     @staticmethod
     def set_kara_status_pause():
+        """Put the karaoke in pause state
+        """
         kara_status = KaraStatus.get_object()
         kara_status.status = KaraStatus.PAUSE
         kara_status.save()
@@ -149,13 +154,14 @@ class BaseAPITestCase(APITestCase):
         # Login as player
         self.authenticate(self.player)
         # Put as if playing next song
-        response = self.client.put(url,
-                                   {
-                                       'playlist_entry_id': playlist_entry_id,
-                                       'timing': time,
-                                       'paused': paused
-                                   }
-                                   )
+        response = self.client.put(
+            url,
+            {
+                'playlist_entry_id': playlist_entry_id,
+                'timing': time,
+                'paused': paused
+            }
+        )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         return response
@@ -167,10 +173,11 @@ class BaseAPITestCase(APITestCase):
         # Login as player
         self.authenticate(self.player)
         # Put as if playing next song
-        response = self.client.post(url,
-                                    {
-                                        'playlist_entry': playlist_entry_id,
-                                        'error_message': message,
-                                    }
-                                    )
+        response = self.client.post(
+            url,
+            {
+                'playlist_entry': playlist_entry_id,
+                'error_message': message,
+            }
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
