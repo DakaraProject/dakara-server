@@ -5,25 +5,20 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
 
-##
-# Version view
-#
-
-
 class VersionView(APIView):
-    """ Class for user to get the player status
+    """Version of the Dakara server
     """
     permission_classes = (AllowAny,)
 
     def get(self, request):
-        """ Get application version number
+        """Get application version number
         """
         data = {
-                'version': settings.VERSION,
-                'date': settings.DATE
-                }
+            'version': settings.VERSION,
+            'date': settings.DATE
+        }
 
         return Response(
-                data,
-                status.HTTP_200_OK
-                )
+            data,
+            status.HTTP_200_OK
+        )
