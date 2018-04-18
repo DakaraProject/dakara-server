@@ -4,6 +4,9 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 class DakaraUserManager(UserManager):
+    """Custom user manager to handle case insensitive usernames
+    """
+
     def get_by_natural_key(self, username):
         """ Search a username case insensitively
         """
@@ -18,7 +21,7 @@ class DakaraUserManager(UserManager):
         if self.is_username_taken(username):
             raise ValueError("The username must be case insensitively unique")
 
-        return super(DakaraUserManager, self)._create_user(username, *args, **kwargs)
+        return super()._create_user(username, *args, **kwargs)
 
     def is_username_taken(self, username):
         """ Check if a similar username exists with the natural method
@@ -37,41 +40,44 @@ class DakaraUserManager(UserManager):
 
 
 class DakaraUser(AbstractUser):
+    """Custom user
+    """
     objects = DakaraUserManager()
 
     # permission levels per application
     LEVELS_GENERICS = [
-            ("u", "User"),
-            ("m", "Manager"),
-            ]
+        ("u", "User"),
+        ("m", "Manager"),
+    ]
 
     # role for Users app
     users_permission_level = models.CharField(
-            max_length=1,
-            choices=LEVELS_GENERICS,
-            null=True,
-            )
+        max_length=1,
+        choices=LEVELS_GENERICS,
+        null=True,
+    )
 
     # role for Libraryapp
     library_permission_level = models.CharField(
-            max_length=1,
-            choices=LEVELS_GENERICS,
-            null=True,
-            )
+        max_length=1,
+        choices=LEVELS_GENERICS,
+        null=True,
+    )
 
     # role for Playlist app
     LEVELS_PLAYLIST = [
-            ("p", "Player"),
-            ]
+        ("p", "Player"),
+    ]
 
     LEVELS_PLAYLIST.extend(LEVELS_GENERICS)
     playlist_permission_level = models.CharField(
-            max_length=1,
-            choices=LEVELS_PLAYLIST,
-            null=True,
-            )
+        max_length=1,
+        choices=LEVELS_PLAYLIST,
+        null=True,
+    )
 
-    def _has_permission_level(self, user_permission_level, requested_permission_level):
+    def _has_permission_level(self, user_permission_level,
+                              requested_permission_level):
         """ Check if the user has the requested app permission level
         """
         # the superuser can do anything
@@ -88,22 +94,22 @@ class DakaraUser(AbstractUser):
         """ Check if the user has the requested users permission level
         """
         return self._has_permission_level(
-                self.users_permission_level,
-                permission_level
-                )
+            self.users_permission_level,
+            permission_level
+        )
 
     def has_library_permission_level(self, permission_level):
         """ Check if the user has the requested library permission level
         """
         return self._has_permission_level(
-                self.library_permission_level,
-                permission_level
-                )
+            self.library_permission_level,
+            permission_level
+        )
 
     def has_playlist_permission_level(self, permission_level):
         """ Check if the user has the requested playlist permission level
         """
         return self._has_permission_level(
-                self.playlist_permission_level,
-                permission_level
-                )
+            self.playlist_permission_level,
+            permission_level
+        )

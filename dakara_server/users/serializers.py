@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import (
-        get_user_model, # If used custom user model
-        update_session_auth_hash,
-        )
+    get_user_model,
+    update_session_auth_hash,
+)
+
 from .models import DakaraUser
 
 
@@ -14,12 +15,13 @@ class PermissionLevelField(serializers.ChoiceField):
 
         It does the dirty job in one place.
     """
+
     def __init__(self, target, *args, **kwargs):
-        super(PermissionLevelField, self).__init__(
-                *args,
-                choices=DakaraUser._meta.get_field(target).choices,
-                **kwargs
-                )
+        super().__init__(
+            *args,
+            choices=DakaraUser._meta.get_field(target).choices,
+            **kwargs
+        )
 
 
 class UserDisplaySerializer(serializers.ModelSerializer):
@@ -28,9 +30,9 @@ class UserDisplaySerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
         fields = (
-                'id',
-                'username',
-                )
+            'id',
+            'username',
+        )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -40,33 +42,33 @@ class UserSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     is_superuser = serializers.BooleanField(read_only=True)
     users_permission_level = PermissionLevelField(
-            target="users_permission_level",
-            read_only=True
-            )
+        target="users_permission_level",
+        read_only=True
+    )
 
     library_permission_level = PermissionLevelField(
-            target="library_permission_level",
-            read_only=True
-            )
+        target="library_permission_level",
+        read_only=True
+    )
 
     playlist_permission_level = PermissionLevelField(
-            target="playlist_permission_level",
-            read_only=True
-            )
+        target="playlist_permission_level",
+        read_only=True
+    )
 
     class Meta:
         model = UserModel
         fields = ('id', 'username', 'password',
-                'is_superuser',
-                'users_permission_level',
-                'library_permission_level',
-                'playlist_permission_level')
+                  'is_superuser',
+                  'users_permission_level',
+                  'library_permission_level',
+                  'playlist_permission_level')
 
     def validate_username(self, value):
         # check username unicity in case insensitive way
         if UserModel.objects.is_username_taken(value):
             raise serializers.ValidationError(
-                    "The username must be case insensitively unique"
+                "The username must be case insensitively unique"
             )
 
         return value
@@ -107,7 +109,11 @@ class PasswordSerializer(serializers.ModelSerializer):
         if 'password' in validated_data:
             password = validated_data.pop('password')
 
-        instance = super(PasswordSerializer, self).update(instance, validated_data)
+        instance = super(
+            PasswordSerializer,
+            self).update(
+            instance,
+            validated_data)
 
         if password:
             instance.set_password(password)
@@ -128,7 +134,9 @@ class UserUpdateManagerSerializer(PasswordSerializer):
 
     class Meta:
         model = UserModel
-        fields = ('password',
-                'users_permission_level',
-                'library_permission_level',
-                'playlist_permission_level')
+        fields = (
+            'password',
+            'users_permission_level',
+            'library_permission_level',
+            'playlist_permission_level',
+        )

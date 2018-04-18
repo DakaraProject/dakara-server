@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class BasePermissionCustom(permissions.BasePermission):
     """ Base permission class for the project, check the basic permissions
 
@@ -38,6 +39,7 @@ class IsUsersManagerOrReadOnly(BasePermissionCustom):
             Authenticated user can only display data;
             Unauthenticated user cannot see anything.
     """
+
     def has_permission_custom(self, request, view):
         # for manager
         if request.user.has_users_permission_level('m'):
@@ -57,6 +59,7 @@ class IsUsersManagerOrSelfOrReadOnly(BasePermissionCustom):
             Authenticated user can edit self;
             Unauthenticated user cannot see anything.
     """
+
     def has_object_permission(self, request, view, obj):
         # for safe methods only
         if request.method in permissions.SAFE_METHODS:
@@ -82,6 +85,7 @@ class IsSelf(BasePermissionCustom):
             Authenticated user can only edit self;
             Unauthenticated user cannot see anything.
     """
+
     def has_object_permission(self, request, view, obj):
         # if the object belongs to the user
         return obj == request.user
@@ -95,6 +99,7 @@ class IsNotSelfOrReadOnly(BasePermissionCustom):
             Authenticated user cannot edit self;
             Unauthenticated user cannot see anything.
     """
+
     def has_object_permission(self, request, view, obj):
         # for safe methods only
         if request.method in permissions.SAFE_METHODS:
