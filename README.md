@@ -116,4 +116,12 @@ If you're using git < 2.9 you can make a symlink instead:
 
 ```
 ln -s -f ../../hooks/pre-commit .git/hooks/pre-commit
+ln -s -f ../../hooks/pre-commit.d .git/hooks/pre-commit.d
 ```
+
+#### Code style
+
+The code follows the [PEP8](https://www.python.org/dev/peps/pep-0008/) style guide.
+Quality of code is checked with [Flake8](https://pypi.org/project/flake8/).
+Additionnal checking can be manually performed with [Pylint](https://www.pylint.org/).
+You can use [Autopep8](https://pypi.org/project/autopep8/) to automatically format the code according to the style guidelines.
