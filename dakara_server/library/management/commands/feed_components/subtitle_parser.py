@@ -1,19 +1,22 @@
 import re
 from collections import OrderedDict
+from abc import ABC, abstractmethod
 
 import pysubs2
 
 
-class SubtitleParser:
+class SubtitleParser(ABC):
     """Abstract class for subtitle parser
 
     Args:
         filepath (str): path of the file to extract lyrics from.
     """
 
+    @abstractmethod
     def __init__(self, filepath):
         pass
 
+    @abstractmethod
     def get_lyrics(self):
         """Extract lyrics
         """

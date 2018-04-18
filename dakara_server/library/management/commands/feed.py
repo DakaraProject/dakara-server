@@ -17,7 +17,7 @@ from .feed_components.subtitle_parser import PARSER_BY_EXTENSION
 from .feed_components.ffmpeg_wrapper import FFmpegWrapper
 from .feed_components.progress_bar import TextProgressBar, TextNullBar
 from .feed_components.metadata_parser import (
-    MetadataParser,
+    NullMetadataParser,
     MediainfoMetadataParser,
     FFProbeMetadataParser
 )
@@ -138,8 +138,8 @@ class DatabaseFeeder:
         Returns:
             (:obj:`MetadataParser`) class of the parser.
         """
-        if parser_name is None:
-            return MetadataParser
+        if parser_name == 'none':
+            return NullMetadataParser
 
         if parser_name == 'ffprobe':
             if not FFProbeMetadataParser.is_available():
@@ -387,9 +387,7 @@ class DatabaseFeederEntry:
         self.removed_songs = feeder.removed_songs
         self.tempdir = feeder.tempdir
         self.associated_subtitles = associated_subtitles
-
-        # if no metadata parser is provided, use the default one
-        self.metadata_parser = metadata_parser or MetadataParser
+        self.metadata_parser = metadata_parser
 
         # get the song
         self.set_song()
@@ -801,11 +799,6 @@ class Command(BaseCommand):
             sys.path.append(parser_directory)
             custom_parser = importlib.import_module(parser_name)
 
-        # metadata parser
-        metadata_parser = options.get('metadata_parser')
-        if metadata_parser == 'none':
-            metadata_parser = None
-
         with TemporaryDirectory(prefix="dakara.") as tempdir:
             # create feeder object
             database_feeder = DatabaseFeeder.from_directory(
@@ -818,7 +811,7 @@ class Command(BaseCommand):
                 output_show=not options.get('quiet'),
                 custom_parser=custom_parser,
                 no_add_on_error=options.get('no_add_on_error'),
-                metadata_parser=metadata_parser,
+                metadata_parser=options.get('metadata_parser'),
                 stdout=self.stdout,
                 stderr=self.stderr,
                 tempdir=tempdir

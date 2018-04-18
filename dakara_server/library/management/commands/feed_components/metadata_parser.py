@@ -2,43 +2,60 @@ import os
 import sys
 import subprocess
 import json
+from abc import ABC, abstractmethod
 from datetime import timedelta
 from pymediainfo import MediaInfo
 
 
-class MetadataParser:
+class MetadataParser(ABC):
     """Base class for metadata parser
 
-    The class works as an interface for the various metadata parsers available.
-
-    This class itself is a null parser that always returns a timedelta 0
-    duration.
+    Interface for the various metadata parsers available.
     """
 
     def __init__(self, metadata):
         self.metadata = metadata
 
     @staticmethod
+    @abstractmethod
     def is_available():
         """Check if the parser is callable
         """
-        return True
 
     @classmethod
+    @abstractmethod
     def parse(cls, filename):
         """Parse metadata from file name
 
         Args:
             filename (str): path of the file to parse.
         """
-        return cls(None)
 
     @property
+    @abstractmethod
     def duration(self):
         """Get duration as timedelta object
 
         Returns timedelta 0 if unable to get duration.
         """
+
+
+class NullMetadataParser(MetadataParser):
+    """Dummy metedata parser
+
+    This is a null parser that always returns a timedelta 0 duration.
+    """
+
+    @staticmethod
+    def is_available():
+        return True
+
+    @classmethod
+    def parse(cls, filename):
+        return cls(filename)
+
+    @property
+    def duration(self):
         return timedelta(0)
 
 
