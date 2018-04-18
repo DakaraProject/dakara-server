@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+import inspect
 
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
@@ -16,10 +17,36 @@ from .models import PlaylistEntry, KaraStatus
 UserModel = get_user_model()
 tz = timezone.get_default_timezone()
 
-logging.disable(logging.CRITICAL)
-
 
 class BaseAPITestCase(APITestCase):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # change logging level according to verbosity
+        verbosity = self.get_verbosity()
+        if verbosity <= 1:
+            # disable all logging in quiet and normal mode
+            logging.disable(logging.CRITICAL)
+
+        elif verbosity == 2:
+            # enable logging above DEBUG in verbose mode
+            logging.disable(logging.DEBUG)
+
+        # enable all logging in very verbose mode
+
+    def get_verbosity(self):
+        """Get the verbosity level
+
+        Snippet from https://stackoverflow.com/a/27457315/4584444
+        """
+        for stack in reversed(inspect.stack()):
+            options = stack[0].f_locals.get('options')
+            if isinstance(options, dict):
+                return int(options['verbosity'])
+
+        return 1
+
     def tearDown(self):
         # Clear cache between tests, so that stored player state is re-init
         cache.clear()
