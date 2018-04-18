@@ -13,7 +13,8 @@ class BaseAPITestCase(APITestCase):
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
-    def create_user(self, username, playlist_level=None,
+    @staticmethod
+    def create_user(username, playlist_level=None,
                     library_level=None, users_level=None):
         """Create an user with the provided permissions
         """

@@ -50,7 +50,7 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
         permissions.IsNotSelfOrReadOnly
     ]
 
-    def get_serializer_class(self, *args, **kwargs):
+    def get_serializer_class(self):
         if self.request.method in ('PUT', 'PATCH'):
             return serializers.UserUpdateManagerSerializer
 

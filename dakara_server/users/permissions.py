@@ -49,6 +49,8 @@ class IsUsersManagerOrReadOnly(BasePermissionCustom):
         if request.method in permissions.SAFE_METHODS:
             return True
 
+        return False
+
 
 class IsUsersManagerOrSelfOrReadOnly(BasePermissionCustom):
     """Handle permissions for the User app
