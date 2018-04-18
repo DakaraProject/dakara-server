@@ -8,14 +8,14 @@ class DakaraUserManager(UserManager):
     """
 
     def get_by_natural_key(self, username):
-        """ Search a username case insensitively
+        """Search a username case insensitively
         """
         return self.get(username__iexact=username)
 
     def _create_user(self, username, *args, **kwargs):
-        """ Generic method to create new users
+        """Generic method to create new users
 
-            Check if the username is free, otherwise raise a `ValueError`.
+        Check if the username is free, otherwise raise a `ValueError`.
         """
         # check if username is free before creating user with this username
         if self.is_username_taken(username):
@@ -24,10 +24,10 @@ class DakaraUserManager(UserManager):
         return super()._create_user(username, *args, **kwargs)
 
     def is_username_taken(self, username):
-        """ Check if a similar username exists with the natural method
+        """Check if a similar username exists with the natural method
 
-            Since we've set the search to be case insensitive, it will find it
-            case insensitively.
+        Since we've set the search to be case insensitive, it will find it case
+        insensitively.
         """
         try:
             if self.get_by_natural_key(username):
@@ -78,7 +78,7 @@ class DakaraUser(AbstractUser):
 
     def _has_permission_level(self, user_permission_level,
                               requested_permission_level):
-        """ Check if the user has the requested app permission level
+        """Check if the user has the requested app permission level
         """
         # the superuser can do anything
         if self.is_superuser:
@@ -91,7 +91,7 @@ class DakaraUser(AbstractUser):
         return user_permission_level == requested_permission_level
 
     def has_users_permission_level(self, permission_level):
-        """ Check if the user has the requested users permission level
+        """Check if the user has the requested users permission level
         """
         return self._has_permission_level(
             self.users_permission_level,
@@ -99,7 +99,7 @@ class DakaraUser(AbstractUser):
         )
 
     def has_library_permission_level(self, permission_level):
-        """ Check if the user has the requested library permission level
+        """Check if the user has the requested library permission level
         """
         return self._has_permission_level(
             self.library_permission_level,
@@ -107,7 +107,7 @@ class DakaraUser(AbstractUser):
         )
 
     def has_playlist_permission_level(self, permission_level):
-        """ Check if the user has the requested playlist permission level
+        """Check if the user has the requested playlist permission level
         """
         return self._has_permission_level(
             self.playlist_permission_level,

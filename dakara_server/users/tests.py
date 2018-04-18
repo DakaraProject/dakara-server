@@ -18,8 +18,7 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.manager = self.create_user("TestUserManager", users_level="m")
 
     def test_get_users_list(self):
-        """
-        Test to verify users list
+        """Test to verify users list
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -31,16 +30,14 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(len(response.data['results']), 2)
 
     def test_get_users_list_forbidden(self):
-        """
-        Test to verify users list is not available when not logged in
+        """Test to verify users list is not available when not logged in
         """
         # Get users list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_post_create_user(self):
-        """
-        Test to verify user creation
+        """Test to verify user creation
         """
         # Login as manager
         self.authenticate(self.manager)
@@ -59,8 +56,7 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(new_user.username, username_new_user)
 
     def test_post_create_user_forbidden(self):
-        """
-        Test to verify simple user cannot create users
+        """Test to verify simple user cannot create users
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -74,10 +70,10 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_post_create_user_already_exists(self):
-        """
-        Test to verify user cannot be created when the username is already
-        taken
-        This test also ensure username check is case insensitive
+        """Test for duplicated users
+
+        Verify user cannot be created when the username is already taken. This
+        test also ensure username check is case insensitive.
         """
         # Login as manager
         self.authenticate(self.manager)
@@ -115,8 +111,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
                                    kwargs={"pk": self.manager.id})
 
     def test_get_user(self):
-        """
-        Test to verify user details
+        """Test to verify user details
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -146,16 +141,14 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         })
 
     def test_get_user_forbidden(self):
-        """
-        Test to verify user details not available when not logged in
+        """Test to verify user details not available when not logged in
         """
         # Get simple user details
         response = self.client.get(self.user_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_patch_user(self):
-        """
-        Test to verify user update
+        """Test to verify user update
         """
         # Pre-assertion: user has no library rights
         user = UserModel.objects.get(id=self.user.id)
@@ -176,8 +169,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         self.assertEqual(user.library_permission_level, "u")
 
     def test_patch_user_forbidden_self(self):
-        """
-        Test to verify user update can't update self
+        """Test to verify user update can't update self
         """
         # Login as manager
         self.authenticate(self.manager)
@@ -190,8 +182,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_patch_user_forbidden(self):
-        """
-        Test to verify simple user can't update user
+        """Test to verify simple user can't update user
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -204,8 +195,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_user(self):
-        """
-        Test to verify user delete
+        """Test to verify user delete
         """
         # Login as manager
         self.authenticate(self.manager)
@@ -219,8 +209,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         self.assertEqual(len(users), 0)
 
     def test_delete_user_forbidden_self(self):
-        """
-        Test to verify user update can't delete self
+        """Test to verify user update can't delete self
         """
         # Login as manager
         self.authenticate(self.manager)
@@ -230,8 +219,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_user_forbidden(self):
-        """
-        Test to verify simple user can't delete user
+        """Test to verify simple user can't delete user
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -252,8 +240,7 @@ class CurrentUserViewAPIViewTestCase(BaseAPITestCase):
         self.manager = self.create_user("TestUserManager", users_level="m")
 
     def test_get_current_user(self):
-        """
-        Test to verify get current user route
+        """Test to verify get current user route
         """
         # Login as simple user
         self.authenticate(self.user)
@@ -286,9 +273,9 @@ class CurrentUserViewAPIViewTestCase(BaseAPITestCase):
         })
 
     def test_get_current_user_forbidden(self):
-        """
-        Test to verify we can't get current user when not logged in
-        (obviously)
+        """Test to verify we can't get current user when not logged in
+
+        (Obviously.)
         """
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -309,8 +296,7 @@ class PasswordViewUpdateAPIViewTestCase(BaseAPITestCase):
                                    kwargs={"pk": self.manager.id})
 
     def test_put_password(self):
-        """
-        Test to verify password update
+        """Test to verify password update
         """
         new_password = "newPassword"
         # Pre-assertion: user password is not 'newPassword'
@@ -332,8 +318,7 @@ class PasswordViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.assertTrue(user.check_password(new_password))
 
     def test_put_password_wrong_password(self):
-        """
-        Test to verify password can't be updated if old pass is invalid
+        """Test to verify password can't be updated if old pass is invalid
         """
         new_password = "newPassword"
         # Pre-assertion: user password is not 'newPassword'
@@ -355,8 +340,7 @@ class PasswordViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.assertFalse(user.check_password(new_password))
 
     def test_put_password_forbidden(self):
-        """
-        Test to verify one can't update other password
+        """Test to verify one can't update other password
         """
         # Login as simple user
         self.authenticate(self.user)
