@@ -1,44 +1,38 @@
-##
-# Dakaraneko Project
-#
-# Script for removing unused data from database 
-#
-
 import os
 
-from django.core.management.base import BaseCommand, CommandError
-from library.models import Artist, Work, Song
+from django.core.management.base import BaseCommand
+from library.models import Artist, Work
+
 
 class Command(BaseCommand):
-    """ Command available for `manage.py` for removing unused objects
-        from database.
+    """Command for removing unused objects from database
     """
     help = "Remove unused objects from database."
 
     def add_arguments(self, parser):
-        """ Extend arguments for the command
+        """Extend arguments for the command
         """
 
         parser.add_argument(
-                "--artists",
-                help="Remove artists with no songs attached.",
-                action="store_true"
-                )
+            "--artists",
+            help="Remove artists with no songs attached.",
+            action="store_true"
+        )
 
         parser.add_argument(
-                "--works",
-                help="Remove works with no songs attached.",
-                action="store_true"
-                )
+            "--works",
+            help="Remove works with no songs attached.",
+            action="store_true"
+        )
 
         parser.add_argument(
-                "--quiet",
-                help="Do not display anything on run.",
-                action="store_true"
-                )
+            "--quiet",
+            help="Do not display anything on run.",
+            action="store_true"
+        )
 
     def handle(self, *args, **options):
-        """ Prune database
+        """Prune database
         """
 
         # quiet mode
@@ -65,4 +59,3 @@ class Command(BaseCommand):
             removed_works = queryset.count()
             queryset.delete()
             self.stdout.write("Removed {} works.".format(removed_works))
-

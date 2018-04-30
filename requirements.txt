@@ -4,3 +4,4 @@ pymediainfo==2.1.9
 progressbar2==3.34.3
 PyYAML==3.12
 pysubs2==0.2.2
+flake8==3.5.0

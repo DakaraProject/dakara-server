@@ -1,38 +1,34 @@
-#!/usr/bin/env python3
-##
-# Dakara Project
-#
-# Script for feeding the server database with songs from a directory
-#
-
 import os
 import sys
 import logging
 import importlib
-import progressbar
-import argparse
 from collections import defaultdict
 from tempfile import TemporaryDirectory
 
+import progressbar
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import MultipleObjectsReturned
 
-from library.models import *
+from library.models import (Song, WorkType, Work, SongWorkLink, SongTag,
+                            Artist)
 
 from .feed_components.utils import is_similar, file_is_valid, file_is_subtitle
 from .feed_components.subtitle_parser import PARSER_BY_EXTENSION
 from .feed_components.ffmpeg_wrapper import FFmpegWrapper
-from .feed_components.metadata_parser import MetadataParser, MediainfoMetadataParser, FFProbeMetadataParser
 from .feed_components.progress_bar import TextProgressBar, TextNullBar
+from .feed_components.metadata_parser import (
+    NullMetadataParser,
+    MediainfoMetadataParser,
+    FFProbeMetadataParser
+)
 
 # wrap a special stream for warnings
-# the wrapping done by progressbar seems to reassign the ouput and flush it when
-# needed, and not automatically
-# if the standard error is wrapped, it mutes any exception, which is not
-# acceptable
-# so, we create a custom wrapped stream and assign warnings to use it
-# since we cannot specify a new stream, we use stderr for that, and reassign
-# it to its origineal value right after
+#
+# The wrapping done by progressbar seems to reassign the ouput and flush it
+# when needed, and not automatically. If the standard error is wrapped, it
+# mutes any exception, which is not acceptable. So, we create a custom wrapped
+# stream and assign warnings to use it since we cannot specify a new stream, we
+# use stderr for that, and reassign it to its origineal value right after.
 origin_stderr = sys.stderr
 wrapped_stderr = progressbar.streams.wrap_stderr()
 sys.stderr = origin_stderr
@@ -41,17 +37,47 @@ sys.stderr = origin_stderr
 logger = logging.getLogger(__name__)
 
 # hack the logger handler to use the wrapped stderr
-if len(logger.handlers) > 0:
+if logger.handlers:
     logger.handlers[0].stream = wrapped_stderr
-
 
 # get file system encoding
 file_coding = sys.getfilesystemencoding()
 
 
 class DatabaseFeeder:
-    """ Class representing a list of DatabaseFeederEntry to feed the database
-        with
+    """Feeder for the database
+
+    Args
+        listing (list): list of file names.
+        dry_run (bool): flag for test mode (no save in database).
+        directory_kara (str): base directory of the karaoke library.
+        directory (str): directory of the songs to parse, relative to
+            `directory_kara`.
+        progress_show (bool): show the progress bar.
+        output_show (bool): show any output.
+        no_add_on_error (bool): when true do not add song when parse fails.
+        custom_parser (module): name of a custom python module used to extract
+            data from file name; soo notes below.
+        metadata_parser (str): name of the metadata parser to use ('ffprobe',
+            'mediainfo' or `None`).
+        stdout (file descriptor): standard output.
+        stderr (file descriptor): standard error.
+        tempdir (str): path to a temporary directory.
+
+    About custom_parser:
+        This module should define a method called `parse_file_name` which takes
+        a file name as argument and return a dictionnary with the following:
+            title_music (str): title of the music.
+            detail (str): details about the music.
+            artists (list): of (str): list of artists.
+            title_work (str): name of the work related to this song.
+            subtitle_work (str): subname of the work related to this song.
+            link_type (str): enum (OP ED IS IN) type of relation between the
+                work and the song.
+            link_nb (int): for OP and ED link type, number of OP or ED.
+
+        All of these values, except `title_music`, are optional; if a value is
+        not used, set it to `None`.
     """
 
     def __init__(
@@ -67,45 +93,7 @@ class DatabaseFeeder:
             metadata_parser='ffprobe',
             stdout=sys.stdout,
             stderr=sys.stderr,
-            tempdir="."
-            ):
-        """ Constructor
-
-            Args
-                listing (list): list of file names.
-                dry_run (bool): flag for test mode (no save in database).
-                directory_kara (str): base directory of the karaoke library.
-                directory (str): directory of the songs to parse, relative to
-                    `directory_kara`.
-                progress_show (bool): show the progress bar.
-                output_show (bool): show any output.
-                no_add_on_error (bool): when true do not add song when parse
-                    fails.
-                custom_parser (module): name of a custom python module used to
-                    extract data from file name; soo notes below.
-                metadata_parser (str): name of the metadata parser to use
-                    ('ffprobe', 'mediainfo' or `None`).
-                stdout (file descriptor): standard output.
-                stderr (file descriptor): standard error.
-                tempdir (str): path to a temporary directory.
-
-            About custom_parser:
-                This module should define a method called `parse_file_name`
-                which takes a file name as argument and return a dictionnary
-                with the following:
-                    title_music (str): title of the music.
-                    detail (str): details about the music.
-                    artists (list): of (str): list of artists.
-                    title_work (str): name of the work related to this song.
-                    subtitle_work (str): subname of the work related to this
-                        song.
-                    link_type (str): enum (OP ED IS IN) type of relation
-                        between the work and the song.
-                    link_nb (int): for OP and ED link type, number of OP or ED.
-
-                All of these values, except `title_music`, are optional; if a
-                    value is not used, set it to `None`.
-        """
+            tempdir="."):
         if not isinstance(listing, (list, tuple)):
             raise ValueError("listing argument must be a list or a tuple")
 
@@ -120,11 +108,12 @@ class DatabaseFeeder:
         self.stdout = stdout
         self.stderr = stderr
         self.tempdir = tempdir
-        self.metadata_parser = DatabaseFeeder.select_metadata_parser(metadata_parser)
+        self.metadata_parser = DatabaseFeeder.select_metadata_parser(
+            metadata_parser)
         self.removed_songs = []
 
     def find_removed_songs(self, directory_listing):
-        """ Find all songs in database which file has been removed
+        """Find all songs in database which file has been removed
         """
         removed_songs = []
         for song in Song.objects.filter(directory=self.directory):
@@ -134,23 +123,23 @@ class DatabaseFeeder:
         self.removed_songs = removed_songs
 
     def prune_removed_songs(self):
-        """ Delete from database songs in removed_songs list
+        """Delete from database songs in removed_songs list
         """
         for song in self.removed_songs:
             song.delete()
 
     @staticmethod
     def select_metadata_parser(parser_name):
-        """ Select the metadata parser class according to its name
+        """Select the metadata parser class according to its name
 
-            Args:
-                parser_name (str): name of the parser.
+        Args:
+            parser_name (str): name of the parser.
 
-            Returns:
-                (:obj:`MetadataParser`) class of the parser.
+        Returns:
+            (:obj:`MetadataParser`) class of the parser.
         """
-        if parser_name is None:
-            return MetadataParser
+        if parser_name == 'none':
+            return NullMetadataParser
 
         if parser_name == 'ffprobe':
             if not FFProbeMetadataParser.is_available():
@@ -172,43 +161,42 @@ class DatabaseFeeder:
             *args,
             append_only=False,
             prune=False,
-            **kwargs
-            ):
-        """ Overloaded constructor
-            Extract files from directory
+            **kwargs):
+        """Overloaded constructor
 
-            Args:
-                dry_run (bool): flag for test mode (no save in database).
-                directory_kara (str): base directory of the karaoke library.
-                directory (str): directory of the songs to parse, relative to
-                    `directory_kara`.
-                progress_show (bool): show the progress bar.
-                no_add_on_error (bool): when true do not add song when parse
-                    fails.
-                custom_parser (module): name of a custom python module used to
-                    extract data from file name; soo notes below.
-                metadata_parser (str): name of the metadata parser to use
-                    ('ffprobe', 'mediainfo' or `None`).
-                stdout (file descriptor): standard output.
-                stderr (file descriptor): standard error.
-                append_only (bool): create only new songs, do not update
-                    existing ones.
-                prune (bool): remove databases entries not on disk.
+        Extract files from directory
 
-            Returns:
-                (:obj:`DatabaseFeeder`) feeder object.
+        Args:
+            dry_run (bool): flag for test mode (no save in database).
+            directory_kara (str): base directory of the karaoke library.
+            directory (str): directory of the songs to parse, relative to
+                `directory_kara`.
+            progress_show (bool): show the progress bar.
+            no_add_on_error (bool): when true do not add song when parse fails.
+            custom_parser (module): name of a custom python module used to
+                extract data from file name; soo notes below.
+            metadata_parser (str): name of the metadata parser to use
+                ('ffprobe', 'mediainfo' or `None`).
+            stdout (file descriptor): standard output.
+            stderr (file descriptor): standard error.
+            append_only (bool): create only new songs, do not update existing
+                ones.
+            prune (bool): remove databases entries not on disk.
+
+        Returns:
+            (:obj:`DatabaseFeeder`) feeder object.
         """
         # create instance of feeder with no feeder entries yet
         feeder = cls([], *args, **kwargs)
 
         # manage directory to scan
         directory_to_scan = os.path.join(feeder.directory_kara,
-                feeder.directory)
+                                         feeder.directory)
 
         directory_to_scan_encoded = directory_to_scan.encode(file_coding)
         if not os.path.isdir(directory_to_scan_encoded):
-            raise CommandError("Directory '{}' does not exist"\
-                    .format(directory_to_scan))
+            raise CommandError("Directory '{}' does not exist"
+                               .format(directory_to_scan))
 
         # list files in directory and split between media and subtitle
         directory_listing_media = []
@@ -216,9 +204,8 @@ class DatabaseFeeder:
         directory_listing_encoded = os.listdir(directory_to_scan_encoded)
         for filename_encoded in directory_listing_encoded:
             if not os.path.isfile(os.path.join(
-                directory_to_scan_encoded,
-                filename_encoded
-                )):
+                    directory_to_scan_encoded,
+                    filename_encoded)):
 
                 continue
 
@@ -233,7 +220,6 @@ class DatabaseFeeder:
             else:
                 directory_listing_media.append(filename)
 
-
         feeder.find_removed_songs(directory_listing_media)
 
         # create progress bar
@@ -245,13 +231,13 @@ class DatabaseFeeder:
         listing = []
         for filename in bar(directory_listing_media):
             entry = DatabaseFeederEntry(
-                    filename,
-                    feeder=feeder,
-                    metadata_parser=feeder.metadata_parser,
-                    associated_subtitles=subtitle_by_filename[
-                        os.path.splitext(filename)[0]
-                        ]
-                    )
+                filename,
+                feeder=feeder,
+                metadata_parser=feeder.metadata_parser,
+                associated_subtitles=subtitle_by_filename[
+                    os.path.splitext(filename)[0]
+                ]
+            )
 
             # only add entry to feeder list if we are not in append only
             # mode, otherwise only if the entry is new in the database
@@ -268,16 +254,16 @@ class DatabaseFeeder:
         return feeder
 
     def _get_progress_bar(self, show=None):
-        """ Get the progress bar class according to the verbosity requested
+        """Get the progress bar class according to the verbosity requested
 
-            Checks the `progress_show` attribute.
+        Checks the `progress_show` attribute.
 
-            Args:
-                show (bool): if provided, bypass the `progress_show` attribute
-                    in favour of this argument.
+        Args:
+            show (bool): if provided, bypass the `progress_show` attribute in
+                favour of this argument.
 
-            Returns:
-                Progress bar object.
+        Returns:
+            Progress bar object.
         """
         if not self.output_show:
             return progressbar.NullBar
@@ -287,9 +273,8 @@ class DatabaseFeeder:
 
         return TextProgressBar if show else TextNullBar
 
-
     def set_from_filename(self):
-        """ Extract database fields from files name
+        """Extract database fields from files name
         """
         # create progress bar
         text = "Extracting data from files name"
@@ -305,22 +290,21 @@ class DatabaseFeeder:
 
             except DatabaseFeederEntryError as error:
                 # only show a warning in case of error
-                logger.warning("Cannot parse file '{filename}': {error}"\
-                        .format(
-                            filename=entry.filename,
-                            error=error
-                            )
-                        )
+                logger.warning(
+                    "Cannot parse file '{filename}': {error}"
+                    .format(filename=entry.filename,
+                            error=error)
+                )
 
                 error_ids.append(entry.song.id)
 
         # if no erroneous songs can be added, delete them from list
         if self.no_add_on_error:
-            self.listing = [item for item in self.listing \
-                    if item.song.id not in error_ids]
+            self.listing = [item for item in self.listing
+                            if item.song.id not in error_ids]
 
     def set_from_metadata(self):
-        """ Extract database fields from files metadata
+        """Extract database fields from files metadata
         """
         # create progress bar
         text = "Extracting data from files metadata"
@@ -332,7 +316,7 @@ class DatabaseFeeder:
             entry.set_from_metadata()
 
     def set_from_subtitle(self):
-        """ Set song lyrics attribute by extracting it from subtitle if any
+        """Set song lyrics attribute by extracting it from subtitle if any
         """
         # create progress bar
         text = "Extracting lyrics from subtitle file"
@@ -344,30 +328,34 @@ class DatabaseFeeder:
             entry.set_from_subtitle()
 
     def save(self):
-        """ Save list in database
+        """Save list in database
 
-            Depending on the attribute `dry_run`, entries will be saved or
-            just displayed on screen.
+        Depending on the attribute `dry_run`, entries will be saved or just
+        displayed on screen.
         """
         # create progress bar
         text = "Entries to save" if self.dry_run \
-                else "Saving entries to database"
+            else "Saving entries to database"
 
         # the progress bar is displayed only if requested and if we actually
         # save the songs (instead of displaying them)
         ProgressBar = self._get_progress_bar(
-                self.progress_show and not self.dry_run
-                )
+            self.progress_show and not self.dry_run
+        )
 
         bar = ProgressBar(max_value=len(self.listing), text=text)
 
         # define action to perform depending on dry run mode or not
         if self.dry_run:
             def save(obj):
+                """Show what should be saved
+                """
                 obj.show(self.stdout)
 
         else:
             def save(obj):
+                """Actually save data
+                """
                 obj.save()
 
         # save entries
@@ -376,49 +364,47 @@ class DatabaseFeeder:
 
 
 class DatabaseFeederEntry:
-    """ Class representing a song to upgrade or create in the database
+    """Song to upgrade or create in the database
+
+    Detect if a song already exists in the database, then take it or create a
+    new object not yet saved.
+
+    Args:
+        filename (str): name of the song file, serves as ID.
+        directory (str): directory of the song file to store in the database,
+            serves as ID.
+        metadata_parser (:obj:`MetadataParser`): metadata parser class.
+            Default is `MetadataParser`.
+        associated_subtitles (list): contains a list of extentions for each
+            subtitle file with the same name in the same directory.
     """
 
-    def __init__(self, filename, feeder, associated_subtitles, metadata_parser=None):
-        """ Constructor
-
-            Detect if a song already exists in the database, then take it or
-            create a new object not yet saved.
-
-            Args:
-                filename (str): name of the song file, serves as ID.
-                directory (str): directory of the song file to store in the
-                    database, serves as ID.
-                metadata_parser (:obj:`MetadataParser`): metadata parser class.
-                    Default is `MetadataParser`.
-                associated_subtitles (list): contains a list of extentions for
-                    each subtitle file with the same name in the same directory.
-        """
+    def __init__(self, filename, feeder, associated_subtitles,
+                 metadata_parser=None):
         self.filename = filename
         self.directory = feeder.directory
         self.directory_kara = feeder.directory_kara
         self.removed_songs = feeder.removed_songs
         self.tempdir = feeder.tempdir
         self.associated_subtitles = associated_subtitles
-
-        # if no metadata parser is provided, use the default one
-        self.metadata_parser = metadata_parser or MetadataParser
+        self.metadata_parser = metadata_parser
 
         # get the song
         self.set_song()
 
     def set_song(self):
-        """ Set song if it exists or create a new one
+        """Set song if it exists or create a new one
 
-            Logic scheme:
-                1. Song exists in database for the same filename and
-                    directory;
-                2. Song exists in database for the same filename and a
-                    different directory;
-                3. Song exists in database for a similar filename in the same
-                    directory.
+        Logic scheme:
+            1. Song exists in database for the same filename and directory;
+            2. Song exists in database for the same filename and a different
+                directory;
+            3. Song exists in database for a similar filename in the same
+                directory.
         """
-        songs = Song.objects.filter(filename=self.filename, directory=self.directory)
+        songs = Song.objects.filter(
+            filename=self.filename,
+            directory=self.directory)
 
         # several songs should not have the same filename and directory
         if len(songs) > 1:
@@ -435,7 +421,7 @@ class DatabaseFeederEntry:
 
         for song in songs:
             filepath = os.path.join(self.directory_kara,
-                    song.directory, self.filename)
+                                    song.directory, self.filename)
 
             # song exists with the same filename and a different directory
             # its previous location should be invalid
@@ -470,10 +456,10 @@ class DatabaseFeederEntry:
         self.to_save = True
 
     def set_from_filename(self, custom_parser):
-        """ Set attributes by extracting them from file name
+        """Set attributes by extracting them from file name
 
-            Args:
-                custom_parser (module): module for custom parsing.
+        Args:
+            custom_parser (module): module for custom parsing.
         """
         filename, _ = os.path.splitext(self.filename)
 
@@ -494,12 +480,12 @@ class DatabaseFeederEntry:
             except Exception as error:
                 # re-raise the error with custom class and message
                 raise DatabaseFeederEntryError(
-                        "{klass}: {message}".format(
-                            message=str(error),
-                            klass=error.__class__.__name__
-                            )
+                    "{klass}: {message}".format(
+                        message=str(error),
+                        klass=error.__class__.__name__
+                    )
 
-                        ) from error
+                ) from error
 
             # fill fields
             self.song.title = data.get('title_music')
@@ -516,30 +502,31 @@ class DatabaseFeederEntry:
             self.tags = data.get('tags')
 
     def set_from_metadata(self):
-        """ Set attributes by extracting them from metadata
+        """Set attributes by extracting them from metadata
         """
         file_path = os.path.join(self.directory_kara,
-                self.directory, self.filename)
+                                 self.directory, self.filename)
 
         metadata = self.metadata_parser.parse(file_path)
         self.song.duration = metadata.duration
 
     def set_from_subtitle(self):
-        """ Set song lyrics attribute by extracting it from subtitle if any
+        """Set song lyrics attribute by extracting it from subtitle if any
         """
         for extension, Parser in PARSER_BY_EXTENSION.items():
             if extension in [e.lower() for e in self.associated_subtitles]:
                 # obtain path to extensionless file
                 file_name, _ = os.path.splitext(self.filename)
                 file_path_base = os.path.join(self.directory_kara,
-                        self.directory, file_name)
+                                              self.directory, file_name)
 
                 # add extension
                 file_path = file_path_base + extension
 
                 lyrics = self.get_lyrics_from_file(file_path, Parser)
                 if lyrics:
-                    logger.debug("Extracted lyrics from '{}'".format(file_path))
+                    logger.debug(
+                        "Extracted lyrics from '{}'".format(file_path))
                     self.song.lyrics = lyrics
                     return
 
@@ -550,20 +537,21 @@ class DatabaseFeederEntry:
             return
 
         media_file_path = os.path.join(self.directory_kara, self.directory,
-                self.filename)
+                                       self.filename)
 
         # try to get the lyrics
         try:
-            if FFmpegWrapper.extract_subtitle(media_file_path, subtitle_file_path):
+            if FFmpegWrapper.extract_subtitle(
+                    media_file_path, subtitle_file_path):
                 lyrics = self.get_lyrics_from_file(subtitle_file_path,
-                        PARSER_BY_EXTENSION['.ass'])
+                                                   PARSER_BY_EXTENSION['.ass'])
 
                 if lyrics:
                     logger.debug(
                         "Extracted embedded lyrics from '{}'".format(
                             media_file_path
-                            )
                         )
+                    )
 
                     self.song.lyrics = lyrics
                     return
@@ -577,18 +565,18 @@ class DatabaseFeederEntry:
 
         logger.debug("No subtitle found for '{}'".format(
             media_file_path
-            ))
+        ))
 
     @staticmethod
     def get_lyrics_from_file(file_path, Parser):
-        """ Parse the subtitle file to extract its lyrics
+        """Parse the subtitle file to extract its lyrics
 
-            Args:
-                file_path (str): path to the subtitle file.
-                Parser (object): parser to use.
+        Args:
+            file_path (str): path to the subtitle file.
+            Parser (object): parser to use.
 
-            Returns:
-                (str) lyrics, or `None` if the parser failed.
+        Returns:
+            (str) lyrics, or `None` if the parser failed.
         """
         # try to parse the subtitle file and extract lyrics
         try:
@@ -603,17 +591,16 @@ class DatabaseFeederEntry:
                 "Invalid subtitle file '{filename}': {error}".format(
                     filename=os.path.basename(file_path),
                     error=error
-                    )
                 )
+            )
 
         return None
 
-
     def show(self, stdout=sys.stdout):
-        """ Show the song content
+        """Show the song content
 
-            Args:
-                stdout (file descriptor): standard output.
+        Args:
+            stdout (file descriptor): standard output.
         """
         stdout.write('')
 
@@ -621,25 +608,26 @@ class DatabaseFeederEntry:
         width, _ = progressbar.utils.get_terminal_size()
         length = max(int(width * 0.25), 20)
 
-        # we cannot use the song serializer here because it will have troubles on
-        # songs that are not already in the database
-        # instead, we extract manually all the fields
-        fields = {k: v for k, v in self.song.__dict__.items() \
-                if k not in ('_state')}
+        # we cannot use the song serializer here because it will have troubles
+        # on songs that are not already in the database ; instead, we extract
+        # manually all the fields
+        fields = {k: v for k, v in self.song.__dict__.items()
+                  if k not in ('_state',)}
 
-        fields.update({k: v for k, v in self.__dict__.items() \
-                if k not in ('filename', 'directory', 'directory_kara',
-                    'song', 'metadata_parser', 'removed_songs')})
+        fields.update({k: v for k, v in self.__dict__.items()
+                       if k not in ('filename', 'directory', 'directory_kara',
+                                    'song', 'metadata_parser',
+                                    'removed_songs')})
 
         for key, value in fields.items():
             stdout.write("{key:{length}s} {value}".format(
                 key=key,
                 value=repr(value),
                 length=length
-                ))
+            ))
 
     def save(self):
-        """ Save song in database.
+        """Save song in database.
         """
         self.song.save()
 
@@ -652,22 +640,22 @@ class DatabaseFeederEntry:
         if self.title_work:
             if self.work_type_query_name:
                 work_type, created = WorkType.objects.get_or_create(
-                        query_name=self.work_type_query_name
-                        )
+                    query_name=self.work_type_query_name
+                )
 
             else:
                 work_type = None
 
-            work, created = Work.objects.get_or_create(
-                    title=self.title_work,
-                    subtitle=self.subtitle_work,
-                    work_type=work_type
-                    )
+            work, _ = Work.objects.get_or_create(
+                title=self.title_work,
+                subtitle=self.subtitle_work,
+                work_type=work_type
+            )
 
-            link, created_link = SongWorkLink.objects.get_or_create(
-                    song_id=self.song.id,
-                    work_id=work.id
-                    )
+            link, _ = SongWorkLink.objects.get_or_create(
+                song_id=self.song.id,
+                work_id=work.id
+            )
 
             if self.link_type:
                 link.link_type = self.link_type
@@ -692,96 +680,97 @@ class DatabaseFeederEntry:
         # Create link to artists if there are any
         if self.artists:
             for artist_name in self.artists:
-                artist, created = Artist.objects.get_or_create(name=artist_name)
+                artist, created = Artist.objects.get_or_create(
+                    name=artist_name)
                 self.song.artists.add(artist)
 
 
 class DatabaseFeederEntryError(Exception):
-    """ Class for handling errors raised when dealing with
-        a file gathered by the feeder
+    """Errors raised when dealing with a file gathered by the feeder
     """
 
 
 class Command(BaseCommand):
-    """ Command available for `manage.py` for feeding the library database
+    """Command available for `manage.py` for feeding the library database
     """
     help = "Import songs from directory."
 
     def add_arguments(self, parser):
-        """ Extend arguments for the command
+        """Extend arguments for the command
         """
         parser.add_argument(
-                "directory-kara",
-                help="Base directory of the karaoke library."
-                )
+            "directory-kara",
+            help="Base directory of the karaoke library."
+        )
 
         parser.add_argument(
-                "--no-progress",
-                help="Don't display progress bars.",
-                action="store_true"
-                )
+            "--no-progress",
+            help="Don't display progress bars.",
+            action="store_true"
+        )
 
         parser.add_argument(
-                "--quiet",
-                help="Do not display anything on run.",
-                action="store_true"
-                )
+            "--quiet",
+            help="Do not display anything on run.",
+            action="store_true"
+        )
 
         parser.add_argument(
-                "-r",
-                "--dry-run",
-                help="Run script in test mode, don't save anything in database.",
-                action="store_true"
-                )
+            "-r",
+            "--dry-run",
+            help="Run script in test mode, don't save anything in database.",
+            action="store_true"
+        )
 
         parser.add_argument(
-                "-D",
-                "--directory",
-                help="Directory to scan, relative to 'directory-kara'.",
-                default=""
-                )
+            "-D",
+            "--directory",
+            help="Directory to scan, relative to 'directory-kara'.",
+            default=""
+        )
 
         parser.add_argument(
-                "--parser",
-                help="Name of a custom python module used to extract data from \
-                file name; see internal doc for what is expected for this module.",
-                default=None
-                )
+            "--parser",
+            help="""Name of a custom python module used to extract data from
+                file name; see internal doc for what is expected for this
+                module.""",
+            default=None
+        )
 
         parser.add_argument(
-                "--metadata-parser",
-                help="Which program to extract metadata from: \
-                none (no parser), mediainfo or ffprobe (default).",
-                default='ffprobe'
-                )
+            "--metadata-parser",
+            help="""Which program to extract metadata from: none (no parser),
+                mediainfo or ffprobe (default).""",
+            default='ffprobe'
+        )
 
         parser.add_argument(
-                "--append-only",
-                help="Create new songs, don't update existing ones.",
-                action="store_true"
-                )
+            "--append-only",
+            help="Create new songs, don't update existing ones.",
+            action="store_true"
+        )
 
         parser.add_argument(
-                "--prune",
-                help="Remove database entries for files no longer on disk.",
-                action="store_true"
-                )
+            "--prune",
+            help="Remove database entries for files no longer on disk.",
+            action="store_true"
+        )
 
         parser.add_argument(
-                "--no-add-on-error",
-                help="Do not add file when parse failed. \
-                By default parse error still add the file unparsed.",
-                action="store_true"
-                )
+            "--no-add-on-error",
+            help="""Do not add file when parse failed. By default parse error
+                still add the file unparsed.""",
+            action="store_true"
+        )
 
         parser.add_argument(
-                "--debug-sql",
-                help="Show Django SQL logs (very verbose).",
-                action="store_true"
-                )
+            "--debug-sql",
+            help="Show Django SQL logs (very verbose).",
+            action="store_true"
+        )
 
     def handle(self, *args, **options):
-        """ Process the feeding
+        """Process the feeding
         """
         # directory-source
         # Normalize path to remove trailing slash
@@ -801,36 +790,32 @@ class Command(BaseCommand):
         custom_parser = None
         if options.get('parser'):
             parser_directory = os.path.join(
-                    os.getcwd(),
-                    os.path.dirname(options['parser'])
-                    )
+                os.getcwd(),
+                os.path.dirname(options['parser'])
+            )
 
-            parser_name, _ = os.path.splitext(os.path.basename(options['parser']))
+            parser_name, _ = os.path.splitext(
+                os.path.basename(options['parser']))
             sys.path.append(parser_directory)
             custom_parser = importlib.import_module(parser_name)
-
-        # metadata parser
-        metadata_parser = options.get('metadata_parser')
-        if metadata_parser == 'none':
-            metadata_parser = None
 
         with TemporaryDirectory(prefix="dakara.") as tempdir:
             # create feeder object
             database_feeder = DatabaseFeeder.from_directory(
-                    directory_kara=directory_kara,
-                    directory=directory,
-                    dry_run=options.get('dry_run'),
-                    append_only=options.get('append_only'),
-                    prune=options.get('prune'),
-                    progress_show=not options.get('no_progress'),
-                    output_show=not options.get('quiet'),
-                    custom_parser=custom_parser,
-                    no_add_on_error=options.get('no_add_on_error'),
-                    metadata_parser=metadata_parser,
-                    stdout=self.stdout,
-                    stderr=self.stderr,
-                    tempdir=tempdir
-                    )
+                directory_kara=directory_kara,
+                directory=directory,
+                dry_run=options.get('dry_run'),
+                append_only=options.get('append_only'),
+                prune=options.get('prune'),
+                progress_show=not options.get('no_progress'),
+                output_show=not options.get('quiet'),
+                custom_parser=custom_parser,
+                no_add_on_error=options.get('no_add_on_error'),
+                metadata_parser=options.get('metadata_parser'),
+                stdout=self.stdout,
+                stderr=self.stderr,
+                tempdir=tempdir
+            )
 
             database_feeder.set_from_filename()
             database_feeder.set_from_metadata()

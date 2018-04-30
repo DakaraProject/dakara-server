@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+import sys
+
+from flake8.main import git
+
+if __name__ == '__main__':
+    print("Running flake8 checking")
+    result = git.hook(
+        strict=True,
+        lazy=True,
+    )
+
+    if not result:
+        print("OK")
+
+    sys.exit(result)

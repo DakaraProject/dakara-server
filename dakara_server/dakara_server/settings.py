@@ -10,10 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
-from .version import __version__ as VERSION, __date__ as DATE
+from .version import __version__ as VERSION, __date__ as DATE  # noqa F401
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -104,7 +103,7 @@ STATICFILES_DIRS = [
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-        ),
+    ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
@@ -116,8 +115,9 @@ REST_FRAMEWORK = {
 # limit of the playlist size
 PLAYLIST_SIZE_LIMIT = 100
 
+# import local settings
 try:
-    from .local_settings import *
+    from .local_settings import *  # noqa F403
 
 except ImportError:
-    from .default_settings import *
+    from .default_settings import *  # noqa F403

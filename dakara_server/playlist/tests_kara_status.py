@@ -1,5 +1,6 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
+
 from .base_test import BaseAPITestCase
 from .models import KaraStatus, PlaylistEntry
 
@@ -12,8 +13,7 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         self.create_test_data()
 
     def test_get_kara_status(self):
-        """
-        Test an authenticated user can access the kara status
+        """Test an authenticated user can access the kara status
         """
         # login as simple user
         self.authenticate(self.user)
@@ -26,19 +26,19 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         # Get kara status again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['kara_status']['status'], KaraStatus.PLAY)
+        self.assertEqual(
+            response.data['kara_status']['status'],
+            KaraStatus.PLAY)
 
     def test_get_kara_status_forbidden(self):
-        """
-        Test an unauthenticated user cannot access the kara status
+        """Test an unauthenticated user cannot access the kara status
         """
         # get kara status
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_put_kara_status(self):
-        """
-        Test a manager can modify the kara status
+        """Test a manager can modify the kara status
         """
         # login as manager
         self.authenticate(self.manager)
@@ -46,12 +46,11 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         # set kara status
         response = self.client.put(self.url, {'status': KaraStatus.PAUSE})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        ks = KaraStatus.objects.first()
-        self.assertEqual(ks.status, KaraStatus.PAUSE)
+        kara_status = KaraStatus.objects.first()
+        self.assertEqual(kara_status.status, KaraStatus.PAUSE)
 
     def test_put_kara_status_forbidden(self):
-        """
-        Test a simple user or an unauthenticated user cannot modify the kara
+        """Test a simple user or an unauthenticated user cannot modify the kara
         status
         """
         # login as user
@@ -62,8 +61,7 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_put_kara_status_stop(self):
-        """
-        Test the playlist has been emptied when the kara is stopped
+        """Test the playlist has been emptied when the kara is stopped
         """
         url_player_status = reverse('playlist-player-status')
 

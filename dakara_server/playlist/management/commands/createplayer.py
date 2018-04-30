@@ -1,16 +1,20 @@
+from getpass import getpass
+
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from getpass import getpass
 from django.db.utils import IntegrityError
-
 
 UserModel = get_user_model()
 
 
 class Command(BaseCommand):
+    """Create the player special user
+    """
     help = 'Create player account.'
 
     def handle(self, *args, **options):
+        """Handle the command
+        """
         # get player name
         username = input("Enter player account name (default: 'player'): ")
         if not username:

@@ -1,49 +1,53 @@
 import re
+
 from library.models import WorkType
 
 KEYWORDS = [
-        "artist",
-        "work",
-        "title",
-        ]
+    "artist",
+    "work",
+    "title",
+]
+
 
 class QueryLanguageParser:
-    """
-    Parser for search query mini language
-    used to search song
+    """Parser for search query mini language used to search song
     """
 
     def __init__(self):
         self.keywords_work_type = [work_type.query_name
-                for work_type in WorkType.objects.all()]
+                                   for work_type in WorkType.objects.all()]
 
         self.keywords = KEYWORDS + self.keywords_work_type
 
-        self.language_matcher = re.compile(r"""
-            \b(?P<keyword>{keywords_regex}) # keyword
-            :                               # separator
-            \s?
-            (?:
-                ""(?P<exact>.+?)""          # exact value between double double quote
-                |
-                "(?P<contains>.+?)"         # contains value between double quote
-                |
-                (?P<contains2>(?:\\\s|\S)+) # contains with no quotes
-            )
-            """.format(keywords_regex=r'|'.join(self.keywords)),
-            re.I | re.X
+        regex = r"""
+        \b(?P<keyword>{keywords_regex}) # keyword
+        :                               # separator
+        \s?
+        (?:
+            ""(?P<exact>.+?)""          # exact value between double double
+                                        # quote
+            |
+            "(?P<contains>.+?)"         # contains value between double
+                                        # quote
+            |
+            (?P<contains2>(?:\\\s|\S)+) # contains with no quotes
         )
+        """.format(keywords_regex=r'|'.join(self.keywords))
+
+        self.language_matcher = re.compile(regex, re.I | re.X)
 
     @staticmethod
     def split_remaining(string):
-        """ Split string by whitespace character not escaped with backslash
-            and preserve double quoted strings
+        """Process the splitting of remaining parts of the query
 
-            Args:
-                string (str): words or expressions separated with spaces.
+        Split string by whitespace character not escaped with backslash and
+        preserve double quoted strings.
 
-            Returns:
-                list: list of splitted words or expressions.
+        Args:
+            string (str): words or expressions separated with spaces.
+
+        Returns:
+            list: list of splitted words or expressions.
         """
         result = []
         current_expression = ""
@@ -54,7 +58,7 @@ class QueryLanguageParser:
                 if in_quotes:
                     if current_expression:
                         result.append(current_expression)
-                    in_quotes = False 
+                    in_quotes = False
                     current_expression = ""
                 else:
                     current_expression = current_expression.strip()
@@ -79,48 +83,49 @@ class QueryLanguageParser:
         return result
 
     def parse(self, query):
-        """ Function that parses query mini language
+        """Parse query mini language
 
-            Args:
-                query (str): words or commands of the query language separated
-                    with spaces.
+        Args:
+            query (str): words or commands of the query language separated
+                with spaces.
 
-            Returns:
-                dict: query terms arranged among the following keys:
-                    `artist`:
-                        `contains`: list of list of artists names to match partially.
-                        `exact`: list of list of artists names to match exactly.
-                    `work`:
-                        `contains`: list of works names to match partially.
-                        `exact`: list of works names to match exactly.
-                    `title:
-                        `contains`: titles to match partially
-                        `exact`: titles to match exactly.
-                    `tag`: list of tags to match in uppercase.
-                    `work_type`: dict with queryname as key and a dict as value
-                        with the keys `contains` and `exact`.
+        Returns:
+            dict: query terms arranged among the following keys:
+                `artist`:
+                    `contains`: list of list of artists names to match
+                        partially.
+                    `exact`: list of list of artists names to match exactly.
+                `work`:
+                    `contains`: list of works names to match partially.
+                    `exact`: list of works names to match exactly.
+                `title:
+                    `contains`: titles to match partially
+                    `exact`: titles to match exactly.
+                `tag`: list of tags to match in uppercase.
+                `work_type`: dict with queryname as key and a dict as value
+                    with the keys `contains` and `exact`.
 
-                    `remaining`: unparsed text.
+                `remaining`: unparsed text.
         """
         # create results structure
         # work_type will be filled only if necessary
         result = {
-                "artist": {
-                    "contains": [],
-                    "exact": []
-                    },
-                "work": {
-                    "contains": [],
-                    "exact": []
-                    },
-                "title": {
-                    "contains": [],
-                    "exact": []
-                    },
-                "work_type": {},
-                "remaining": [],
-                "tag": [],
-                }
+            "artist": {
+                "contains": [],
+                "exact": []
+            },
+            "work": {
+                "contains": [],
+                "exact": []
+            },
+            "title": {
+                "contains": [],
+                "exact": []
+            },
+            "work_type": {},
+            "remaining": [],
+            "tag": [],
+        }
 
         for match in self.language_matcher.finditer(query):
             group_index = match.groupdict()
@@ -129,11 +134,10 @@ class QueryLanguageParser:
             target = group_index['keyword'].strip().lower()
             value_exact = (group_index['exact'] or '').strip()
             value_contains = (
-                    group_index['contains'] or
-                    group_index['contains2'] or
-                    ''
-                    ).replace("\\", "").strip()
-
+                group_index['contains'] or
+                group_index['contains2'] or
+                ''
+            ).replace("\\", "").strip()
 
             if target in self.keywords_work_type:
                 # create worktype if not exists
@@ -141,7 +145,7 @@ class QueryLanguageParser:
                     result['work_type'][target] = {
                         "contains": [],
                         "exact": []
-                        }
+                    }
 
                 result_target = result['work_type'][target]
 
