@@ -16,7 +16,10 @@ class PlaylistEntry(models.Model):
     date_played = models.DateTimeField(null=True)
 
     def __str__(self):
-        return str(self.song)
+        return "{} (for {})".format(
+            self.song,
+            self.owner.username
+        )
 
     @classmethod
     def get_next(cls, id):
