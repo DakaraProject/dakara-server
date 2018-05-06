@@ -106,6 +106,43 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
 
             for work in res['work']['exact']:
                 query_list.append(Q(works__title__iexact=work))
+            # more specific terms of the research, i.e. version, detail and
+            # detail video
+            for version in res['version']['contains']:
+                query_list.append(
+                    Q(version__icontains=version) &
+                    Q(version__isnull=False)
+                )
+
+            for version in res['version']['exact']:
+                query_list.append(
+                    Q(version__iexact=version) &
+                    Q(version__isnull=False)
+                )
+
+            for detail in res['detail']['contains']:
+                query_list.append(
+                    Q(detail__icontains=detail) &
+                    Q(detail__isnull=False)
+                )
+
+            for detail in res['detail']['exact']:
+                query_list.append(
+                    Q(detail__iexact=detail) &
+                    Q(detail__isnull=False)
+                )
+
+            for detail_video in res['detail_video']['contains']:
+                query_list.append(
+                    Q(detail_video__icontains=detail_video) &
+                    Q(detail_video__isnull=False)
+                )
+
+            for detail_video in res['detail_video']['exact']:
+                query_list.append(
+                    Q(detail_video__iexact=detail_video) &
+                    Q(detail_video__isnull=False)
+                )
 
             # specific terms of the research derivating from work
             for query_name, search_keywords in res['work_type'].items():
@@ -132,7 +169,10 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
                 query_list.append(
                     Q(title__icontains=remain) |
                     Q(artists__name__icontains=remain) |
-                    Q(works__title__icontains=remain)
+                    Q(works__title__icontains=remain) |
+                    Q(version__icontains=remain) |
+                    Q(detail__icontains=remain) |
+                    Q(detail_video__icontains=remain)
                 )
 
             # tags
