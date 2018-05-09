@@ -45,9 +45,11 @@ class DakaraUser(AbstractUser):
     objects = DakaraUserManager()
 
     # permission levels per application
+    USER = 'u'
+    MANAGER = 'm'
     LEVELS_GENERICS = [
-        ("u", "User"),
-        ("m", "Manager"),
+        (USER, "User"),
+        (MANAGER, "Manager"),
     ]
 
     # role for Users app
@@ -65,8 +67,9 @@ class DakaraUser(AbstractUser):
     )
 
     # role for Playlist app
+    PLAYER = 'p'
     LEVELS_PLAYLIST = [
-        ("p", "Player"),
+        (PLAYER, "Player"),
     ]
 
     LEVELS_PLAYLIST.extend(LEVELS_GENERICS)
