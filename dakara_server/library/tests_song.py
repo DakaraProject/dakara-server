@@ -57,7 +57,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         # Get songs list with query = "ork1"
         # Should only return song2 which is linked to Work1
         self.song_query_test("ork1", [self.song2])
- 
+
     def test_get_song_list_with_query_empty(self):
         """Test to verify song list with empty query
         """
