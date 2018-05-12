@@ -70,7 +70,6 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         # Should only return song2
         self.song_query_test("etail_Video2", [self.song2])
 
-
     def test_get_song_list_with_query_empty(self):
         """Test to verify song list with empty query
         """

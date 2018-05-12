@@ -71,7 +71,7 @@ class BaseAPITestCase(APITestCase):
 
         # Song associated with work, artist, tag and details
         self.song2 = Song(
-            title="Song2", 
+            title="Song2",
             filename="file.mp4",
             version="Version2",
             detail="Detail2",
