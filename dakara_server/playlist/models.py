@@ -61,6 +61,9 @@ class KaraStatus(models.Model):
         null=False,
     )
 
+    def __str__(self):
+        return str("in {} mode".format(self.status))
+
     @classmethod
     def get_object(cls):
         """Get the first instance of kara status
@@ -111,6 +114,12 @@ class Player:
         self.timing = timedelta()
         self.paused = False
 
+    def __repr__(self):
+        return "<{}: {}>".format(self.__class__.__name__, str(self))
+
+    def __str__(self):
+        return "in {} mode".format("pause" if self.paused else "play")
+
 
 class PlayerCommand:
     """Commands to the player
@@ -144,6 +153,15 @@ class PlayerCommand:
         """Save player commands in cache
         """
         cache.set(self.PLAYER_COMMAND_NAME, self)
+
+    def __repr__(self):
+        return "<{}: {}>".format(self.__class__.__name__, str(self))
+
+    def __str__(self):
+        return "requesting {}, {}".format(
+            "pause" if self.pause else "no pause",
+            "skip" if self.skip else "no skip"
+        )
 
 
 class PlayerError:
@@ -181,6 +199,12 @@ class PlayerError:
         """
         player_error_name = self.PLAYER_ERROR_PATTERN.format(self.id)
         cache.set(player_error_name, self, self.PLAYER_ERROR_TIME_OF_LIFE)
+
+    def __repr__(self):
+        return "<{}: {}>".format(self.__class__.__name__, str(self))
+
+    def __str__(self):
+        return "error {}".format(self.id)
 
 
 class PlayerErrorsPool:
@@ -252,3 +276,9 @@ class PlayerErrorsPool:
         """Gives the pool as a list
         """
         return [PlayerError.get(id) for id in self.ids_pool]
+
+    def __repr__(self):
+        return "<{}: {}>".format(self.__class__.__name__, str(self))
+
+    def __str__(self):
+        return "with {} error(s)".format(self.count)
