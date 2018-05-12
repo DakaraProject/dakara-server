@@ -6,9 +6,6 @@ KEYWORDS = [
     "artist",
     "work",
     "title",
-    "version",
-    "detail",
-    "detail_video"
 ]
 
 
@@ -122,18 +119,6 @@ class QueryLanguageParser:
                 "exact": []
             },
             "title": {
-                "contains": [],
-                "exact": []
-            },
-            "version": {
-                "contains": [],
-                "exact": []
-            },
-            "detail": {
-                "contains": [],
-                "exact": []
-            },
-            "detail_video": {
                 "contains": [],
                 "exact": []
             },

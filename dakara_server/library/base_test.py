@@ -69,8 +69,14 @@ class BaseAPITestCase(APITestCase):
 
         self.song1.save()
 
-        # Song associated with work, artist, and tag
-        self.song2 = Song(title="Song2", filename="file.mp4")
+        # Song associated with work, artist, tag and details
+        self.song2 = Song(
+            title="Song2", 
+            filename="file.mp4",
+            version="Version2",
+            detail="Detail2",
+            detail_video="Detail_Video2"
+        )
         self.song2.save()
         self.song2.tags.add(self.tag1)
         self.song2.artists.add(self.artist1)
