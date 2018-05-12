@@ -57,6 +57,22 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         # Get songs list with query = "ork1"
         # Should only return song2 which is linked to Work1
         self.song_query_test("ork1", [self.song2])
+ 
+    def test_get_song_list_with_query_empty(self):
+        """Test to verify song list with empty query
+        """
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Get songs list with query = ""
+        # Should return all songs
+        self.song_query_test("", [self.song1, self.song2])
+
+    def test_get_song_list_with_query_detail(self):
+        """Test to verify song list with detail query
+        """
+        # Login as simple user
+        self.authenticate(self.user)
 
         # Get songs list with query = "Version2"
         # Should only return song2
@@ -69,16 +85,6 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         # Get songs list with query = "Detail_Video2"
         # Should only return song2
         self.song_query_test("etail_Video2", [self.song2])
-
-    def test_get_song_list_with_query_empty(self):
-        """Test to verify song list with empty query
-        """
-        # Login as simple user
-        self.authenticate(self.user)
-
-        # Get songs list with query = ""
-        # Should return all songs
-        self.song_query_test("", [self.song1, self.song2])
 
     def test_get_song_list_with_query_tag(self):
         """Test to verify song list with tag query
