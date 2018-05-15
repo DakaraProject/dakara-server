@@ -16,6 +16,9 @@ class UserForPublicSerializer(serializers.ModelSerializer):
             'id',
             'username',
         )
+        read_only_fields = (
+            'username',
+        )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,7 +36,6 @@ class UserSerializer(serializers.ModelSerializer):
             'playlist_permission_level'
         )
         read_only_fields = (
-            'id',
             'is_superuser',
             'users_permission_level',
             'library_permission_level',

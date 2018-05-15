@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 
 from library.views import LibraryPagination as UsersPagination
-from . import serializers
-from . import permissions
+from users import serializers
+from users import permissions
 
 
 UserModel = get_user_model()
@@ -18,12 +18,13 @@ class CurrentUserView(views.APIView):
     permission_classes = [
         IsAuthenticated
     ]
+    serializer_class = serializers.UserSerializer
 
     def get(self, request):
         """Retrieve the user
         """
         user = request.user
-        serializer = serializers.UserSerializer(user)
+        serializer = self.serializer_class(user)
 
         return Response(serializer.data)
 
