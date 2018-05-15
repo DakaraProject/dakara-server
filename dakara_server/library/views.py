@@ -132,7 +132,10 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
                 query_list.append(
                     Q(title__icontains=remain) |
                     Q(artists__name__icontains=remain) |
-                    Q(works__title__icontains=remain)
+                    Q(works__title__icontains=remain) |
+                    Q(version__icontains=remain) |
+                    Q(detail__icontains=remain) |
+                    Q(detail_video__icontains=remain)
                 )
 
             # tags
