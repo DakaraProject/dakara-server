@@ -169,7 +169,7 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
     """
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
-    serializer_class = serializers.ArtistSerializer
+    serializer_class = serializers.ArtistWithCountSerializer
     pagination_class = LibraryPagination
 
     def get_queryset(self):

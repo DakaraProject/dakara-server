@@ -7,7 +7,7 @@ from library.serializers import (
     SecondsDurationField,
 )
 from users.serializers import (
-    UserDisplaySerializer,
+    UserForPublicSerializer,
 )
 
 
@@ -35,7 +35,9 @@ class PlaylistEntryReadSerializer(serializers.ModelSerializer):
     """Song serializer in playlist
     """
     song = SongSerializer(many=False, read_only=True)
-    owner = UserDisplaySerializer(read_only=True)
+    owner = UserForPublicSerializer(read_only=True)
+
+    # date of play in the future, added manually to the PlaylistEntry object
     date_play = serializers.DateTimeField(read_only=True)
 
     class Meta:
@@ -60,7 +62,7 @@ class PlaylistPlayedEntryReadSerializer(serializers.ModelSerializer):
     """Song serializer in playlist
     """
     song = SongSerializer(many=False, read_only=True)
-    owner = UserDisplaySerializer(read_only=True)
+    owner = UserForPublicSerializer(read_only=True)
 
     class Meta:
         model = PlaylistEntry
@@ -77,7 +79,7 @@ class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
     """Song serializer in playlist
     """
     song = SongForPlayerSerializer(many=False, read_only=True)
-    owner = UserDisplaySerializer(read_only=True)
+    owner = UserForPublicSerializer(read_only=True)
 
     class Meta:
         model = PlaylistEntry

@@ -15,7 +15,7 @@ class SecondsDurationField(serializers.DurationField):
         return int(round(value.total_seconds()))
 
 
-class ArtistNoCountSerializer(serializers.ModelSerializer):
+class ArtistSerializer(serializers.ModelSerializer):
     """Artist serializer
 
     Used in song representation.
@@ -28,7 +28,7 @@ class ArtistNoCountSerializer(serializers.ModelSerializer):
         )
 
 
-class ArtistSerializer(serializers.ModelSerializer):
+class ArtistWithCountSerializer(serializers.ModelSerializer):
     """Artist serializer
 
     Including a song count.
@@ -134,12 +134,10 @@ class SongSerializer(serializers.ModelSerializer):
     """Song serializer
     """
     duration = SecondsDurationField()
-    artists = ArtistNoCountSerializer(many=True, read_only=True)
+    artists = ArtistSerializer(many=True, read_only=True)
     tags = SongTagSerializer(many=True, read_only=True)
-    works = SongWorkLinkSerializer(
-        many=True,
-        read_only=True,
-        source='songworklink_set')
+    works = SongWorkLinkSerializer(many=True, read_only=True,
+                                   source='songworklink_set')
     lyrics = serializers.SerializerMethodField()
 
     class Meta:
@@ -186,7 +184,7 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
 
     To be used by the player.
     """
-    artists = ArtistNoCountSerializer(many=True, read_only=True)
+    artists = ArtistSerializer(many=True, read_only=True)
     works = SongWorkLinkSerializer(
         many=True,
         read_only=True,

@@ -52,7 +52,7 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_serializer_class(self):
         if self.request.method in ('PUT', 'PATCH'):
-            return serializers.UserUpdateManagerSerializer
+            return serializers.UserForManagerSerializer
 
         return serializers.UserSerializer
 

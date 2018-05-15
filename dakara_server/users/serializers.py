@@ -7,7 +7,7 @@ from django.contrib.auth import (
 UserModel = get_user_model()
 
 
-class UserDisplaySerializer(serializers.ModelSerializer):
+class UserForPublicSerializer(serializers.ModelSerializer):
     """Display public data only
     """
     class Meta:
@@ -107,7 +107,7 @@ class PasswordSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UserUpdateManagerSerializer(PasswordSerializer):
+class UserForManagerSerializer(PasswordSerializer):
     """Users edition for managers
 
     Can edit:
