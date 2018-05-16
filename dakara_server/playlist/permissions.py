@@ -30,7 +30,7 @@ class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
             return True
 
         # if the object belongs to the user
-        return obj.owner_id == request.user.id
+        return obj.owner == request.user
 
 
 class IsPlaylistUserOrReadOnly(BasePermissionCustom):
@@ -106,7 +106,7 @@ class IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly(BasePermissionCustom):
         if not playlist_entry:
             return False
 
-        return playlist_entry.owner_id == request.user.id
+        return playlist_entry.owner == request.user
 
 
 class IsPlaylistAndLibraryManagerOrSongCanBeAdded(BasePermissionCustom):
