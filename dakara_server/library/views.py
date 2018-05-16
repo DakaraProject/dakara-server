@@ -1,5 +1,6 @@
 from django.db.models.functions import Lower
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.generics import (
@@ -9,10 +10,13 @@ from rest_framework.generics import (
     ListAPIView,
 )
 
-from . import models
-from . import serializers
-from .query_language import QueryLanguageParser
-from .permissions import IsLibraryManagerOrReadOnly
+from library import models
+from library import serializers
+from library.query_language import QueryLanguageParser
+from library.permissions import IsLibraryManagerOrReadOnly
+
+
+UserModel = get_user_model()
 
 
 class LibraryPagination(PageNumberPagination):
@@ -70,7 +74,8 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
 
         # hide all songs with disabled tags for non-managers or non-superusers
         user = self.request.user
-        if not (user.is_superuser or user.has_library_permission_level('m')):
+        if not (user.is_superuser or
+                user.has_library_permission_level(UserModel.MANAGER)):
             query_set = query_set.exclude(tags__disabled=True)
 
         # if 'query' is in the query string then perform search otherwise

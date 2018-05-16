@@ -77,14 +77,16 @@ class BaseAPITestCase(APITestCase):
         self.user = self.create_user("TestUser")
 
         # create a playlist user
-        self.p_user = self.create_user("TestPlaylistUser", playlist_level="u")
+        self.p_user = self.create_user("TestPlaylistUser",
+                                       playlist_level=UserModel.USER)
 
         # create a playlist manager
-        self.manager = self.create_user(
-            "testPlaylistManager", playlist_level="m")
+        self.manager = self.create_user("testPlaylistManager",
+                                        playlist_level=UserModel.MANAGER)
 
         # create a player
-        self.player = self.create_user("testPlayer", playlist_level="p")
+        self.player = self.create_user("testPlayer",
+                                       playlist_level=UserModel.PLAYER)
 
         # Create tags
         self.tag1 = SongTag(name='TAG1')

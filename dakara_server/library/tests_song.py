@@ -1,7 +1,11 @@
 from django.core.urlresolvers import reverse
+from django.contrib.auth import get_user_model
 from rest_framework import status
 
 from .base_test import BaseAPITestCase
+
+
+UserModel = get_user_model()
 
 
 class SongListViewAPIViewTestCase(BaseAPITestCase):
@@ -12,7 +16,8 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.user = self.create_user("TestUser")
 
         # create a manager
-        self.manager = self.create_user("TestManager", library_level='m')
+        self.manager = self.create_user("TestManager",
+                                        library_level=UserModel.MANAGER)
 
         # create test data
         self.create_library_test_data()

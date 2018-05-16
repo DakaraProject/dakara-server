@@ -3,10 +3,14 @@ from datetime import datetime, timedelta
 
 from django.core.urlresolvers import reverse
 from django.utils.dateparse import parse_datetime
+from django.contrib.auth import get_user_model
 from rest_framework import status
 
 from .base_test import BaseAPITestCase, tz
 from .models import PlaylistEntry, Player
+
+
+UserModel = get_user_model()
 
 
 class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
@@ -203,8 +207,8 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         """
         # Login as playlist user
         user = self.create_user('manager',
-                                playlist_level='m',
-                                library_level='m')
+                                playlist_level=UserModel.MANAGER,
+                                library_level=UserModel.MANAGER)
         self.authenticate(user)
 
         # Set tag1 disabled

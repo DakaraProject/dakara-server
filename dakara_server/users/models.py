@@ -88,7 +88,8 @@ class DakaraUser(AbstractUser):
             return True
 
         # the manager level includes everyone else level, except for the player
-        if user_permission_level == 'm' and requested_permission_level != 'p':
+        if user_permission_level == self.MANAGER and \
+           requested_permission_level != self.PLAYER:
             return True
 
         return user_permission_level == requested_permission_level

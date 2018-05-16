@@ -1,8 +1,12 @@
 from django.core.urlresolvers import reverse
+from django.contrib.auth import get_user_model
 from rest_framework import status
 
 from .base_test import BaseAPITestCase
 from .models import SongTag
+
+
+UserModel = get_user_model()
 
 
 class SongTagListViewListAPIViewTestCase(BaseAPITestCase):
@@ -43,7 +47,7 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
     def setUp(self):
         # create a user without any rights
         self.manager = self.create_user("TestUserManager",
-                                        library_level='m')
+                                        library_level=UserModel.MANAGER)
 
         self.user = self.create_user("TestUser")
 
