@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 
+
 UserModel = get_user_model()
 
 
@@ -30,6 +31,6 @@ class Command(BaseCommand):
             self.stdout.write("Account '{}' already exists".format(username))
             return
 
-        player.playlist_permission_level = 'p'
+        player.playlist_permission_level = UserModel.PLAYER
         player.save()
         self.stdout.write("Player created with name '{}'!".format(username))

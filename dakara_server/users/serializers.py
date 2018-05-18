@@ -4,26 +4,10 @@ from django.contrib.auth import (
     update_session_auth_hash,
 )
 
-from .models import DakaraUser
-
 UserModel = get_user_model()
 
 
-class PermissionLevelField(serializers.ChoiceField):
-    """Apps permission level field
-
-    It does the dirty job in one place.
-    """
-
-    def __init__(self, target, *args, **kwargs):
-        super().__init__(
-            *args,
-            choices=DakaraUser._meta.get_field(target).choices,
-            **kwargs
-        )
-
-
-class UserDisplaySerializer(serializers.ModelSerializer):
+class UserForPublicSerializer(serializers.ModelSerializer):
     """Display public data only
     """
     class Meta:
@@ -32,29 +16,14 @@ class UserDisplaySerializer(serializers.ModelSerializer):
             'id',
             'username',
         )
+        read_only_fields = (
+            'username',
+        )
 
 
 class UserSerializer(serializers.ModelSerializer):
     """Creation and view
     """
-    password = serializers.CharField(write_only=True)
-    id = serializers.IntegerField(read_only=True)
-    is_superuser = serializers.BooleanField(read_only=True)
-    users_permission_level = PermissionLevelField(
-        target="users_permission_level",
-        read_only=True
-    )
-
-    library_permission_level = PermissionLevelField(
-        target="library_permission_level",
-        read_only=True
-    )
-
-    playlist_permission_level = PermissionLevelField(
-        target="playlist_permission_level",
-        read_only=True
-    )
-
     class Meta:
         model = UserModel
         fields = (
@@ -66,6 +35,15 @@ class UserSerializer(serializers.ModelSerializer):
             'library_permission_level',
             'playlist_permission_level'
         )
+        read_only_fields = (
+            'is_superuser',
+            'users_permission_level',
+            'library_permission_level',
+            'playlist_permission_level'
+        )
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
 
     def validate_username(self, value):
         """Check username unicity in case insensitive way
@@ -84,7 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
         UserManager's secured user creation methods.
         """
         instance = UserModel.objects.create_user(**validated_data)
-        instance.playlist_permission_level = 'u'
+        instance.playlist_permission_level = UserModel.USER
         instance.save()
 
         return instance
@@ -98,13 +76,14 @@ class PasswordSerializer(serializers.ModelSerializer):
 
     For editing other user info, create another serializer.
     """
-
-    password = serializers.CharField(write_only=True, required=True)
     old_password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = UserModel
         fields = ('password', 'old_password')
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': True}
+        }
 
     def validate_old_password(self, value):
         """Check old password is correct
@@ -130,7 +109,7 @@ class PasswordSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UserUpdateManagerSerializer(PasswordSerializer):
+class UserForManagerSerializer(PasswordSerializer):
     """Users edition for managers
 
     Can edit:
