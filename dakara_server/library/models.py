@@ -43,7 +43,8 @@ class Work(models.Model):
     """
     title = models.CharField(max_length=255)
     subtitle = models.CharField(max_length=255, blank=True)
-    work_type = models.ForeignKey('WorkType', null=True)
+    work_type = models.ForeignKey('WorkType', null=True,
+                                  on_delete=models.CASCADE)
 
     def __str__(self):
         return "Work of type {} '{}'".format(

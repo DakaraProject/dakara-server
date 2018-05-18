@@ -1,4 +1,4 @@
-Django==1.8.18
+Django==1.9.13
 djangorestframework==3.3.1
 pymediainfo==2.1.9
 progressbar2==3.34.3

@@ -121,3 +121,7 @@ try:
 
 except ImportError:
     from .default_settings import *  # noqa F403
+
+# if in debug mode, disable password validation
+if DEBUG: # noqa F405
+    AUTH_PASSWORD_VALIDATORS = []
