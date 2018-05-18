@@ -1,6 +1,10 @@
 from rest_framework import permissions
+from django.contrib.auth import get_user_model
 
 from users.permissions import BasePermissionCustom
+
+
+UserModel = get_user_model()
 
 
 class IsLibraryManagerOrReadOnly(BasePermissionCustom):
@@ -19,4 +23,4 @@ class IsLibraryManagerOrReadOnly(BasePermissionCustom):
             return True
 
         # for modification
-        return request.user.has_library_permission_level('m')
+        return request.user.has_library_permission_level(UserModel.MANAGER)

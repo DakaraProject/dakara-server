@@ -1,4 +1,8 @@
 from rest_framework import permissions
+from django.contrib.auth import get_user_model
+
+
+UserModel = get_user_model()
 
 
 class BasePermissionCustom(permissions.BasePermission):
@@ -42,7 +46,7 @@ class IsUsersManagerOrReadOnly(BasePermissionCustom):
 
     def has_permission_custom(self, request, view):
         # for manager
-        if request.user.has_users_permission_level('m'):
+        if request.user.has_users_permission_level(UserModel.MANAGER):
             return True
 
         # for safe methods only
@@ -72,7 +76,7 @@ class IsUsersManagerOrSelfOrReadOnly(BasePermissionCustom):
             return True
 
         # for manager
-        if request.user.has_users_permission_level('m'):
+        if request.user.has_users_permission_level(UserModel.MANAGER):
             return True
 
         # if the object belongs to the user

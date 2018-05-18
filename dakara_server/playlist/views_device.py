@@ -6,9 +6,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from . import models
-from . import serializers
-from . import permissions
+from playlist import models
+from playlist.serializers import device as serializers
+from playlist import permissions
 
 tz = timezone.get_default_timezone()
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class PlayerDeviceView(APIView):
         else:
             entry = None
 
-        serializer = serializers.PlaylistEntryForPlayerSerializer(entry)
+        serializer = serializers.PlaylistEntrySerializer(entry)
 
         return Response(
             serializer.data,

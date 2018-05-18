@@ -45,31 +45,40 @@ class DakaraUser(AbstractUser):
     objects = DakaraUserManager()
 
     # permission levels per application
-    LEVELS_GENERICS = [
-        ("u", "User"),
-        ("m", "Manager"),
-    ]
+    USER = 'u'
+    MANAGER = 'm'
+    PLAYER = 'p'
 
     # role for Users app
+    LEVELS_USERS = [
+        (USER, "User"),
+        (MANAGER, "Manager"),
+    ]
+
     users_permission_level = models.CharField(
         max_length=1,
-        choices=LEVELS_GENERICS,
+        choices=LEVELS_USERS,
         null=True,
     )
 
     # role for Libraryapp
+    LEVELS_LIBRARY = [
+        (USER, "User"),
+        (MANAGER, "Manager"),
+    ]
     library_permission_level = models.CharField(
         max_length=1,
-        choices=LEVELS_GENERICS,
+        choices=LEVELS_LIBRARY,
         null=True,
     )
 
     # role for Playlist app
     LEVELS_PLAYLIST = [
-        ("p", "Player"),
+        (PLAYER, "Player"),
+        (USER, "User"),
+        (MANAGER, "Manager"),
     ]
 
-    LEVELS_PLAYLIST.extend(LEVELS_GENERICS)
     playlist_permission_level = models.CharField(
         max_length=1,
         choices=LEVELS_PLAYLIST,
@@ -85,7 +94,8 @@ class DakaraUser(AbstractUser):
             return True
 
         # the manager level includes everyone else level, except for the player
-        if user_permission_level == 'm' and requested_permission_level != 'p':
+        if user_permission_level == self.MANAGER and \
+           requested_permission_level != self.PLAYER:
             return True
 
         return user_permission_level == requested_permission_level
