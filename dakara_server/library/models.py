@@ -85,7 +85,7 @@ class SongWorkLink(models.Model):
         (OPENING, "Opening"),
         (ENDING, "Ending"),
         (INSERT, "Insert song"),
-        (IMAGE, "Image somg"),
+        (IMAGE, "Image song"),
     )
 
     song = models.ForeignKey(Song, on_delete=models.CASCADE)

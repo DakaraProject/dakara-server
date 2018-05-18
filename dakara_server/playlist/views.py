@@ -16,10 +16,10 @@ from rest_framework.generics import (
     RetrieveUpdateAPIView,
 )
 
-from . import models
-from . import serializers
-from . import permissions
-from . import views_device as device # noqa F401
+from playlist import models
+from playlist import serializers
+from playlist import permissions
+from playlist import views_device as device # noqa F401
 
 tz = timezone.get_default_timezone()
 
@@ -60,7 +60,7 @@ class PlaylistEntryListView(ListCreateAPIView):
         if self.request.method == 'POST':
             return serializers.PlaylistEntrySerializer
 
-        return serializers.PlaylistEntriesReadSerializer
+        return serializers.PlaylistEntriesWithDateEndSerializer
 
     def get_queryset(self):
         player = models.Player.get_or_create()
@@ -103,14 +103,14 @@ class PlaylistEntryListView(ListCreateAPIView):
                 detail="Playlist is full, please retry later."
             )
 
-        return super().create(request)
+        return super().post(request)
 
 
 class PlaylistPlayedEntryListView(ListAPIView):
     """List of played entries
     """
     pagination_class = PlaylistEntryPagination
-    serializer_class = serializers.PlaylistPlayedEntryReadSerializer
+    serializer_class = serializers.PlaylistPlayedEntryWithDatePlayedSerializer
     queryset = models.PlaylistEntry.objects.filter(was_played=True) \
         .order_by('date_created')
 
@@ -126,7 +126,7 @@ class PlayerStatusView(APIView):
         Create one if it doesn't exist.
         """
         player = models.Player.get_or_create()
-        serializer = serializers.PlayerDetailsSerializer(
+        serializer = serializers.PlayerStatusSerializer(
             player,
             context={'request': request}
         )
@@ -184,7 +184,7 @@ class PlayerErrorsPoolView(APIView):
         """Send player error pool
         """
         player_errors_pool = models.PlayerErrorsPool.get_or_create()
-        serializer = serializers.PlayerErrorsPoolSerializer(
+        serializer = serializers.PlayerErrorSerializer(
             player_errors_pool.dump(),
             many=True,
             context={'request': request}

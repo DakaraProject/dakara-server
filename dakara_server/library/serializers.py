@@ -15,7 +15,7 @@ class SecondsDurationField(serializers.DurationField):
         return int(round(value.total_seconds()))
 
 
-class ArtistNoCountSerializer(serializers.ModelSerializer):
+class ArtistSerializer(serializers.ModelSerializer):
     """Artist serializer
 
     Used in song representation.
@@ -28,7 +28,7 @@ class ArtistNoCountSerializer(serializers.ModelSerializer):
         )
 
 
-class ArtistSerializer(serializers.ModelSerializer):
+class ArtistWithCountSerializer(serializers.ModelSerializer):
     """Artist serializer
 
     Including a song count.
@@ -106,31 +106,15 @@ class SongWorkLinkSerializer(serializers.ModelSerializer):
     """Serialization of the use of a song in a work
     """
     work = WorkNoCountSerializer(many=False, read_only=True)
-    link_type_name = serializers.SerializerMethodField()
 
     class Meta:
         model = SongWorkLink
         fields = (
             'work',
             'link_type',
-            'link_type_name',
             'link_type_number',
             'episodes',
         )
-
-    @staticmethod
-    def get_link_type_name(song_work_link):
-        """Get the explicit name of a work link
-        """
-        link_type_name = [
-            choice[1]
-            for choice in SongWorkLink.LINK_TYPE_CHOICES
-            if choice[0] == song_work_link.link_type
-        ]
-        if len(link_type_name) < 1:
-            return song_work_link.link_type
-
-        return link_type_name[0]
 
 
 class SongTagSerializer(serializers.ModelSerializer):
@@ -150,12 +134,10 @@ class SongSerializer(serializers.ModelSerializer):
     """Song serializer
     """
     duration = SecondsDurationField()
-    artists = ArtistNoCountSerializer(many=True, read_only=True)
+    artists = ArtistSerializer(many=True, read_only=True)
     tags = SongTagSerializer(many=True, read_only=True)
-    works = SongWorkLinkSerializer(
-        many=True,
-        read_only=True,
-        source='songworklink_set')
+    works = SongWorkLinkSerializer(many=True, read_only=True,
+                                   source='songworklink_set')
     lyrics = serializers.SerializerMethodField()
 
     class Meta:
@@ -178,23 +160,21 @@ class SongSerializer(serializers.ModelSerializer):
         )
 
     @staticmethod
-    def get_lyrics(song):
+    def get_lyrics(song, max_lines=5):
         """Get an extract of the lyrics
 
-        Give at most `MAX_LINES` lines of lyrics and tell if more lines remain.
+        Give at most `max_lines` lines of lyrics and tell if more lines remain.
         """
-        MAX_LINES = 5
-
         if not song.lyrics:
             return None
 
         lyrics_list = song.lyrics.splitlines()
 
-        if len(lyrics_list) <= MAX_LINES:
+        if len(lyrics_list) <= max_lines:
             return {'text': song.lyrics}
 
         return {
-            'text': '\n'.join(lyrics_list[:MAX_LINES]),
+            'text': '\n'.join(lyrics_list[:max_lines]),
             'truncated': True
         }
 
@@ -204,7 +184,7 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
 
     To be used by the player.
     """
-    artists = ArtistNoCountSerializer(many=True, read_only=True)
+    artists = ArtistSerializer(many=True, read_only=True)
     works = SongWorkLinkSerializer(
         many=True,
         read_only=True,

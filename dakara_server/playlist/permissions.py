@@ -1,9 +1,13 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import permissions
+from django.contrib.auth import get_user_model
 
 from users.permissions import BasePermissionCustom
 from library.models import Song
 from .models import PlaylistEntry, Player, KaraStatus
+
+
+UserModel = get_user_model()
 
 
 class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
@@ -26,7 +30,7 @@ class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
             return True
 
         # for manager
-        if request.user.has_playlist_permission_level('m'):
+        if request.user.has_playlist_permission_level(UserModel.MANAGER):
             return True
 
         # if the object belongs to the user
@@ -49,7 +53,7 @@ class IsPlaylistUserOrReadOnly(BasePermissionCustom):
             return True
 
         # for modification
-        return request.user.has_playlist_permission_level('u')
+        return request.user.has_playlist_permission_level(UserModel.USER)
 
 
 class IsPlaylistManagerOrReadOnly(BasePermissionCustom):
@@ -68,7 +72,7 @@ class IsPlaylistManagerOrReadOnly(BasePermissionCustom):
             return True
 
         # for modification
-        return request.user.has_playlist_permission_level('m')
+        return request.user.has_playlist_permission_level(UserModel.MANAGER)
 
 
 class IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly(BasePermissionCustom):
@@ -92,7 +96,7 @@ class IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly(BasePermissionCustom):
             return True
 
         # for manager
-        if request.user.has_playlist_permission_level('m'):
+        if request.user.has_playlist_permission_level(UserModel.MANAGER):
             return True
 
         # if the currently playing song belongs to the user
@@ -121,12 +125,12 @@ class IsPlaylistAndLibraryManagerOrSongCanBeAdded(BasePermissionCustom):
 
     def has_permission_custom(self, request, view):
         # for manager of playlist and library
-        if request.user.has_playlist_permission_level('m') and \
-                request.user.has_library_permission_level('m'):
+        if request.user.has_playlist_permission_level(UserModel.MANAGER) and \
+                request.user.has_library_permission_level(UserModel.MANAGER):
             return True
 
         # get song
-        song_id = request.data.get('song')
+        song_id = request.data.get('song_id')
         if not song_id:
             return True
 
@@ -150,7 +154,7 @@ class IsPlayer(BasePermissionCustom):
     """
 
     def has_permission_custom(self, request, view):
-        return request.user.has_playlist_permission_level('p')
+        return request.user.has_playlist_permission_level(UserModel.PLAYER)
 
 
 class KaraStatusIsNotStoppedOrReadOnly(permissions.BasePermission):
