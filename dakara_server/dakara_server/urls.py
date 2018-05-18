@@ -18,7 +18,7 @@ import logging
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.conf import settings
-from django.views.defaults import page_not_found
+from django.contrib.staticfiles.views import serve
 from rest_framework.authtoken.views import obtain_auth_token
 
 from library import views as library_views
@@ -172,9 +172,10 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns.extend([
-            # Default case for api routes
-            url(r'^api/', page_not_found),
             # Default to main page
-            url(r'', 'django.contrib.staticfiles.views.serve', kwargs={
-                            'path': 'index.html'})
+            url(
+                r'^(?!api/)',  # serve everything but the API routes
+                serve,
+                kwargs={'path': 'index.html'}
+            )
         ])
