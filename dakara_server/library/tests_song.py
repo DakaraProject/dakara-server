@@ -68,6 +68,24 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         # Should return all songs
         self.song_query_test("", [self.song1, self.song2])
 
+    def test_get_song_list_with_query_detail(self):
+        """Test to verify song list with detail query
+        """
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Get songs list with query = "Version2"
+        # Should only return song2
+        self.song_query_test("ersion2", [self.song2])
+
+        # Get songs list with query = "Detail2"
+        # Should only return song2
+        self.song_query_test("etail2", [self.song2])
+
+        # Get songs list with query = "Detail_Video2"
+        # Should only return song2
+        self.song_query_test("etail_Video2", [self.song2])
+
     def test_get_song_list_with_query_tag(self):
         """Test to verify song list with tag query
         """
