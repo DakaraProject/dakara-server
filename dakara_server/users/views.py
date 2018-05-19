@@ -33,7 +33,7 @@ class UserListView(generics.ListCreateAPIView):
     """List and creation of users
     """
     model = UserModel
-    queryset = UserModel.objects.all()
+    queryset = UserModel.objects.all().order_by('username')
     serializer_class = serializers.UserSerializer
     pagination_class = UsersPagination
     permission_classes = [

@@ -55,6 +55,7 @@
 - Pagination information (`current` and `last`) for views that use a paginator are now gathered in the `pagination` key in the response.
 - Song serialization no longer contains the `link_type_name` key (work link long name), the info has to be deduced from `link_type`.
 - In the route `/playlist/entries`, the key to designate a song has changed: `song` > `song_id`.
+- Users are now listed by their user name.
 
 ## 1.1.0 - 2018-01-25
 
