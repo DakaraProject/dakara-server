@@ -20,6 +20,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.contrib.staticfiles.views import serve
 from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.documentation import include_docs_urls
 
 from library import views as library_views
 from playlist import views as playlist_views
@@ -168,13 +169,20 @@ urlpatterns = [
         library_views.SongTagView.as_view(),
         name='library-songtag-detail'
         ),
+
+    # API documentation routes
+    url(
+        r'^docs/',
+        include_docs_urls(title="Dakara server API")
+    ),
 ]
 
 if settings.DEBUG:
     urlpatterns.extend([
             # Default to main page
             url(
-                r'^(?!api/)',  # serve everything but the API routes
+                r'^(?!api/?|docs/?)',  # serve everything but the API routes
+                                       # API documentation routes
                 serve,
                 kwargs={'path': 'index.html'}
             )

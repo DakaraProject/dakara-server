@@ -57,7 +57,7 @@ class PlaylistEntryListView(ListCreateAPIView):
     ]
 
     def get_serializer_class(self):
-        if self.request.method == 'POST':
+        if self.request is not None and self.request.method == 'POST':
             return serializers.PlaylistEntrySerializer
 
         return serializers.PlaylistEntriesWithDateEndSerializer
