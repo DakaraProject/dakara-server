@@ -50,17 +50,12 @@ class PlaylistEntryView(DestroyAPIView):
 class PlaylistEntryListView(ListCreateAPIView):
     """List of entries or creation of a new entry in the playlist
     """
+    serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
         permissions.IsPlaylistUserOrReadOnly,
         permissions.IsPlaylistAndLibraryManagerOrSongCanBeAdded,
         permissions.KaraStatusIsNotStoppedOrReadOnly,
     ]
-
-    def get_serializer_class(self):
-        if self.request is not None and self.request.method == 'POST':
-            return serializers.PlaylistEntrySerializer
-
-        return serializers.PlaylistEntriesWithDateEndSerializer
 
     def get_queryset(self):
         player = models.Player.get_or_create()
@@ -86,10 +81,13 @@ class PlaylistEntryListView(ListCreateAPIView):
             playlist_entry.date_play = date
             date += playlist_entry.song.duration
 
-        serializer = self.get_serializer({
-            'results': queryset,
-            'date_end': date,
-        })
+        serializer = serializers.PlaylistEntriesWithDateEndSerializer(
+            {
+                'results': queryset,
+                'date_end': date,
+            },
+            context={'request': request}
+        )
 
         return Response(serializer.data)
 
