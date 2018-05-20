@@ -40,7 +40,7 @@
 - Date when the entry is supposed to be played for playlist entries with `date_play`.
 - End of playlist date with `date_end`.
 - Limit to playlist size (default to 100 entries).
-- Auto-generated documentation of the API: `docs/`.
+- Auto-generated documentation of the API: `/api-docs/`.
 
 ### Changed
 - Playlist routes:

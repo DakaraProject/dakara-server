@@ -172,7 +172,7 @@ urlpatterns = [
 
     # API documentation routes
     url(
-        r'^docs/',
+        r'^api-docs/',
         include_docs_urls(title="Dakara server API")
     ),
 ]
@@ -181,8 +181,8 @@ if settings.DEBUG:
     urlpatterns.extend([
             # Default to main page
             url(
-                r'^(?!api/?|docs/?)',  # serve everything but the API routes
-                                       # API documentation routes
+                r'^(?!api/|api-docs/?)',  # serve everything but the API routes
+                                          # API documentation routes
                 serve,
                 kwargs={'path': 'index.html'}
             )
