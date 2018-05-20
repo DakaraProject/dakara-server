@@ -9,9 +9,11 @@ from users.models import DakaraUser
 class PlaylistEntry(models.Model):
     """Song in playlist
     """
-    song = models.ForeignKey('library.Song', null=False)
+    song = models.ForeignKey('library.Song', null=False,
+                             on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey(DakaraUser, null=False)
+    owner = models.ForeignKey(DakaraUser, null=False,
+                              on_delete=models.CASCADE)
     was_played = models.BooleanField(default=False, null=False)
     date_played = models.DateTimeField(null=True)
 

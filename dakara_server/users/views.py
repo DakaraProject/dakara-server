@@ -33,7 +33,7 @@ class UserListView(generics.ListCreateAPIView):
     """List and creation of users
     """
     model = UserModel
-    queryset = UserModel.objects.all()
+    queryset = UserModel.objects.all().order_by('username')
     serializer_class = serializers.UserSerializer
     pagination_class = UsersPagination
     permission_classes = [
@@ -52,7 +52,8 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
     ]
 
     def get_serializer_class(self):
-        if self.request.method in ('PUT', 'PATCH'):
+        if self.request is not None and \
+           self.request.method in ('PUT', 'PATCH'):
             return serializers.UserForManagerSerializer
 
         return serializers.UserSerializer

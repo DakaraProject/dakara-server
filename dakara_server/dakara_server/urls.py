@@ -18,8 +18,9 @@ import logging
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.conf import settings
-from django.views.defaults import page_not_found
+from django.contrib.staticfiles.views import serve
 from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.documentation import include_docs_urls
 
 from library import views as library_views
 from playlist import views as playlist_views
@@ -168,13 +169,21 @@ urlpatterns = [
         library_views.SongTagView.as_view(),
         name='library-songtag-detail'
         ),
+
+    # API documentation routes
+    url(
+        r'^api-docs/',
+        include_docs_urls(title="Dakara server API")
+    ),
 ]
 
 if settings.DEBUG:
     urlpatterns.extend([
-            # Default case for api routes
-            url(r'^api/', page_not_found),
             # Default to main page
-            url(r'', 'django.contrib.staticfiles.views.serve', kwargs={
-                            'path': 'index.html'})
+            url(
+                r'^(?!api/|api-docs/?)',  # serve everything but the API routes
+                                          # API documentation routes
+                serve,
+                kwargs={'path': 'index.html'}
+            )
         ])
