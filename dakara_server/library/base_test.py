@@ -53,11 +53,6 @@ class BaseAPITestCase(APITestCase):
             work=self.work1
         )
         self.wti1.save()
-        self.wti2 = WorkAlternativeTitle(
-            title="AltTitle2",
-            work=self.work2
-        )
-        self.wti2.save()
 
         # Create artists
         self.artist1 = Artist(name="Artist1")
