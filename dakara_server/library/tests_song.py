@@ -145,6 +145,36 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         # Should not return any result since Work1 is not of type workType2
         self.song_query_test("wt2:Work1", [])
 
+    def test_get_song_list_with_query_work_alternative_title(self):
+        """Test to verify song list with work alternative title query
+        """
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Get songs list with query = "work:AltTitle1"
+        # Should only return song2
+        self.song_query_test("work:AltTitle1", [self.song2])
+
+        # Get songs list with query = "work:""AltTitle1"""
+        # Should only return song2
+        self.song_query_test("""work:""AltTitle1"" """, [self.song2])
+
+        # Get songs list with query = "wt1:AltTitle1"
+        # Should only return song2
+        self.song_query_test("wt1:AltTitle1", [self.song2])
+
+        # Get songs list with query = "wt1:""AltTitle1"""
+        # Should only return song2
+        self.song_query_test("""wt1:""AltTitle1"" """, [self.song2])
+
+        # Get songs list with query = "AltTitle1"
+        # Should only return song2
+        self.song_query_test("AltTitle1", [self.song2])
+
+        # Get songs list with query = "wt2:AltTitle1"
+        # Should not return any result since Work1 is not of type workType2
+        self.song_query_test("wt2:AltTitle1", [])
+
     def test_get_song_list_with_query_title(self):
         """Test to verify song list with title query
         """
