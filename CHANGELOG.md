@@ -30,6 +30,8 @@
 
 ## Unreleased
 
+## 1.2.0 - 2018-06-03
+
 ### Added
 - Kara status: global status to run, pause or stop the karaoke.
   - play: Same as previous behaviour.
@@ -57,6 +59,7 @@
 - Song serialization no longer contains the `link_type_name` key (work link long name), the info has to be deduced from `link_type`.
 - In the route `/playlist/entries`, the key to designate a song has changed: `song` > `song_id`.
 - Users are now listed by their user name.
+- Song search now looks in song `version`, `detail` and `video_detail` fields.
 
 ## 1.1.0 - 2018-01-25
 
