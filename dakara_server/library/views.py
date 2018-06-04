@@ -124,8 +124,8 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
                 for keyword in search_keywords['contains']:
                     query_list.append(
                         (
-                          Q(works__title__icontains=keyword) |
-                          Q(works__alternative_title__title__icontains=keyword)
+                            Q(works__title__icontains=keyword) |
+                            Q(works__alternative_title__title__icontains=keyword)  # noqa E501
                         ) &
                         Q(works__work_type__query_name=query_name)
                     )
