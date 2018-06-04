@@ -76,9 +76,8 @@ class WorkTypeSerializer(serializers.ModelSerializer):
 class WorkNoCountSerializer(serializers.ModelSerializer):
     """Work serializer
     """
-    alternative_titles = WorkAlternativeTitleSerializer(
-        many=True,
-        read_only=True)
+    alternative_titles = WorkAlternativeTitleSerializer(many=True,
+                                                        read_only=True)
     work_type = WorkTypeSerializer(many=False, read_only=True)
 
     class Meta:
@@ -95,9 +94,8 @@ class WorkNoCountSerializer(serializers.ModelSerializer):
 class WorkSerializer(serializers.ModelSerializer):
     """Work serializer
     """
-    alternative_titles = WorkAlternativeTitleSerializer(
-        many=True,
-        read_only=True)
+    alternative_titles = WorkAlternativeTitleSerializer(many=True,
+                                                        read_only=True)
     work_type = WorkTypeSerializer(many=False, read_only=True)
     song_count = serializers.SerializerMethodField()
 

@@ -155,14 +155,7 @@ class BaseAPITestCase(APITestCase):
                          len(expected_alt_titles))
         for alt_title, expected_alt_title in zip(json['alternative_titles'],
                                                  expected_alt_titles):
-            self.check_work_alternative_title_json(
-                alt_title, expected_alt_title)
-
-    def check_work_alternative_title_json(self, json, expected_work_alt_title):
-        """Method to test and representation against the expected work
-        alternative title
-        """
-        self.assertEqual(json['title'], expected_work_alt_title.title)
+            self.assertEqual(alt_title['title'], expected_alt_title.title)
 
     def check_work_type_json(self, json, expected_work_type):
         """Method to test an representation against the expected work type
