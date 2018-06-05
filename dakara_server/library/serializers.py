@@ -2,7 +2,8 @@ import os
 
 from rest_framework import serializers
 
-from library.models import Song, Artist, Work, SongWorkLink, WorkType, SongTag
+from library.models import Song, Artist, Work, SongWorkLink, WorkType,\
+    SongTag, WorkAlternativeTitle
 
 
 class SecondsDurationField(serializers.DurationField):
@@ -51,6 +52,14 @@ class ArtistWithCountSerializer(serializers.ModelSerializer):
         return Song.objects.filter(artists=artist).count()
 
 
+class WorkAlternativeTitleSerializer(serializers.ModelSerializer):
+    """Work alternative title serialize
+    """
+    class Meta:
+        model = WorkAlternativeTitle
+        fields = ('title',)
+
+
 class WorkTypeSerializer(serializers.ModelSerializer):
     """Work type serializer
     """
@@ -67,6 +76,8 @@ class WorkTypeSerializer(serializers.ModelSerializer):
 class WorkNoCountSerializer(serializers.ModelSerializer):
     """Work serializer
     """
+    alternative_titles = WorkAlternativeTitleSerializer(many=True,
+                                                        read_only=True)
     work_type = WorkTypeSerializer(many=False, read_only=True)
 
     class Meta:
@@ -75,6 +86,7 @@ class WorkNoCountSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'subtitle',
+            'alternative_titles',
             'work_type'
         )
 
@@ -82,6 +94,8 @@ class WorkNoCountSerializer(serializers.ModelSerializer):
 class WorkSerializer(serializers.ModelSerializer):
     """Work serializer
     """
+    alternative_titles = WorkAlternativeTitleSerializer(many=True,
+                                                        read_only=True)
     work_type = WorkTypeSerializer(many=False, read_only=True)
     song_count = serializers.SerializerMethodField()
 
@@ -91,6 +105,7 @@ class WorkSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'subtitle',
+            'alternative_titles',
             'work_type',
             'song_count'
         )

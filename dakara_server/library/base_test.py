@@ -2,7 +2,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from .models import WorkType, Work, Artist, SongTag, Song, SongWorkLink
+from .models import WorkType, Work, Artist, SongTag, Song, SongWorkLink,\
+        WorkAlternativeTitle
 
 UserModel = get_user_model()
 
@@ -45,6 +46,20 @@ class BaseAPITestCase(APITestCase):
         self.work2.save()
         self.work3 = Work(title="Work3", work_type=self.wt2)
         self.work3.save()
+
+        # Create work titles
+        WorkAlternativeTitle(
+            title="AltTitle1",
+            work=self.work1
+        ).save()
+        WorkAlternativeTitle(
+            title="AltTitle2",
+            work=self.work1
+        ).save()
+        WorkAlternativeTitle(
+            title="AltTitle2",
+            work=self.work2
+        ).save()
 
         # Create artists
         self.artist1 = Artist(name="Artist1")
@@ -141,6 +156,13 @@ class BaseAPITestCase(APITestCase):
         self.assertEqual(json['title'], expected_work.title)
         self.assertEqual(json['subtitle'], expected_work.subtitle)
         self.check_work_type_json(json['work_type'], expected_work.work_type)
+        # alternative titles
+        expected_alt_titles = expected_work.alternative_titles.all()
+        self.assertEqual(len(json['alternative_titles']),
+                         len(expected_alt_titles))
+        for alt_title, expected_alt_title in zip(json['alternative_titles'],
+                                                 expected_alt_titles):
+            self.assertEqual(alt_title['title'], expected_alt_title.title)
 
     def check_work_type_json(self, json, expected_work_type):
         """Method to test an representation against the expected work type

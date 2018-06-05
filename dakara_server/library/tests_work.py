@@ -84,6 +84,20 @@ class WorkListViewAPIViewTestCase(BaseAPITestCase):
         # Should not return any work
         self.work_query_test("tist1", [])
 
+    def test_get_work_list_with_query_alternative_title(self):
+        """Test to verify work list with query alternative title
+        """
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Get works list with query = "ltTitle1"
+        # Should only return work1
+        self.work_query_test("ltTitle1", [self.work1])
+
+        # Get works list with query = "ltTitle2"
+        # Should return work1 and work2
+        self.work_query_test("ltTitle2", [self.work1, self.work2])
+
     def test_get_work_list_with_query_empty(self):
         """Test to verify work list with empty query
         """

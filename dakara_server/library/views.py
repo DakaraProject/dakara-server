@@ -39,6 +39,7 @@ class LibraryPagination(PageNumberPagination):
 class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
     """API View with a parsed query attribute
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -107,22 +108,34 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
                 query_list.append(Q(title__iexact=title))
 
             for work in res['work']['contains']:
-                query_list.append(Q(works__title__icontains=work))
+                query_list.append(
+                    Q(works__title__icontains=work) |
+                    Q(works__alternative_title__title__icontains=work)
+                )
 
             for work in res['work']['exact']:
-                query_list.append(Q(works__title__iexact=work))
+                query_list.append(
+                    Q(works__title__iexact=work) |
+                    Q(works__alternative_title__title__iexact=work)
+                )
 
             # specific terms of the research derivating from work
             for query_name, search_keywords in res['work_type'].items():
                 for keyword in search_keywords['contains']:
                     query_list.append(
-                        Q(works__title__icontains=keyword) &
+                        (
+                            Q(works__title__icontains=keyword) |
+                            Q(works__alternative_title__title__icontains=keyword)  # noqa E501
+                        ) &
                         Q(works__work_type__query_name=query_name)
                     )
 
                 for keyword in search_keywords['exact']:
                     query_list.append(
-                        Q(works__title__iexact=keyword) &
+                        (
+                            Q(works__title__iexact=keyword) |
+                            Q(works__alternative_title__title__iexact=keyword)
+                        ) &
                         Q(works__work_type__query_name=query_name)
                     )
 
@@ -138,6 +151,7 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
                     Q(title__icontains=remain) |
                     Q(artists__name__icontains=remain) |
                     Q(works__title__icontains=remain) |
+                    Q(works__alternative_title__title__icontains=remain) |
                     Q(version__icontains=remain) |
                     Q(detail__icontains=remain) |
                     Q(detail_video__icontains=remain)
@@ -249,7 +263,8 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
             for remain in res:
                 query_list.append(
                     Q(title__icontains=remain) |
-                    Q(subtitle__icontains=remain)
+                    Q(subtitle__icontains=remain) |
+                    Q(alternative_title__title__icontains=remain)
                 )
 
             # gather the query objects
@@ -261,7 +276,7 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
             # saving the parsed query to give it back to the client
             self.query_parsed = {'remaining': res}
 
-        return query_set.order_by(Lower("title"), Lower("subtitle"))
+        return query_set.distinct().order_by(Lower("title"), Lower("subtitle"))
 
 
 class WorkTypeListView(ListCreateAPIView):

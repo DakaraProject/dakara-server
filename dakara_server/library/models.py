@@ -53,6 +53,24 @@ class Work(models.Model):
         )
 
 
+class WorkAlternativeTitle(models.Model):
+    """Alternative title of a work
+    """
+    title = models.CharField(max_length=255)
+    work = models.ForeignKey(
+        Work,
+        on_delete=models.CASCADE,
+        related_name="alternative_titles",
+        related_query_name="alternative_title"
+    )
+
+    def __str__(self):
+        return "Alternative title {} of work '{}'".format(
+            self.title,
+            self.work.title
+        )
+
+
 class WorkType(models.Model):
     """Type of a work
 
