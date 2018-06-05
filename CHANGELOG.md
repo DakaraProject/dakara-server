@@ -30,6 +30,10 @@
 
 ## Unreleased
 
+### Added
+
+- Alternative titles of a work : search songs and works upon the alternative title of a work.
+
 ## 1.2.0 - 2018-06-03
 
 ### Added
