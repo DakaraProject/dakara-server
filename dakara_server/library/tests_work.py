@@ -94,6 +94,10 @@ class WorkListViewAPIViewTestCase(BaseAPITestCase):
         # Shoud only return work1
         self.work_query_test("ltTitle1", [self.work1])
 
+        # Get works list with query = "ltTitle2"
+        # Shoudl return work1 and work2
+        self.work_query_test("ltTitle2", [self.work1, self.work2])
+
     def test_get_work_list_with_query_empty(self):
         """Test to verify work list with empty query
         """

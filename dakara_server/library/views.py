@@ -276,7 +276,7 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
             # saving the parsed query to give it back to the client
             self.query_parsed = {'remaining': res}
 
-        return query_set.order_by(Lower("title"), Lower("subtitle"))
+        return query_set.distinct().order_by(Lower("title"), Lower("subtitle"))
 
 
 class WorkTypeListView(ListCreateAPIView):

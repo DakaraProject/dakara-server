@@ -48,11 +48,18 @@ class BaseAPITestCase(APITestCase):
         self.work3.save()
 
         # Create work titles
-        self.wti1 = WorkAlternativeTitle(
+        WorkAlternativeTitle(
             title="AltTitle1",
             work=self.work1
-        )
-        self.wti1.save()
+        ).save()
+        WorkAlternativeTitle(
+            title="AltTitle2",
+            work=self.work1
+        ).save()
+        WorkAlternativeTitle(
+            title="AltTitle2",
+            work=self.work2
+        ).save()
 
         # Create artists
         self.artist1 = Artist(name="Artist1")
