@@ -91,11 +91,11 @@ class WorkListViewAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.user)
 
         # Get works list with query = "ltTitle1"
-        # Shoud only return work1
+        # Should only return work1
         self.work_query_test("ltTitle1", [self.work1])
 
         # Get works list with query = "ltTitle2"
-        # Shoudl return work1 and work2
+        # Should return work1 and work2
         self.work_query_test("ltTitle2", [self.work1, self.work2])
 
     def test_get_work_list_with_query_empty(self):
