@@ -138,3 +138,9 @@ class DigestSerializer(serializers.Serializer):
     player_manage = PlayerCommandSerializer()
     player_errors = PlayerErrorSerializer(many=True)
     kara_status = KaraStatusSerializer()
+
+
+class PlaylistReorderSerializer(serializers.Serializer):
+    """Requested position of playlist entry
+    """
+    before_id = serializers.IntegerField(allow_null=False)

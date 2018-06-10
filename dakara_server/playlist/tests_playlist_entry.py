@@ -119,7 +119,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
 
         # Check playlist entry has been created in database
         self.assertEqual(PlaylistEntry.objects.count(), 5)
-        new_entry = PlaylistEntry.objects.order_by('-date_created')[0]
+        new_entry = PlaylistEntry.objects.last()
         # Entry was created with for song1
         self.assertEqual(new_entry.song.id, self.song1.id)
         # Entry's owner is the user who created it
@@ -324,3 +324,65 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 4)
         entries = PlaylistEntry.objects.filter(id=self.pe3.id)
         self.assertEqual(len(entries), 1)
+
+    def test_put_playlist_reorder(self):
+        """Test playlist reorder
+        """
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # Pre-assertion: order pe1, pe2
+        playlist = list(PlaylistEntry.objects.exclude(was_played=True))
+        self.assertListEqual(playlist, [self.pe1, self.pe2])
+
+        # Reorder pe2 before pe1
+        response = self.client.put(self.url_pe2,
+                                   data={'before_id': self.pe1.id})
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Check new order pe1, pe2
+        playlist = list(PlaylistEntry.objects.exclude(was_played=True))
+        self.assertListEqual(playlist, [self.pe2, self.pe1])
+
+    def test_put_playlist_reorder_entry_played(self):
+        """Test cannot reorder before played entry
+        """
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # Attempt to reorder pe2 before pe3
+        response = self.client.put(self.url_pe2,
+                                   data={'before_id': self.pe3.id})
+
+        # Played entry not found
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_put_playlist_reorder_entry_playing(self):
+        """Test cannot reorder before played entry
+        """
+        # Simulate a player playing next song (pe1)
+        self.player_play_next_song()
+
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # Attempt to reorder pe2 before pe1
+        response = self.client.put(self.url_pe2,
+                                   data={'before_id': self.pe1.id})
+
+        # Played entry not found
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_put_playlist_reorder_forbidden(self):
+        """Test user cannot reorder playlist
+        """
+        # Login as user
+        self.authenticate(self.p_user)
+
+        # Attempt to reorder pe2 before pe1
+        response = self.client.put(self.url_pe2,
+                                   data={'before_id': self.pe1.id})
+
+        # Played entry not found
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
