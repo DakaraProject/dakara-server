@@ -29,12 +29,18 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
         )
 
 
-class PlayerSerializer(serializers.Serializer):
-    """Player serializer
+class PlayerStatusSerializer(serializers.Serializer):
+    """Player status serializer
     """
-    playlist_entry_id = serializers.IntegerField(allow_null=True)
+    entry_id = serializers.IntegerField(allow_null=True)
     timing = SecondsDurationField(allow_null=True)
     paused = serializers.BooleanField(default=False)
+
+
+class PlayerEntryFinishedSerializer(serializers.Serializer):
+    """Player finished entry serializer
+    """
+    entry_id = serializers.IntegerField()
 
 
 class PlayerCommandSerializer(serializers.Serializer):
@@ -47,5 +53,5 @@ class PlayerCommandSerializer(serializers.Serializer):
 class PlayerErrorSerializer(serializers.Serializer):
     """Player errors
     """
-    playlist_entry = serializers.IntegerField()
+    entry_id = serializers.IntegerField()
     error_message = serializers.CharField(max_length=255)

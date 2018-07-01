@@ -29,6 +29,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'channels',
     'library',
     'playlist',
     'users',
@@ -49,6 +50,10 @@ MIDDLEWARE_CLASSES = (
 # user model
 
 AUTH_USER_MODEL = 'users.DakaraUser'
+
+# channels
+
+ASGI_APPLICATION = "dakara_server.routing.application"
 
 # urls
 

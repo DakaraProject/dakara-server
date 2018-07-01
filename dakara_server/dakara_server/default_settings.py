@@ -23,6 +23,15 @@ DATABASES = {
     }
 }
 
+# Channels
+# http://channels.readthedocs.io/en/latest/topics/channel_layers.html
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -68,6 +77,10 @@ LOGGING = {
     },
     'loggers': {
         'playlist.views': {
+            'handlers': ['console_playlist'],
+            'level': 'INFO',
+        },
+        'playlist.consumers': {
             'handlers': ['console_playlist'],
             'level': 'INFO',
         },

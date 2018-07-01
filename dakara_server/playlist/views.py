@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 
 from django.db.models import Q
 from django.utils import timezone
@@ -15,13 +16,16 @@ from rest_framework.generics import (
     ListAPIView,
     RetrieveUpdateAPIView,
 )
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from playlist import models
 from playlist import serializers
 from playlist import permissions
-from playlist import views_device as device # noqa F401
 
 tz = timezone.get_default_timezone()
+channel_layer = get_channel_layer()
+logger = logging.getLogger(__name__)
 
 
 class PlaylistEntryPagination(PageNumberPagination):
@@ -101,7 +105,24 @@ class PlaylistEntryListView(ListCreateAPIView):
                 detail="Playlist is full, please retry later."
             )
 
-        return super().post(request)
+        # was the playlist empty before creation?
+        was_empty = models.PlaylistEntry.get_next() is None
+
+        response = super().post(request)
+
+        if response.status_code == status.HTTP_201_CREATED:
+            # request the player to play this entry immediately if the playlist
+            # was empty and the kara status is set to play
+            kara_status = models.KaraStatus.get_object()
+            entry = models.PlaylistEntry.get_next()
+            if kara_status.status == models.KaraStatus.PLAY and \
+               was_empty and entry is not None:
+                async_to_sync(channel_layer.group_send)('playlist.device', {
+                    'type': 'send.new_entry',
+                    'entry': entry,
+                })
+
+        return response
 
 
 class PlaylistPlayedEntryListView(ListAPIView):
@@ -249,15 +270,25 @@ class KaraStatusView(RetrieveUpdateAPIView):
         """
         response = super().put(request)
 
-        # empty the playlist and clear the player if the status is stop
         if response.status_code == status.HTTP_200_OK:
             kara_status = request.data['status']
 
+            # if the kara has to stop
             if kara_status == models.KaraStatus.STOP:
-                player = models.Player.get_or_create()
-                player.reset()
-                player.save()
+                # request the player to stop playing
+                async_to_sync(channel_layer.group_send)('playlist.device', {
+                    'type': 'send.idle'
+                })
+
+                # empty the playlist
                 models.PlaylistEntry.objects.all().delete()
+
+            # if the kara has to be playing
+            elif kara_status == models.KaraStatus.PLAY:
+                # request the player to start playing
+                async_to_sync(channel_layer.group_send)('playlist.device', {
+                    'type': 'handle.new_entry'
+                })
 
         return response
 

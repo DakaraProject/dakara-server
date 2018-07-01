@@ -24,15 +24,21 @@ class PlaylistEntry(models.Model):
         )
 
     @classmethod
-    def get_next(cls, id):
+    def get_next(cls, entry_id=None):
         """Retrieve next playlist entry
 
         Returns the next playlist entry in playlist excluding entry with
         specified id and alredy played songs.
         """
-        playlist = cls.objects.exclude(
-            models.Q(pk=id) | models.Q(was_played=True)
-        ).order_by('date_created')
+        if entry_id is None:
+            playlist = cls.objects.exclude(was_played=True)
+
+        else:
+            playlist = cls.objects.exclude(
+                models.Q(pk=entry_id) | models.Q(was_played=True)
+            )
+
+        playlist.order_by('date_created')
 
         if not playlist:
             return None
