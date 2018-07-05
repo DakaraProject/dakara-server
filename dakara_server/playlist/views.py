@@ -1,7 +1,5 @@
-from datetime import datetime
 import logging
 
-from django.db.models import Q
 from django.utils import timezone
 from django.conf import settings
 from rest_framework import status
@@ -44,11 +42,7 @@ class PlaylistEntryView(DestroyAPIView):
     ]
 
     def get_queryset(self):
-        player = models.Player.get_or_create()
-        entry_id = player.playlist_entry_id
-        return models.PlaylistEntry.objects.exclude(
-            Q(pk=entry_id) | Q(was_played=True)
-        ).order_by('date_created')
+        return models.PlaylistEntry.get_playlist()
 
 
 class PlaylistEntryListView(ListCreateAPIView):
@@ -62,32 +56,14 @@ class PlaylistEntryListView(ListCreateAPIView):
     ]
 
     def get_queryset(self):
-        player = models.Player.get_or_create()
-        entry_id = player.playlist_entry_id
-        return models.PlaylistEntry.objects.exclude(
-            Q(pk=entry_id) | Q(was_played=True)
-        ).order_by('date_created')
+        return models.PlaylistEntry.get_playlist()
 
     def get(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        player = models.Player.get_or_create()
-        date = datetime.now(tz)
-
-        # add player remaining time
-        if player.playlist_entry_id:
-            playlist_entry = models.PlaylistEntry.objects.get(
-                pk=player.playlist_entry_id
-            )
-            date += playlist_entry.song.duration - player.timing
-
-        # for each entry, compute when it is supposed to play
-        for playlist_entry in queryset:
-            playlist_entry.date_play = date
-            date += playlist_entry.song.duration
+        entries, date = models.PlaylistEntry.get_playlist_with_date()
 
         serializer = serializers.PlaylistEntriesWithDateEndSerializer(
             {
-                'results': queryset,
+                'entries': entries,
                 'date_end': date,
             },
             context={'request': request}
@@ -111,15 +87,22 @@ class PlaylistEntryListView(ListCreateAPIView):
         response = super().post(request)
 
         if response.status_code == status.HTTP_201_CREATED:
+            # broadcast that a new entry has been created
+            async_to_sync(channel_layer.group_send)('playlist.front', {
+                'type': 'send.playlist_new_entry',
+            })
+
             # request the player to play this entry immediately if the playlist
             # was empty and the kara status is set to play
-            kara_status = models.KaraStatus.get_object()
             entry = models.PlaylistEntry.get_next()
+            kara_status = models.KaraStatus.get_object()
             if kara_status.status == models.KaraStatus.PLAY and \
                was_empty and entry is not None:
                 async_to_sync(channel_layer.group_send)('playlist.device', {
                     'type': 'send.new_entry',
-                    'entry': entry,
+                    'data': {
+                        'entry': entry,
+                    }
                 })
 
         return response
@@ -228,12 +211,6 @@ class DigestView(APIView):
     def get(self, request, *args, **kwargs):
         """Send aggregated player data
         """
-        # Get player
-        player = models.Player.get_or_create()
-
-        # Get player commands
-        player_command = models.PlayerCommand.get_or_create()
-
         # Get player errors
         player_errors_pool = models.PlayerErrorsPool.get_or_create()
 
@@ -242,8 +219,6 @@ class DigestView(APIView):
 
         serializer = serializers.DigestSerializer(
             {
-                "player_status": player,
-                "player_manage": player_command,
                 "player_errors": player_errors_pool.dump(),
                 "kara_status": kara_status,
             },
@@ -271,10 +246,10 @@ class KaraStatusView(RetrieveUpdateAPIView):
         response = super().put(request)
 
         if response.status_code == status.HTTP_200_OK:
-            kara_status = request.data['status']
+            kara_status = request.data
 
             # if the kara has to stop
-            if kara_status == models.KaraStatus.STOP:
+            if kara_status['status'] == models.KaraStatus.STOP:
                 # request the player to stop playing
                 async_to_sync(channel_layer.group_send)('playlist.device', {
                     'type': 'send.idle'
@@ -283,12 +258,23 @@ class KaraStatusView(RetrieveUpdateAPIView):
                 # empty the playlist
                 models.PlaylistEntry.objects.all().delete()
 
+                # the empty playlist is not broadcasted, as it can be deduced
+                # from the kara status itself
+
             # if the kara has to be playing
-            elif kara_status == models.KaraStatus.PLAY:
+            elif kara_status['status'] == models.KaraStatus.PLAY:
                 # request the player to start playing
                 async_to_sync(channel_layer.group_send)('playlist.device', {
                     'type': 'handle.new_entry'
                 })
+
+            # broadcast the new kara status
+            async_to_sync(channel_layer.group_send)('playlist.front', {
+                'type': 'send.kara_status',
+                'data': {
+                    'kara_status': kara_status
+                }
+            })
 
         return response
 

@@ -1,9 +1,13 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.db import models
 from django.core.cache import cache
+from django.utils import timezone
 
 from users.models import DakaraUser
+
+
+tz = timezone.get_default_timezone()
 
 
 class PlaylistEntry(models.Model):
@@ -15,6 +19,7 @@ class PlaylistEntry(models.Model):
     owner = models.ForeignKey(DakaraUser, null=False,
                               on_delete=models.CASCADE)
     was_played = models.BooleanField(default=False, null=False)
+    had_error = models.BooleanField(default=False, null=False)
     date_played = models.DateTimeField(null=True)
 
     def __str__(self):
@@ -43,9 +48,53 @@ class PlaylistEntry(models.Model):
         if not playlist:
             return None
 
-        playlist_entry = playlist[0]
+        return playlist.first()
 
-        return playlist_entry
+    @classmethod
+    def get_playing(cls):
+        playlist = cls.objects.filter(
+            was_played=False, date_played__isnull=True
+        ).order_by('date_created')
+
+        if not playlist:
+            return None
+
+        if playlist.count() > 1:
+            raise RuntimeError("It seems that two entries are playing at "
+                               "the same time")
+
+        return playlist.first()
+
+    @classmethod
+    def get_playlist(cls):
+        queryset = cls.objects.exclude(
+            models.Q(was_played=True) | models.Q(date_played__isnull=False)
+        ).order_by('date_created')
+
+        return queryset
+
+    @classmethod
+    def get_playlist_with_date(cls):
+        # we have to transform the queryset to a list, otherwise the adjuction
+        # of the play date will be lost by any queryset method
+        playlist = list(cls.get_playlist())
+
+        # it is not possible to add the timing of the player
+        # for each entry, compute when it is supposed to play
+        date = datetime.now(tz)
+        for entry in playlist:
+            entry.date_play = date
+            date += entry.song.duration
+
+        return playlist, date
+
+    @classmethod
+    def get_playlist_played(cls):
+        playlist = cls.objects.filter(
+            was_played=True, date_played__isnull=False
+        ).order_by('date_created')
+
+        return playlist
 
 
 class KaraStatus(models.Model):
