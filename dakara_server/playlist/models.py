@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 from django.db import models
 from django.core.cache import cache
@@ -53,15 +53,18 @@ class PlaylistEntry(models.Model):
     @classmethod
     def get_playing(cls):
         playlist = cls.objects.filter(
-            was_played=False, date_played__isnull=True
+            was_played=False, date_played__isnull=False
         ).order_by('date_created')
 
         if not playlist:
             return None
 
         if playlist.count() > 1:
-            raise RuntimeError("It seems that two entries are playing at "
-                               "the same time")
+            songs = ', '.join(["'{}'".format(entry.song)
+                               for entry in playlist])
+
+            raise RuntimeError("It seems that several entries are playing at "
+                               "the same time: {}".format(songs))
 
         return playlist.first()
 
@@ -74,19 +77,20 @@ class PlaylistEntry(models.Model):
         return queryset
 
     @classmethod
-    def get_playlist_with_date(cls):
+    def get_playlist_with_interval(cls):
         # we have to transform the queryset to a list, otherwise the adjuction
-        # of the play date will be lost by any queryset method
+        # of the play interval will be lost by any queryset method
         playlist = list(cls.get_playlist())
 
+        # for each entry, compute when it is theoretically supposed to play
+        # from the start of the playlist
         # it is not possible to add the timing of the player
-        # for each entry, compute when it is supposed to play
-        date = datetime.now(tz)
+        interval = timedelta()
         for entry in playlist:
-            entry.date_play = date
-            date += entry.song.duration
+            entry.interval_play = interval
+            interval += entry.song.duration
 
-        return playlist, date
+        return playlist, interval
 
     @classmethod
     def get_playlist_played(cls):

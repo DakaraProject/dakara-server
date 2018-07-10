@@ -82,7 +82,7 @@ urlpatterns = [
     # API routes for the playlist, front side
     url(
         r'^api/playlist/player/manage/$',
-        playlist_views.PlayerManageView.as_view(),
+        playlist_views.PlayerCommandView.as_view(),
         name='playlist-player-manage'
         ),
     url(

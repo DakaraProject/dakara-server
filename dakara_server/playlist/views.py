@@ -59,15 +59,19 @@ class PlaylistEntryListView(ListCreateAPIView):
         return models.PlaylistEntry.get_playlist()
 
     def get(self, request, *args, **kwargs):
-        entries, date = models.PlaylistEntry.get_playlist_with_date()
+        entries, interval = models.PlaylistEntry.get_playlist_with_interval()
 
-        serializer = serializers.PlaylistEntriesWithDateEndSerializer(
+        serializer = serializers.PlaylistEntriesWithIntervalEndSerializer(
             {
                 'entries': entries,
-                'date_end': date,
+                'date_end': interval,
             },
-            context={'request': request}
         )
+        data = serializer.data
+
+        # manually add the date to the response
+        serializer_date = serializers.AutoDateTimeSerializer({})
+        data['date'] = serializer_date.data['date']
 
         return Response(serializer.data)
 
@@ -139,24 +143,13 @@ class PlayerStatusView(APIView):
         )
 
 
-class PlayerManageView(APIView):
-    """View or edition of player commands
+class PlayerCommandView(APIView):
+    """Send commands to the player
     """
     permission_classes = [
         permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly,
         permissions.KaraStatusIsNotStoppedOrReadOnly,
     ]
-
-    def get(self, request, *args, **kwargs):
-        """Get pause or skip status
-        """
-        player_command = models.PlayerCommand.get_or_create()
-        serializer = serializers.PlayerCommandSerializer(player_command)
-
-        return Response(
-            serializer.data,
-            status.HTTP_200_OK
-        )
 
     def put(self, request, *args, **kwargs):
         """Send pause or skip requests
@@ -168,8 +161,27 @@ class PlayerManageView(APIView):
                 status.HTTP_400_BAD_REQUEST
             )
 
-        player_command = models.PlayerCommand(**serializer.data)
-        player_command.save()
+        command = serializer.validated_data['command']
+
+        if command == 'skip':
+            # mark the currently playing entry as played
+            entry_to_skip = models.PlaylistEntry.get_playing()
+            entry_to_skip.was_played = True
+            entry_to_skip.save()
+
+            # request to play the next entry
+            async_to_sync(channel_layer.group_send)('playlist.device', {
+                'type': 'handle_new_entry',
+            })
+
+        else:
+            # send command to player
+            async_to_sync(channel_layer.group_send)('playlist.device', {
+                'type': 'send_command',
+                'data': {
+                    'command': serializer.validated_data['command']
+                }
+            })
 
         return Response(
             serializer.data,

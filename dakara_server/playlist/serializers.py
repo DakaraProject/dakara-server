@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from rest_framework import serializers
+from django.utils import timezone
 
 from playlist.models import PlaylistEntry, KaraStatus
 from library.models import Song
@@ -10,6 +13,8 @@ from library.serializers import (
 from users.serializers import (
     UserForPublicSerializer,
 )
+
+tz = timezone.get_default_timezone()
 
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
@@ -83,18 +88,20 @@ class PlaylistPlayedEntryWithDatePlayedSerializer(PlaylistEntrySerializer):
         )
 
 
-class PlaylistEntriesWithDateEndSerializer(serializers.Serializer):
+class PlaylistEntriesWithIntervalEndSerializer(serializers.Serializer):
     """Playlist entries with playlist end date
     """
     entries = PlaylistEntryWithDatePlaySerializer(many=True, read_only=True)
-    date_end = serializers.DateTimeField(read_only=True)
+    interval_end = SecondsDurationField(read_only=True)
+    date = serializers.DateTimeField(read_only=True,
+                                     default=lambda: datetime.now(tz))
 
 
-class PlaylistEntryWithDateEndSerializer(serializers.Serializer):
+class PlaylistEntryWithIntervalEndSerializer(serializers.Serializer):
     """Playlist entries with playlist end date
     """
     entry = PlaylistEntryWithDatePlaySerializer(read_only=True)
-    date_end = serializers.DateTimeField(read_only=True)
+    interval_end = SecondsDurationField(read_only=True)
 
 
 # class PlayerStatusSerializer(serializers.Serializer):
@@ -201,8 +208,11 @@ class KaraStatusSerializer(serializers.ModelSerializer):
 class PlayerCommandSerializer(serializers.Serializer):
     """Player command serializer
     """
-    pause = serializers.BooleanField(default=False)
-    skip = serializers.BooleanField(default=False)
+    command = serializers.ChoiceField(choices={
+        'play': 'play',
+        'pause': 'pause',
+        'skip': 'skip',
+    })
 
 
 class DigestSerializer(serializers.Serializer):
@@ -210,3 +220,9 @@ class DigestSerializer(serializers.Serializer):
     """
     player_errors = PlayerErrorSerializer(many=True)
     kara_status = KaraStatusSerializer()
+
+
+class AutoDateTimeSerializer(serializers.Serializer):
+    """Contains the current date time"""
+    date = serializers.DateTimeField(read_only=True,
+                                     default=lambda: datetime.now(tz))

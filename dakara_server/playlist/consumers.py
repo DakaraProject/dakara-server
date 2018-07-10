@@ -18,7 +18,11 @@ WS_4403_FORBIDDEN = 4403
 
 
 class DakaraJsonWebsocketConsumer(JsonWebsocketConsumer):
-    """Custom consumer that on receive event wil call the corresponding method
+    """Custom consumer for the project
+
+    On receive event, it wil call the corresponding method.
+
+    On send, it will add the current date and time.
     """
     def receive_json(self, event):
         """Receive all incoming events and call the corresponding method
@@ -31,6 +35,13 @@ class DakaraJsonWebsocketConsumer(JsonWebsocketConsumer):
 
         # call the method
         getattr(self, method_name)(event.get('data'))
+
+    def send_json(self, content):
+        """Add the date and time to the response"""
+        serializer = serializers.AutoDateTimeSerializer({})
+        content['date'] = serializer.data['date']
+
+        return super().send_json(content)
 
 
 class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
@@ -378,12 +389,12 @@ class PlaylistFrontConsumer(DakaraJsonWebsocketConsumer):
     def send_playlist_new_entry(self, event):
         """Tell the front a new entry has been added to the playlist
         """
-        playlist, date_end = models.PlaylistEntry.get_playlist_with_date()
+        playlist, interval = models.PlaylistEntry.get_playlist_with_interval()
         entry = playlist[-1]
 
-        serializer = serializers.PlaylistEntryWithDateEndSerializer({
+        serializer = serializers.PlaylistEntryWithIntervalEndSerializer({
             'entry': entry,
-            'date_end': date_end
+            'interval_end': interval
         })
 
         logger.debug("Telling the front that the playlist has a new "
@@ -399,11 +410,11 @@ class PlaylistFrontConsumer(DakaraJsonWebsocketConsumer):
 
         It sends the complete playlist.
         """
-        playlist, date_end = models.PlaylistEntry.get_playlist_with_date()
+        playlist, interval = models.PlaylistEntry.get_playlist_with_interval()
 
-        serializer = serializers.PlaylistEntriesWithDateEndSerializer({
+        serializer = serializers.PlaylistEntriesWithIntervalEndSerializer({
             'entries': playlist,
-            'date_end': date_end,
+            'interval_end': interval,
         })
 
         logger.debug("Sending the playlist to the front")
