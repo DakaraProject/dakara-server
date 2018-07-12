@@ -162,6 +162,7 @@ class PlayerStatusSerializer(serializers.Serializer):
 
     timing = SecondsDurationField()
     paused = serializers.BooleanField()
+    in_transition = serializers.BooleanField()
 
 
 class PlayerEntryFinishedSerializer(serializers.Serializer):

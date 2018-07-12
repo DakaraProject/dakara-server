@@ -30,8 +30,9 @@ class DakaraJsonWebsocketConsumer(JsonWebsocketConsumer):
         # get the method name associated with the type
         method_name = "receive_{}".format(event['type'])
         if not hasattr(self, method_name):
-            raise ValueError("Event of unknown type received '{}'"
-                             .format(event['type']))
+            logger.error("Event of unknown type received '{}'"
+                         .format(event['type']))
+            return
 
         # call the method
         getattr(self, method_name)(event.get('data'))
@@ -221,6 +222,23 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         # continue the playlist
         self.handle_new_entry({'data': {'old_entry_id': entry.id}})
 
+    def receive_entry_started(self, content):
+        """Receive an event telling the player has started to play its entry
+        """
+        serializer = serializers.PlayerEntryFinishedSerializer(
+            data=content)
+
+        if not serializer.is_valid():
+            self.close(code=WS_4400_BAD_REQUEST)
+            logger.error("Player finished entry event invalid")
+            return
+
+        # broadcast the information to the clients
+        async_to_sync(self.channel_layer.group_send)('playlist.front', {
+            'type': 'send_device_entry_started',
+            'data': serializer.validated_data
+        })
+
     def receive_status(self, content):
         """Receive player status
 
@@ -349,6 +367,21 @@ class PlaylistFrontConsumer(DakaraJsonWebsocketConsumer):
 
         self.send_json({
             'type': 'device_entry_error',
+            'data': serializer.data,
+        })
+
+    def send_device_entry_started(self, event):
+        """Tell the front the device had started an entry
+        """
+        entry = event['data']['entry']
+
+        serializer = serializers.PlaylistPlayedEntryWithDatePlayedSerializer(entry)
+
+        logger.debug("Telling the front that the player has started to play"
+                     "'{}'".format(entry.song))
+
+        self.send_json({
+            'type': 'device_entry_started',
             'data': serializer.data,
         })
 
