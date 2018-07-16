@@ -32,38 +32,39 @@ if logger.handlers:
     logger.handlers[0].stream = wrapped_stderr
 
 
-class Command(BaseCommand):
-    """Command available for `manage.py` for creating works or adding
-    extra information to works.
+class WorkCreator:
+    """Work creator and updater. Create and update works in the
+    database provided a work file and a parser.
+
+    Args:
+        work_file (str): Path of the file storing the works data.
+        parser (module): Custom python module used to extract data from file.
+        dry_run (bool): Run script in test mode.
 
     About parser:
         This module should define a method called `parse_work` which takes
         a file path as argument and return a dictionnary with the following:
-            works (dict): keys are title of a work, values are dictionnary with
-            the following entries :
-                subtitle (str): subtitle of a work
-                work_type (str): query name of the work type of a work
-                alternative_titles (list): list of alternative names of a work
+            works (dict): keys are a query name worktype, values are
+            dictionnary such that:
+                keys are title of a work associated to the worktype, values are
+                the following:
+                    subtitle (str): subtitle of a work
+                    alternative_titles (list): list of alternative names of
+                    a work
     """
-    help = "Create works or add extra information to works."
+    def __init__(
+            self,
+            work_file,
+            parser,
+            dry_run=False):
+        self.dry_run = dry_run
+        # get works data
+        self.works = parser.parse_work(work_file)
+        self.work_alt_title_listing = []
 
-    def add_arguments(self, parser):
-        """Extend arguments for the command
-        """
-        parser.add_argument(
-            "work-file",
-            help="File storing the works data."
-        )
-
-        parser.add_argument(
-            "--parser",
-            help="""Name of a custom python module used to extract data from file name;
-            see internal doc for what is expected for this module.""",
-            default=None
-        )
-
+    # TODO restrict search fields
     @staticmethod
-    def _check_parser_result(dict_work):
+    def check_parser_result(dict_work):
         """Check if a work is correctly structured
         """
         field_error = None
@@ -73,6 +74,116 @@ class Command(BaseCommand):
                 break
 
         return field_error
+
+    def save(self, obj):
+        """Save an object in database depending of the options."""
+        if self.dry_run:
+            obj.show(sys.stdout)
+        else:
+            obj.save()
+
+    def creatework(self, query_name, title_work, dict_work):
+        """Create or update a work in database."""
+        # check that the work data is well structured
+        field_error = self.check_parser_result(dict_work)
+        if field_error is not None:
+            logger.warning(
+                "Incorrect field '{}' for '{}'".format(
+                    field_error,
+                    title_work))
+            return
+
+        work_entry, work_created = Work.objects.get_or_create(
+            work__title__iexact=title_work
+        )
+
+        if work_created:
+            logger.debug("Created work '{}'".format(title_work))
+
+        # get title
+        work_entry.title = title_work
+
+        # get subtitle
+        if dict_work['subtitle']:
+            work_entry.subtitle = dict_work['subtitle']
+
+        # get work type
+        try:
+            work_type_entry = WorkType.objects.get(
+                query_name=query_name
+            )
+
+            work_entry.work_type = work_type_entry
+
+        except WorkType.DoesNotExist:
+            logger.warning("""Unable to find work type query name '{}'.
+                            Use createworktypes command first to create \
+                                    work types.""".format(query_name))
+
+        # get work alternative titles or create them
+        self.work_alt_title_listing = []
+        for alt_title in dict_work['alternative_titles']:
+            self.create_alternative_title(title_work, alt_title)
+
+            if self.work_alt_title_listing:
+                logger.debug("Created alternative titles '{}' for '{}'".format(
+                        "', '".join(self.work_alt_title_listing), title_work))
+
+        # save work in the database
+        self.save(work_entry)
+
+    def create_alternative_title(self, title_work, alt_title):
+        work_alt_title_entry, work_alt_title_created = WorkAlternativeTitle.get_or_create(  # noqa E501
+            title__iexact=alt_title,
+            work__title__iexact=title_work
+            )
+
+        work_alt_title_entry.title = alt_title
+        work_alt_title_entry.work = title_work
+
+        # save work alternative title in the database
+        self.save(work_alt_title_entry)
+
+        if work_alt_title_created:
+            self.work_alt_title_listing.append(alt_title)
+
+    def createworks(self):
+        """Create or update works provided."""
+        # get works or create it
+        for query_name, dict_work_type in self.works:
+            for title_work, dict_work in dict_work_type:
+                self.creatework(query_name, title_work, dict_work)
+
+        logger.debug("Works successfully created.")
+
+
+class Command(BaseCommand):
+    """Command available for `manage.py` for creating works or adding
+    extra information to works.
+    """
+    help = "Create works or add extra information to works."
+
+    def add_arguments(self, parser):
+        """Extend arguments for the command
+        """
+        parser.add_argument(
+            "work-file",
+            help="Path of the file storing the works data."
+        )
+
+        parser.add_argument(
+            "--parser",
+            help="""Name of a custom python module used to extract data from file name;
+            see internal doc for what is expected for this module.""",
+            default=None
+        )
+
+        parser.add_argument(
+            "-r",
+            "--dry-run",
+            help="Run script in test mode, don't save anything in database.",
+            action="store_true"
+        )
 
     def handle(self, *args, **options):
         """Process the feeding
@@ -94,69 +205,10 @@ class Command(BaseCommand):
         else:
             parser = default_work_parser
 
-        # get works data
-        works = parser.parse_work(work_file)
+        work_creator = WorkCreator(
+                work_file,
+                parser,
+                dry_run=options.get('dry_run'))
 
-        # get works or create it
-        for work in works:
-
-            dict_work = works[work]
-            # check that the work data is well structured
-            field_error = self._check_parser_result(dict_work)
-            if field_error is not None:
-                logger.warning(
-                    "Incorrect field '{}' for '{}'".format(field_error, work))
-                continue
-
-            work_entry, work_created = Work.objects.get_or_create(
-                work__title__iexact=work
-            )
-
-            if work_created:
-                logger.debug("Created work '{}'".format(work))
-
-            # get title
-            work_entry.title = work
-
-            # get subtitle
-            if dict_work['subtitle']:
-                work_entry.subtitle = dict_work['subtitle']
-
-            # get work type
-            if dict_work['work_type']:
-                try:
-                    work_type_entry = WorkType.objects.get(
-                        query_name=dict_work['work_type']
-                    )
-
-                    work_entry.work_type = work_type_entry
-                except WorkType.DoesNotExist:
-                    logger.warning("""Unable to find work type query name '{}'.
-                            Use createworktypes command first to create \
-                            work types.""".format(dict_work['work_type']))
-
-            # get work alternative titles or create them
-            work_alt_title_listing = []
-            for alt_title in dict_work['alternative_titles']:
-                work_alt_title_entry, work_alt_title_created = WorkAlternativeTitle.get_or_create( # noqa E501
-                    title__iexact=alt_title,
-                    work__title__iexact=work
-                )
-
-                work_alt_title_entry.title = alt_title
-                work_alt_title_entry.work = work
-
-                # save work alternative title in the database
-                work_alt_title_entry.save()
-
-                if work_alt_title_created:
-                    work_alt_title_listing.append(alt_title)
-
-            if work_alt_title_listing:
-                logger.debug("Created alternative titles '{}' for '{}'".format(
-                    "', '".join(work_alt_title_listing), work))
-
-            # save work in the database
-            work_entry.save()
-
-        logger.debug("Works successfully created.")
+        # run the work creator
+        work_creator.createworks()
