@@ -57,9 +57,15 @@ class PlaylistEntryView(DestroyAPIView):
                 status.HTTP_400_BAD_REQUEST
             )
 
-        before_id = serializer.data['before_id']
-        before_entry = get_object_or_404(self.get_queryset(), pk=before_id)
-        playlist_entry.above(before_entry)
+        if 'before_id' in serializer.data:
+            before_id = serializer.data['before_id']
+            before_entry = get_object_or_404(self.get_queryset(), pk=before_id)
+            playlist_entry.above(before_entry)
+
+        else:
+            after_id = serializer.data['after_id']
+            after_entry = get_object_or_404(self.get_queryset(), pk=after_id)
+            playlist_entry.below(after_entry)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

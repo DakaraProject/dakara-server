@@ -325,8 +325,8 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
         entries = PlaylistEntry.objects.filter(id=self.pe3.id)
         self.assertEqual(len(entries), 1)
 
-    def test_put_playlist_reorder(self):
-        """Test playlist reorder
+    def test_put_playlist_reorder_before(self):
+        """Test playlist reorder before another entry
         """
         # Login as manager
         self.authenticate(self.manager)
@@ -341,7 +341,27 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # Check new order pe1, pe2
+        # Check new order pe2, pe1
+        playlist = list(PlaylistEntry.objects.exclude(was_played=True))
+        self.assertListEqual(playlist, [self.pe2, self.pe1])
+
+    def test_put_playlist_reorder_after(self):
+        """Test playlist reorder after another entry
+        """
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # Pre-assertion: order pe1, pe2
+        playlist = list(PlaylistEntry.objects.exclude(was_played=True))
+        self.assertListEqual(playlist, [self.pe1, self.pe2])
+
+        # Reorder pe1 after pe2
+        response = self.client.put(self.url_pe1,
+                                   data={'after_id': self.pe2.id})
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Check new order pe2, pe1
         playlist = list(PlaylistEntry.objects.exclude(was_played=True))
         self.assertListEqual(playlist, [self.pe2, self.pe1])
 
@@ -386,3 +406,29 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
 
         # Played entry not found
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_put_playlist_reorder_entry_after_and_before(self):
+        """Test cannot reorder with both before and after
+        """
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # Attempt to reorder pe2 before and after pe1
+        response = self.client.put(self.url_pe2,
+                                   data={'before_id': self.pe1.id,
+                                         'after_id': self.pe1.id})
+
+        # Validation error
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_put_playlist_reorder_no_fields(self):
+        """Test cannot reorder with no fields
+        """
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # Attempt to reorder pe2 with nothing
+        response = self.client.put(self.url_pe2, data={})
+
+        # Validation error
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
