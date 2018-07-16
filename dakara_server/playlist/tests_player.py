@@ -354,7 +354,7 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
 
 
 # TODO: Player errors check
-class PlayerDeviceErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
+class PlayerErrorViewListAPIViewTestCase(BaseAPITestCase):
     url = reverse('playlist-player-errors')
     url_digest = reverse('playlist-digest')
 
@@ -371,7 +371,7 @@ class PlayerDeviceErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         # Should not have any
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data['results']), 0)
 
         # Get player errors again but through digest route
         response = self.client.get(self.url_digest)
@@ -389,10 +389,9 @@ class PlayerDeviceErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         # Should have one error
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        error = response.data[0]
-        self.assertIsNotNone(error.get('id'))
-        self.assertEqual(error['song']['id'], self.song1.id)
+        self.assertEqual(len(response.data['results']), 1)
+        error = response.data['results'][0]
+        self.assertEqual(error['playlist_entry']['id'], self.pe1.id)
         self.assertEqual(error['error_message'], error_message)
 
         # Get player errors again but through digest route
@@ -400,8 +399,7 @@ class PlayerDeviceErrorsPoolViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['player_errors']), 1)
         error = response.data['player_errors'][0]
-        self.assertIsNotNone(error.get('id'))
-        self.assertEqual(error['song']['id'], self.song1.id)
+        self.assertEqual(error['playlist_entry']['id'], self.pe1.id)
         self.assertEqual(error['error_message'], error_message)
 
 

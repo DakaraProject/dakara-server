@@ -104,7 +104,7 @@ urlpatterns = [
         ),
     url(
         r'^api/playlist/player/errors/$',
-        playlist_views.PlayerErrorsPoolView.as_view(),
+        playlist_views.PlayerErrorView.as_view(),
         name='playlist-player-errors'
         ),
     url(

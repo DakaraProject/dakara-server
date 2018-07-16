@@ -2,7 +2,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 
 from .base_test import BaseAPITestCase
-from .models import KaraStatus, PlaylistEntry
+from .models import KaraStatus, PlaylistEntry, PlayerError
 
 
 class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
@@ -68,12 +68,21 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         # the player is playing
         self.player_play_next_song()
 
+        # there is a player error
+        PlayerError.objects.create(
+            playlist_entry=self.pe1,
+            error_message="error message"
+        )
+
         # login as manager
         self.authenticate(self.manager)
 
         # pre-assertion
         # the playlist is not empty
         self.assertTrue(PlaylistEntry.objects.all())
+
+        # the player errors list is not empty
+        self.assertTrue(PlayerError.objects.all())
 
         # the player is currently playing
         response = self.client.get(url_player_status)
@@ -86,6 +95,9 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         # post-assertion
         # the playlist is empty now
         self.assertFalse(PlaylistEntry.objects.all())
+
+        # the player errors list is empty now
+        self.assertFalse(PlayerError.objects.all())
 
         # the player is not playing anything
         response = self.client.get(url_player_status)

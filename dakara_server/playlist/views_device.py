@@ -154,8 +154,7 @@ class PlayerDeviceErrorView(APIView):
     def post(self, request):
         """Handle error message
 
-        Recieve it, log it, keep it in cache and delete
-        entry from playlist.
+        Recieve it, log it, keep it in cache.
 
         The error can happen at the middle of the song, or at its very
         beginning. In that case, the player may have had no time to actualize
@@ -176,8 +175,8 @@ class PlayerDeviceErrorView(APIView):
 
         # protection if the erroneous song is the last one to play
         entry_id_next = entry_next.id if entry_next else None
-        error_song = models.PlaylistEntry.objects. \
-            get(id=entry_id_error).song
+        error_entry = models.PlaylistEntry.objects.get(id=entry_id_error)
+        error_song = error_entry.song
 
         if entry_id_error == entry_id_current:
             # the server knows the player has already
@@ -190,8 +189,10 @@ class PlayerDeviceErrorView(APIView):
             # started playing,
             # which means the error occured immediately and
             # status of the player has not been updated yet
-            # remove the problematic song from the playlist
-            models.PlaylistEntry.objects.get(id=entry_id_next).delete()
+            # set the problematic song from the playlist as played
+            next_entry = models.PlaylistEntry.objects.get(id=entry_id_next)
+            next_entry.was_played = True
+            next_entry.save()
 
         else:
             raise RuntimeError("The player is not supposed to do that")
@@ -207,14 +208,11 @@ class PlayerDeviceErrorView(APIView):
             )
         )
 
-        # store the event in player error pool
-        player_errors_pool = models.PlayerErrorsPool.get_or_create()
-        player_errors_pool.add(
-            song=error_song,
+        # store the event in player errors
+        models.PlayerError.objects.create(
+            playlist_entry=error_entry,
             error_message=player_error.validated_data['error_message']
         )
-
-        player_errors_pool.save()
 
         return Response(
             status=status.HTTP_201_CREATED

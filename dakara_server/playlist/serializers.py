@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from playlist.models import PlaylistEntry, KaraStatus
+from playlist.models import PlaylistEntry, KaraStatus, PlayerError
 from library.models import Song
 from library.serializers import (
     SongSerializer,
@@ -112,12 +112,19 @@ class PlayerStatusSerializer(serializers.Serializer):
         return None
 
 
-class PlayerErrorSerializer(serializers.Serializer):
+class PlayerErrorSerializer(serializers.ModelSerializer):
     """Player errors sent to the client
     """
-    id = serializers.IntegerField()
-    song = SongSerializer(many=False, read_only=True)
-    error_message = serializers.CharField(max_length=255)
+    playlist_entry = PlaylistPlayedEntryWithDatePlayedSerializer(
+        many=False, read_only=True)
+
+    class Meta:
+        model = PlayerError
+        fields = (
+            'playlist_entry',
+            'error_message',
+            'date_created',
+        )
 
 
 class KaraStatusSerializer(serializers.ModelSerializer):

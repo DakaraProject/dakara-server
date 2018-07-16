@@ -173,25 +173,12 @@ class PlayerManageView(APIView):
         )
 
 
-class PlayerErrorsPoolView(APIView):
-    """View of the player errors pool
+class PlayerErrorView(ListAPIView):
+    """View of the player errors
     """
     permission_classes = (IsAuthenticated,)
-
-    def get(self, request, *args, **kwargs):
-        """Send player error pool
-        """
-        player_errors_pool = models.PlayerErrorsPool.get_or_create()
-        serializer = serializers.PlayerErrorSerializer(
-            player_errors_pool.dump(),
-            many=True,
-            context={'request': request}
-        )
-
-        return Response(
-            serializer.data,
-            status.HTTP_200_OK
-        )
+    serializer_class = serializers.PlayerErrorSerializer
+    queryset = models.PlayerError.objects.all().order_by('date_created')
 
 
 class DigestView(APIView):
@@ -214,7 +201,7 @@ class DigestView(APIView):
         player_command = models.PlayerCommand.get_or_create()
 
         # Get player errors
-        player_errors_pool = models.PlayerErrorsPool.get_or_create()
+        player_errors_pool = models.PlayerError.objects.all()
 
         # Get kara status
         kara_status = models.KaraStatus.get_object()
@@ -223,7 +210,7 @@ class DigestView(APIView):
             {
                 "player_status": player,
                 "player_manage": player_command,
-                "player_errors": player_errors_pool.dump(),
+                "player_errors": player_errors_pool,
                 "kara_status": kara_status,
             },
             context={'request': request},
@@ -249,15 +236,22 @@ class KaraStatusView(RetrieveUpdateAPIView):
         """
         response = super().put(request)
 
-        # empty the playlist and clear the player if the status is stop
+        # empty the playlist, the player errors and clear the player if the
+        # status is stop
         if response.status_code == status.HTTP_200_OK:
             kara_status = request.data['status']
 
             if kara_status == models.KaraStatus.STOP:
+                # clear player
                 player = models.Player.get_or_create()
                 player.reset()
                 player.save()
+
+                # empty the playlist
                 models.PlaylistEntry.objects.all().delete()
+
+                # empty the player errors
+                models.PlayerError.objects.all().delete()
 
         return response
 
