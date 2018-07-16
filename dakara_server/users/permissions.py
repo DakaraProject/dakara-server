@@ -5,6 +5,13 @@ from django.contrib.auth import get_user_model
 UserModel = get_user_model()
 
 
+class DummyRequest:
+    """Convert a request dictionary to a request object
+    """
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+
 class BasePermissionCustom(permissions.BasePermission):
     """Base permission class for the project, check the basic permissions
 
@@ -16,6 +23,12 @@ class BasePermissionCustom(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
+        """Check the permission
+        """
+        # convert dict passed request to object
+        # idea from https://stackoverflow.com/a/1305663/4584444
+        if isinstance(request, dict):
+            request = DummyRequest(**request)
 
         # if the user is not authenticated, deny access
         if not request.user or not request.user.is_authenticated():
