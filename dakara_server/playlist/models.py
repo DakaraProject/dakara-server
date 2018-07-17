@@ -24,22 +24,62 @@ class PlaylistEntry(models.Model):
         )
 
     @classmethod
-    def get_next(cls, id):
-        """Retrieve next playlist entry
-
-        Returns the next playlist entry in playlist excluding entry with
-        specified id and alredy played songs.
-        """
-        playlist = cls.objects.exclude(
-            models.Q(pk=id) | models.Q(was_played=True)
+    def get_playing(cls):
+        playlist = cls.objects.filter(
+            was_played=False, date_played__isnull=False
         ).order_by('date_created')
 
         if not playlist:
             return None
 
-        playlist_entry = playlist[0]
+        if playlist.count() > 1:
+            songs = ', '.join(["'{}'".format(entry.song)
+                               for entry in playlist])
 
-        return playlist_entry
+            raise RuntimeError("It seems that several entries are playing at "
+                               "the same time: {}".format(songs))
+
+        return playlist.first()
+
+    @classmethod
+    def get_playlist(cls):
+        queryset = cls.objects.exclude(
+            models.Q(was_played=True) | models.Q(date_played__isnull=False)
+        ).order_by('date_created')
+
+        return queryset
+
+    @classmethod
+    def get_playlist_played(cls):
+        playlist = cls.objects.filter(
+            was_played=True
+        ).order_by('date_created')
+
+        return playlist
+
+    @classmethod
+    def get_next(cls, entry_id=None):
+        """Retrieve next playlist entry
+
+        Returns the next playlist entry in playlist excluding entry with
+        specified id and alredy played songs.
+        """
+        if entry_id is None:
+            playlist = cls.objects.exclude(was_played=True)
+
+        else:
+            # do not process a played entry
+            if cls.get_playlist_played().filter(pk=entry_id):
+                return None
+
+            playlist = cls.get_playlist().exclude(pk=entry_id)
+
+        playlist.order_by('date_created')
+
+        if not playlist:
+            return None
+
+        return playlist.first()
 
 
 class KaraStatus(models.Model):

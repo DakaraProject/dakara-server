@@ -71,12 +71,12 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         player.timing = play_duration
         player.save()
 
+        # set the entry
+        self.pe1.date_played = now - play_duration
+        self.pe1.save()
+
         # Login as simple user
         self.authenticate(self.user)
-
-        # Get playlist entries list
-        # Should only return entries with `was_played`=False
-        response = self.client.get(self.url)
 
         # Get playlist entries list
         # Should only return entries with `was_played`=False

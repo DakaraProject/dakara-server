@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from django.db.models import Q
 from django.utils import timezone
 from django.conf import settings
 from rest_framework import status
@@ -38,13 +37,7 @@ class PlaylistEntryView(DestroyAPIView):
         permissions.IsPlaylistManagerOrOwnerOrReadOnly,
         permissions.KaraStatusIsNotStoppedOrReadOnly,
     ]
-
-    def get_queryset(self):
-        player = models.Player.get_or_create()
-        entry_id = player.playlist_entry_id
-        return models.PlaylistEntry.objects.exclude(
-            Q(pk=entry_id) | Q(was_played=True)
-        ).order_by('date_created')
+    queryset = models.PlaylistEntry.get_playlist()
 
 
 class PlaylistEntryListView(ListCreateAPIView):
@@ -56,16 +49,10 @@ class PlaylistEntryListView(ListCreateAPIView):
         permissions.IsPlaylistAndLibraryManagerOrSongCanBeAdded,
         permissions.KaraStatusIsNotStoppedOrReadOnly,
     ]
-
-    def get_queryset(self):
-        player = models.Player.get_or_create()
-        entry_id = player.playlist_entry_id
-        return models.PlaylistEntry.objects.exclude(
-            Q(pk=entry_id) | Q(was_played=True)
-        ).order_by('date_created')
+    queryset = models.PlaylistEntry.get_playlist()
 
     def get(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.queryset.all()
         player = models.Player.get_or_create()
         date = datetime.now(tz)
 
@@ -109,8 +96,7 @@ class PlaylistPlayedEntryListView(ListAPIView):
     """
     pagination_class = PlaylistEntryPagination
     serializer_class = serializers.PlaylistPlayedEntryWithDatePlayedSerializer
-    queryset = models.PlaylistEntry.objects.filter(was_played=True) \
-        .order_by('date_created')
+    queryset = models.PlaylistEntry.get_playlist_played()
 
 
 class PlayerStatusView(APIView):
