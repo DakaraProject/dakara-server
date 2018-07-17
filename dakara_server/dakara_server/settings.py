@@ -30,6 +30,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'channels',
+    'ordered_model',
     'library',
     'playlist',
     'users',

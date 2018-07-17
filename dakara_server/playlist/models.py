@@ -2,11 +2,12 @@ from datetime import timedelta
 
 from django.db import models
 from django.core.cache import cache
+from ordered_model.models import OrderedModel
 
 from users.models import DakaraUser
 
 
-class PlaylistEntry(models.Model):
+class PlaylistEntry(OrderedModel):
     """Song in playlist
     """
     song = models.ForeignKey('library.Song', null=False,
@@ -16,6 +17,9 @@ class PlaylistEntry(models.Model):
                               on_delete=models.CASCADE)
     was_played = models.BooleanField(default=False, null=False)
     date_played = models.DateTimeField(null=True)
+
+    class Meta(OrderedModel.Meta):
+        pass
 
     def __str__(self):
         return "{} (for {})".format(
@@ -27,7 +31,7 @@ class PlaylistEntry(models.Model):
     def get_playing(cls):
         playlist = cls.objects.filter(
             was_played=False, date_played__isnull=False
-        ).order_by('date_created')
+        )
 
         if not playlist:
             return None
@@ -45,7 +49,7 @@ class PlaylistEntry(models.Model):
     def get_playlist(cls):
         queryset = cls.objects.exclude(
             models.Q(was_played=True) | models.Q(date_played__isnull=False)
-        ).order_by('date_created')
+        )
 
         return queryset
 
@@ -53,7 +57,7 @@ class PlaylistEntry(models.Model):
     def get_playlist_played(cls):
         playlist = cls.objects.filter(
             was_played=True
-        ).order_by('date_created')
+        )
 
         return playlist
 
@@ -73,8 +77,6 @@ class PlaylistEntry(models.Model):
                 return None
 
             playlist = cls.get_playlist().exclude(pk=entry_id)
-
-        playlist.order_by('date_created')
 
         if not playlist:
             return None

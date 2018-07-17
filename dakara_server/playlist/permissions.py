@@ -10,21 +10,17 @@ from .models import PlaylistEntry, Player, KaraStatus
 UserModel = get_user_model()
 
 
-class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
+class IsPlaylistManagerOrOwnerForDelete(BasePermissionCustom):
     """Handle permissions to modify playlist entries
 
     Permission scheme:
         Superuser can edit anything;
         Playlist manager can edit anything;
-        Authenticated user can only edit their own data and display anything;
+        Authenticated user can only delete their own data;
         Unauthenticated user cannot see anything.
     """
 
     def has_object_permission(self, request, view, obj):
-        # for safe methods only
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
         # if the user is the superuser or the users manager, allow access
         if request.user.is_superuser:
             return True
@@ -33,8 +29,8 @@ class IsPlaylistManagerOrOwnerOrReadOnly(BasePermissionCustom):
         if request.user.has_playlist_permission_level(UserModel.MANAGER):
             return True
 
-        # if the object belongs to the user
-        return obj.owner == request.user
+        # if delete and the object belongs to the user
+        return request.method == 'DELETE' and obj.owner == request.user
 
 
 class IsPlaylistUserOrReadOnly(BasePermissionCustom):
