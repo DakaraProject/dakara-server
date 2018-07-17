@@ -75,81 +75,116 @@ class PlaylistEntryModelTestCase(BaseAPITestCase):
         """Test to get the playlist
         """
         # pre assert there are 2 entries in playlist
-        self.assertEqual(len(PlaylistEntry.get_playlist()), 2)
+        playlist = PlaylistEntry.get_playlist()
+        self.assertEqual(len(playlist), 2)
+        self.assertEqual(playlist[0], self.pe1)
+        self.assertEqual(playlist[1], self.pe2)
 
         # set playlist entry 1 is playing
         self.pe1.date_played = datetime.now(tz)
         self.pe1.save()
 
         # assert there is one entry in playlist
-        self.assertEqual(len(PlaylistEntry.get_playlist()), 1)
+        playlist = PlaylistEntry.get_playlist()
+        self.assertEqual(len(playlist), 1)
+        self.assertEqual(playlist[0], self.pe2)
 
         # set playlist entry 1 was played
         self.pe1.was_played = True
         self.pe1.save()
 
         # assert there is still one entry in playlist
-        self.assertEqual(len(PlaylistEntry.get_playlist()), 1)
+        playlist = PlaylistEntry.get_playlist()
+        self.assertEqual(len(playlist), 1)
+        self.assertEqual(playlist[0], self.pe2)
 
     def test_get_playlist_abnormal(self):
         """Test to get the playlist in abnormal condition
         """
         # pre assert there are 2 entries in playlist
-        self.assertEqual(len(PlaylistEntry.get_playlist()), 2)
+        playlist = PlaylistEntry.get_playlist()
+        self.assertEqual(len(playlist), 2)
+        self.assertEqual(playlist[0], self.pe1)
+        self.assertEqual(playlist[1], self.pe2)
 
         # set playlist entry 1 was played without setting it playing
         self.pe1.was_played = True
         self.pe1.save()
 
         # assert there is one entry in playlist
-        self.assertEqual(len(PlaylistEntry.get_playlist()), 1)
+        playlist = PlaylistEntry.get_playlist()
+        self.assertEqual(len(playlist), 1)
+        self.assertEqual(playlist[0], self.pe2)
 
         # set playlist entry 1 is playing after setting it played
         self.pe1.date_played = datetime.now(tz)
         self.pe1.save()
 
         # assert there is still one entry in playlist
-        self.assertEqual(len(PlaylistEntry.get_playlist()), 1)
+        playlist = PlaylistEntry.get_playlist()
+        self.assertEqual(len(playlist), 1)
+        self.assertEqual(playlist[0], self.pe2)
 
     def test_get_playlist_played_normal(self):
         """Test to get the playlist of played entries
         """
         # pre assert there are 2 entries played
-        self.assertEqual(len(PlaylistEntry.get_playlist_played()), 2)
+        playlist_played = PlaylistEntry.get_playlist_played()
+        self.assertEqual(len(playlist_played), 2)
+        self.assertEqual(playlist_played[0], self.pe3)
+        self.assertEqual(playlist_played[1], self.pe4)
 
         # set playlist entry 1 is playing
         self.pe1.date_played = datetime.now(tz)
         self.pe1.save()
 
         # assert there are still 2 entries played
-        self.assertEqual(len(PlaylistEntry.get_playlist_played()), 2)
+        playlist_played = PlaylistEntry.get_playlist_played()
+        self.assertEqual(len(playlist_played), 2)
+        self.assertEqual(playlist_played[0], self.pe3)
+        self.assertEqual(playlist_played[1], self.pe4)
 
         # set playlist entry 1 was played
         self.pe1.was_played = True
         self.pe1.save()
 
         # assert there are now 3 entries played
-        self.assertEqual(len(PlaylistEntry.get_playlist_played()), 3)
+        playlist_played = PlaylistEntry.get_playlist_played()
+        self.assertEqual(len(playlist_played), 3)
+        self.assertEqual(playlist_played[0], self.pe1)
+        self.assertEqual(playlist_played[1], self.pe3)
+        self.assertEqual(playlist_played[2], self.pe4)
 
     def test_get_playlist_played_abnormal(self):
         """Test to get the playlist of played entries in abnormal condition
         """
         # pre assert there are 2 entries played
-        self.assertEqual(len(PlaylistEntry.get_playlist_played()), 2)
+        playlist_played = PlaylistEntry.get_playlist_played()
+        self.assertEqual(len(playlist_played), 2)
+        self.assertEqual(playlist_played[0], self.pe3)
+        self.assertEqual(playlist_played[1], self.pe4)
 
         # set playlist entry 1 was played without setting it playing
         self.pe1.was_played = True
         self.pe1.save()
 
         # assert there are now 3 entries played
-        self.assertEqual(len(PlaylistEntry.get_playlist_played()), 3)
+        playlist_played = PlaylistEntry.get_playlist_played()
+        self.assertEqual(len(playlist_played), 3)
+        self.assertEqual(playlist_played[0], self.pe1)
+        self.assertEqual(playlist_played[1], self.pe3)
+        self.assertEqual(playlist_played[2], self.pe4)
 
         # set playlist entry 1 is playing after setting it played
         self.pe1.date_played = datetime.now(tz)
         self.pe1.save()
 
         # assert there are still 3 entries played
-        self.assertEqual(len(PlaylistEntry.get_playlist_played()), 3)
+        playlist_played = PlaylistEntry.get_playlist_played()
+        self.assertEqual(len(playlist_played), 3)
+        self.assertEqual(playlist_played[0], self.pe1)
+        self.assertEqual(playlist_played[1], self.pe3)
+        self.assertEqual(playlist_played[2], self.pe4)
 
     def test_get_next_normal(self):
         """Test to get the next entry to play

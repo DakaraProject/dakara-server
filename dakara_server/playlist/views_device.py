@@ -154,7 +154,7 @@ class PlayerDeviceErrorView(APIView):
     def post(self, request):
         """Handle error message
 
-        Recieve it, log it, keep it in cache.
+        Recieve it, log it and save it.
 
         The error can happen at the middle of the song, or at its very
         beginning. In that case, the player may have had no time to actualize
