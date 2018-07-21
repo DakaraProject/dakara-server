@@ -82,7 +82,7 @@ class WorkCreator:
         )
 
         if work_created:
-            logger.info("Created work '{}'".format(work_title))
+            logger.info("Created work '{}'.".format(work_title))
 
         # get title
         work_entry.title = work_title
@@ -100,7 +100,7 @@ class WorkCreator:
             self.create_alternative_title(work_entry, work_title, alt_title)
 
             if self.work_alt_title_listing:
-                logger.info("Created alternative titles '{}' for '{}'".format(
+                logger.info("Created alternative titles '{}' for '{}'.".format(
                         "', '".join(self.work_alt_title_listing), work_title))
 
         # save work in the database
@@ -119,6 +119,7 @@ class WorkCreator:
 
     def createworks(self):
         """Create or update works provided."""
+        work_success = True
         # get works or create it
         for worktype_query_name, dict_work_type in self.works.items():
 
@@ -127,16 +128,21 @@ class WorkCreator:
                 work_type_entry = WorkType.objects.get(
                         query_name=worktype_query_name
                         )
+
+                for work_title, dict_work in dict_work_type.items():
+                    self.creatework(work_type_entry, work_title, dict_work)
+
             except WorkType.DoesNotExist:
+                work_success = False
                 logger.error("""Unable to find work type query name '{}'.
                             Use createworktypes command first to create \
                                     work types.""".format(worktype_query_name))
                 continue
 
-            for work_title, dict_work in dict_work_type.items():
-                self.creatework(work_type_entry, work_title, dict_work)
-
-        logger.info("Works successfully created.")
+        if work_success:
+            logger.info("Works successfully created.")
+        else:
+            logger.warning("An error has been detected during works creation.")
 
 
 class Command(BaseCommand):
