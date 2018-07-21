@@ -138,3 +138,24 @@ class DigestSerializer(serializers.Serializer):
     player_manage = PlayerCommandSerializer()
     player_errors = PlayerErrorSerializer(many=True)
     kara_status = KaraStatusSerializer()
+
+
+class PlaylistReorderSerializer(serializers.Serializer):
+    """Requested position of playlist entry
+    """
+    before_id = serializers.IntegerField(required=False)
+    after_id = serializers.IntegerField(required=False)
+
+    def validate(self, data):
+        """Check only one field is specified
+        """
+        if 'before_id' in data and 'after_id' in data:
+            raise serializers.ValidationError(
+                "Only one field should be specified")
+
+        elif 'before_id' not in data and 'after_id' not in data:
+            raise serializers.ValidationError(
+                "At least one field should be specified")
+
+        else:
+            return data

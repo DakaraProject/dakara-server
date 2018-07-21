@@ -29,6 +29,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'ordered_model',
     'library',
     'playlist',
     'users',
