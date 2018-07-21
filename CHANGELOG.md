@@ -34,7 +34,7 @@
 
 - Alternative titles of a work : search songs and works upon the alternative title of a work.
 - Reorder of the playlist
-- Work creator : command to create works and their alternative titles upon a data structure file.
+- Add createworks command : create works and their alternative titles upon a data structure file.
 
 ## 1.2.0 - 2018-06-03
 

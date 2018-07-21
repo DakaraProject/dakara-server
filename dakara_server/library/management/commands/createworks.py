@@ -91,17 +91,21 @@ class WorkCreator:
         work_entry.work_type = work_type_entry
 
         # get subtitle
-        if dict_work['subtitle']:
+        if 'subtitle' in dict_work:
             work_entry.subtitle = dict_work['subtitle']
 
         # get work alternative titles or create them
-        self.work_alt_title_listing = []
-        for alt_title in dict_work['alternative_titles']:
-            self.create_alternative_title(work_entry, work_title, alt_title)
+        if 'alternative_titles' in dict_work:
+            self.work_alt_title_listing = []
+            for alt_title in dict_work['alternative_titles']:
+                self.create_alternative_title(
+                        work_entry,
+                        work_title,
+                        alt_title)
 
             if self.work_alt_title_listing:
                 logger.info("Created alternative titles '{}' for '{}'.".format(
-                        "', '".join(self.work_alt_title_listing), work_title))
+                    "', '".join(self.work_alt_title_listing), work_title))
 
         # save work in the database
         work_entry.save()
@@ -129,7 +133,13 @@ class WorkCreator:
                         query_name=worktype_query_name
                         )
 
+                # get work titles and their attributes
                 for work_title, dict_work in dict_work_type.items():
+
+                    if not isinstance(dict_work, dict):
+                        # create an empty dictionnary
+                        dict_work = {}
+
                     self.creatework(work_type_entry, work_title, dict_work)
 
             except WorkType.DoesNotExist:
@@ -142,7 +152,7 @@ class WorkCreator:
         if work_success:
             logger.info("Works successfully created.")
         else:
-            logger.warning("An error has been detected during works creation.")
+            logger.warning("An error has been detected during work creations.")
 
 
 class Command(BaseCommand):
