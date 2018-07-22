@@ -37,7 +37,6 @@ class PlaylistEntryView(DestroyAPIView):
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
         permissions.IsPlaylistManagerOrOwnerForDelete,
-        permissions.KaraokeIsNotStoppedOrReadOnly,
     ]
 
     def get_queryset(self):
@@ -125,6 +124,38 @@ class PlaylistEntryListView(ListCreateAPIView):
             )
 
         return super().post(request)
+
+    def perform_create(self, serializer):
+        # deny the creation of a new playlist entry if it exeeds karaoke stop
+        # date
+        karaoke = models.Karaoke.get_object()
+
+        if karaoke.date_stop is not None:
+            # compute playlist end date
+            playlist = self.filter_queryset(self.get_queryset())
+            player = models.Player.get_or_create()
+            date = datetime.now(tz)
+
+            # add player remaining time
+            if player.playlist_entry_id:
+                playlist_entry = models.PlaylistEntry.objects.get(
+                    pk=player.playlist_entry_id
+                )
+                date += playlist_entry.song.duration - player.timing
+
+            # compute end time of playlist
+            for playlist_entry in playlist:
+                date += playlist_entry.song.duration
+
+            # add current entry duration
+            date += serializer.validated_data['song'].duration
+
+            # check that this date does not exceed the stop date
+            if date > karaoke.date_stop:
+                raise PermissionDenied(
+                    "This song exceeds the karaoke stop time")
+
+        super().perform_create(serializer)
 
 
 class PlaylistPlayedEntryListView(ListAPIView):
@@ -266,22 +297,22 @@ class KaraokeView(RetrieveUpdateAPIView):
         permissions.IsPlaylistManagerOrReadOnly,
     ]
 
-    def put(self, request, *args, **kwargs):
-        """Update the kara status
+    def perform_update(self, serializer):
+        """Update the karaoke
         """
-        response = super().put(request)
+        super().perform_update(serializer)
 
         # empty the playlist and clear the player if the status is stop
-        if response.status_code == status.HTTP_200_OK:
-            karaoke = request.data['status']
+        if 'status' not in serializer.validated_data:
+            return
 
-            if karaoke == models.Karaoke.STOP:
-                player = models.Player.get_or_create()
-                player.reset()
-                player.save()
-                models.PlaylistEntry.objects.all().delete()
+        kara_status = serializer.validated_data['status']
 
-        return response
+        if kara_status == models.Karaoke.STOP:
+            player = models.Player.get_or_create()
+            player.reset()
+            player.save()
+            models.PlaylistEntry.objects.all().delete()
 
     def get_object(self):
         return models.Karaoke.get_object()

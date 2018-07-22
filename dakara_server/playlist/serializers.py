@@ -128,6 +128,7 @@ class KaraokeSerializer(serializers.ModelSerializer):
         model = Karaoke
         fields = (
             'status',
+            'date_stop',
         )
 
 

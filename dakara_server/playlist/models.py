@@ -66,9 +66,11 @@ class Karaoke(models.Model):
         default=PLAY,
         null=False,
     )
+    date_stop = models.DateTimeField(null=True)
 
     def __str__(self):
-        return str("in {} mode".format(self.status))
+        return str("in {} mode, will stop at {}".format(self.status,
+                                                        self.date_stop))
 
     @classmethod
     def get_object(cls):
