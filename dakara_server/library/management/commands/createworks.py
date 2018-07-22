@@ -49,6 +49,12 @@ class WorkCreator:
         """
         field_names = ('subtitle', 'alternative_titles')
 
+        if not isinstance(dict_work, dict):
+            logger.warning((
+                "Value associated to key work {} "
+                "should be a dictionnary".format(work_title)))
+            return False
+
         has_correct_struct = True
         for field in dict_work:
             if field not in field_names:
@@ -66,12 +72,7 @@ class WorkCreator:
 
     def creatework(self, work_type_entry, work_title, dict_work):
         """Create or update a work in database."""
-        # check that the work data is well structured
-        if not self.check_parser_result(dict_work, work_title=work_title):
-            logger.debug(
-                    "Ignore work '{}' creation or update.".format(work_title))
-            return
-
+        # get or create work
         work_entry, work_created = Work.objects.get_or_create(
             title__iexact=work_title,
             work_type__id=work_type_entry.id,
@@ -137,13 +138,13 @@ class WorkCreator:
                         # create an empty dictionnary in the case only
                         # the title has been provided
                         dict_work = {}
-                    elif not isinstance(dict_work, dict):
-                        logger.warning((
-                            "Value associated to key work {} "
-                            "should be a dictionnary".format(work_title)))
+                    # check that the work data is well structured
+                    elif not self.check_parser_result(
+                            dict_work, work_title=work_title):
                         logger.debug(
                             "Ignore work '{}' creation or update.".format(
                                 work_title))
+                        continue
 
                     self.creatework(work_type_entry, work_title, dict_work)
 
@@ -153,7 +154,6 @@ class WorkCreator:
                     "Unable to find work type query name '{}'. Use "
                     "createworktypes command first to create "
                     "work types.".format(worktype_query_name)))
-                continue
 
         if work_success:
             logger.info("Works successfully created.")
