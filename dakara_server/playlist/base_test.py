@@ -12,7 +12,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from library.models import Song, SongTag
-from .models import PlaylistEntry, KaraStatus
+from .models import PlaylistEntry, Karaoke
 
 UserModel = get_user_model()
 tz = timezone.get_default_timezone()
@@ -123,25 +123,25 @@ class BaseAPITestCase(APITestCase):
         self.pe4.save()
 
         # Set kara status in play mode
-        kara_status = KaraStatus.get_object()
-        kara_status.status = KaraStatus.PLAY
-        kara_status.save()
+        karaoke = Karaoke.get_object()
+        karaoke.status = Karaoke.PLAY
+        karaoke.save()
 
     @staticmethod
-    def set_kara_status_stop():
+    def set_karaoke_stop():
         """Put the karaoke in stop state
         """
-        kara_status = KaraStatus.get_object()
-        kara_status.status = KaraStatus.STOP
-        kara_status.save()
+        karaoke = Karaoke.get_object()
+        karaoke.status = Karaoke.STOP
+        karaoke.save()
 
     @staticmethod
-    def set_kara_status_pause():
+    def set_karaoke_pause():
         """Put the karaoke in pause state
         """
-        kara_status = KaraStatus.get_object()
-        kara_status.status = KaraStatus.PAUSE
-        kara_status.save()
+        karaoke = Karaoke.get_object()
+        karaoke.status = Karaoke.PAUSE
+        karaoke.save()
 
     def check_playlist_entry_json(self, json, expected_entry):
         """Method to check a representation against expected playlist entry

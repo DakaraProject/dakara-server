@@ -37,7 +37,7 @@ class PlaylistEntryView(DestroyAPIView):
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
         permissions.IsPlaylistManagerOrOwnerForDelete,
-        permissions.KaraStatusIsNotStoppedOrReadOnly,
+        permissions.KaraokeIsNotStoppedOrReadOnly,
     ]
 
     def get_queryset(self):
@@ -77,7 +77,7 @@ class PlaylistEntryListView(ListCreateAPIView):
     permission_classes = [
         permissions.IsPlaylistUserOrReadOnly,
         permissions.IsPlaylistAndLibraryManagerOrSongCanBeAdded,
-        permissions.KaraStatusIsNotStoppedOrReadOnly,
+        permissions.KaraokeIsNotStoppedOrReadOnly,
     ]
 
     def get_queryset(self):
@@ -162,7 +162,7 @@ class PlayerManageView(APIView):
     """
     permission_classes = [
         permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly,
-        permissions.KaraStatusIsNotStoppedOrReadOnly,
+        permissions.KaraokeIsNotStoppedOrReadOnly,
     ]
 
     def get(self, request, *args, **kwargs):
@@ -239,14 +239,14 @@ class DigestView(APIView):
         player_errors_pool = models.PlayerErrorsPool.get_or_create()
 
         # Get kara status
-        kara_status = models.KaraStatus.get_object()
+        karaoke = models.Karaoke.get_object()
 
         serializer = serializers.DigestSerializer(
             {
                 "player_status": player,
                 "player_manage": player_command,
                 "player_errors": player_errors_pool.dump(),
-                "kara_status": kara_status,
+                "karaoke": karaoke,
             },
             context={'request': request},
         )
@@ -257,11 +257,11 @@ class DigestView(APIView):
         )
 
 
-class KaraStatusView(RetrieveUpdateAPIView):
+class KaraokeView(RetrieveUpdateAPIView):
     """Get or edit the kara status
     """
-    queryset = models.KaraStatus.objects.all()
-    serializer_class = serializers.KaraStatusSerializer
+    queryset = models.Karaoke.objects.all()
+    serializer_class = serializers.KaraokeSerializer
     permission_classes = [
         permissions.IsPlaylistManagerOrReadOnly,
     ]
@@ -273,9 +273,9 @@ class KaraStatusView(RetrieveUpdateAPIView):
 
         # empty the playlist and clear the player if the status is stop
         if response.status_code == status.HTTP_200_OK:
-            kara_status = request.data['status']
+            karaoke = request.data['status']
 
-            if kara_status == models.KaraStatus.STOP:
+            if karaoke == models.Karaoke.STOP:
                 player = models.Player.get_or_create()
                 player.reset()
                 player.save()
@@ -284,4 +284,4 @@ class KaraStatusView(RetrieveUpdateAPIView):
         return response
 
     def get_object(self):
-        return models.KaraStatus.get_object()
+        return models.Karaoke.get_object()

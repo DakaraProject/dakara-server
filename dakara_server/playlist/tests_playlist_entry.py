@@ -125,11 +125,11 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Entry's owner is the user who created it
         self.assertEqual(new_entry.owner.id, self.p_user.id)
 
-    def test_post_create_playlist_entry_kara_status_stop_forbidden(self):
+    def test_post_create_playlist_entry_karaoke_stop_forbidden(self):
         """Test to verify playlist entry cannot be created when kara is stopped
         """
         # stop kara
-        self.set_kara_status_stop()
+        self.set_karaoke_stop()
 
         # Login as playlist user
         self.authenticate(self.manager)

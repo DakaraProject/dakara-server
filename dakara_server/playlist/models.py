@@ -46,10 +46,10 @@ class PlaylistEntry(OrderedModel):
         return playlist_entry
 
 
-class KaraStatus(models.Model):
-    """Current status of the kara
+class Karaoke(models.Model):
+    """Current kara
 
-    The status is unique for now.
+    Unique for now.
     """
     STOP = "stop"
     PLAY = "play"
@@ -74,8 +74,8 @@ class KaraStatus(models.Model):
     def get_object(cls):
         """Get the first instance of kara status
         """
-        kara_status, _ = cls.objects.get_or_create(pk=1)
-        return kara_status
+        karaoke, _ = cls.objects.get_or_create(pk=1)
+        return karaoke
 
 
 class Player:
