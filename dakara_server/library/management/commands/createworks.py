@@ -3,7 +3,7 @@ import sys
 import logging
 import importlib
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from library.models import (WorkType, WorkAlternativeTitle, Work)
 
@@ -11,13 +11,6 @@ from .feed_components import default_work_parser
 
 # get logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-formatter = logging.Formatter("[%(asctime)s] %(levelname)s %(message)s")
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(formatter)
-
-logger.addHandler(handler)
 
 
 class WorkCreator:
@@ -44,51 +37,51 @@ class WorkCreator:
             self,
             work_file,
             parser):
-        self.works = parser.parse_work(work_file)
-        self.work_alt_title_listing = []
+        self.work_file = work_file
+        self.parser = parser
 
     @staticmethod
-    def check_parser_result(dict_work):
+    def check_parser_result(dict_work, work_title=None):
         """Check if a work is correctly structured
 
         Return
-            None if the structure, otherwise the field not recognized.
+            True if the work dictionnary is correctly structured
         """
         field_names = ('subtitle', 'alternative_titles')
 
         has_correct_struct = True
-        field_error = None
         for field in dict_work:
             if field not in field_names:
                 has_correct_struct = False
-                field_error = field
-                break
+                if work_title:
+                    logger.warning(
+                        "Incorrect field '{}' for '{}'.".format(
+                            field,
+                            work_title))
+                else:
+                    logger.warning(
+                        "Incorrect field '{}'".format(field))
 
-        return has_correct_struct, field_error
+        return has_correct_struct
 
     def creatework(self, work_type_entry, work_title, dict_work):
         """Create or update a work in database."""
         # check that the work data is well structured
-        has_correct_struct, field_error = self.check_parser_result(dict_work)
-        if not has_correct_struct:
-            logger.warning(
-                "Incorrect field '{}' for '{}'".format(
-                    field_error,
-                    work_title))
+        if not self.check_parser_result(dict_work, work_title=work_title):
+            logger.debug(
+                    "Ignore work '{}' creation or update.".format(work_title))
             return
 
         work_entry, work_created = Work.objects.get_or_create(
-            title__iexact=work_title
-        )
+            title__iexact=work_title,
+            work_type__id=work_type_entry.id,
+            defaults={
+                'title': work_title,
+                'work_type': work_type_entry}
+            )
 
         if work_created:
-            logger.info("Created work '{}'.".format(work_title))
-
-        # get title
-        work_entry.title = work_title
-
-        # get work type
-        work_entry.work_type = work_type_entry
+            logger.debug("Created work '{}'.".format(work_title))
 
         # get subtitle
         if 'subtitle' in dict_work:
@@ -96,63 +89,74 @@ class WorkCreator:
 
         # get work alternative titles or create them
         if 'alternative_titles' in dict_work:
-            self.work_alt_title_listing = []
             for alt_title in dict_work['alternative_titles']:
                 self.create_alternative_title(
                         work_entry,
                         work_title,
                         alt_title)
 
-            if self.work_alt_title_listing:
-                logger.info("Created alternative titles '{}' for '{}'.".format(
-                    "', '".join(self.work_alt_title_listing), work_title))
-
         # save work in the database
         work_entry.save()
 
     def create_alternative_title(self, work_entry, work_title, alt_title):
-        work_alt_title_entry, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create( # noqa E501
-                    title=alt_title,
-                    work__title=work_title,
-                    defaults={'work': work_entry}
+        _, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create(
+                title__iexact=alt_title,
+                work__title__iexact=work_title,
+                defaults={
+                    'title': alt_title,
+                    'work': work_entry}
                 )
 
         if work_alt_title_created:
-            # add to the listing the alternative title created
-            self.work_alt_title_listing.append(alt_title)
+            logger.debug("Created alternative titles '{}' for '{}'.".format(
+                alt_title, work_title))
 
     def createworks(self):
         """Create or update works provided."""
+        # parse the work file to get the data structure
+        try:
+            works = self.parser.parse_work(self.work_file)
+        except BaseException as exc:
+            raise CommandError("{}".format(str(exc))) from exc
+
         work_success = True
         # get works or create it
-        for worktype_query_name, dict_work_type in self.works.items():
+        for worktype_query_name, dict_work_type in works.items():
 
+            logger.debug("Get work type '{}'".format(worktype_query_name))
             # get work type
             try:
                 work_type_entry = WorkType.objects.get(
-                        query_name=worktype_query_name
+                        query_name__iexact=worktype_query_name
                         )
 
                 # get work titles and their attributes
                 for work_title, dict_work in dict_work_type.items():
 
-                    if not isinstance(dict_work, dict):
-                        # create an empty dictionnary
+                    if dict_work is None:
+                        # create an empty dictionnary in the case only
+                        # the title has been provided
                         dict_work = {}
+                    elif not isinstance(dict_work, dict):
+                        logger.warning((
+                            "Value associated to key work {} "
+                            "should be a dictionnary".format(work_title)))
+                        logger.debug(
+                            "Ignore work '{}' creation or update.".format(
+                                work_title))
 
                     self.creatework(work_type_entry, work_title, dict_work)
 
             except WorkType.DoesNotExist:
                 work_success = False
-                logger.error("""Unable to find work type query name '{}'.
-                            Use createworktypes command first to create \
-                                    work types.""".format(worktype_query_name))
+                logger.error((
+                    "Unable to find work type query name '{}'. Use "
+                    "createworktypes command first to create "
+                    "work types.".format(worktype_query_name)))
                 continue
 
         if work_success:
             logger.info("Works successfully created.")
-        else:
-            logger.warning("An error has been detected during work creations.")
 
 
 class Command(BaseCommand):
@@ -176,12 +180,18 @@ class Command(BaseCommand):
             default=None
         )
 
+        parser.add_argument(
+            "-d",
+            "--debug",
+            help="Display debug messages.",
+            action="store_true"
+        )
+
     def handle(self, *args, **options):
         """Process the feeding
         """
         # work file data
         work_file = os.path.join(
-                os.getcwd(),
                 os.path.normpath(options['work-file'])
                 )
 
@@ -198,6 +208,10 @@ class Command(BaseCommand):
             parser = importlib.import_module(parser_name)
         else:
             parser = default_work_parser
+
+        # debug
+        if options.get('debug'):
+            logger.setLevel(logging.DEBUG)
 
         work_creator = WorkCreator(
                 work_file,
