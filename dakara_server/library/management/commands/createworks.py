@@ -29,7 +29,7 @@ class WorkCreator:
             dictionnary such that:
                 keys are title of a work associated to the worktype, values are
                 the following:
-                    subtitle (str): subtitle of a work
+                    subtitle (list): list of subtitles of a work
                     alternative_titles (list): list of alternative names of
                     a work
     """
@@ -47,7 +47,7 @@ class WorkCreator:
         Return
             True if the work dictionnary is correctly structured
         """
-        field_names = ('subtitle', 'alternative_titles')
+        field_names = ('subtitles', 'alternative_titles')
 
         if not isinstance(dict_work, dict):
             logger.warning((
@@ -72,37 +72,41 @@ class WorkCreator:
 
     def creatework(self, work_type_entry, work_title, dict_work):
         """Create or update a work in database."""
-        # get or create work
-        work_entry, work_created = Work.objects.get_or_create(
-            title__iexact=work_title,
-            work_type__id=work_type_entry.id,
-            defaults={
-                'title': work_title,
-                'work_type': work_type_entry}
-            )
+        work_subtitles = dict_work['subtitles'] if 'subtitles' in dict_work else [""] # noqa E501
 
-        if work_created:
-            logger.debug("Created work '{}'.".format(work_title))
+        # get or create works
+        for work_subtitle in work_subtitles:
+            work_entry, work_created = Work.objects.get_or_create(
+                title__iexact=work_title,
+                work_type__id=work_type_entry.id,
+                subtitle__iexact=work_subtitle,
+                defaults={
+                    'title': work_title,
+                    'work_type': work_type_entry,
+                    'subtitle': work_subtitle}
+                )
 
-        # get subtitle
-        if 'subtitle' in dict_work:
-            work_entry.subtitle = dict_work['subtitle']
+            if work_created:
+                logger.debug("Created work '{}' subtitled '{}'.".format(
+                    work_title,
+                    work_subtitle))
 
-        # get work alternative titles or create them
-        if 'alternative_titles' in dict_work:
-            for alt_title in dict_work['alternative_titles']:
-                self.create_alternative_title(
-                        work_entry,
-                        work_title,
-                        alt_title)
+            # get work alternative titles or create them
+            if 'alternative_titles' in dict_work:
+                for alt_title in dict_work['alternative_titles']:
+                    self.create_alternative_title(
+                            work_entry,
+                            alt_title)
 
-        # save work in the database
-        work_entry.save()
+            # save work in the database
+            work_entry.save()
 
-    def create_alternative_title(self, work_entry, work_title, alt_title):
+    def create_alternative_title(self, work_entry, alt_title):
+        """Create work alternative title in the database if necessary."""
         _, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create(
                 title__iexact=alt_title,
-                work__title__iexact=work_title,
+                work__title__iexact=work_entry.title,
+                work__subtitle__iexact=work_entry.subtitle,
                 defaults={
                     'title': alt_title,
                     'work': work_entry}
@@ -110,7 +114,7 @@ class WorkCreator:
 
         if work_alt_title_created:
             logger.debug("Created alternative titles '{}' for '{}'.".format(
-                alt_title, work_title))
+                alt_title, work_entry.title))
 
     def createworks(self):
         """Create or update works provided."""

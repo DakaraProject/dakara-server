@@ -87,7 +87,7 @@ class CommandsTestCase(TestCase):
         call_command('createworks', *args, **opts)
 
         # Work assertion
-        works = Work.objects.order_by('title')
+        works = Work.objects.all()
 
         self.assertEqual(len(works), 0)
 
@@ -103,9 +103,25 @@ class CommandsTestCase(TestCase):
         call_command('createworks', *args, **opts)
 
         # Work assertion
-        works = Work.objects.order_by('title')
+        works = Work.objects.all()
 
         self.assertEqual(len(works), 0)
+
+    def test_createworks_with_different_subtitle(self):
+        """Create two works which are the same except for their subtitle."""
+        # Call command
+        work_file = os.path.join(
+                DIR_WORK_FILES,
+                'different_subtitle_work_file.json')
+
+        args = [work_file]
+        opts = {'verbosity': 0}
+        call_command('createworks', *args, **opts)
+
+        # Work assertion
+        works = Work.objects.all()
+
+        self.assertEqual(len(works), 2)
 
     def test_createworks_with_nonexistent_file(self):
         """Check the command raises an error with a nonexistent file."""
