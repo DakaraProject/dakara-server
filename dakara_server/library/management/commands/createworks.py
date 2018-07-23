@@ -29,7 +29,7 @@ class WorkCreator:
             dictionnary such that:
                 keys are title of a work associated to the worktype, values are
                 the following:
-                    subtitle (list): list of subtitles of a work
+                    subtitles (list): list of subtitles of a work
                     alternative_titles (list): list of alternative names of
                     a work
     """
