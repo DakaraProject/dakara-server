@@ -41,44 +41,50 @@ class WorkCreator:
         self.parser = parser
 
     @staticmethod
-    def check_parser_result(dict_work, work_title=None):
+    def check_parser_result(dict_work, work_title=None, debug=False):
         """Check if a work is correctly structured
-
+        Args
+            dict_work: dictionnary for which the check is done
+            work_title: work title to have a more detailed log
+            debug: display more messages
         Return
             True if the work dictionnary is correctly structured
         """
         field_names = ('subtitles', 'alternative_titles')
 
-        if not isinstance(dict_work, dict):
-            logger.warning((
-                "Value associated to key work {} "
-                "should be a dictionnary".format(work_title)))
-            return False
+        has_correct_struct = isinstance(dict_work, dict)
 
-        has_correct_struct = True
-        for field in dict_work:
-            if field not in field_names:
-                has_correct_struct = False
-                if work_title:
-                    logger.warning(
-                        "Incorrect field '{}' for '{}'.".format(
-                            field,
-                            work_title))
-                else:
-                    logger.warning(
-                        "Incorrect field '{}'".format(field))
+        if has_correct_struct and debug:
+            # Debug mode : add to log the fields not taken into account
+            for field in dict_work:
+                if field not in field_names:
+                    if work_title:
+                        logger.debug(
+                            "Field '{}' for '{}' not in fields taken"
+                            " into account.".format(
+                                field,
+                                work_title))
+                    else:
+                        logger.debug(
+                            "Field '{}' not in fields taken"
+                            " into account.".format(field))
+        else:
+            logger.warning(
+                "Value associated to key work {} "
+                "should be a dictionnary".format(work_title))
 
         return has_correct_struct
 
     def creatework(self, work_type_entry, work_title, dict_work):
         """Create or update a work in database."""
-        work_subtitles = dict_work['subtitles'] if 'subtitles' in dict_work else [""] # noqa E501
+
+        work_subtitles = dict_work.get('subtitles', [""])
 
         # get or create works
         for work_subtitle in work_subtitles:
             work_entry, work_created = Work.objects.get_or_create(
                 title__iexact=work_title,
-                work_type__id=work_type_entry.id,
+                work_type=work_type_entry,
                 subtitle__iexact=work_subtitle,
                 defaults={
                     'title': work_title,
@@ -122,7 +128,8 @@ class WorkCreator:
         try:
             works = self.parser.parse_work(self.work_file)
         except BaseException as exc:
-            raise CommandError("{}".format(str(exc))) from exc
+            raise CommandError("Error when reading the works"
+                               " file: {}".format(exc)) from exc
 
         work_success = True
         # get works or create it
@@ -142,8 +149,9 @@ class WorkCreator:
                         # create an empty dictionnary in the case only
                         # the title has been provided
                         dict_work = {}
+
                     # check that the work data is well structured
-                    elif not self.check_parser_result(
+                    if not self.check_parser_result(
                             dict_work, work_title=work_title):
                         logger.debug(
                             "Ignore work '{}' creation or update.".format(
@@ -154,10 +162,10 @@ class WorkCreator:
 
             except WorkType.DoesNotExist:
                 work_success = False
-                logger.error((
+                logger.error(
                     "Unable to find work type query name '{}'. Use "
                     "createworktypes command first to create "
-                    "work types.".format(worktype_query_name)))
+                    "work types.".format(worktype_query_name))
 
         if work_success:
             logger.info("Works successfully created.")
@@ -195,9 +203,7 @@ class Command(BaseCommand):
         """Process the feeding
         """
         # work file data
-        work_file = os.path.join(
-                os.path.normpath(options['work-file'])
-                )
+        work_file = os.path.normpath(options['work-file'])
 
         # parser
         if options.get('parser'):

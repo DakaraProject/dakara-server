@@ -53,8 +53,9 @@ class CommandsTestCase(TestCase):
             ["AltTitle 1", "AltTitle 3"])
 
     def test_createworks_with_work_none_value(self):
-        """Create works from a work where only the title has been provided,
-        and that has no dictionnary associated."""
+        """Create works from a work where only the title has been provided.
+
+        The work title provided has no dictionnary associated with."""
         # Call command
         work_file = os.path.join(
                 DIR_WORK_FILES,
@@ -72,8 +73,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[0].title, "Work 1")
         self.assertEqual(works[0].subtitle, "")
         self.assertEqual(works[0].work_type.query_name, "WorkType 1")
-        self.assertCountEqual(
-            [alt.title for alt in works[0].alternative_titles.all()], [])
+        self.assertEqual(works[0].alternative_titles.count(), 0)
 
     def test_createworks_with_work_type_error(self):
         """Create works from a work which work type does not exist."""
@@ -87,9 +87,7 @@ class CommandsTestCase(TestCase):
         call_command('createworks', *args, **opts)
 
         # Work assertion
-        works = Work.objects.all()
-
-        self.assertEqual(len(works), 0)
+        self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_work_error(self):
         """Create works from a work associated to an incorrect value."""
@@ -103,9 +101,7 @@ class CommandsTestCase(TestCase):
         call_command('createworks', *args, **opts)
 
         # Work assertion
-        works = Work.objects.all()
-
-        self.assertEqual(len(works), 0)
+        self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_different_subtitle(self):
         """Create two works which are the same except for their subtitle."""
@@ -119,9 +115,7 @@ class CommandsTestCase(TestCase):
         call_command('createworks', *args, **opts)
 
         # Work assertion
-        works = Work.objects.all()
-
-        self.assertEqual(len(works), 2)
+        self.assertEqual(Work.objects.count(), 2)
 
     def test_createworks_with_nonexistent_file(self):
         """Check the command raises an error with a nonexistent file."""
