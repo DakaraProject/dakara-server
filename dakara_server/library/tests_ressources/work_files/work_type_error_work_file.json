@@ -1,5 +1,7 @@
 {
-    "WorkTypo 1": {
-	"Work 1": null
-    }
+    "WorkTypo 1": [
+	{
+	    "title": "Work 1"
+	}
+    ]
 }

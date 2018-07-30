@@ -26,86 +26,109 @@ class WorkCreator:
         This module should define a method called `parse_work` which takes
         a file path as argument and return a dictionnary with the following:
             works (dict): keys are a query name worktype, values are
-            dictionnary such that:
-                keys are title of a work associated to the worktype, values are
-                the following:
-                    subtitles (list): list of subtitles of a work
+            a list such that each element of this list is a dictionnary with
+            the following keys:
+                    title (str): title of the work
+                    subtitle (str): subtitle of the work
                     alternative_titles (list): list of alternative names of
                     a work
     """
     def __init__(
             self,
             work_file,
-            parser):
+            parser,
+            debug):
         self.work_file = work_file
         self.parser = parser
+        self.debug = debug
 
-    @staticmethod
-    def check_parser_result(dict_work, work_title=None, debug=False):
-        """Check if a work is correctly structured
+    def remove_incorrect_works(self, work_listing):
+        """Remove works that have an incorrect structure in a list of works.
+
+        Return
+            A new list with the incorrect works removed."""
+
+        work_to_remove = []
+
+        logger.debug("Removing the incorrect work from the current work type.")
+        for dict_work in work_listing:
+
+            # check if it is a dictionary
+            if not isinstance(dict_work, dict):
+                work_to_remove.append(dict_work)
+                logger.debug("Incorrect work : value is not a dictionary.")
+                continue
+
+            # check if it has a title field
+            work_title = dict_work.get('title')
+            if not work_title:
+                work_to_remove.append(dict_work)
+                logger.debug("Incorrect work : no title field found")
+                continue
+
+            logger.debug("Work '{}' is correctly structured.".format(
+                    work_title))
+
+        return [work for work in work_listing if work not in work_to_remove]
+
+    def debug_parser_work(self, dict_work):
+        """Display debug messages on a specific work dictionarry.
+
         Args
             dict_work: dictionnary for which the check is done
-            work_title: work title to have a more detailed log
-            debug: display more messages
-        Return
-            True if the work dictionnary is correctly structured
+            (must have a 'title' field)
         """
-        field_names = ('subtitles', 'alternative_titles')
+        field_names = ('subtitle', 'alternative_titles')
 
-        has_correct_struct = isinstance(dict_work, dict)
+        # get the work title (should have been checked it exists
+        # before calling this method)
+        work_title = dict_work.get('title')
 
-        if has_correct_struct and debug:
-            # Debug mode : add to log the fields not taken into account
-            for field in dict_work:
-                if field not in field_names:
-                    if work_title:
-                        logger.debug(
-                            "Field '{}' for '{}' not in fields taken"
-                            " into account.".format(
-                                field,
-                                work_title))
-                    else:
-                        logger.debug(
-                            "Field '{}' not in fields taken"
-                            " into account.".format(field))
-        else:
-            logger.warning(
-                "Value associated to key work {} "
-                "should be a dictionnary".format(work_title))
+        for field in dict_work:
+            if field not in field_names:
+                if work_title:
+                    logger.debug(
+                        "Field '{}' for '{}' not in fields taken"
+                        " into account.".format(
+                            field,
+                            work_title))
+                else:
+                    logger.debug(
+                        "Field '{}' not in fields taken"
+                        " into account.".format(field))
 
-        return has_correct_struct
-
-    def creatework(self, work_type_entry, work_title, dict_work):
+    def creatework(self, work_type_entry, dict_work):
         """Create or update a work in database."""
 
-        work_subtitles = dict_work.get('subtitles', [""])
+        # get the attributes of the work
+        work_title = dict_work.get('title')
+        work_subtitle = dict_work.get('subtitle', "")
+        work_alternative_titles = dict_work.get('alternative_titles', [])
 
         # get or create works
-        for work_subtitle in work_subtitles:
-            work_entry, work_created = Work.objects.get_or_create(
-                title__iexact=work_title,
-                work_type=work_type_entry,
-                subtitle__iexact=work_subtitle,
-                defaults={
-                    'title': work_title,
-                    'work_type': work_type_entry,
-                    'subtitle': work_subtitle}
-                )
+        work_entry, work_created = Work.objects.get_or_create(
+            title__iexact=work_title,
+            work_type=work_type_entry,
+            subtitle__iexact=work_subtitle,
+            defaults={
+                'title': work_title,
+                'work_type': work_type_entry,
+                'subtitle': work_subtitle}
+            )
 
-            if work_created:
-                logger.debug("Created work '{}' subtitled '{}'.".format(
-                    work_title,
-                    work_subtitle))
+        if work_created:
+            logger.debug("Created work '{}' subtitled '{}'.".format(
+                work_title,
+                work_subtitle))
 
-            # get work alternative titles or create them
-            if 'alternative_titles' in dict_work:
-                for alt_title in dict_work['alternative_titles']:
-                    self.create_alternative_title(
-                            work_entry,
-                            alt_title)
+        # get work alternative titles or create them
+        for alt_title in work_alternative_titles:
+            self.create_alternative_title(
+                    work_entry,
+                    alt_title)
 
-            # save work in the database
-            work_entry.save()
+        # save work in the database
+        work_entry.save()
 
     def create_alternative_title(self, work_entry, alt_title):
         """Create work alternative title in the database if necessary."""
@@ -128,12 +151,12 @@ class WorkCreator:
         try:
             works = self.parser.parse_work(self.work_file)
         except BaseException as exc:
-            raise CommandError("Error when reading the works"
+            raise CommandError("Error when reading the work"
                                " file: {}".format(exc)) from exc
 
         work_success = True
         # get works or create it
-        for worktype_query_name, dict_work_type in works.items():
+        for worktype_query_name, work_listing in works.items():
 
             logger.debug("Get work type '{}'".format(worktype_query_name))
             # get work type
@@ -142,30 +165,32 @@ class WorkCreator:
                         query_name__iexact=worktype_query_name
                         )
 
-                # get work titles and their attributes
-                for work_title, dict_work in dict_work_type.items():
-
-                    if dict_work is None:
-                        # create an empty dictionnary in the case only
-                        # the title has been provided
-                        dict_work = {}
-
-                    # check that the work data is well structured
-                    if not self.check_parser_result(
-                            dict_work, work_title=work_title):
-                        logger.debug(
-                            "Ignore work '{}' creation or update.".format(
-                                work_title))
-                        continue
-
-                    self.creatework(work_type_entry, work_title, dict_work)
-
             except WorkType.DoesNotExist:
                 work_success = False
                 logger.error(
                     "Unable to find work type query name '{}'. Use "
                     "createworktypes command first to create "
                     "work types.".format(worktype_query_name))
+
+            else:
+                # check the value associated to the work_type is a list
+                if not isinstance(work_listing, list):
+                    work_success = False
+                    logger.warning("Ignore creation of the works associated "
+                                   "to the worktype '{}'.".format(
+                                       worktype_query_name))
+                    continue
+
+                # remove the works having an incorrect structure
+                work_listing = self.remove_incorrect_works(work_listing)
+
+                # get works and their attributes
+                for dict_work in work_listing:
+
+                    if self.debug:
+                        self.debug_parser_work(dict_work)
+
+                    self.creatework(work_type_entry, dict_work)
 
         if work_success:
             logger.info("Works successfully created.")
@@ -220,12 +245,14 @@ class Command(BaseCommand):
             parser = default_work_parser
 
         # debug
-        if options.get('debug'):
+        debug = options.get('debug')
+        if debug:
             logger.setLevel(logging.DEBUG)
 
         work_creator = WorkCreator(
                 work_file,
-                parser)
+                parser,
+                debug)
 
         # run the work creator
         work_creator.createworks()

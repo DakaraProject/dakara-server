@@ -52,14 +52,12 @@ class CommandsTestCase(TestCase):
             [alt.title for alt in works[2].alternative_titles.all()],
             ["AltTitle 1", "AltTitle 3"])
 
-    def test_createworks_with_work_none_value(self):
-        """Create works from a work where only the title has been provided.
-
-        The work title provided has no dictionnary associated with."""
+    def test_createworks_with_incorrect_work_title(self):
+        """Create works from a work where the title is incorrect."""
         # Call command
         work_file = os.path.join(
                 DIR_WORK_FILES,
-                'has_none_value_work_file.json')
+                'title_error_work_file.json')
 
         args = [work_file]
         opts = {'verbosity': 0}
@@ -68,12 +66,7 @@ class CommandsTestCase(TestCase):
         # Work assertions
         works = Work.objects.order_by('title')
 
-        self.assertEqual(len(works), 1)
-
-        self.assertEqual(works[0].title, "Work 1")
-        self.assertEqual(works[0].subtitle, "")
-        self.assertEqual(works[0].work_type.query_name, "WorkType 1")
-        self.assertEqual(works[0].alternative_titles.count(), 0)
+        self.assertEqual(len(works), 0)
 
     def test_createworks_with_work_type_error(self):
         """Create works from a work which work type does not exist."""
@@ -89,12 +82,12 @@ class CommandsTestCase(TestCase):
         # Work assertion
         self.assertEqual(Work.objects.count(), 0)
 
-    def test_createworks_with_work_error(self):
-        """Create works from a work associated to an incorrect value."""
+    def test_createworks_with_work_title_missing(self):
+        """Create works from a work where the title is missing."""
         # Call command
         work_file = os.path.join(
                 DIR_WORK_FILES,
-                'work_error_work_file.json')
+                'title_missing_work_file.json')
 
         args = [work_file]
         opts = {'verbosity': 0}
@@ -104,7 +97,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_different_subtitle(self):
-        """Create two works which are the same except for their subtitle."""
+        """Create two works with the same title but different subtitle."""
         # Call command
         work_file = os.path.join(
                 DIR_WORK_FILES,
@@ -115,7 +108,31 @@ class CommandsTestCase(TestCase):
         call_command('createworks', *args, **opts)
 
         # Work assertion
-        self.assertEqual(Work.objects.count(), 2)
+        works = Work.objects.order_by('title', 'subtitle')
+
+        self.assertEqual(len(works), 2)
+
+        self.assertEqual(works[0].title, "Work 1")
+        self.assertEqual(works[0].subtitle, "Subtitle 1")
+
+        self.assertEqual(works[1].title, "Work 1")
+        self.assertEqual(works[1].subtitle, "Subtitle 2")
+
+    def test_createworks_with_work_type_without_work_list(self):
+        """Check there is no work created when work type value is not a list"""
+        # Create work type
+        WorkType.objects.create(query_name="WorkType 2")
+
+        # Call command
+        work_file = os.path.join(
+                DIR_WORK_FILES,
+                'work_type_without_work_list_work_file.json')
+
+        args = [work_file]
+        opts = {'verbosity': 0}
+        call_command('createworks', *args, **opts)
+
+        self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_nonexistent_file(self):
         """Check the command raises an error with a nonexistent file."""

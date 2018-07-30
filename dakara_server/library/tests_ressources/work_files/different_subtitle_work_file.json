@@ -1,10 +1,12 @@
 {
-    "WorkType 1": {
-	"Work 1": {
-	    "subtitles": [
-		"Subtitle 1",
-		"Subtitle 2"
-	    ]
+    "WorkType 1": [
+	{
+	    "title": "Work 1",
+	    "subtitle": "Subtitle 1"
+	},
+	{
+	    "title": "Work 1",
+	    "subtitle": "Subtitle 2"
 	}
-    }
+    ]
 }
