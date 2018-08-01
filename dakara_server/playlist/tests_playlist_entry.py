@@ -204,6 +204,50 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
+    def test_post_create_playlist_entry_date_stop_success_manager(self):
+        """Test manager can add song to playlist after its date stop
+        """
+        # set kara stop
+        date_stop = datetime.now(tz)
+        karaoke = Karaoke.get_object()
+        karaoke.date_stop = date_stop
+        karaoke.save()
+
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+        # request to add a new entry
+        response = self.client.post(self.url, {'song_id': self.song1.id})
+
+        # assert that the response and the database
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(PlaylistEntry.objects.count(), 5)
+
+    def test_post_create_playlist_entry_date_stop_success_admin(self):
+        """Test admin can add song to playlist after its date stop
+        """
+        # set kara stop
+        date_stop = datetime.now(tz)
+        karaoke = Karaoke.get_object()
+        karaoke.date_stop = date_stop
+        karaoke.save()
+
+        # login as admin
+        self.authenticate(self.admin)
+
+        # pre assert
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+        # request to add a new entry
+        response = self.client.post(self.url, {'song_id': self.song1.id})
+
+        # assert that the response and the database
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(PlaylistEntry.objects.count(), 5)
+
     @patch('playlist.views.datetime',
            side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
     def test_post_create_playlist_entry_date_stop_forbidden_playlist_playing(

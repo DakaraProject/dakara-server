@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -23,6 +24,7 @@ from playlist import permissions
 from playlist import views_device as device # noqa F401
 
 tz = timezone.get_default_timezone()
+UserModel = get_user_model()
 
 
 class PlaylistEntryPagination(PageNumberPagination):
@@ -126,11 +128,17 @@ class PlaylistEntryListView(ListCreateAPIView):
         return super().post(request)
 
     def perform_create(self, serializer):
-        # deny the creation of a new playlist entry if it exeeds karaoke stop
-        # date
+        # Deny the creation of a new playlist entry if it exeeds karaoke stop
+        # date. This case cannot be handled through permission classes at view
+        # level, as permission examination takes place before the data are
+        # validated. Moreover, the object permission method won't be called as
+        # we are creating the object (which obviously doesn't exist yet).
         karaoke = models.Karaoke.get_object()
 
-        if karaoke.date_stop is not None:
+        if karaoke.date_stop is not None and \
+           not self.request.user.has_playlist_permission_level(
+               UserModel.MANAGER) and \
+           not self.request.user.is_superuser:
             # compute playlist end date
             playlist = self.filter_queryset(self.get_queryset())
             player = models.Player.get_or_create()
@@ -302,13 +310,14 @@ class KaraokeView(RetrieveUpdateAPIView):
         """
         super().perform_update(serializer)
 
-        # empty the playlist and clear the player if the status is stop
+        # if the status of the karaoke has changed
         if 'status' not in serializer.validated_data:
             return
 
-        kara_status = serializer.validated_data['status']
+        # empty the playlist and clear the player if the new status is stop
+        karaoke = serializer.instance
 
-        if kara_status == models.Karaoke.STOP:
+        if karaoke.status == models.Karaoke.STOP:
             player = models.Player.get_or_create()
             player.reset()
             player.save()

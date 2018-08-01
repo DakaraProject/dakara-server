@@ -60,10 +60,10 @@ class BaseAPITestCase(APITestCase):
 
     @staticmethod
     def create_user(username, playlist_level=None,
-                    library_level=None, users_level=None):
+                    library_level=None, users_level=None, **kwargs):
         """Create a user with the provided permissions
         """
-        user = UserModel.objects.create_user(username, "", "password")
+        user = UserModel.objects.create_user(username, "", "password", **kwargs)
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
         user.users_permission_level = users_level
@@ -73,6 +73,9 @@ class BaseAPITestCase(APITestCase):
     def create_test_data(self):
         """Create test users songs, and playlist entries
         """
+        # create an admin
+        self.admin = self.create_user("Admin", is_superuser=True)
+
         # create a user without any rights
         self.user = self.create_user("TestUser")
 
