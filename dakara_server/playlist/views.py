@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from django.utils import timezone
@@ -7,21 +8,17 @@ from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import (
-    DestroyAPIView,
-    ListCreateAPIView,
-    ListAPIView,
-    RetrieveUpdateAPIView,
-)
+from rest_framework.views import APIView
+from rest_framework import generics as drf_generics
 
 from playlist import models
 from playlist import serializers
 from playlist import permissions
-from playlist import views_device as device # noqa F401
+from playlist.consumers import broadcast_to_channel
 
 tz = timezone.get_default_timezone()
+logger = logging.getLogger(__name__)
 
 
 class PlaylistEntryPagination(PageNumberPagination):
@@ -30,7 +27,7 @@ class PlaylistEntryPagination(PageNumberPagination):
     page_size = 100
 
 
-class PlaylistEntryView(DestroyAPIView):
+class PlaylistEntryView(drf_generics.DestroyAPIView):
     """Edition or deletion of a playlist entry
     """
     serializer_class = serializers.PlaylistEntrySerializer
@@ -63,7 +60,7 @@ class PlaylistEntryView(DestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class PlaylistEntryListView(ListCreateAPIView):
+class PlaylistEntryListView(drf_generics.ListCreateAPIView):
     """List of entries or creation of a new entry in the playlist
     """
     serializer_class = serializers.PlaylistEntrySerializer
@@ -114,34 +111,12 @@ class PlaylistEntryListView(ListCreateAPIView):
         return super().post(request)
 
 
-class PlaylistPlayedEntryListView(ListAPIView):
+class PlaylistPlayedEntryListView(drf_generics.ListAPIView):
     """List of played entries
     """
     pagination_class = PlaylistEntryPagination
     serializer_class = serializers.PlaylistPlayedEntryWithDatePlayedSerializer
     queryset = models.PlaylistEntry.get_playlist_played()
-
-
-class PlayerStatusView(APIView):
-    """View of the player status
-    """
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        """Get player status
-
-        Create one if it doesn't exist.
-        """
-        player = models.Player.get_or_create()
-        serializer = serializers.PlayerStatusSerializer(
-            player,
-            context={'request': request}
-        )
-
-        return Response(
-            serializer.data,
-            status.HTTP_200_OK
-        )
 
 
 class PlayerManageView(APIView):
@@ -180,14 +155,6 @@ class PlayerManageView(APIView):
             serializer.data,
             status.HTTP_202_ACCEPTED
         )
-
-
-class PlayerErrorView(ListAPIView):
-    """View of the player errors
-    """
-    permission_classes = (IsAuthenticated,)
-    serializer_class = serializers.PlayerErrorSerializer
-    queryset = models.PlayerError.objects.all().order_by('date_created')
 
 
 class DigestView(APIView):
@@ -231,7 +198,7 @@ class DigestView(APIView):
         )
 
 
-class KaraStatusView(RetrieveUpdateAPIView):
+class KaraStatusView(drf_generics.RetrieveUpdateAPIView):
     """Get or edit the kara status
     """
     queryset = models.KaraStatus.objects.all()
@@ -266,3 +233,117 @@ class KaraStatusView(RetrieveUpdateAPIView):
 
     def get_object(self):
         return models.KaraStatus.get_object()
+
+
+class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
+    """View of the player
+
+    It allows to get and set the player status.
+
+    It is important to note that a full update of the player status (PUT) is
+    rarely used, since the server pilots the player directly (and sets the
+    in-memory `player` object accordingly). This method is only called if
+    someone wants to have the current status right now. While it can correct
+    some differences with the in-memory player object, it has to be used as
+    confirmation. The playlist entry provided must remain the same as the one
+    currently playing.
+
+    The partial update of the player status (PATCH) is used for events that
+    cannot be predicted by the server (like song finished or not in transition
+    anymore).
+    """
+    permission_classes = [permissions.IsPlayerOrReadOnly]
+    serializer_class = serializers.PlayerStatusSerializer
+
+    def perform_update(self, serializer):
+        """Handle the new status"""
+        player = self.get_object()
+        entry = serializer.validated_data['playlist_entry']
+
+        # the player is idle
+        if entry is None:
+            # save the player
+            player.reset()
+            player.save()
+
+            # log the info
+            logger.debug("The player is idle")
+
+            # broadcast to the front
+            broadcast_to_channel('playlist.front', 'send_player_status',
+                                 {'player': player})
+
+            return
+
+        # the player has finished a song
+        if serializer.validated_data.get('finished', False):
+            # mark the entry as played
+            entry.was_played = True
+            entry.save()
+
+            # log the info
+            logger.debug("The player has finished playing '{}'".format(entry))
+
+            # continue the playlist
+            # the current state of the player will be broadcasted to the front
+            # later
+            broadcast_to_channel('playlist.device', 'handle_next')
+
+            return
+
+        # other cases
+
+        # the player is in transition
+        if serializer.validated_data.get('in_transition', False):
+            # if the player is in transition, it should not have any timing
+            serializer.validated_data.pop('timing')
+
+        # general case
+        player.update(**serializer.validated_data)
+        player.save()
+
+        # log the current state of the player
+        logger.debug("The player is {}".format(player))
+
+        # broadcast to the front
+        broadcast_to_channel('playlist.front', 'send_player_status',
+                             {'player': player})
+
+    def get_object(self):
+        return models.Player.get_or_create()
+
+
+class PlayerErrorView(drf_generics.ListCreateAPIView):
+    """View of the player errors
+    """
+    permission_classes = [permissions.IsPlayerOrReadOnly]
+    serializer_class = serializers.PlayerErrorSerializer
+    queryset = models.PlayerError.objects.order_by('date_created')
+    pagination_class = PageNumberPagination
+
+    def perform_create(self, serializer):
+        """Create an error and perform other actions
+
+        Log the error and broadcast it to the front. Then, continue the
+        playlist.
+        """
+        super().perform_create(serializer)
+        playlist_entry = serializer.validated_data['playlist_entry']
+        message = serializer.validated_data['error_message']
+
+        # mark the playlist_entry as played
+        playlist_entry.was_played = True
+        playlist_entry.save()
+
+        # log the event
+        logger.warning(
+            "Unable to play '{}', remove from playlist, error message: '{}'"
+            .format(playlist_entry, message)
+        )
+
+        # broadcast the error to the front
+        broadcast_to_channel('playlist.front', 'send_player_error',
+                             {'player_error': serializer.instance})
+
+        # continue the playlist
+        broadcast_to_channel('playlist.device', 'handle_next')

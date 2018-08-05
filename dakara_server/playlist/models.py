@@ -1,10 +1,13 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.db import models
 from django.core.cache import cache
+from django.utils import timezone
 from ordered_model.models import OrderedModel
 
 from users.models import DakaraUser
+
+tz = timezone.get_default_timezone()
 
 
 class PlaylistEntry(OrderedModel):
@@ -132,19 +135,61 @@ class Player:
     """Player representation in the server
 
     This object is not stored in database, but lives within Django memory
-    cache.
+    cache. Please use the `update` method to change its attributes.
     """
     PLAYER_NAME = 'player'
 
     def __init__(
-            self,
-            playlist_entry_id=None,
-            timing=timedelta(),
-            paused=False
+        self,
+        playlist_entry_id=None,
+        timing=timedelta(),
+        paused=False,
+        in_transition=False,
+        date=None,
+        playlist_entry=None,
     ):
         self.playlist_entry_id = playlist_entry_id
         self.timing = timing
         self.paused = paused
+        self.in_transition = in_transition
+        self.date = None
+
+        self.update(date, playlist_entry)
+
+    def __eq__(self, other):
+        fields = ('playlist_entry_id', 'timing', 'paused', 'in_transition',
+                  'date')
+
+        return all(getattr(self, field) == getattr(other, field)
+                   for field in fields)
+
+    def update(self, playlist_entry=None, date=None, **kwargs):
+        """Update the player and set date"""
+        # set normal attributes
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+        # set specific attributes
+        self.date = date or datetime.now(tz)
+        if playlist_entry:
+            # initialize with the setter method
+            self.playlist_entry = playlist_entry
+
+    @property
+    def playlist_entry(self):
+        if self.playlist_entry_id is None:
+            return None
+
+        return PlaylistEntry.objects.get(pk=self.playlist_entry_id)
+
+    @playlist_entry.setter
+    def playlist_entry(self, entry):
+        self.playlist_entry_id = entry.id
+
+    @playlist_entry.deleter
+    def playlist_entry(self):
+        self.playlist_entry_id = None
 
     @classmethod
     def get_or_create(cls):
@@ -166,15 +211,26 @@ class Player:
     def reset(self):
         """Reset the player to its initial state
         """
-        self.playlist_entry_id = None
-        self.timing = timedelta()
-        self.paused = False
+        self.update(
+            playlist_entry_id=None,
+            timing=timedelta(),
+            paused=False,
+            in_transition=False,
+        )
 
     def __repr__(self):
-        return "<{}: {}>".format(self.__class__.__name__, str(self))
+        return "<{}: {}>".format(self.__class__.__name__, self)
 
     def __str__(self):
-        return "in {} mode".format("pause" if self.paused else "play")
+        if self.playlist_entry_id is not None:
+            return "in {} for '{}' at {}{}".format(
+                'pause' if self.paused else 'play',
+                self.playlist_entry,
+                self.timing,
+                ' (in transition)' if self.in_transition else ''
+            )
+
+        return "idle"
 
 
 class PlayerCommand:

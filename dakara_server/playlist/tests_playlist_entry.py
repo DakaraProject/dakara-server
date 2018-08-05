@@ -6,8 +6,8 @@ from django.utils.dateparse import parse_datetime
 from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from .base_test import BaseAPITestCase, tz
-from .models import PlaylistEntry, Player
+from playlist.base_test import BaseAPITestCase, tz
+from playlist.models import PlaylistEntry, Player
 
 
 UserModel = get_user_model()
@@ -170,11 +170,16 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
     def test_get_playlist_entries_list_playing_entry(self):
         """Test to verify playlist entries list does not include playing song
         """
-        # Simulate a player playing next song
-        self.player_play_next_song()
-
         # Login as simple user
         self.authenticate(self.user)
+
+        # pre assert
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 2)
+
+        # Simulate a player playing next song
+        self.player_play_next_song()
 
         # Get playlist entries list
         response = self.client.get(self.url)

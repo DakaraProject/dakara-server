@@ -12,51 +12,21 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from library.models import Song, SongTag
-from .models import PlaylistEntry, KaraStatus
+from playlist.models import PlaylistEntry, KaraStatus
 
 UserModel = get_user_model()
 tz = timezone.get_default_timezone()
 
 
-class BaseAPITestCase(APITestCase):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # change logging level according to verbosity
-        verbosity = self.get_verbosity()
-        if verbosity <= 1:
-            # disable all logging in quiet and normal mode
-            logging.disable(logging.CRITICAL)
-
-        elif verbosity == 2:
-            # enable logging above DEBUG in verbose mode
-            logging.disable(logging.DEBUG)
-
-        # enable all logging in very verbose mode
-
-    def get_verbosity(self):
-        """Get the verbosity level
-
-        Snippet from https://stackoverflow.com/a/27457315/4584444
-        """
-        for stack in reversed(inspect.stack()):
-            options = stack[0].f_locals.get('options')
-            if isinstance(options, dict):
-                return int(options['verbosity'])
-
-        return 1
-
-    def tearDown(self):
-        # Clear cache between tests, so that stored player state is re-init
-        cache.clear()
-
+class Provider:
+    """Provides helper functions for tests
+    """
     def authenticate(self, user):
         """Authenticate against the provided user
         """
         token, _ = Token.objects.get_or_create(user=user)
 
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        return token
 
     @staticmethod
     def create_user(username, playlist_level=None,
@@ -143,55 +113,59 @@ class BaseAPITestCase(APITestCase):
         kara_status.status = KaraStatus.PAUSE
         kara_status.save()
 
-    def check_playlist_entry_json(self, json, expected_entry):
-        """Method to check a representation against expected playlist entry
-        """
-        self.assertEqual(json['id'], expected_entry.id)
-        self.assertEqual(json['owner']['id'], expected_entry.owner.id)
-        self.assertEqual(json['song']['id'], expected_entry.song.id)
-
-    def check_playlist_played_entry_json(self, json, expected_entry):
-        """Method to check a representation against expected playlist played entry
-        """
-        self.check_playlist_entry_json(json, expected_entry)
-        self.assertEqual(parse_datetime(json['date_played']),
-                         expected_entry.date_played)
-
     def player_play_next_song(self, time=0, paused=False):
         """Simulate player playing the next song at given time
 
         Return pause/skip commands directed toward the player.
         """
-        url = reverse('playlist-device-status')
-        # Login as player
+        url = reverse('playlist-player-status')
+
+        # login as player
         self.authenticate(self.player)
 
-        # Get next song to play
+        # get current entry
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        next_id = response.data.get('id')
+        current_entry = response.data.get('playlist_entry')
 
-        return self.player_play_song(next_id, time, paused)
+        if current_entry is not None:
+            # set current entry as played
+            response = self.client.put(url, {
+                'playlist_entry_id': current_entry.id,
+                'finished': True,
+            })
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def player_play_song(self, playlist_entry_id, time=0, paused=False):
+        # get next entry
+        next_entry = PlaylistEntry.get_next()
+        next_entry.date_played = datetime.now(tz)
+        next_entry.save()
+
+        return self.player_play_song(next_entry.id, time, paused)
+
+    def player_play_song(self, playlist_entry_id, time=0, paused=False,
+                         in_transition=False):
         """Test player playing
 
         Simulate the player reporting playing the specified song for the given
         time and pause status.
         """
-        url = reverse('playlist-device-status')
+        url = reverse('playlist-player-status')
+
         # Login as player
         self.authenticate(self.player)
+
         # Put as if playing next song
         response = self.client.put(
             url,
             {
                 'playlist_entry_id': playlist_entry_id,
                 'timing': time,
-                'paused': paused
+                'paused': paused,
+                'in_transition': in_transition,
             }
         )
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         return response
 
@@ -210,3 +184,58 @@ class BaseAPITestCase(APITestCase):
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class BaseAPITestCase(APITestCase, Provider):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # change logging level according to verbosity
+        verbosity = self.get_verbosity()
+        if verbosity <= 1:
+            # disable all logging in quiet and normal mode
+            logging.disable(logging.CRITICAL)
+
+        elif verbosity == 2:
+            # enable logging above DEBUG in verbose mode
+            logging.disable(logging.DEBUG)
+
+        # enable all logging in very verbose mode
+
+    def get_verbosity(self):
+        """Get the verbosity level
+
+        Snippet from https://stackoverflow.com/a/27457315/4584444
+        """
+        for stack in reversed(inspect.stack()):
+            options = stack[0].f_locals.get('options')
+            if isinstance(options, dict):
+                return int(options['verbosity'])
+
+        return 1
+
+    def tearDown(self):
+        # Clear cache between tests, so that stored player state is re-init
+        cache.clear()
+
+    def authenticate(self, user):
+        """Authenticate and set the token to the embedded client
+        """
+        token = super().authenticate(user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        return token
+
+    def check_playlist_entry_json(self, json, expected_entry):
+        """Method to check a representation against expected playlist entry
+        """
+        self.assertEqual(json['id'], expected_entry.id)
+        self.assertEqual(json['owner']['id'], expected_entry.owner.id)
+        self.assertEqual(json['song']['id'], expected_entry.song.id)
+
+    def check_playlist_played_entry_json(self, json, expected_entry):
+        """Method to check a representation against expected playlist played entry
+        """
+        self.check_playlist_entry_json(json, expected_entry)
+        self.assertEqual(parse_datetime(json['date_played']),
+                         expected_entry.date_played)

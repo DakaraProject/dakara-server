@@ -79,24 +79,7 @@ urlpatterns = [
         name='users-current'
         ),
 
-    # API routes for the playlist, player device side
-    url(
-        r'^api/playlist/device/status/$',
-        playlist_views.device.PlayerDeviceView.as_view(),
-        name='playlist-device-status'
-        ),
-    url(
-        r'^api/playlist/device/error/$',
-        playlist_views.device.PlayerDeviceErrorView.as_view(),
-        name='playlist-device-error'
-        ),
-
-    # API routes for the playlist, front side
-    url(
-        r'^api/playlist/player/manage/$',
-        playlist_views.PlayerManageView.as_view(),
-        name='playlist-player-manage'
-        ),
+    # API routes for the playlist
     url(
         r'^api/playlist/player/status/$',
         playlist_views.PlayerStatusView.as_view(),
@@ -106,6 +89,11 @@ urlpatterns = [
         r'^api/playlist/player/errors/$',
         playlist_views.PlayerErrorView.as_view(),
         name='playlist-player-errors'
+        ),
+    url(
+        r'^api/playlist/player/manage/$',
+        playlist_views.PlayerManageView.as_view(),
+        name='playlist-player-manage'
         ),
     url(
         r'^api/playlist/digest/$',

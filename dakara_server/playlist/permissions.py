@@ -139,17 +139,20 @@ class IsPlaylistAndLibraryManagerOrSongCanBeAdded(BasePermissionCustom):
             return True
 
 
-class IsPlayer(BasePermissionCustom):
+class IsPlayerOrReadOnly(BasePermissionCustom):
     """Handle permissions player management
 
     Permission scheme:
         Superuser can do anything;
         Player can do anything;
-        Authenticated cannot do anything;
+        Authenticated can only see;
         Unauthenticated user cannot see anything.
     """
 
     def has_permission_custom(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
         return request.user.has_playlist_permission_level(UserModel.PLAYER)
 
 
