@@ -3,9 +3,9 @@ from datetime import timedelta
 import pytest
 from channels.testing import WebsocketCommunicator
 from channels.layers import get_channel_layer
-# from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.models import Token
 
-# from dakara_server.routing import application
+from dakara_server.routing import application
 from playlist.consumers import PlaylistDeviceConsumer
 from playlist import models
 
@@ -26,25 +26,28 @@ async def communicator(provider):
     await communicator.disconnect()
 
 
-# @pytest.mark.asyncio
-# @pytest.mark.django_db(transaction=True)
-# async def test_authentication(provider):
-#     # create a token
-#     token = Token.objects.create(user=provider.player)
-#     headers = [(b'authorization', "Token {}".format(token.key).encode())]
-#
-#     communicator = WebsocketCommunicator(application, "/ws/playlist/device/",
-#                                          headers=headers)
-#     connected, _ = await communicator.connect()
-#
-#     assert connected
-#     await communicator.disconnect()
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_authentication(provider):
+    # create a token
+    token = Token.objects.create(user=provider.player)
+    headers = [
+        (b'authorization', "Token {}".format(token.key).encode()),
+        (b'origin', b"localhost"),
+    ]
+
+    communicator = WebsocketCommunicator(application, "/ws/playlist/device/",
+                                         headers=headers)
+    connected, _ = await communicator.connect()
+
+    assert connected
+    await communicator.disconnect()
 
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_authenticate_player_successful(provider):
-    """Test to authenticate one player
+    """Test to authenticate as a player
     """
     communicator = WebsocketCommunicator(PlaylistDeviceConsumer,
                                          "/ws/playlist/device/")
@@ -82,7 +85,7 @@ async def test_authenticate_player_successful(provider):
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_authenticate_user_failed(provider):
-    """Test to authenticate a normal user
+    """Test to authenticate as a normal user
     """
     communicator = WebsocketCommunicator(PlaylistDeviceConsumer,
                                          "/ws/playlist/device/")
