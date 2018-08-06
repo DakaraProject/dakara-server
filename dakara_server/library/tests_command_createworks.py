@@ -233,7 +233,28 @@ class CommandsTestCase(TestCase):
         opts = {'verbosity': 0, 'update-only': True}
         call_command('createworks', *args, **opts)
 
-        # Post-assertions
+        # Work assertions
+        works = Work.objects.order_by('title')
+        self.assertEqual(len(works), 2)  # should not have created any new work
+
+        self.assertEqual(works[0].title, "Work 1")
+        self.assertEqual(works[0].subtitle, "Subtitle 1")
+        self.assertEqual(works[0].work_type.query_name, "WorkType 1")
+        self.assertCountEqual(
+            [alt.title for alt in works[0].alternative_titles.all()],
+            ["AltTitle 1", "AltTitle 2"])
+
+        self.assertEqual(works[1].title, "Work 3")
+        self.assertEqual(works[1].subtitle, "")
+        self.assertEqual(works[1].work_type.query_name, "WorkType 1")
+        self.assertCountEqual(
+            [alt.title for alt in works[1].alternative_titles.all()],
+            ["AltTitle 1", "AltTitle 3"])
+
+        # Call the command a second time
+        call_command('createworks', *args, **opts)
+
+        # Check that it did not change the database
         works = Work.objects.order_by('title')
         self.assertEqual(len(works), 2)  # should not have created any new work
 
