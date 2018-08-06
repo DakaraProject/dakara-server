@@ -90,6 +90,7 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
     def receive_ready(self, event=None):
         """Start to play when the player is ready"""
         # request to start playing if possible
+        logger.info("The player is ready")
         self.handle_next()
 
     def send_playlist_entry(self, event):
@@ -129,8 +130,7 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         """Request the player to be idle
         """
         # set the player
-        player = models.Player.get_or_create()
-        player.reset()
+        player = models.Player()
         player.save()
 
         # log the event
@@ -197,6 +197,7 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         kara_status = models.KaraStatus.get_object()
         if kara_status.status != models.KaraStatus.PLAY:
             self.send_idle({})
+            return
 
         # get the new playlist_entry and request to play it
         playlist_entry = models.PlaylistEntry.get_next()

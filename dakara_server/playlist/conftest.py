@@ -19,7 +19,6 @@ async def provider():
 
 @pytest.fixture
 def player():
-    player = Player.get_or_create()
-    player.reset()
+    player = Player()
     player.save()
     return player

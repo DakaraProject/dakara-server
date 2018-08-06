@@ -98,8 +98,11 @@ async def test_authenticate_user_failed(provider):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_receive_ready(provider, player, communicator):
+async def test_receive_ready_send_playlist_entry(provider, player,
+                                                 communicator):
     """Test that a new song is requested to play when the player is ready
+
+    There are playlist entries awaiting to be played.
     """
     assert player.playlist_entry is None
 
@@ -112,6 +115,36 @@ async def test_receive_ready(provider, player, communicator):
     event = await communicator.receive_json_from()
     assert event['type'] == 'playlist_entry'
     assert event['data']['id'] == provider.pe1.id
+
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_receive_ready_send_idle(provider, player, communicator):
+    """Test that idle screen is requested to play when the player is ready
+
+    The playlist is empty.
+    """
+    # empty the playlist
+    models.PlaylistEntry.objects.all().delete()
+
+    assert player.playlist_entry is None
+
+    # send the event
+    await communicator.send_json_to({
+        'type': 'ready'
+    })
+
+    # get the new song event
+    event = await communicator.receive_json_from()
+    assert event['type'] == 'idle'
+
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
 
 
 @pytest.mark.asyncio
@@ -152,6 +185,10 @@ async def test_send_playlist_entry(provider, player, communicator, mocker):
         {'playlist_entry': pe1}
     )
 
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
+
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
@@ -184,6 +221,10 @@ async def test_send_idle(provider, player, communicator, mocker):
         'send_player_idle',
     )
 
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
+
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
@@ -200,6 +241,10 @@ async def test_send_status_request(communicator):
 
     # assert the event
     assert event['type'] == 'status_request'
+
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
 
 
 @pytest.mark.asyncio
@@ -230,6 +275,10 @@ async def test_send_command_pause(provider, player, communicator):
     # assert the event
     assert event['type'] == 'status_request'
 
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
+
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
@@ -259,6 +308,10 @@ async def test_send_command_play(provider, player, communicator):
 
     # assert the event
     assert event['type'] == 'status_request'
+
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
 
 
 @pytest.mark.asyncio
@@ -328,6 +381,10 @@ async def test_send_handle_next(provider, player, communicator):
     player = models.Player.get_or_create()
     assert player.playlist_entry is None
 
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
+
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
@@ -337,6 +394,7 @@ async def test_send_handle_next_kara_status_stop(provider, player, communicator)
     # set the kara status in stop mode
     kara_status = models.KaraStatus.get_object()
     kara_status.status = models.KaraStatus.STOP
+    models.PlaylistEntry.objects.all().delete()
     kara_status.save()
 
     # assert player is currently idle
@@ -357,13 +415,17 @@ async def test_send_handle_next_kara_status_stop(provider, player, communicator)
     player = models.Player.get_or_create()
     assert player.playlist_entry is None
 
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
+
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_send_handle_next_kara_status_pause(provider, player, communicator):
     """Test to handle next playlist entries when the karaoke is paused
     """
-    # set the kara status in stop mode
+    # set the kara status in pause mode
     kara_status = models.KaraStatus.get_object()
     kara_status.status = models.KaraStatus.PAUSE
     kara_status.save()
@@ -385,3 +447,7 @@ async def test_send_handle_next_kara_status_pause(provider, player, communicator
     # assert the player has been updated
     player = models.Player.get_or_create()
     assert player.playlist_entry is None
+
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
