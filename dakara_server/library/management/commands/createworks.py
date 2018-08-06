@@ -51,19 +51,21 @@ class WorkCreator:
         work_to_remove = []
 
         logger.debug("Removing the incorrect work from the current work type.")
-        for dict_work in work_listing:
+        for index, dict_work in enumerate(work_listing):
 
             # check if it is a dictionary
             if not isinstance(dict_work, dict):
                 work_to_remove.append(dict_work)
-                logger.debug("Incorrect work : value is not a dictionary.")
+                logger.debug("Incorrect work at index {}: "
+                             "value must be a dictionary.".format(index))
                 continue
 
             # check if it has a title field
             work_title = dict_work.get('title')
             if not work_title:
                 work_to_remove.append(dict_work)
-                logger.debug("Incorrect work : no title field found")
+                logger.debug("Incorrect work at index {}: "
+                             "no title field found")
                 continue
 
             logger.debug("Work '{}' is correctly structured.".format(
@@ -83,19 +85,16 @@ class WorkCreator:
         # get the work title (should have been checked it exists
         # before calling this method)
         work_title = dict_work.get('title')
+        work_subtitle = dict_work.get('subtitle')
 
         for field in dict_work:
             if field not in field_names:
-                if work_title:
-                    logger.debug(
-                        "Field '{}' for '{}' not in fields taken"
-                        " into account.".format(
+                logger.debug(
+                        "Field '{}' for '{}' subtitled '{}' not in "
+                        "fields taken into account.".format(
                             field,
-                            work_title))
-                else:
-                    logger.debug(
-                        "Field '{}' not in fields taken"
-                        " into account.".format(field))
+                            work_title,
+                            work_subtitle))
 
     def creatework(self, work_type_entry, dict_work):
         """Create or update a work in database."""
@@ -117,9 +116,7 @@ class WorkCreator:
             )
 
         if work_created:
-            logger.debug("Created work '{}' subtitled '{}'.".format(
-                work_title,
-                work_subtitle))
+            logger.debug("Created work '{}'.".format(work_entry))
 
         # get work alternative titles or create them
         for alt_title in work_alternative_titles:
@@ -132,7 +129,7 @@ class WorkCreator:
 
     def create_alternative_title(self, work_entry, alt_title):
         """Create work alternative title in the database if necessary."""
-        _, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create(
+        work_alt_title_entry, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create( # noqa E501
                 title__iexact=alt_title,
                 work__title__iexact=work_entry.title,
                 work__subtitle__iexact=work_entry.subtitle,
@@ -142,8 +139,8 @@ class WorkCreator:
                 )
 
         if work_alt_title_created:
-            logger.debug("Created alternative titles '{}' for '{}'.".format(
-                alt_title, work_entry.title))
+            logger.debug("Created alternative"
+                         " title '{}'.".format(work_alt_title_entry))
 
     def createworks(self):
         """Create or update works provided."""
@@ -177,7 +174,8 @@ class WorkCreator:
                 if not isinstance(work_listing, list):
                     work_success = False
                     logger.warning("Ignore creation of the works associated "
-                                   "to the worktype '{}'.".format(
+                                   "to the worktype '{}': "
+                                   "value must be a list.".format(
                                        worktype_query_name))
                     continue
 

@@ -18,6 +18,10 @@ class CommandsTestCase(TestCase):
     def test_createworks_from_correct_work_file(self):
         """Test create works command from a correctly structured work file
         """
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 1)
+        self.assertEqual(Work.objects.count(), 0)
+
         # Call command
         work_file = os.path.join(
                 DIR_WORK_FILES,
@@ -42,8 +46,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[1].title, "Work 2")
         self.assertEqual(works[1].subtitle, "Subtitle 2")
         self.assertEqual(works[1].work_type.query_name, "WorkType 1")
-        self.assertCountEqual(
-            [alt.title for alt in works[1].alternative_titles.all()], [])
+        self.assertEqual(works[1].alternative_titles.count(), 0)
 
         self.assertEqual(works[2].title, "Work 3")
         self.assertEqual(works[2].subtitle, "")
@@ -53,7 +56,11 @@ class CommandsTestCase(TestCase):
             ["AltTitle 1", "AltTitle 3"])
 
     def test_createworks_with_incorrect_work_title(self):
-        """Create works from a work where the title is incorrect."""
+        """Create works from a work where the title is incorrect"""
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 1)
+        self.assertEqual(Work.objects.count(), 0)
+
         # Call command
         work_file = os.path.join(
                 DIR_WORK_FILES,
@@ -69,7 +76,11 @@ class CommandsTestCase(TestCase):
         self.assertEqual(len(works), 0)
 
     def test_createworks_with_work_type_error(self):
-        """Create works from a work which work type does not exist."""
+        """Create works from a work which work type does not exist"""
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 1)
+        self.assertEqual(Work.objects.count(), 0)
+
         # Call command
         work_file = os.path.join(
                 DIR_WORK_FILES,
@@ -83,7 +94,11 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_work_title_missing(self):
-        """Create works from a work where the title is missing."""
+        """Create works from a work where the title is missing"""
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 1)
+        self.assertEqual(Work.objects.count(), 0)
+
         # Call command
         work_file = os.path.join(
                 DIR_WORK_FILES,
@@ -97,7 +112,11 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_different_subtitle(self):
-        """Create two works with the same title but different subtitle."""
+        """Create two works with the same title but different subtitle"""
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 1)
+        self.assertEqual(Work.objects.count(), 0)
+
         # Call command
         work_file = os.path.join(
                 DIR_WORK_FILES,
@@ -123,6 +142,10 @@ class CommandsTestCase(TestCase):
         # Create work type
         WorkType.objects.create(query_name="WorkType 2")
 
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 2)
+        self.assertEqual(Work.objects.count(), 0)
+
         # Call command
         work_file = os.path.join(
                 DIR_WORK_FILES,
@@ -135,7 +158,11 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_nonexistent_file(self):
-        """Check the command raises an error with a nonexistent file."""
+        """Check the command raises an error with a nonexistent file"""
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 1)
+        self.assertEqual(Work.objects.count(), 0)
+
         work_file = os.path.join(
                 DIR_WORK_FILES,
                 'this_file_does_not_exist.json')
@@ -145,3 +172,5 @@ class CommandsTestCase(TestCase):
             args = [work_file]
             opts = {'verbosity': 0}
             call_command('createworks', *args, **opts)
+
+        self.assertEqual(Work.objects.count(), 0)
