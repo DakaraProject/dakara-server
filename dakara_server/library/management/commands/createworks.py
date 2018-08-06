@@ -35,12 +35,14 @@ class WorkCreator:
     """
     def __init__(
             self,
-            work_file,
-            parser,
-            debug):
+            work_file="",
+            parser=None,
+            debug=False,
+            update_only=False):
         self.work_file = work_file
         self.parser = parser
         self.debug = debug
+        self.update_only = update_only
 
     def remove_incorrect_works(self, work_listing):
         """Remove works that have an incorrect structure in a list of works.
@@ -105,18 +107,37 @@ class WorkCreator:
         work_alternative_titles = dict_work.get('alternative_titles', [])
 
         # get or create works
-        work_entry, work_created = Work.objects.get_or_create(
-            title__iexact=work_title,
-            work_type=work_type_entry,
-            subtitle__iexact=work_subtitle,
-            defaults={
-                'title': work_title,
-                'work_type': work_type_entry,
-                'subtitle': work_subtitle}
-            )
+        if self.update_only:
 
-        if work_created:
-            logger.debug("Created work '{}'.".format(work_entry))
+            try:
+                work_entry = Work.objects.get(
+                        title__iexact=work_title,
+                        work_type=work_type_entry,
+                        subtitle__iexact=work_subtitle)
+
+            except Work.DoesNotExist:
+                logger.debug("Work with attributes (title:{title}, "
+                             "subtitle:{subtitle}, work_type:{work_type})"
+                             " not found (update only).".format(
+                                 title=work_title,
+                                 subtitle=work_subtitle,
+                                 work_type=work_type_entry.query_name))
+
+                return
+
+        else:
+            work_entry, work_created = Work.objects.get_or_create(
+                    title__iexact=work_title,
+                    work_type=work_type_entry,
+                    subtitle__iexact=work_subtitle,
+                    defaults={
+                        'title': work_title,
+                        'work_type': work_type_entry,
+                        'subtitle': work_subtitle}
+                    )
+
+            if work_created:
+                logger.debug("Created work '{}'.".format(work_entry))
 
         # get work alternative titles or create them
         for alt_title in work_alternative_titles:
@@ -222,6 +243,13 @@ class Command(BaseCommand):
             action="store_true"
         )
 
+        parser.add_argument(
+            "--update-only",
+            help="""Only update the existing works with the creation of
+            new alternative titles. Do not create new works.""",
+            action="store_true"
+        )
+
     def handle(self, *args, **options):
         """Process the feeding
         """
@@ -247,10 +275,14 @@ class Command(BaseCommand):
         if debug:
             logger.setLevel(logging.DEBUG)
 
+        # update only
+        update_only = options.get('update-only', False)
+
         work_creator = WorkCreator(
-                work_file,
-                parser,
-                debug)
+                work_file=work_file,
+                parser=parser,
+                debug=debug,
+                update_only=update_only)
 
         # run the work creator
         work_creator.createworks()

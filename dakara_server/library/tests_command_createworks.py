@@ -55,6 +55,33 @@ class CommandsTestCase(TestCase):
             [alt.title for alt in works[2].alternative_titles.all()],
             ["AltTitle 1", "AltTitle 3"])
 
+        # Call the command a second time.
+        call_command('createworks', *args, **opts)
+
+        # Check that it did not change the database
+        works = Work.objects.order_by('title')
+
+        self.assertEqual(len(works), 3)
+
+        self.assertEqual(works[0].title, "Work 1")
+        self.assertEqual(works[0].subtitle, "Subtitle 1")
+        self.assertEqual(works[0].work_type.query_name, "WorkType 1")
+        self.assertCountEqual(
+            [alt.title for alt in works[0].alternative_titles.all()],
+            ["AltTitle 1", "AltTitle 2"])
+
+        self.assertEqual(works[1].title, "Work 2")
+        self.assertEqual(works[1].subtitle, "Subtitle 2")
+        self.assertEqual(works[1].work_type.query_name, "WorkType 1")
+        self.assertEqual(works[1].alternative_titles.count(), 0)
+
+        self.assertEqual(works[2].title, "Work 3")
+        self.assertEqual(works[2].subtitle, "")
+        self.assertEqual(works[2].work_type.query_name, "WorkType 1")
+        self.assertCountEqual(
+            [alt.title for alt in works[2].alternative_titles.all()],
+            ["AltTitle 1", "AltTitle 3"])
+
     def test_createworks_with_incorrect_work_title(self):
         """Create works from a work where the title is incorrect"""
         # Pre-assertions
@@ -174,3 +201,52 @@ class CommandsTestCase(TestCase):
             call_command('createworks', *args, **opts)
 
         self.assertEqual(Work.objects.count(), 0)
+
+    def test_createworks_update_only_correct_use(self):
+        """Check the update only option works for a correct use"""
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 1)
+        self.assertEqual(Work.objects.count(), 0)
+
+        # Get work type
+        work_types = WorkType.objects.order_by('query_name')
+
+        # Create works
+        Work.objects.create(
+                title="Work 1",
+                subtitle="Subtitle 1",
+                work_type=work_types[0])
+        Work.objects.create(title="Work 3", work_type=work_types[0])
+
+        # Assert works
+        works = Work.objects.order_by('title')
+        self.assertEqual(len(works), 2)
+        self.assertEqual(works[0].alternative_titles.count(), 0)
+        self.assertEqual(works[1].alternative_titles.count(), 0)
+
+        # Call command
+        work_file = os.path.join(
+                DIR_WORK_FILES,
+                'correct_work_file.json')
+
+        args = [work_file]
+        opts = {'verbosity': 0, 'update-only': True}
+        call_command('createworks', *args, **opts)
+
+        # Post-assertions
+        works = Work.objects.order_by('title')
+        self.assertEqual(len(works), 2)  # should not have created any new work
+
+        self.assertEqual(works[0].title, "Work 1")
+        self.assertEqual(works[0].subtitle, "Subtitle 1")
+        self.assertEqual(works[0].work_type.query_name, "WorkType 1")
+        self.assertCountEqual(
+            [alt.title for alt in works[0].alternative_titles.all()],
+            ["AltTitle 1", "AltTitle 2"])
+
+        self.assertEqual(works[1].title, "Work 3")
+        self.assertEqual(works[1].subtitle, "")
+        self.assertEqual(works[1].work_type.query_name, "WorkType 1")
+        self.assertCountEqual(
+            [alt.title for alt in works[1].alternative_titles.all()],
+            ["AltTitle 1", "AltTitle 3"])

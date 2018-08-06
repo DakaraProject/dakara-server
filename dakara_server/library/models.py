@@ -48,7 +48,7 @@ class Work(models.Model):
 
     def __str__(self):
         subtitle_text = "subtitled {} ".format(
-                self.subtitle) if self.subtitle else self.subtitle
+                self.subtitle) if self.subtitle else ""
 
         return "{} {}({})".format(
             self.title,
