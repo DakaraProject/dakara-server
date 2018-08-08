@@ -35,6 +35,10 @@
 - Alternative titles of a work : search songs and works upon the alternative title of a work.
 - Reorder of the playlist
 
+### Changed
+
+- Access to routes without authentication gives 401 HTTP error code instead of 403.
+
 ## 1.2.0 - 2018-06-03
 
 ### Added

@@ -35,7 +35,7 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         """
         # get kara status
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_put_kara_status(self):
         """Test a manager can modify the kara status
