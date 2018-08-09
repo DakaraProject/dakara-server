@@ -13,6 +13,56 @@ from .feed_components import default_work_parser
 logger = logging.getLogger(__name__)
 
 
+class WorkAlternativeTitleCreator:
+    """Work alternative title creator."""
+
+    def remove_incorrect_alt_titles(self, work_alternative_titles):
+        """Remove the alternative titles having an incorrect structure
+
+        Return
+            A new list with the incorrect alternative titles removed"""
+        alt_title_to_remove = []
+
+        for index, struct_alt_title in enumerate(work_alternative_titles):
+
+            # check if it is a string
+            if not isinstance(struct_alt_title, str):
+                alt_title_to_remove.append(struct_alt_title)
+                logger.debug("Incorrect alternative title at index {} of "
+                             "current work: value must be "
+                             "a string.".format(index))
+                continue
+
+        return [alt_title for alt_title in work_alternative_titles if alt_title not in alt_title_to_remove] # noqa E501
+
+    def create_alternative_title(self, work_entry, alt_title):
+        """Create work alternative title in the database if necessary."""
+        work_alt_title_entry, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create( # noqa E501
+                title__iexact=alt_title,
+                work__title__iexact=work_entry.title,
+                work__subtitle__iexact=work_entry.subtitle,
+                defaults={
+                    'title': alt_title,
+                    'work': work_entry}
+                )
+
+        if work_alt_title_created:
+            logger.debug("Created alternative"
+                         " title '{}'.".format(work_alt_title_entry))
+
+    def create_alternative_titles(self, work_entry, work_alternative_titles):
+
+        # remove the incorrect alternative titles
+        work_alternative_titles = self.remove_incorrect_alt_titles(
+                work_alternative_titles)
+
+        for alt_title in work_alternative_titles:
+            # create work alternative title
+            self.create_alternative_title(
+                    work_entry,
+                    alt_title)
+
+
 class WorkCreator:
     """Work creator and updater. Create and update works in the
     database provided a work file and a parser.
@@ -43,9 +93,10 @@ class WorkCreator:
         self.parser = parser
         self.debug = debug
         self.update_only = update_only
+        self.work_alt_title_creator = WorkAlternativeTitleCreator()
 
     def remove_incorrect_works(self, work_listing):
-        """Remove works that have an incorrect structure in a list of works.
+        """Remove works having an incorrect structure in a list of works.
 
         Return
             A new list with the incorrect works removed."""
@@ -70,8 +121,10 @@ class WorkCreator:
                              "no title field found")
                 continue
 
-            logger.debug("Work '{}' is correctly structured.".format(
-                    work_title))
+            logger.debug(
+                    "Work '{}' at index '{}' is correctly structured.".format(
+                        work_title,
+                        index))
 
         return [work for work in work_listing if work not in work_to_remove]
 
@@ -140,28 +193,12 @@ class WorkCreator:
                 logger.debug("Created work '{}'.".format(work_entry))
 
         # get work alternative titles or create them
-        for alt_title in work_alternative_titles:
-            self.create_alternative_title(
-                    work_entry,
-                    alt_title)
+        self.work_alt_title_creator.create_alternative_titles(
+                work_entry,
+                work_alternative_titles)
 
         # save work in the database
         work_entry.save()
-
-    def create_alternative_title(self, work_entry, alt_title):
-        """Create work alternative title in the database if necessary."""
-        work_alt_title_entry, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create( # noqa E501
-                title__iexact=alt_title,
-                work__title__iexact=work_entry.title,
-                work__subtitle__iexact=work_entry.subtitle,
-                defaults={
-                    'title': alt_title,
-                    'work': work_entry}
-                )
-
-        if work_alt_title_created:
-            logger.debug("Created alternative"
-                         " title '{}'.".format(work_alt_title_entry))
 
     def createworks(self):
         """Create or update works provided."""

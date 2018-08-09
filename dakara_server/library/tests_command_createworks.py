@@ -98,12 +98,34 @@ class CommandsTestCase(TestCase):
         call_command('createworks', *args, **opts)
 
         # Work assertions
+        self.assertEqual(Work.objects.count(), 0)
+
+    def test_createworks_with_unused_field(self):
+        """Create works from a work file where there is unused fields."""
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 1)
+        self.assertEqual(Work.objects.count(), 0)
+
+        # Call command
+        work_file = os.path.join(
+                DIR_WORK_FILES,
+                'work_with_unused_field_work_file.json')
+
+        args = [work_file]
+        opts = {'verbosity': 0}
+        call_command('createworks', *args, **opts)
+
+        # Work assertions
         works = Work.objects.order_by('title')
 
-        self.assertEqual(len(works), 0)
+        self.assertEqual(len(works), 1)
+        self.assertEqual(works[0].title, "Work 1")
+        self.assertEqual(works[0].subtitle, "")
+        self.assertEqual(works[0].work_type.query_name, "WorkType 1")
+        self.assertEqual(works[0].alternative_titles.count(), 0)
 
     def test_createworks_with_work_type_error(self):
-        """Create works from a work which work type does not exist"""
+        """Create works from a work which work type does not exist."""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
@@ -202,8 +224,33 @@ class CommandsTestCase(TestCase):
 
         self.assertEqual(Work.objects.count(), 0)
 
+    def test_createworks_with_incorrect_alternative_titles(self):
+        """Create works with incorrect alternative titles."""
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 1)
+        self.assertEqual(Work.objects.count(), 0)
+
+        # Call command
+        work_file = os.path.join(
+                DIR_WORK_FILES,
+                'incorrect_alt_title_work_file.json')
+
+        args = [work_file]
+        opts = {'verbosity': 0}
+        call_command('createworks', *args, **opts)
+
+        # Work assertions
+        works = Work.objects.order_by('title')
+
+        self.assertEqual(len(works), 1)
+
+        self.assertEqual(works[0].title, "Work 1")
+        self.assertEqual(works[0].subtitle, "")
+        self.assertEqual(works[0].work_type.query_name, "WorkType 1")
+        self.assertEqual(works[0].alternative_titles.count(), 0)
+
     def test_createworks_update_only_correct_use(self):
-        """Check the update only option works for a correct use"""
+        """Test the update only option for a correct use"""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
