@@ -218,9 +218,11 @@ class KaraStatusView(drf_generics.RetrieveUpdateAPIView):
             kara_status = request.data['status']
 
             if kara_status == models.KaraStatus.STOP:
+                # request the player to be idle
+                broadcast_to_channel('playlist.device', 'send_idle')
+
                 # clear player
-                player = models.Player.get_or_create()
-                player.reset()
+                player = models.Player()
                 player.save()
 
                 # empty the playlist
@@ -228,6 +230,17 @@ class KaraStatusView(drf_generics.RetrieveUpdateAPIView):
 
                 # empty the player errors
                 models.PlayerError.objects.all().delete()
+
+            elif kara_status == models.KaraStatus.PLAY:
+                player = models.Player.get_or_create()
+
+                # request the player to play the next song if idle
+                if player.playlist_entry is None:
+                    broadcast_to_channel(
+                        'playlist.device', 'send_playlist_entry', data={
+                             'playlist_entry': models.PlaylistEntry.get_next()
+                         }
+                    )
 
         return response
 
