@@ -63,7 +63,8 @@ class BaseAPITestCase(APITestCase):
                     library_level=None, users_level=None, **kwargs):
         """Create a user with the provided permissions
         """
-        user = UserModel.objects.create_user(username, "", "password", **kwargs)
+        user = UserModel.objects.create_user(username, "", "password",
+                                             **kwargs)
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
         user.users_permission_level = users_level
