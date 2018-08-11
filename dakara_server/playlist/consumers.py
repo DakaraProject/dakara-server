@@ -110,7 +110,8 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         })
 
         # send to device
-        serializer = serializers.PlaylistEntryForPlayerSerializer(playlist_entry)
+        serializer = serializers.PlaylistEntryForPlayerSerializer(
+            playlist_entry)
         self.send_json({
             'type': 'playlist_entry',
             'data': serializer.data

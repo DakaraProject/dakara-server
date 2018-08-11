@@ -128,8 +128,8 @@ class Provider:
 
         return self.player_play_song(next_entry, *args, **kwargs)
 
-    def player_play_song(self, playlist_entry, timing=timedelta(), paused=False,
-                         in_transition=False):
+    def player_play_song(self, playlist_entry, timing=timedelta(),
+                         paused=False, in_transition=False):
         """Set the player playing the provided song
         """
         # request the entry to play

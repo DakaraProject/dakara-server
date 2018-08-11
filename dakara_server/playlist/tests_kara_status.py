@@ -154,7 +154,8 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         self.assertTrue(response.data['playlist_entry'])
 
     @patch('playlist.views.broadcast_to_channel')
-    def test_put_kara_status_play_player_idle(self, mocked_broadcast_to_channel):
+    def test_put_kara_status_play_player_idle(self,
+                                              mocked_broadcast_to_channel):
         """Test idle player is requested to play after kara status is play
 
         The kara status was paused and the player idle. When the kara status
@@ -188,11 +189,13 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         )
 
     @patch('playlist.views.broadcast_to_channel')
-    def test_put_kara_status_play_player_not_idle(self, mocked_broadcast_to_channel):
+    def test_put_kara_status_play_player_not_idle(self,
+                                                  mocked_broadcast_to_channel):
         """Test not idle player is not requested after kara status is play
 
-        The kara status was paused and the player not idle. When the kara status
-        is switched to play, the player should not be requested to do anything.
+        The kara status was paused and the player not idle. When the kara
+        status is switched to play, the player should not be requested to do
+        anything.
         """
         url_player_status = reverse('playlist-player-status')
 

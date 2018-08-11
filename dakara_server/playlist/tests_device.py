@@ -388,7 +388,8 @@ async def test_send_handle_next(provider, player, communicator):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_handle_next_kara_status_stop(provider, player, communicator):
+async def test_send_handle_next_kara_status_stop(provider, player,
+                                                 communicator):
     """Test to handle next playlist entries when the karaoke is stopped
     """
     # set the kara status in stop mode
@@ -422,7 +423,8 @@ async def test_send_handle_next_kara_status_stop(provider, player, communicator)
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_handle_next_kara_status_pause(provider, player, communicator):
+async def test_send_handle_next_kara_status_pause(provider, player,
+                                                  communicator):
     """Test to handle next playlist entries when the karaoke is paused
     """
     # set the kara status in pause mode
