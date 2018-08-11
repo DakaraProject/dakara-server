@@ -1,7 +1,5 @@
 import logging
-from datetime import datetime
 
-from django.utils import timezone
 from django.contrib.auth import get_user_model
 from channels.generic.websocket import JsonWebsocketConsumer
 from channels.layers import get_channel_layer
@@ -9,7 +7,6 @@ from asgiref.sync import async_to_sync
 
 from playlist import serializers, models
 
-tz = timezone.get_default_timezone()
 UserModel = get_user_model()
 logger = logging.getLogger(__name__)
 channel_layer = get_channel_layer()
@@ -101,15 +98,8 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         if playlist_entry is None:
             raise ValueError("Playlist entry must not be None")
 
-        # set `date_played` for new playlist entry
-        playlist_entry.date_played = datetime.now(tz)
-        playlist_entry.save()
-
-        # set the player
-        player = models.Player.get_or_create()
-        player.reset()
-        player.update(playlist_entry=playlist_entry, in_transition=True)
-        player.save()
+        # set the new playlist entry playing
+        playlist_entry.set_playing()
 
         # log the event
         logger.info("The player will play '{}'".format(playlist_entry))

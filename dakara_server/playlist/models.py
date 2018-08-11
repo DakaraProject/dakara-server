@@ -86,6 +86,46 @@ class PlaylistEntry(OrderedModel):
 
         return playlist.first()
 
+    def set_playing(self):
+        """The playlist entry has started to play
+
+        Returns:
+            Player: the current player.
+        """
+        # check that no other playlist entry is playing
+        if self.get_playing() is not None:
+            raise RuntimeError("A playlist entry is currently in play")
+
+        # set the playlist entry
+        self.date_played = datetime.now(tz)
+        self.save()
+
+        # update the player
+        player = Player(playlist_entry=self, in_transition=True)
+        player.save()
+
+        return player
+
+    def set_finished(self):
+        """The playlist entry has finished
+
+        Returns:
+            Player: the current player.
+        """
+        # check the current playlist entry is in play
+        if self != self.get_playing():
+            raise RuntimeError("This playlist entry is not playing")
+
+        # set the playlist entry
+        self.was_played = True
+        self.save()
+
+        # update the player
+        player = Player()
+        player.save()
+
+        return player
+
 
 class KaraStatus(models.Model):
     """Current status of the kara
@@ -154,7 +194,8 @@ class Player:
         self.in_transition = in_transition
         self.date = None
 
-        self.update(date, playlist_entry)
+        # at least set the date
+        self.update(playlist_entry=playlist_entry, date=date)
 
     def __eq__(self, other):
         fields = ('playlist_entry_id', 'timing', 'paused', 'in_transition',
@@ -179,9 +220,22 @@ class Player:
     @property
     def playlist_entry(self):
         if self.playlist_entry_id is None:
-            return None
+            playlist_entry = None
 
-        return PlaylistEntry.objects.get(pk=self.playlist_entry_id)
+        else:
+            playlist_entry = PlaylistEntry.objects.get(
+                pk=self.playlist_entry_id)
+
+        playlist_entry_database = PlaylistEntry.get_playing()
+
+        # ensure that the playlist entry of the player is designated to play
+        if playlist_entry != playlist_entry_database:
+            raise RuntimeError("The player is playing something inconsistent: "
+                               "'{}' instead of '{}'"
+                               .format(playlist_entry,
+                                       playlist_entry_database))
+
+        return playlist_entry
 
     @playlist_entry.setter
     def playlist_entry(self, entry):

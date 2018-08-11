@@ -269,7 +269,8 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
     serializer_class = serializers.PlayerStatusSerializer
 
     def perform_update(self, serializer):
-        """Handle the new status"""
+        """Handle the new status
+        """
         player = self.get_object()
         entry = serializer.validated_data['playlist_entry']
 
@@ -278,6 +279,10 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
             # save the player
             player.reset()
             player.save()
+
+            # reset the player instance in the serializer as the player has
+            # changed
+            serializer.instance = player
 
             # log the info
             logger.debug("The player is idle")
@@ -290,9 +295,12 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 
         # the player has finished a song
         if serializer.validated_data.get('finished', False):
-            # mark the entry as played
-            entry.was_played = True
-            entry.save()
+            # set the playlist entry as finished
+            player = entry.set_finished()
+
+            # reset the player instance in the serializer as the player is a
+            # different object
+            serializer.instance = player
 
             # log the info
             logger.debug("The player has finished playing '{}'".format(entry))
@@ -314,6 +322,9 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         # general case
         player.update(**serializer.validated_data)
         player.save()
+
+        # reset the player instance in the serializer as the player has changed
+        serializer.instance = player
 
         # log the current state of the player
         logger.debug("The player is {}".format(player))
@@ -345,8 +356,7 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
         message = serializer.validated_data['error_message']
 
         # mark the playlist_entry as played
-        playlist_entry.was_played = True
-        playlist_entry.save()
+        playlist_entry.set_finished()
 
         # log the event
         logger.warning(

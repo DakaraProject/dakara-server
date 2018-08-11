@@ -12,7 +12,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from library.models import Song, SongTag
-from playlist.models import PlaylistEntry, KaraStatus
+from playlist.models import PlaylistEntry, KaraStatus, Player
 
 UserModel = get_user_model()
 tz = timezone.get_default_timezone()
@@ -113,61 +113,38 @@ class Provider:
         kara_status.status = KaraStatus.PAUSE
         kara_status.save()
 
-    def player_play_next_song(self, time=0, paused=False):
-        """Simulate player playing the next song at given time
-
-        Return pause/skip commands directed toward the player.
+    def player_play_next_song(self, *args, **kwargs):
+        """Set the player playing the next song
         """
-        url = reverse('playlist-player-status')
-
-        # login as player
-        self.authenticate(self.player)
-
         # get current entry
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        current_entry = response.data.get('playlist_entry')
+        current_entry = PlaylistEntry.get_playing()
 
         if current_entry is not None:
             # set current entry as played
-            response = self.client.put(url, {
-                'playlist_entry_id': current_entry.id,
-                'finished': True,
-            })
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            current_entry.set_finished()
 
         # get next entry
         next_entry = PlaylistEntry.get_next()
-        next_entry.date_played = datetime.now(tz)
-        next_entry.save()
 
-        return self.player_play_song(next_entry.id, time, paused)
+        return self.player_play_song(next_entry, *args, **kwargs)
 
-    def player_play_song(self, playlist_entry_id, time=0, paused=False,
+    def player_play_song(self, playlist_entry, timing=timedelta(), paused=False,
                          in_transition=False):
-        """Test player playing
-
-        Simulate the player reporting playing the specified song for the given
-        time and pause status.
+        """Set the player playing the provided song
         """
-        url = reverse('playlist-player-status')
+        # request the entry to play
+        playlist_entry.set_playing()
 
-        # Login as player
-        self.authenticate(self.player)
-
-        # Put as if playing next song
-        response = self.client.put(
-            url,
-            {
-                'playlist_entry_id': playlist_entry_id,
-                'timing': time,
-                'paused': paused,
-                'in_transition': in_transition,
-            }
+        # set the player to an arbitrary state
+        player = Player.get_or_create()
+        player.update(
+            timing=timing,
+            paused=paused,
+            in_transition=in_transition
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        player.save()
 
-        return response
+        return player
 
     def player_send_error(self, playlist_entry_id, message):
         """Simulate the player reporting an error

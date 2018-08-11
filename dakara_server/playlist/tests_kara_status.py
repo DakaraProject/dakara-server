@@ -3,8 +3,8 @@ from unittest.mock import patch
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from .base_test import BaseAPITestCase
-from .models import KaraStatus, PlaylistEntry, PlayerError
+from playlist.base_test import BaseAPITestCase
+from playlist.models import KaraStatus, PlaylistEntry, PlayerError
 
 
 class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
@@ -73,7 +73,7 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
 
         # there is a player error
         PlayerError.objects.create(
-            playlist_entry=self.pe1,
+            playlist_entry=self.pe3,
             error_message="error message"
         )
 
@@ -120,7 +120,7 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
 
         # there is a player error
         PlayerError.objects.create(
-            playlist_entry=self.pe1,
+            playlist_entry=self.pe3,
             error_message="error message"
         )
 

@@ -16,19 +16,6 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
     def setUp(self):
         self.create_test_data()
 
-    @staticmethod
-    def set_player_status(playlist_entry, date_played=None, **kwargs):
-        """Set the player in a given state"""
-        playlist_entry.date_played = date_played or datetime.now(tz)
-        playlist_entry.save()
-
-        player = Player.get_or_create()
-        player.reset()
-        player.update(playlist_entry=playlist_entry, **kwargs)
-        player.save()
-
-        return player
-
     def test_get_status_idle(self):
         """Test to access the player status when idle"""
         self.authenticate(self.user)
@@ -51,8 +38,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.authenticate(self.user)
 
         # set the player in transition
-        playlist_entry = PlaylistEntry.get_next()
-        player = self.set_player_status(playlist_entry, in_transition=True)
+        player = self.player_play_next_song(in_transition=True)
 
         # assert the status of the player
         response = self.client.get(self.url)
@@ -68,9 +54,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.authenticate(self.user)
 
         # set the player in play
-        playlist_entry = PlaylistEntry.get_next()
-        player = self.set_player_status(playlist_entry,
-                                        timing=timedelta(seconds=2))
+        player = self.player_play_next_song(timing=timedelta(seconds=2))
 
         # assert the status of the player
         response = self.client.get(self.url)
@@ -86,10 +70,8 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.authenticate(self.user)
 
         # set the player in play
-        playlist_entry = PlaylistEntry.get_next()
-        player = self.set_player_status(playlist_entry,
-                                        timing=timedelta(seconds=5),
-                                        paused=True)
+        player = self.player_play_next_song(timing=timedelta(seconds=5),
+                                            paused=True)
 
         # assert the status of the player
         response = self.client.get(self.url)
@@ -130,6 +112,12 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        # assert the response
+        self.assertIsNone(response.data['playlist_entry'])
+        self.assertFalse(response.data['paused'])
+        self.assertFalse(response.data['in_transition'])
+        self.assertEqual(response.data['timing'], 0)
+
         # assert the result
         player = Player.get_or_create()
         self.assertIsNone(player.playlist_entry)
@@ -156,7 +144,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         mocked_datetime.now.return_value = now
 
         # set the player already in transition
-        self.set_player_status(self.pe1, in_transition=True)
+        self.player_play_next_song(in_transition=True)
 
         # perform the request
         response = self.client.put(self.url, data={
@@ -166,6 +154,12 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
             'in_transition': True,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert the response
+        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
+        self.assertFalse(response.data['paused'])
+        self.assertTrue(response.data['in_transition'])
+        self.assertEqual(response.data['timing'], 0)
 
         # assert the result
         player = Player.get_or_create()
@@ -187,7 +181,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.authenticate(self.player)
 
         # set the player already in transition
-        player = self.set_player_status(self.pe1, in_transition=True)
+        player = self.player_play_next_song(in_transition=True)
         self.assertEqual(player.timing, timedelta(0))
 
         # perform the request
@@ -198,6 +192,12 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
             'in_transition': True,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert the response
+        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
+        self.assertFalse(response.data['paused'])
+        self.assertTrue(response.data['in_transition'])
+        self.assertEqual(response.data['timing'], 0)
 
         # assert the result
         player = Player.get_or_create()
@@ -216,7 +216,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         mocked_datetime.now.return_value = now
 
         # set the player in transition
-        self.set_player_status(self.pe1, in_transition=True)
+        self.player_play_next_song(in_transition=True)
 
         # perform the request
         response = self.client.put(self.url, data={
@@ -226,6 +226,12 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
             'in_transition': False,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert the response
+        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
+        self.assertFalse(response.data['paused'])
+        self.assertFalse(response.data['in_transition'])
+        self.assertEqual(response.data['timing'], 0)
 
         # assert the result
         player = Player.get_or_create()
@@ -253,7 +259,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         mocked_datetime.now.return_value = now
 
         # set the player in transition
-        self.set_player_status(self.pe1, in_transition=True)
+        self.player_play_next_song(in_transition=True)
 
         # perform the request
         response = self.client.patch(self.url, data={
@@ -261,6 +267,12 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
             'in_transition': False,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert the response
+        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
+        self.assertFalse(response.data['paused'])
+        self.assertFalse(response.data['in_transition'])
+        self.assertEqual(response.data['timing'], 0)
 
         # assert the result
         player = Player.get_or_create()
@@ -288,8 +300,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         mocked_datetime.now.return_value = now
 
         # set the player already in play
-        playlist_entry = PlaylistEntry.get_next()
-        self.set_player_status(playlist_entry, timing=timedelta(seconds=1))
+        self.player_play_next_song(timing=timedelta(seconds=1))
 
         # perform the request
         response = self.client.put(self.url, data={
@@ -299,6 +310,12 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
             'in_transition': False,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert the response
+        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
+        self.assertFalse(response.data['paused'])
+        self.assertFalse(response.data['in_transition'])
+        self.assertEqual(response.data['timing'], 2)
 
         # assert the result
         player = Player.get_or_create()
@@ -327,8 +344,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         mocked_datetime.now.return_value = now
 
         # set the player in play
-        playlist_entry = PlaylistEntry.get_next()
-        self.set_player_status(playlist_entry, timing=timedelta(seconds=1))
+        self.player_play_next_song(timing=timedelta(seconds=1))
 
         # perform the request
         response = self.client.put(self.url, data={
@@ -338,6 +354,12 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
             'in_transition': False,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert the response
+        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
+        self.assertTrue(response.data['paused'])
+        self.assertFalse(response.data['in_transition'])
+        self.assertEqual(response.data['timing'], 2)
 
         # assert the result
         player = Player.get_or_create()
@@ -358,8 +380,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.authenticate(self.player)
 
         # set the player in play
-        playlist_entry = PlaylistEntry.get_next()
-        player_old = self.set_player_status(playlist_entry)
+        self.player_play_next_song()
 
         # pre assert
         pe1 = PlaylistEntry.objects.get(pk=self.pe1.id)
@@ -373,9 +394,15 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the player has not changed
-        player_new = Player.get_or_create()
-        self.assertEqual(player_old, player_new)
-        self.assertFalse(hasattr(player_new, 'finished'))
+        player = Player.get_or_create()
+        self.assertIsNone(player.playlist_entry)
+        self.assertFalse(hasattr(player, 'finished'))
+
+        # assert the response
+        self.assertIsNone(response.data['playlist_entry'])
+        self.assertFalse(response.data['paused'])
+        self.assertFalse(response.data['in_transition'])
+        self.assertEqual(response.data['timing'], 0)
 
         # assert the result
         pe1 = PlaylistEntry.objects.get(pk=self.pe1.id)
@@ -391,9 +418,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.authenticate(self.player)
 
         # set the player already in play
-        playlist_entry = PlaylistEntry.get_next()
-        player_old = self.set_player_status(playlist_entry,
-                                            timing=timedelta(seconds=1))
+        player_old = self.player_play_next_song(timing=timedelta(seconds=1))
 
         # perform the request
         response = self.client.put(self.url, data={
