@@ -30,5 +30,5 @@ install:
 
 # command to run tests
 test_script:
-  - "cd dakara_server && %PYTHON%/python.exe ./manage.py test -v 2"
+  - "cd dakara_server && %PYTHON%/python.exe ./manage.py test -v 2 & cd .."
   - "%PYTHON%/Scripts/flake8.exe"
