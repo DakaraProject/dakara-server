@@ -1,0 +1,9 @@
+worktypes:
+  - query_name: work-type-one
+    name: Work type one
+    name_plural: Work type one plural
+    icon_name: elephant
+  - query_name: work-type-two
+    name: Work type two
+    name_plural: Work type two plural
+    icon_name: cat
