@@ -35,7 +35,6 @@ async def test_authentication(provider):
     token = Token.objects.create(user=provider.player)
     headers = [
         (b'authorization', "Token {}".format(token.key).encode()),
-        (b'origin', b"localhost"),
     ]
 
     communicator = WebsocketCommunicator(application, "/ws/playlist/device/",
