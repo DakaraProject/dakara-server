@@ -12,7 +12,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from library.models import Song, SongTag
-from playlist.models import PlaylistEntry, KaraStatus, Player
+from playlist.models import PlaylistEntry, Karaoke, Player
 
 UserModel = get_user_model()
 tz = timezone.get_default_timezone()
@@ -30,10 +30,11 @@ class Provider:
 
     @staticmethod
     def create_user(username, playlist_level=None,
-                    library_level=None, users_level=None):
+                    library_level=None, users_level=None, **kwargs):
         """Create a user with the provided permissions
         """
-        user = UserModel.objects.create_user(username, "", "password")
+        user = UserModel.objects.create_user(username, "", "password",
+                                             **kwargs)
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
         user.users_permission_level = users_level
@@ -43,6 +44,9 @@ class Provider:
     def create_test_data(self):
         """Create test users songs, and playlist entries
         """
+        # create an admin
+        self.admin = self.create_user("Admin", is_superuser=True)
+
         # create a user without any rights
         self.user = self.create_user("TestUser")
 
@@ -93,25 +97,25 @@ class Provider:
         self.pe4.save()
 
         # Set kara status in play mode
-        kara_status = KaraStatus.get_object()
-        kara_status.status = KaraStatus.PLAY
-        kara_status.save()
+        karaoke = Karaoke.get_object()
+        karaoke.status = Karaoke.PLAY
+        karaoke.save()
 
     @staticmethod
-    def set_kara_status_stop():
+    def set_karaoke_stop():
         """Put the karaoke in stop state
         """
-        kara_status = KaraStatus.get_object()
-        kara_status.status = KaraStatus.STOP
-        kara_status.save()
+        karaoke = Karaoke.get_object()
+        karaoke.status = Karaoke.STOP
+        karaoke.save()
 
     @staticmethod
-    def set_kara_status_pause():
+    def set_karaoke_pause():
         """Put the karaoke in pause state
         """
-        kara_status = KaraStatus.get_object()
-        kara_status.status = KaraStatus.PAUSE
-        kara_status.save()
+        karaoke = Karaoke.get_object()
+        karaoke.status = Karaoke.PAUSE
+        karaoke.save()
 
     def player_play_next_song(self, *args, **kwargs):
         """Set the player playing the next song

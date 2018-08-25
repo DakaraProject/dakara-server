@@ -185,8 +185,8 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
             - there is a new playlist entry in playlist after the provided one.
         """
         # get the next playlist entry if the kara is in play mode
-        kara_status = models.KaraStatus.get_object()
-        if kara_status.status != models.KaraStatus.PLAY:
+        karaoke = models.Karaoke.get_object()
+        if karaoke.status != models.Karaoke.PLAY:
             self.send_idle({})
             return
 

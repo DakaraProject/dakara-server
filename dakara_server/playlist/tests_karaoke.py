@@ -1,57 +1,71 @@
 from unittest.mock import patch
 
+from datetime import datetime
+
 from django.core.urlresolvers import reverse
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from rest_framework import status
 
 from playlist.base_test import BaseAPITestCase
-from playlist.models import KaraStatus, PlaylistEntry, PlayerError
+from playlist.models import Karaoke, PlaylistEntry, PlayerError
+
+tz = timezone.get_default_timezone()
 
 
-class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
-    url = reverse('playlist-kara-status')
+class KaraokeViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
+    url = reverse('playlist-karaoke')
     url_digest = reverse('playlist-digest')
 
     def setUp(self):
         self.create_test_data()
 
-    def test_get_kara_status(self):
+    def test_get_karaoke(self):
         """Test an authenticated user can access the kara status
         """
+        # set stop date
+        karaoke = Karaoke.get_object()
+        date_stop = datetime.now(tz)
+        karaoke.date_stop = date_stop
+        karaoke.save()
+
         # login as simple user
         self.authenticate(self.user)
 
         # get kara status
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], KaraStatus.PLAY)
+        self.assertEqual(response.data['status'], Karaoke.PLAY)
+        self.assertEqual(parse_datetime(response.data['date_stop']),
+                         date_stop)
 
         # Get kara status again but through digest route
         response = self.client.get(self.url_digest)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response.data['kara_status']['status'],
-            KaraStatus.PLAY)
+            response.data['karaoke']['status'],
+            Karaoke.PLAY)
 
-    def test_get_kara_status_forbidden(self):
+    def test_get_karaoke_forbidden(self):
         """Test an unauthenticated user cannot access the kara status
         """
         # get kara status
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_put_kara_status(self):
+    def test_patch_karaoke_status(self):
         """Test a manager can modify the kara status
         """
         # login as manager
         self.authenticate(self.manager)
 
         # set kara status
-        response = self.client.put(self.url, {'status': KaraStatus.PAUSE})
+        response = self.client.patch(self.url, {'status': Karaoke.PAUSE})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        kara_status = KaraStatus.objects.first()
-        self.assertEqual(kara_status.status, KaraStatus.PAUSE)
+        karaoke = Karaoke.get_object()
+        self.assertEqual(karaoke.status, Karaoke.PAUSE)
 
-    def test_put_kara_status_forbidden(self):
+    def test_patch_karaoke_forbidden(self):
         """Test a simple user or an unauthenticated user cannot modify the kara
         status
         """
@@ -59,11 +73,11 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.user)
 
         # set kara status
-        response = self.client.put(self.url, {'status': KaraStatus.PAUSE})
+        response = self.client.patch(self.url, {'status': Karaoke.PAUSE})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @patch('playlist.views.broadcast_to_channel')
-    def test_put_kara_status_stop(self, mocked_broadcast_to_channel):
+    def test_patch_karaoke_status_stop(self, mocked_broadcast_to_channel):
         """Test the playlist has been emptied when the kara is stopped
         """
         url_player_status = reverse('playlist-player-status')
@@ -92,7 +106,7 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         self.assertTrue(response.data['playlist_entry'])
 
         # stop the kara
-        response = self.client.put(self.url, {'status': KaraStatus.STOP})
+        response = self.client.patch(self.url, {'status': Karaoke.STOP})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # post-assertion
@@ -139,7 +153,7 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         self.assertTrue(response.data['playlist_entry'])
 
         # pause the kara
-        response = self.client.put(self.url, {'status': KaraStatus.PAUSE})
+        response = self.client.put(self.url, {'status': Karaoke.PAUSE})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # post-assertion
@@ -165,8 +179,8 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         url_player_status = reverse('playlist-player-status')
 
         # set the kara status to pause
-        kara_status = KaraStatus.get_object()
-        kara_status.status = KaraStatus.PAUSE
+        kara_status = Karaoke.get_object()
+        kara_status.status = Karaoke.PAUSE
         kara_status.save()
 
         # login as manager
@@ -177,7 +191,7 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         self.assertIsNone(response.data['playlist_entry'])
 
         # resume the kara
-        response = self.client.put(self.url, {'status': KaraStatus.PLAY})
+        response = self.client.put(self.url, {'status': Karaoke.PLAY})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # post-assertion
@@ -200,8 +214,8 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         url_player_status = reverse('playlist-player-status')
 
         # set the kara status to pause
-        kara_status = KaraStatus.get_object()
-        kara_status.status = KaraStatus.PAUSE
+        kara_status = Karaoke.get_object()
+        kara_status.status = Karaoke.PAUSE
         kara_status.save()
 
         # the player is playing
@@ -218,9 +232,24 @@ class KaraStatusViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         mocked_broadcast_to_channel.reset_mock()
 
         # resume the kara
-        response = self.client.put(self.url, {'status': KaraStatus.PLAY})
+        response = self.client.put(self.url, {'status': Karaoke.PLAY})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # post-assertion
         # the player is not requested to do anything
         mocked_broadcast_to_channel.assert_not_called()
+
+    def test_patch_karaoke_date_stop(self):
+        """Test a manager can modify the kara date stop
+        """
+        # login as manager
+        self.authenticate(self.manager)
+
+        # set kara status
+        date_stop = datetime.now(tz)
+        response = self.client.patch(self.url, {'date_stop':
+                                                date_stop.isoformat()})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        karaoke = Karaoke.get_object()
+        self.assertEqual(karaoke.date_stop, date_stop)

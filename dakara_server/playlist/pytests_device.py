@@ -322,8 +322,8 @@ async def test_send_handle_next(provider, player, communicator):
     """Test to handle next playlist entries untill the end of the playlist
     """
     # assert kara status is in play mode
-    kara_status = models.KaraStatus.get_object()
-    assert kara_status.status == models.KaraStatus.PLAY
+    karaoke = models.Karaoke.get_object()
+    assert karaoke.status == models.Karaoke.PLAY
 
     # assert player is currently idle
     assert player.playlist_entry is None
@@ -390,15 +390,15 @@ async def test_send_handle_next(provider, player, communicator):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_handle_next_kara_status_stop(provider, player,
-                                                 communicator):
+async def test_send_handle_next_karaoke_stop(provider, player,
+                                             communicator):
     """Test to handle next playlist entries when the karaoke is stopped
     """
     # set the kara status in stop mode
-    kara_status = models.KaraStatus.get_object()
-    kara_status.status = models.KaraStatus.STOP
+    karaoke = models.Karaoke.get_object()
+    karaoke.status = models.Karaoke.STOP
     models.PlaylistEntry.objects.all().delete()
-    kara_status.save()
+    karaoke.save()
 
     # assert player is currently idle
     assert player.playlist_entry is None
@@ -425,14 +425,14 @@ async def test_send_handle_next_kara_status_stop(provider, player,
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_handle_next_kara_status_pause(provider, player,
-                                                  communicator):
+async def test_send_handle_next_karaoke_pause(provider, player,
+                                              communicator):
     """Test to handle next playlist entries when the karaoke is paused
     """
     # set the kara status in pause mode
-    kara_status = models.KaraStatus.get_object()
-    kara_status.status = models.KaraStatus.PAUSE
-    kara_status.save()
+    karaoke = models.Karaoke.get_object()
+    karaoke.status = models.Karaoke.PAUSE
+    karaoke.save()
 
     # assert player is currently idle
     assert player.playlist_entry is None

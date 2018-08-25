@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from playlist.models import PlaylistEntry, KaraStatus, PlayerError
+from playlist.models import PlaylistEntry, Karaoke, PlayerError
 from library.models import Song
 from library.serializers import (
     SongSerializer,
@@ -206,14 +206,15 @@ class PlayerCommandSerializer(serializers.Serializer):
     })
 
 
-class KaraStatusSerializer(serializers.ModelSerializer):
+class KaraokeSerializer(serializers.ModelSerializer):
     """Current status of the kara
     """
 
     class Meta:
-        model = KaraStatus
+        model = Karaoke
         fields = (
             'status',
+            'date_stop',
         )
 
 
@@ -221,7 +222,7 @@ class DigestSerializer(serializers.Serializer):
     """Combine player info and kara status
     """
     player_errors = PlayerErrorSerializer(many=True)
-    kara_status = KaraStatusSerializer()
+    karaoke = KaraokeSerializer()
 
 
 class PlaylistReorderSerializer(serializers.Serializer):
