@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 import pytest
+from async_generator import yield_, async_generator  # needed for Python 3.5
 from channels.testing import WebsocketCommunicator
 from channels.layers import get_channel_layer
 from rest_framework.authtoken.models import Token
@@ -13,6 +14,7 @@ channel_layer = get_channel_layer()
 
 
 @pytest.fixture
+@async_generator
 async def communicator(provider):
     communicator = WebsocketCommunicator(PlaylistDeviceConsumer,
                                          "/ws/playlist/device/")
@@ -21,7 +23,7 @@ async def communicator(provider):
 
     assert connected
 
-    yield communicator
+    await yield_(communicator)
 
     await communicator.disconnect()
 
