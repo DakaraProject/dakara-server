@@ -126,19 +126,36 @@ class PlayerStatusSerializer(serializers.Serializer):
 
     timing = SecondsDurationField()
     paused = serializers.BooleanField()
-    in_transition = serializers.BooleanField()
     finished = serializers.BooleanField(write_only=True, required=False)
     date = serializers.DateTimeField(read_only=True)
+    status = serializers.ChoiceField(choices={
+        'starting': 'starting',
+        'playing_song': 'playing_song',
+        'finished': 'finished',
+        'could_not_play': 'could_not_play',
+    })
 
-    def validate_playlist_entry_id(self, playlist_entry):
-        current_playlist_entry = PlaylistEntry.get_playing()
+    def validate(self, data):
+        playlist_entry = data['playlist_entry']
 
-        # check the playlist entry is currently playing
-        if current_playlist_entry != playlist_entry:
-            raise serializers.ValidationError("The playlist entry must be "
-                                              "currently playing")
+        # if the playlist entry is already in play
+        if data['status'] not in ('starting', 'could_not_play'):
+            current_playlist_entry = PlaylistEntry.get_playing()
 
-        return playlist_entry
+            if current_playlist_entry != playlist_entry:
+                raise serializers.ValidationError("This playlist entry is not"
+                                                  " supposed to play")
+
+            return data
+
+        # if the playlist entry has not started to play
+        next_playlist_entry = PlaylistEntry.get_next()
+
+        if next_playlist_entry != playlist_entry:
+            raise serializers.ValidationError("This playlist entry is not"
+                                              " supposed to play now")
+
+        return data
 
 
 class PlayerEntryFinishedSerializer(serializers.Serializer):

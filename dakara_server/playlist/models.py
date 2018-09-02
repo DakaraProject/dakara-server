@@ -40,11 +40,11 @@ class PlaylistEntry(OrderedModel):
             return None
 
         if playlist.count() > 1:
-            songs = ', '.join(["'{}'".format(entry.song)
-                               for entry in playlist])
+            entries_str = ', '.join([str(e) for e in playlist])
 
-            raise RuntimeError("It seems that several entries are playing at "
-                               "the same time: {}".format(songs))
+            raise RuntimeError("It seems that several playlist entries are"
+                               " playing at the same time: {}"
+                               .format(entries_str))
 
         return playlist.first()
 
@@ -183,6 +183,17 @@ class Player:
     """
     PLAYER_NAME = 'player'
 
+    PLAYING_TRANSITION = 'playing_transition'
+    PLAYING_SONG = 'playing_song'
+    FINISHED = 'finished'
+    COULD_NOT_PLAY = 'could_not_play'
+    STATUSES = (
+        (PLAYING_TRANSITION, "Playing transition"),
+        (PLAYING_SONG, "Playing song"),
+        (FINISHED, "Finished"),
+        (COULD_NOT_PLAY, "Could not play")
+    )
+
     def __init__(
         self,
         playlist_entry_id=None,
@@ -191,6 +202,7 @@ class Player:
         in_transition=False,
         date=None,
         playlist_entry=None,
+        status=None,
     ):
         self.playlist_entry_id = playlist_entry_id
         self.timing = timing
@@ -199,7 +211,7 @@ class Player:
         self.date = None
 
         # at least set the date
-        self.update(playlist_entry=playlist_entry, date=date)
+        self.update(playlist_entry=playlist_entry, date=date, status=status)
 
     def __eq__(self, other):
         fields = ('playlist_entry_id', 'timing', 'paused', 'in_transition',
@@ -208,7 +220,7 @@ class Player:
         return all(getattr(self, field) == getattr(other, field)
                    for field in fields)
 
-    def update(self, playlist_entry=None, date=None, **kwargs):
+    def update(self, playlist_entry=None, date=None, status=None, **kwargs):
         """Update the player and set date"""
         # set normal attributes
         for key, value in kwargs.items():
@@ -217,9 +229,13 @@ class Player:
 
         # set specific attributes
         self.date = date or datetime.now(tz)
+
         if playlist_entry:
             # initialize with the setter method
             self.playlist_entry = playlist_entry
+
+        if status == self.STARTING:
+            self.in_transition = True
 
     @property
     def playlist_entry(self):

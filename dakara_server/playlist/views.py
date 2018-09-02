@@ -292,13 +292,8 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 
     It allows to get and set the player status.
 
-    It is important to note that a full update of the player status (PUT) is
-    rarely used, since the server pilots the player directly (and sets the
-    in-memory `player` object accordingly). This method is only called if
-    someone wants to have the current status right now. While it can correct
-    some differences with the in-memory player object, it has to be used as
-    confirmation. The playlist entry provided must remain the same as the one
-    currently playing.
+    The full update of the player status (PUT) is used for predictible events
+    (like song starting).
 
     The partial update of the player status (PATCH) is used for events that
     cannot be predicted by the server (like song finished or not in transition
@@ -332,8 +327,14 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 
             return
 
-        # the player has finished a song
-        if serializer.validated_data.get('finished', False):
+        # unpredictible events
+
+        # the player finished a song
+        if serializer.validated_data['status'] == models.Player.FINISHED:
+            # if event already handled, skip it
+            if entry.was_played:
+                return
+
             # set the playlist entry as finished
             player = entry.set_finished()
 
@@ -350,6 +351,35 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
             broadcast_to_channel('playlist.device', 'handle_next')
 
             return
+
+        # the player could not play a song
+        if serializer.validated_data['status'] == models.Player.COULD_NOT_PLAY:
+            # if event already handled, skip it
+            if entry.was_played:
+                return
+
+            # set the playlist entry as finished
+            entry.set_playing()
+            player = entry.set_finished()
+
+            # reset the player instance in the serializer as the player is a
+            # different object
+            serializer.instance = player
+
+            # log the info
+            logger.debug("The player could not play '{}'".format(entry))
+
+            # continue the playlist
+            # the current state of the player will be broadcasted to the front
+            # later
+            broadcast_to_channel('playlist.device', 'handle_next')
+
+            return
+
+        # the player finished the transition and is playing the song
+        if serializer.validated_data['status'] == models.Player.PLAYING_SONG:
+            player.update(in_transition=False)
+            player.save()
 
         # other cases
 
