@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from playlist.models import PlaylistEntry, Karaoke, PlayerError
+from playlist.models import PlaylistEntry, Karaoke, PlayerError, Player
 from library.models import Song
 from library.serializers import (
     SongSerializer,
@@ -111,51 +111,69 @@ class PlaylistEntriesWithDateEndSerializer(serializers.Serializer):
 class PlayerStatusSerializer(serializers.Serializer):
     """Player status serializer
     """
-    # get related entry field
+    # Read only fields for front
     playlist_entry = PlaylistPlayedEntryWithDatePlayedSerializer(
         many=False, read_only=True, allow_null=True)
 
-    # set related entry field
+    paused = serializers.BooleanField(read_only=True)
+    in_transition = serializers.BooleanField(read_only=True)
+    date = serializers.DateTimeField(read_only=True)
+
+    # Write only for the player
     playlist_entry_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
         source='playlist_entry',
         queryset=PlaylistEntry.objects.all(),
         allow_null=True,
-        required=True,
     )
 
-    timing = SecondsDurationField()
-    paused = serializers.BooleanField()
-    finished = serializers.BooleanField(write_only=True, required=False)
-    date = serializers.DateTimeField(read_only=True)
-    status = serializers.ChoiceField(choices={
-        'starting': 'starting',
-        'playing_song': 'playing_song',
-        'finished': 'finished',
-        'could_not_play': 'could_not_play',
-    })
+    event = serializers.ChoiceField(
+        choices=Player.EVENTS,
+        write_only=True,
+    )
+
+    # Commons fields
+    timing = SecondsDurationField(required=False)
 
     def validate(self, data):
-        playlist_entry = data['playlist_entry']
+        if 'event' not in data:
+            raise serializers.ValidationError("Event is mandatory")
 
-        # if the playlist entry is already in play
-        if data['status'] not in ('starting', 'could_not_play'):
-            current_playlist_entry = PlaylistEntry.get_playing()
+        return data
 
-            if current_playlist_entry != playlist_entry:
-                raise serializers.ValidationError("This playlist entry is not"
-                                                  " supposed to play")
-
-            return data
-
-        # if the playlist entry has not started to play
+    def validate_playlist_entry_id(self, playlist_entry):
         next_playlist_entry = PlaylistEntry.get_next()
 
         if next_playlist_entry != playlist_entry:
             raise serializers.ValidationError("This playlist entry is not"
-                                              " supposed to play now")
+                                              " supposed to play")
 
-        return data
+        return playlist_entry
+
+    def valide_event(self, event):
+        player = Player.get_or_create()
+
+        # Idle state
+        if player.playlist_entry is None:
+            if event not in [player.STARTED_TRANSITION, player.COULD_NOT_PLAY]:
+                raise serializers.ValidationError("This event should not occur"
+                                                  " in this state")
+
+            return event
+
+        # Non idle state
+
+        # These events can occur in any non idle state
+        if event in [player.FINISHED, player.PAUSED, player.RESUMED]:
+            return event
+
+        # This event should only occur during transition
+        if event == player.STARTED_SONG:
+            if player.in_transition:
+                return event
+
+        raise serializers.ValidationError("This event should not occur"
+                                          " in this state")
 
 
 class PlayerEntryFinishedSerializer(serializers.Serializer):
@@ -198,17 +216,12 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
         )
 
     def validate_playlist_entry_id(self, playlist_entry):
-        current_playlist_entry = PlaylistEntry.get_playing()
-
-        # check something is playing beforehand
-        if current_playlist_entry is None:
-            raise serializers.ValidationError("There is no currently playing "
-                                              "playlist entry")
-
-        # check the playlist entry is currently playing
-        if current_playlist_entry != playlist_entry:
+        # check the playlist entry is currently playing or was played
+        if playlist_entry != PlaylistEntry.get_playing() and \
+           playlist_entry not in PlaylistEntry.get_playlist_played():
             raise serializers.ValidationError("The playlist entry must be "
-                                              "currently playing")
+                                              "currently playing or already "
+                                              "played")
 
         return playlist_entry
 
@@ -216,11 +229,7 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
 class PlayerCommandSerializer(serializers.Serializer):
     """Player command serializer
     """
-    command = serializers.ChoiceField(choices={
-        'play': 'play',
-        'pause': 'pause',
-        'skip': 'skip',
-    })
+    command = serializers.ChoiceField(choices=Player.COMMANDS)
 
 
 class KaraokeSerializer(serializers.ModelSerializer):

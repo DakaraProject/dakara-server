@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.utils import timezone
 from django.conf import settings
@@ -78,11 +78,8 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         date = datetime.now(tz)
 
         # add player remaining time
-        if player.playlist_entry_id:
-            playlist_entry = models.PlaylistEntry.objects.get(
-                pk=player.playlist_entry_id
-            )
-            date += playlist_entry.song.duration - player.timing
+        if player.playlist_entry:
+            date += player.playlist_entry.song.duration - player.timing
 
         # for each entry, compute when it is supposed to play
         for playlist_entry in queryset:
@@ -129,11 +126,8 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
             date = datetime.now(tz)
 
             # add player remaining time
-            if player.playlist_entry_id:
-                playlist_entry = models.PlaylistEntry.objects.get(
-                    pk=player.playlist_entry_id
-                )
-                date += playlist_entry.song.duration - player.timing
+            if player.playlist_entry:
+                date += player.playlist_entry.song.duration - player.timing
 
             # compute end time of playlist
             for playlist_entry in playlist:
@@ -158,42 +152,20 @@ class PlaylistPlayedEntryListView(drf_generics.ListAPIView):
     queryset = models.PlaylistEntry.get_playlist_played()
 
 
-class PlayerManageView(APIView):
-    """View or edition of player commands
+class PlayerCommandView(drf_generics.UpdateAPIView):
+    """Handle player commands
     """
     permission_classes = [
         permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly,
         permissions.KaraokeIsNotStoppedOrReadOnly,
     ]
+    serializer_class = serializers.PlayerCommandSerializer
 
-    def get(self, request, *args, **kwargs):
-        """Get pause or skip status
-        """
-        player_command = models.PlayerCommand.get_or_create()
-        serializer = serializers.PlayerCommandSerializer(player_command)
-
-        return Response(
-            serializer.data,
-            status.HTTP_200_OK
-        )
-
-    def put(self, request, *args, **kwargs):
-        """Send pause or skip requests
-        """
-        serializer = serializers.PlayerCommandSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(
-                serializer.errors,
-                status.HTTP_400_BAD_REQUEST
-            )
-
-        player_command = models.PlayerCommand(**serializer.data)
-        player_command.save()
-
-        return Response(
-            serializer.data,
-            status.HTTP_202_ACCEPTED
-        )
+    def perform_update(self, serializer):
+        command = serializer.validated_data['command']
+        broadcast_to_channel('playlist.device', 'send_command', {
+            'command': command,
+        })
 
 
 class DigestView(APIView):
@@ -201,7 +173,6 @@ class DigestView(APIView):
 
     Includes:
         - player_status: Player status;
-        - player_manage: Player manage pause/skip;
         - player_errors: Errors from the players.
     """
     permission_classes = (IsAuthenticated,)
@@ -212,9 +183,6 @@ class DigestView(APIView):
         # Get player
         player = models.Player.get_or_create()
 
-        # Get player commands
-        player_command = models.PlayerCommand.get_or_create()
-
         # Get player errors
         player_errors_pool = models.PlayerError.objects.all()
 
@@ -224,7 +192,6 @@ class DigestView(APIView):
         serializer = serializers.DigestSerializer(
             {
                 "player_status": player,
-                "player_manage": player_command,
                 "player_errors": player_errors_pool,
                 "karaoke": karaoke,
             },
@@ -291,13 +258,6 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
     """View of the player
 
     It allows to get and set the player status.
-
-    The full update of the player status (PUT) is used for predictible events
-    (like song starting).
-
-    The partial update of the player status (PATCH) is used for events that
-    cannot be predicted by the server (like song finished or not in transition
-    anymore).
     """
     permission_classes = [permissions.IsPlayerOrReadOnly]
     serializer_class = serializers.PlayerStatusSerializer
@@ -305,102 +265,96 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
     def perform_update(self, serializer):
         """Handle the new status
         """
-        player = self.get_object()
+        player = serializer.instance
         entry = serializer.validated_data['playlist_entry']
+        event = serializer.validated_data['event']
 
-        # the player is idle
-        if entry is None:
-            # save the player
-            player.reset()
-            player.save()
+        # get the method associated to the event
+        method_name = "receive_{}".format(event)
+        if not hasattr(self, method_name):
+            raise ValueError("This event is not valid")
 
-            # reset the player instance in the serializer as the player has
-            # changed
-            serializer.instance = player
+        method = getattr(self, method_name)
 
-            # log the info
-            logger.debug("The player is idle")
-
-            # broadcast to the front
-            broadcast_to_channel('playlist.front', 'send_player_status',
-                                 {'player': player})
-
-            return
-
-        # unpredictible events
-
-        # the player finished a song
-        if serializer.validated_data['status'] == models.Player.FINISHED:
-            # if event already handled, skip it
-            if entry.was_played:
-                return
-
-            # set the playlist entry as finished
-            player = entry.set_finished()
-
-            # reset the player instance in the serializer as the player is a
-            # different object
-            serializer.instance = player
-
-            # log the info
-            logger.debug("The player has finished playing '{}'".format(entry))
-
-            # continue the playlist
-            # the current state of the player will be broadcasted to the front
-            # later
-            broadcast_to_channel('playlist.device', 'handle_next')
-
-            return
-
-        # the player could not play a song
-        if serializer.validated_data['status'] == models.Player.COULD_NOT_PLAY:
-            # if event already handled, skip it
-            if entry.was_played:
-                return
-
-            # set the playlist entry as finished
-            entry.set_playing()
-            player = entry.set_finished()
-
-            # reset the player instance in the serializer as the player is a
-            # different object
-            serializer.instance = player
-
-            # log the info
-            logger.debug("The player could not play '{}'".format(entry))
-
-            # continue the playlist
-            # the current state of the player will be broadcasted to the front
-            # later
-            broadcast_to_channel('playlist.device', 'handle_next')
-
-            return
-
-        # the player finished the transition and is playing the song
-        if serializer.validated_data['status'] == models.Player.PLAYING_SONG:
-            player.update(in_transition=False)
-            player.save()
-
-        # other cases
-
-        # the player is in transition
-        if serializer.validated_data.get('in_transition', False):
-            # if the player is in transition, it should not have any timing
-            serializer.validated_data.pop('timing')
-
-        # general case
+        # call the method
         player.update(**serializer.validated_data)
+        method(entry, player)
         player.save()
-
-        # reset the player instance in the serializer as the player has changed
-        serializer.instance = player
-
-        # log the current state of the player
-        logger.debug("The player is {}".format(player))
 
         # broadcast to the front
         broadcast_to_channel('playlist.front', 'send_player_status',
                              {'player': player})
+
+    def receive_finished(self, playlist_entry, player):
+        """The player finished a song
+        """
+        # set the playlist entry as finished
+        playlist_entry.set_finished()
+
+        # reset the player
+        player.reset()
+
+        # log the info
+        logger.debug("The player has finished playing '{}'"
+                     .format(playlist_entry))
+
+        # continue the playlist
+        broadcast_to_channel('playlist.device', 'handle_next')
+
+    def receive_could_not_play(self, playlist_entry, player):
+        """The player could not play a song
+        """
+        # set the playlist entry as started and already finished
+        playlist_entry.set_playing()
+        playlist_entry.set_finished()
+
+        # log the info
+        logger.debug("The player could not play '{}'"
+                     .format(playlist_entry))
+
+        # continue the playlist
+        broadcast_to_channel('playlist.device', 'handle_next')
+
+    def receive_started_transition(self, playlist_entry, player):
+        """The player started the transition of a playlist entry
+        """
+        # set the playlist entry as started
+        playlist_entry.set_playing()
+
+        # update the player
+        player.update(in_transition=True, timing=timedelta(seconds=0))
+
+        # log the info
+        logger.debug("Playing transition of entry '{}'"
+                     .format(playlist_entry))
+
+    def receive_started_song(self, playlist_entry, player):
+        """The player started the song of a playlist entry
+        """
+        # update the player
+        player.update(in_transition=False)
+
+        # log the info
+        logger.debug("Playing song of entry '{}'"
+                     .format(playlist_entry))
+
+    def receive_paused(self, playlist_entry, player):
+        """The player switched to pause
+        """
+        # update the player
+        player.update(paused=True)
+
+        # log the info
+        logger.debug("The player switched to pause")
+
+    def receive_resumed(self, playlist_entry, player):
+        """The player resumed playing
+        """
+        # update the player
+        player.update(paused=False)
+
+        # log the info
+        logger.debug("The player resumed playing")
 
     def get_object(self):
         return models.Player.get_or_create()
@@ -424,9 +378,6 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
         playlist_entry = serializer.validated_data['playlist_entry']
         message = serializer.validated_data['error_message']
 
-        # mark the playlist_entry as played
-        playlist_entry.set_finished()
-
         # log the event
         logger.warning(
             "Unable to play '{}', remove from playlist, error message: '{}'"
@@ -436,6 +387,3 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
         # broadcast the error to the front
         broadcast_to_channel('playlist.front', 'send_player_error',
                              {'player_error': serializer.instance})
-
-        # continue the playlist
-        broadcast_to_channel('playlist.device', 'handle_next')

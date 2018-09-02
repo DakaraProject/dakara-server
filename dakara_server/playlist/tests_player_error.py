@@ -1,4 +1,4 @@
-from unittest.mock import patch, call
+from unittest.mock import patch
 from datetime import datetime
 
 from django.core.urlresolvers import reverse
@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from playlist.base_test import BaseAPITestCase
-from playlist.models import PlayerError, PlaylistEntry
+from playlist.models import PlayerError
 
 tz = timezone.get_default_timezone()
 
@@ -82,16 +82,13 @@ class PlayerErrorViewTestCase(BaseAPITestCase):
         player_error = PlayerError.objects.first()
         self.assertEqual(player_error.playlist_entry, self.pe1)
         self.assertEqual(player_error.error_message, "dummy error")
-        pe1 = PlaylistEntry.objects.get(pk=self.pe1.id)
-        self.assertTrue(pe1.was_played)
 
         # assert the event has been broadcasted
-        calls = [
-            call('playlist.front', 'send_player_error',
-                 {'player_error': player_error}),
-            call('playlist.device', 'handle_next')
-        ]
-        mocked_broadcast_to_channel.assert_has_calls(calls)
+        mocked_broadcast_to_channel.assert_called_with(
+            'playlist.front',
+            'send_player_error',
+            {'player_error': player_error}
+        )
 
     def test_post_error_failed_wrong_playlist_entry(self):
         """Test to create an error with another playlist entry"""

@@ -100,12 +100,6 @@ class PlaylistEntry(OrderedModel):
         self.date_played = datetime.now(tz)
         self.save()
 
-        # update the player
-        player = Player(playlist_entry=self, in_transition=True)
-        player.save()
-
-        return player
-
     def set_finished(self):
         """The playlist entry has finished
 
@@ -119,12 +113,6 @@ class PlaylistEntry(OrderedModel):
         # set the playlist entry
         self.was_played = True
         self.save()
-
-        # update the player
-        player = Player()
-        player.save()
-
-        return player
 
 
 class Karaoke(models.Model):
@@ -183,87 +171,64 @@ class Player:
     """
     PLAYER_NAME = 'player'
 
-    PLAYING_TRANSITION = 'playing_transition'
-    PLAYING_SONG = 'playing_song'
+    STARTED_TRANSITION = 'started_transition'
+    STARTED_SONG = 'started_song'
     FINISHED = 'finished'
     COULD_NOT_PLAY = 'could_not_play'
-    STATUSES = (
-        (PLAYING_TRANSITION, "Playing transition"),
-        (PLAYING_SONG, "Playing song"),
+    PAUSED = 'paused'
+    RESUMED = 'resumed'
+    EVENTS = (
+        (STARTED_TRANSITION, "Started transition"),
+        (STARTED_SONG, "Started song"),
         (FINISHED, "Finished"),
-        (COULD_NOT_PLAY, "Could not play")
+        (COULD_NOT_PLAY, "Could not play"),
+        (PAUSED, "Paused"),
+        (RESUMED, "Resumed")
+    )
+
+    PLAY = 'play'
+    PAUSE = 'pause'
+    SKIP = 'skip'
+    COMMANDS = (
+        (PLAY, "Play"),
+        (PAUSE, "Pause"),
+        (SKIP, "Skip"),
     )
 
     def __init__(
         self,
-        playlist_entry_id=None,
         timing=timedelta(),
         paused=False,
         in_transition=False,
         date=None,
-        playlist_entry=None,
-        status=None,
     ):
-        self.playlist_entry_id = playlist_entry_id
         self.timing = timing
         self.paused = paused
         self.in_transition = in_transition
         self.date = None
 
         # at least set the date
-        self.update(playlist_entry=playlist_entry, date=date, status=status)
+        self.update(date=date)
 
     def __eq__(self, other):
-        fields = ('playlist_entry_id', 'timing', 'paused', 'in_transition',
-                  'date')
+        fields = ('timing', 'paused', 'in_transition', 'date')
 
         return all(getattr(self, field) == getattr(other, field)
                    for field in fields)
 
-    def update(self, playlist_entry=None, date=None, status=None, **kwargs):
+    def update(self, date=None, **kwargs):
         """Update the player and set date"""
         # set normal attributes
         for key, value in kwargs.items():
-            if hasattr(self, key):
+            if hasattr(self, key) and key != 'playlist_entry':
                 setattr(self, key, value)
 
         # set specific attributes
         self.date = date or datetime.now(tz)
 
-        if playlist_entry:
-            # initialize with the setter method
-            self.playlist_entry = playlist_entry
-
-        if status == self.STARTING:
-            self.in_transition = True
-
     @property
     def playlist_entry(self):
-        if self.playlist_entry_id is None:
-            playlist_entry = None
-
-        else:
-            playlist_entry = PlaylistEntry.objects.get(
-                pk=self.playlist_entry_id)
-
-        playlist_entry_database = PlaylistEntry.get_playing()
-
-        # ensure that the playlist entry of the player is designated to play
-        if playlist_entry != playlist_entry_database:
-            raise RuntimeError("The player is playing something inconsistent: "
-                               "'{}' instead of '{}'"
-                               .format(playlist_entry,
-                                       playlist_entry_database))
-
-        return playlist_entry
-
-    @playlist_entry.setter
-    def playlist_entry(self, entry):
-        self.playlist_entry_id = entry.id
-
-    @playlist_entry.deleter
-    def playlist_entry(self):
-        self.playlist_entry_id = None
+        return PlaylistEntry.get_playing()
 
     @classmethod
     def get_or_create(cls):
@@ -286,7 +251,6 @@ class Player:
         """Reset the player to its initial state
         """
         self.update(
-            playlist_entry_id=None,
             timing=timedelta(),
             paused=False,
             in_transition=False,
@@ -296,7 +260,7 @@ class Player:
         return "<{}: {}>".format(self.__class__.__name__, self)
 
     def __str__(self):
-        if self.playlist_entry_id is not None:
+        if self.playlist_entry is not None:
             return "in {} for '{}' at {}{}".format(
                 'pause' if self.paused else 'play',
                 self.playlist_entry,
@@ -305,46 +269,3 @@ class Player:
             )
 
         return "idle"
-
-
-class PlayerCommand:
-    """Commands to the player
-
-    This object is not stored in database, but lives within Django memory
-    cache.
-    """
-    PLAYER_COMMAND_NAME = 'player_command'
-
-    def __init__(
-            self,
-            pause=False,
-            skip=False
-    ):
-        self.pause = pause
-        self.skip = skip
-
-    @classmethod
-    def get_or_create(cls):
-        """Retrieve the current player commands in cache or create one
-        """
-        player_command = cache.get(cls.PLAYER_COMMAND_NAME)
-
-        if player_command is None:
-            # create a new player commands object
-            player_command = cls()
-
-        return player_command
-
-    def save(self):
-        """Save player commands in cache
-        """
-        cache.set(self.PLAYER_COMMAND_NAME, self)
-
-    def __repr__(self):
-        return "<{}: {}>".format(self.__class__.__name__, str(self))
-
-    def __str__(self):
-        return "requesting {}, {}".format(
-            "pause" if self.pause else "no pause",
-            "skip" if self.skip else "no skip"
-        )

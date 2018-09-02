@@ -98,16 +98,8 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         if playlist_entry is None:
             raise ValueError("Playlist entry must not be None")
 
-        # set the new playlist entry playing
-        playlist_entry.set_playing()
-
         # log the event
         logger.info("The player will play '{}'".format(playlist_entry))
-
-        # broadcast to the front
-        broadcast_to_channel('playlist.front', 'send_player_playlist_entry', {
-            'playlist_entry': playlist_entry
-        })
 
         # send to device
         serializer = serializers.PlaylistEntryForPlayerSerializer(
@@ -120,46 +112,20 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
     def send_idle(self, event=None):
         """Request the player to be idle
         """
-        # set the player
-        player = models.Player()
-        player.save()
-
         # log the event
-        logger.info("The player has nothing to play")
-
-        # broadcast to the front
-        broadcast_to_channel('playlist.front', 'send_player_idle')
+        logger.info("The player will play idle screen")
 
         # send to device
         self.send_json({
             'type': 'idle'
         })
 
-    def send_status_request(self, event=None):
-        """Request the player status
-        """
-        self.send_json({
-            'type': 'status_request',
-        })
-
     def send_command(self, event):
         """Send a given command to the player
-
-        The in-memory player is not updated by this method, it will be by the
-        status request done after. This is on purpose, since updating here
-        would result in a partial incorrect update.
-
-        By instance, if the player started playing 42 seconds ago, its
-        in-memory object has a timing of 0, but its date is 42 seconds in the
-        past, so we can recompute its current timing. If we set the pause now,
-        its in-memory object would still have a timing of 0 and its date would
-        be now, which would lead to an incorrect recomputed timing. So, we
-        prefer to wait for the HTTP status request that will update the whole
-        player one at once.
         """
         command = event['command']
 
-        if command not in ('play', 'pause'):
+        if command not in dict(models.Player.COMMANDS).keys():
             raise ValueError("Unknown command requested '{}'"
                              .format(command))
 
@@ -172,11 +138,6 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
             }
         })
 
-        # request status to broadcast it to the front
-        # this way, we get the current timing, instead of computing it manually
-        # so we will update the in-memory player object later
-        self.send_status_request()
-
     def handle_next(self, event=None):
         """Prepare the submission of a new playlist entry depending on the context
 
@@ -187,7 +148,7 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         # get the next playlist entry if the kara is in play mode
         karaoke = models.Karaoke.get_object()
         if karaoke.status != models.Karaoke.PLAY:
-            self.send_idle({})
+            self.send_idle()
             return
 
         # get the new playlist_entry and request to play it

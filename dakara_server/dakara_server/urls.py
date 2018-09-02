@@ -91,9 +91,9 @@ urlpatterns = [
         name='playlist-player-errors'
         ),
     url(
-        r'^api/playlist/player/manage/$',
-        playlist_views.PlayerManageView.as_view(),
-        name='playlist-player-manage'
+        r'^api/playlist/player/command/$',
+        playlist_views.PlayerCommandView.as_view(),
+        name='playlist-player-command'
         ),
     url(
         r'^api/playlist/digest/$',
