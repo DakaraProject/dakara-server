@@ -313,6 +313,48 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
             call('playlist.front', 'send_player_status', {'player': player}),
         ])
 
+    @patch('playlist.views.broadcast_to_channel')
+    @patch('playlist.models.datetime',
+           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
+    def test_put_status_could_not_play(self, mocked_datetime,
+                                       mocked_broadcast_to_channel):
+        """Test event could not play"""
+        self.authenticate(self.player)
+
+        # patch the now method
+        now = datetime.now(tz)
+        mocked_datetime.now.return_value = now
+
+        # perform the request
+        response = self.client.put(self.url, data={
+            'event': 'could_not_play',
+            'playlist_entry_id': self.pe1.id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert the response
+        self.assertIsNone(response.data['playlist_entry'])
+        self.assertFalse(response.data['paused'])
+        self.assertFalse(response.data['in_transition'])
+        self.assertEqual(response.data['timing'], 0)
+
+        # assert the result
+        player = Player.get_or_create()
+        self.assertIsNone(player.playlist_entry)
+        self.assertFalse(player.paused)
+        self.assertEqual(player.timing, timedelta(0))
+        self.assertFalse(player.in_transition)
+        self.assertEqual(player.date, now)
+
+        # assert pe1 marked as played
+        pe1 = PlaylistEntry.objects.get(pk=self.pe1.id)
+        self.assertTrue(pe1.was_played)
+
+        # assert an event has been broadcasted to the front
+        mocked_broadcast_to_channel.assert_called_with(
+            'playlist.front', 'send_player_status', {'player': player}
+        )
+
     def test_put_status_failed_wrong_playlist_entry(self):
         """Test to set the player status with another playlist entry"""
         self.authenticate(self.player)
