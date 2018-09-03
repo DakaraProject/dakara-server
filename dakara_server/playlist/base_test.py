@@ -3,13 +3,11 @@ from datetime import datetime, timedelta
 import inspect
 
 from django.contrib.auth import get_user_model
-from django.core.urlresolvers import reverse
 from django.core.cache import cache
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
-from rest_framework import status
 
 from library.models import Song, SongTag
 from playlist.models import PlaylistEntry, Karaoke, Player
@@ -21,12 +19,18 @@ tz = timezone.get_default_timezone()
 class Provider:
     """Provides helper functions for tests
     """
-    def authenticate(self, user):
-        """Authenticate against the provided user
+    def authenticate(self, user, client=None):
+        """Authenticate and set the token to the embedded client
         """
         token, _ = Token.objects.get_or_create(user=user)
 
-        return token
+        if client is None:
+            if not hasattr(self, 'client'):
+                raise ValueError("No client available")
+
+            client = self.client
+
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
     @staticmethod
     def create_user(username, playlist_level=None,
@@ -150,22 +154,6 @@ class Provider:
 
         return player
 
-    def player_send_error(self, playlist_entry_id, message):
-        """Simulate the player reporting an error
-        """
-        url = reverse('playlist-device-error')
-        # Login as player
-        self.authenticate(self.player)
-        # Put as if playing next song
-        response = self.client.post(
-            url,
-            {
-                'playlist_entry': playlist_entry_id,
-                'error_message': message,
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
 
 class BaseAPITestCase(APITestCase, Provider):
 
@@ -199,13 +187,6 @@ class BaseAPITestCase(APITestCase, Provider):
     def tearDown(self):
         # Clear cache between tests, so that stored player state is re-init
         cache.clear()
-
-    def authenticate(self, user):
-        """Authenticate and set the token to the embedded client
-        """
-        token = super().authenticate(user)
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-        return token
 
     def check_playlist_entry_json(self, json, expected_entry):
         """Method to check a representation against expected playlist entry

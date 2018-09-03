@@ -1,10 +1,10 @@
-from datetime import timedelta
-
 import pytest
 from async_generator import yield_, async_generator  # needed for Python 3.5
 from channels.testing import WebsocketCommunicator
 from channels.layers import get_channel_layer
 from rest_framework.authtoken.models import Token
+from rest_framework import status
+from django.core.urlresolvers import reverse
 
 from dakara_server.routing import application
 from playlist.consumers import PlaylistDeviceConsumer
@@ -150,12 +150,9 @@ async def test_receive_ready_send_idle(provider, player, communicator):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_playlist_entry(provider, player, communicator, mocker):
+async def test_send_playlist_entry(provider, player, communicator):
     """Test to send a new playlist entry to the device
     """
-    mocked_broadcast_to_channel = mocker.patch(
-        'playlist.consumers.broadcast_to_channel')
-
     # pre assert
     assert provider.pe1.date_played is None
 
@@ -172,19 +169,9 @@ async def test_send_playlist_entry(provider, player, communicator, mocker):
     assert event['type'] == 'playlist_entry'
     assert event['data']['id'] == provider.pe1.id
 
-    # assert the side effects
-    pe1 = models.PlaylistEntry.objects.get(pk=provider.pe1.id)
-    assert pe1.date_played is not None
-    player = models.Player.get_or_create()
-    assert player.playlist_entry == pe1
-    assert player.timing == timedelta(0)
-    assert player.in_transition
-    assert not player.paused
-    mocked_broadcast_to_channel.assert_called_with(
-        'playlist.front',
-        'send_player_playlist_entry',
-        {'playlist_entry': pe1}
-    )
+    # assert there are no side effects
+    player_new = models.Player.get_or_create()
+    assert player_new == player
 
     # check there are no other messages
     done = await communicator.receive_nothing()
@@ -193,13 +180,9 @@ async def test_send_playlist_entry(provider, player, communicator, mocker):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_idle(provider, player, communicator, mocker):
+async def test_send_idle(provider, player, communicator):
     """Test to send a new playlist entry to the device
     """
-    # mock the broadcast command
-    mocked_broadcast_to_channel = mocker.patch(
-        'playlist.consumers.broadcast_to_channel')
-
     # call the method
     await channel_layer.group_send('playlist.device', {
         'type': 'send_idle'
@@ -211,37 +194,9 @@ async def test_send_idle(provider, player, communicator, mocker):
     # assert the event
     assert event['type'] == 'idle'
 
-    # assert the side effects
-    player = models.Player.get_or_create()
-    assert player.playlist_entry is None
-    assert player.timing == timedelta(0)
-    assert not player.in_transition
-    assert not player.paused
-    mocked_broadcast_to_channel.assert_called_with(
-        'playlist.front',
-        'send_player_idle',
-    )
-
-    # check there are no other messages
-    done = await communicator.receive_nothing()
-    assert done
-
-
-@pytest.mark.asyncio
-@pytest.mark.django_db(transaction=True)
-async def test_send_status_request(communicator):
-    """Test to send a status request
-    """
-    # call the method
-    await channel_layer.group_send('playlist.device', {
-        'type': 'send_status_request'
-    })
-
-    # wait the outcoming event
-    event = await communicator.receive_json_from()
-
-    # assert the event
-    assert event['type'] == 'status_request'
+    # assert there are no side effects
+    player_new = models.Player.get_or_create()
+    assert player_new == player
 
     # check there are no other messages
     done = await communicator.receive_nothing()
@@ -259,7 +214,7 @@ async def test_send_command_pause(provider, player, communicator):
         'command': 'pause'
     })
 
-    # wait the first outcoming event
+    # wait the outcoming event
     event = await communicator.receive_json_from()
 
     # assert the event
@@ -269,12 +224,6 @@ async def test_send_command_pause(provider, player, communicator):
     # assert there are no side effects
     player_new = models.Player.get_or_create()
     assert player_new == player
-
-    # wait the second outcoming event
-    event = await communicator.receive_json_from()
-
-    # assert the event
-    assert event['type'] == 'status_request'
 
     # check there are no other messages
     done = await communicator.receive_nothing()
@@ -286,14 +235,13 @@ async def test_send_command_pause(provider, player, communicator):
 async def test_send_command_play(provider, player, communicator):
     """Test to send to the player a play command
     """
-
     # call the method
     await channel_layer.group_send('playlist.device', {
         'type': 'send_command',
         'command': 'play'
     })
 
-    # wait the first outcoming event
+    # wait the outcoming event
     event = await communicator.receive_json_from()
 
     # assert the event
@@ -304,11 +252,32 @@ async def test_send_command_play(provider, player, communicator):
     player_new = models.Player.get_or_create()
     assert player_new == player
 
-    # wait the second outcoming event
+    # check there are no other messages
+    done = await communicator.receive_nothing()
+    assert done
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_send_command_skip(provider, player, communicator):
+    """Test to send to the player a skip command
+    """
+    # call the method
+    await channel_layer.group_send('playlist.device', {
+        'type': 'send_command',
+        'command': 'skip'
+    })
+
+    # wait the outcoming event
     event = await communicator.receive_json_from()
 
     # assert the event
-    assert event['type'] == 'status_request'
+    assert event['type'] == 'command'
+    assert event['data']['command'] == 'skip'
+
+    # assert there are no side effects
+    player_new = models.Player.get_or_create()
+    assert player_new == player
 
     # check there are no other messages
     done = await communicator.receive_nothing()
@@ -317,9 +286,18 @@ async def test_send_command_play(provider, player, communicator):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_handle_next(provider, player, communicator):
+async def test_handle_next(provider, player, communicator, client_drf, mocker):
     """Test to handle next playlist entries untill the end of the playlist
     """
+    # configure HTTP client
+    url = reverse('playlist-player-status')
+    provider.authenticate(provider.player, client_drf)
+
+    # mock the broadcaster
+    # we cannot call it within an asynchronous test
+    mocked_broadcast_to_channel = mocker.patch(
+        'playlist.views.broadcast_to_channel')
+
     # assert kara status is in play mode
     karaoke = models.Karaoke.get_object()
     assert karaoke.status == models.Karaoke.PLAY
@@ -339,13 +317,41 @@ async def test_send_handle_next(provider, player, communicator):
     assert event['type'] == 'playlist_entry'
     assert event['data']['id'] == provider.pe1.id
 
+    # notify the first playlist entry is being played
+    response = client_drf.put(url, data={
+        'event': 'started_transition',
+        'playlist_entry_id': provider.pe1.id,
+    })
+
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client_drf.put(url, data={
+        'event': 'started_song',
+        'playlist_entry_id': provider.pe1.id,
+    })
+
+    assert response.status_code == status.HTTP_200_OK
+
     # assert the player has been updated
     player = models.Player.get_or_create()
     assert player.playlist_entry == provider.pe1
 
-    # mark the first playlist entry as played
-    provider.pe1.was_played = True
-    provider.pe1.save()
+    # assert the front has been notified
+    mocked_broadcast_to_channel.assert_called_with('playlist.front',
+                                                   'send_player_status',
+                                                   {'player': player})
+
+    # notify the first playlist entry has finished
+    response = client_drf.put(url, data={
+        'event': 'finished',
+        'playlist_entry_id': provider.pe1.id,
+    })
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # assert the player has been updated
+    player = models.Player.get_or_create()
+    assert player.playlist_entry is None
 
     # play the second playlist entry
     await channel_layer.group_send('playlist.device', {
@@ -359,13 +365,41 @@ async def test_send_handle_next(provider, player, communicator):
     assert event['type'] == 'playlist_entry'
     assert event['data']['id'] == provider.pe2.id
 
+    # notify the second playlist entry is being played
+    response = client_drf.put(url, data={
+        'event': 'started_transition',
+        'playlist_entry_id': provider.pe2.id,
+    })
+
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client_drf.put(url, data={
+        'event': 'started_song',
+        'playlist_entry_id': provider.pe2.id,
+    })
+
+    assert response.status_code == status.HTTP_200_OK
+
     # assert the player has been updated
     player = models.Player.get_or_create()
     assert player.playlist_entry == provider.pe2
 
-    # mark the second playlist entry as played
-    provider.pe2.was_played = True
-    provider.pe2.save()
+    # notify the second playlist entry has finished
+    response = client_drf.put(url, data={
+        'event': 'finished',
+        'playlist_entry_id': provider.pe2.id,
+    })
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # assert the player has been updated
+    player = models.Player.get_or_create()
+    assert player.playlist_entry is None
+
+    # assert the front has been notified
+    mocked_broadcast_to_channel.assert_called_with('playlist.front',
+                                                   'send_player_status',
+                                                   {'player': player})
 
     # now the playlist should be empty
     await channel_layer.group_send('playlist.device', {
@@ -377,10 +411,6 @@ async def test_send_handle_next(provider, player, communicator):
 
     # assert the event
     assert event['type'] == 'idle'
-
-    # assert the player has been updated
-    player = models.Player.get_or_create()
-    assert player.playlist_entry is None
 
     # check there are no other messages
     done = await communicator.receive_nothing()
@@ -413,9 +443,9 @@ async def test_send_handle_next_karaoke_stop(provider, player,
     # assert the event
     assert event['type'] == 'idle'
 
-    # assert the player has been updated
-    player = models.Player.get_or_create()
-    assert player.playlist_entry is None
+    # assert the player has not changed
+    player_new = models.Player.get_or_create()
+    assert player == player_new
 
     # check there are no other messages
     done = await communicator.receive_nothing()
@@ -447,9 +477,9 @@ async def test_send_handle_next_karaoke_pause(provider, player,
     # assert the event
     assert event['type'] == 'idle'
 
-    # assert the player has been updated
-    player = models.Player.get_or_create()
-    assert player.playlist_entry is None
+    # assert the player has not changed
+    player_new = models.Player.get_or_create()
+    assert player == player_new
 
     # check there are no other messages
     done = await communicator.receive_nothing()
