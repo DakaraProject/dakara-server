@@ -141,7 +141,28 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
                 raise PermissionDenied(
                     "This song exceeds the karaoke stop time")
 
+        playlist_was_empty = models.PlaylistEntry.get_next() is None
+
         super().perform_create(serializer)
+
+        # TODO broadcast that a new entry has been created
+
+        # Request the player to play the latest playlist entry immediately if :
+        #   - it exists;
+        #   - the playlist was empty beforehand;
+        #   - the kara status is set to play;
+        #   - the player is idle.
+        next_playlist_entry = models.PlaylistEntry.get_next()
+        player = models.Player.get_or_create()
+        if all((
+            karaoke.status == models.Karaoke.PLAY,
+            playlist_was_empty,
+            next_playlist_entry is not None,
+            player.playlist_entry is None,
+        )):
+            broadcast_to_channel('playlist.device', 'send_playlist_entry', {
+                'playlist_entry': next_playlist_entry
+            })
 
 
 class PlaylistPlayedEntryListView(drf_generics.ListAPIView):
@@ -162,10 +183,25 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
     serializer_class = serializers.PlayerCommandSerializer
 
     def perform_update(self, serializer):
+        # check the karaoke is not stopped
+        karaoke = models.Karaoke.get_object()
+        if karaoke.status == models.Karaoke.STOP:
+            raise PermissionDenied("The player cannot receive commands if the "
+                                   "karaoke is stopped")
+
+        # check the player is not idle
+        player = models.Player.get_or_create()
+        if player.playlist_entry is None:
+            raise PermissionDenied("The player cannot receive commands when "
+                                   "idle")
+
         command = serializer.validated_data['command']
         broadcast_to_channel('playlist.device', 'send_command', {
             'command': command,
         })
+
+    def get_object(self):
+        return None
 
 
 class DigestView(APIView):

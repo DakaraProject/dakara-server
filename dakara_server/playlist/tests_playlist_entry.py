@@ -104,7 +104,8 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_post_create_playlist_entry(self):
+    @patch("playlist.views.broadcast_to_channel")
+    def test_post_create_playlist_entry(self, mocked_broadcast_to_channel):
         """Test to verify playlist entry creation
         """
         # Login as playlist user
@@ -121,9 +122,44 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 5)
         new_entry = PlaylistEntry.objects.last()
         # Entry was created with for song1
-        self.assertEqual(new_entry.song.id, self.song1.id)
+        self.assertEqual(new_entry.song, self.song1)
         # Entry's owner is the user who created it
-        self.assertEqual(new_entry.owner.id, self.p_user.id)
+        self.assertEqual(new_entry.owner, self.p_user)
+
+        # check the player was not requested to play this entry immediately
+        mocked_broadcast_to_channel.assert_not_called()
+
+    @patch("playlist.views.broadcast_to_channel")
+    def test_post_create_playlist_entry_empty(self,
+                                              mocked_broadcast_to_channel):
+        """Test to create a playlist entry when the playlist is empty
+
+        The created song should be requested to play immediately.
+        """
+        # empty the playlist
+        PlaylistEntry.objects.all().delete()
+
+        # Login as playlist user
+        self.authenticate(self.p_user)
+
+        # Post new playlist entry
+        response = self.client.post(self.url, {"song_id": self.song1.id})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Check playlist entry has been created in database
+        self.assertEqual(PlaylistEntry.objects.count(), 1)
+        new_entry = PlaylistEntry.objects.last()
+        # Entry was created with for song1
+        self.assertEqual(new_entry.song, self.song1)
+        # Entry's owner is the user who created it
+        self.assertEqual(new_entry.owner, self.p_user)
+
+        # check the player was requested to play this entry immediately
+        mocked_broadcast_to_channel.assert_called_with(
+            'playlist.device',
+            'send_playlist_entry',
+            {'playlist_entry': new_entry}
+        )
 
     def test_post_create_playlist_entry_karaoke_stop_forbidden(self):
         """Test to verify playlist entry cannot be created when kara is stopped
