@@ -203,11 +203,12 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
 
 
 class DigestView(APIView):
-    """Shorthand for the view of digest data
+    """Shorthand for the view of playlist data
 
     Includes:
-        - player_status: Player status;
-        - player_errors: Errors from the players.
+        - player_status: current player;
+        - player_errors: errors from the player;
+        - karaoke: current karaoke session.
     """
     permission_classes = (IsAuthenticated,)
 
@@ -223,14 +224,11 @@ class DigestView(APIView):
         # Get kara status
         karaoke = models.Karaoke.get_object()
 
-        serializer = serializers.DigestSerializer(
-            {
-                "player_status": player,
-                "player_errors": player_errors_pool,
-                "karaoke": karaoke,
-            },
-            context={'request': request},
-        )
+        serializer = serializers.DigestSerializer({
+            "player_status": player,
+            "player_errors": player_errors_pool,
+            "karaoke": karaoke,
+        })
 
         return Response(
             serializer.data,
