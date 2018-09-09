@@ -98,7 +98,7 @@ class IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly(BasePermissionCustom):
         # if the currently playing song belongs to the user
         # Get player to get playing song
         player = Player.get_or_create()
-        playlist_entry_id = player.playlist_entry_id
+        playlist_entry_id = player.playlist_entry.id
         playlist_entry = None
         if playlist_entry_id:
             playlist_entry = PlaylistEntry.objects.get(id=playlist_entry_id)
