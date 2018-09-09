@@ -1,6 +1,7 @@
 # Dakara server
 
-[![Build Status](https://travis-ci.org/DakaraProject/dakara-server.svg?branch=develop)](https://travis-ci.org/DakaraProject/dakara-server)
+[![Travis CI Build Status](https://travis-ci.org/DakaraProject/dakara-server.svg?branch=develop)](https://travis-ci.org/DakaraProject/dakara-server)
+[![Appveyor CI Build status](https://ci.appveyor.com/api/projects/status/2wdia71y3dwsqywp?svg=true)](https://ci.appveyor.com/project/neraste/dakara-server)
 
 Server for the Dakara project.
 
@@ -17,6 +18,8 @@ Installation guidelines are provided over here:
 * Python3, to make everything up and running;
 * [ffmpeg](https://www.ffmpeg.org/), to extract lyrics and extract metadata from files (preferred way);
 * [MediaInfo](https://mediaarea.net/fr/MediaInfo/), to extract metadata from files (slower, alternative way, may not work on Windows).
+
+Linux and Windows are supported.
 
 #### Virtual environment
 

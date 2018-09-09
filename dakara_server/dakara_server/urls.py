@@ -128,9 +128,9 @@ urlpatterns = [
         name='playlist-played-entries-list'
         ),
     url(
-        r'^api/playlist/kara-status/$',
-        playlist_views.KaraStatusView.as_view(),
-        name='playlist-kara-status'
+        r'^api/playlist/karaoke/$',
+        playlist_views.KaraokeView.as_view(),
+        name='playlist-karaoke'
         ),
 
     # API routes for the library
