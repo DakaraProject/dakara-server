@@ -102,7 +102,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         """
         # Get playlist entries list
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch("playlist.views.broadcast_to_channel")
     def test_post_create_playlist_entry(self, mocked_broadcast_to_channel):
@@ -335,6 +335,13 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Attempt to post new playlist entry
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_post_create_user_unauthenticated_forbidden(self):
+        """Test to verify unauthenticated user cannot create playlist entries
+        """
+        # Attempt to post new playlist entry
+        response = self.client.post(self.url, {"song_id": self.song1.id})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_playlist_entries_list_playing_entry(self):
         """Test to verify playlist entries list does not include playing song
