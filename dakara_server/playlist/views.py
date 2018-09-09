@@ -96,20 +96,18 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
 
         return Response(serializer.data)
 
-    def post(self, request, *args, **kwargs):
+    def perform_create(self, serializer):
+        # Deny the creation of a new playlist entry if it exceeds the playlist
+        # capacity set in settings.
         queryset = self.filter_queryset(self.get_queryset())
         count = queryset.count()
 
-        # deny the creation of a new playlist entry if the playlist is full
         if count >= settings.PLAYLIST_SIZE_LIMIT:
             raise PermissionDenied(
                 detail="Playlist is full, please retry later."
             )
 
-        return super().post(request)
-
-    def perform_create(self, serializer):
-        # Deny the creation of a new playlist entry if it exeeds karaoke stop
+        # Deny the creation of a new playlist entry if it exceeds karaoke stop
         # date. This case cannot be handled through permission classes at view
         # level, as permission examination takes place before the data are
         # validated. Moreover, the object permission method won't be called as
