@@ -247,6 +247,7 @@ class KaraokeSerializer(serializers.ModelSerializer):
 class DigestSerializer(serializers.Serializer):
     """Combine player info and kara status
     """
+    player_status = PlayerStatusSerializer()  # TODO test this
     player_errors = PlayerErrorSerializer(many=True)
     karaoke = KaraokeSerializer()
 
