@@ -55,7 +55,7 @@ class PlayerErrorViewTestCase(BaseAPITestCase):
     def test_get_errors_forbidden(self):
         """Test to get errors when not authenticated"""
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch('playlist.views.broadcast_to_channel')
     def test_post_error_success(self, mocked_broadcast_to_channel):
@@ -141,7 +141,7 @@ class PlayerErrorViewTestCase(BaseAPITestCase):
             'playlist_entry_id': self.pe1.id,
             'error_message': "dummy error"
         })
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_error_forbidden_not_player(self):
         """Test to create an error when not loged in as player"""

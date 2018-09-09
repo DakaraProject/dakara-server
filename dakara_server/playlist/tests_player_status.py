@@ -85,7 +85,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
     def test_get_status_forbidden(self):
         """Test to access the player status when not loged in"""
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch('playlist.views.broadcast_to_channel')
     @patch('playlist.models.datetime',
@@ -381,7 +381,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
             'playlist_entry_id': self.pe1.id,
             'timing': 2,
         })
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_put_status_forbidden_not_player(self):
         """Test to set the player when not a player user"""
