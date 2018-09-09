@@ -150,7 +150,7 @@ class PlayerStatusSerializer(serializers.Serializer):
 
         return playlist_entry
 
-    def valide_event(self, event):
+    def validate_event(self, event):
         player = Player.get_or_create()
 
         # Idle state

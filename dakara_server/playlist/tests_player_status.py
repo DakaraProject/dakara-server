@@ -364,7 +364,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
 
         # perform the request
         response = self.client.put(self.url, data={
-            'event': 'started_song',
+            'event': 'finished',
             'playlist_entry_id': self.pe2.id,
             'timing': 2,
         })
@@ -392,3 +392,57 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
             'timing': 2,
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_patch_status_invalid_missing_event(self):
+        """Test missing event is rejected
+        """
+        self.authenticate(self.player)
+
+        # send a status without event
+        response = self.client.patch(self.url, data={
+            'playlist_entry_id': self.pe1.id,
+            'timing': 2,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_put_status_invalid_wrong_event(self):
+        """Test invalid event is rejected
+        """
+        self.authenticate(self.player)
+
+        # send a status without event
+        response = self.client.put(self.url, data={
+            'event': 'invalid',
+            'playlist_entry_id': self.pe1.id,
+            'timing': 2,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_put_status_invalid_incoherent_event_idle(self):
+        """Test incoherent event is rejected when player is idle
+        """
+        self.authenticate(self.player)
+
+        # the player is idle
+
+        # send a status for finished song
+        response = self.client.put(self.url, data={
+            'event': 'finished',
+            'playlist_entry_id': self.pe1.id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_put_status_invalid_incoherent_event_play(self):
+        """Test incoherent event is rejected when player is playing
+        """
+        self.authenticate(self.player)
+
+        # the player is playing
+        self.player_play_next_song()
+
+        # send a status for finished song
+        response = self.client.put(self.url, data={
+            'event': 'started_transition',
+            'playlist_entry_id': self.pe1.id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
