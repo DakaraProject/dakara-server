@@ -72,6 +72,12 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
             self.channel_name,
         )
 
+        # reset current playing playlist entry if any
+        current_playlist_entry = models.PlaylistEntry.get_playing()
+        if current_playlist_entry is not None:
+            current_playlist_entry.date_played = None
+            current_playlist_entry.save()
+
         self.accept()
         logger.info("Player connected through websocket")
 

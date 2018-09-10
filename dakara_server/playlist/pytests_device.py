@@ -484,3 +484,31 @@ async def test_send_handle_next_karaoke_pause(provider, player,
     # check there are no other messages
     done = await communicator.receive_nothing()
     assert done
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_connect_reset_playing_playlist_entry(provider, player):
+    """Test to reset playing playlist entry
+    """
+    communicator = WebsocketCommunicator(PlaylistDeviceConsumer,
+                                         "/ws/playlist/device/")
+    communicator.scope['user'] = provider.player
+    connected, _ = await communicator.connect()
+
+    # set player playing
+    provider.player_play_next_song()
+    assert player.playlist_entry is not None
+
+    # disconnect and reconnect the player
+    await communicator.disconnect()
+    communicator2 = WebsocketCommunicator(PlaylistDeviceConsumer,
+                                          "/ws/playlist/device/")
+    communicator2.scope['user'] = provider.player
+    connected, _ = await communicator2.connect()
+
+    # check that the player is idle
+    player2 = models.Player.get_or_create()
+    assert player2.playlist_entry is None
+
+    await communicator2.disconnect()
