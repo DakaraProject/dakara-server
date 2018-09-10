@@ -59,28 +59,29 @@ async def test_authenticate_player_successful(provider):
     await communicator.disconnect()
 
 
-# @pytest.mark.asyncio
-# @pytest.mark.django_db(transaction=True)
-# async def test_authenticate_player_twice_failed(provider):
-#     """Test to authenticate two players successively
-#     """
-#     # authenticate first player
-#     communicator_first = WebsocketCommunicator(PlaylistDeviceConsumer,
-#                                                "/ws/playlist/device/")
-#     communicator_first.scope['user'] = provider.player
-#     connected, _ = await communicator_first.connect()
-#
-#     assert connected
-#     await communicator_first.disconnect()
-#
-#     # authenticate second player
-#     communicator_second = WebsocketCommunicator(PlaylistDeviceConsumer,
-#                                                 "/ws/playlist/device/")
-#     communicator_second.scope['user'] = provider.player
-#     connected, _ = await communicator_second.connect()
-#
-#     assert not connected
-#     await communicator_second.disconnect()
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_authenticate_player_twice_failed(provider):
+    """Test to authenticate two players successively
+    """
+    # authenticate first player
+    communicator_first = WebsocketCommunicator(PlaylistDeviceConsumer,
+                                               "/ws/playlist/device/")
+    communicator_first.scope['user'] = provider.player
+    connected, _ = await communicator_first.connect()
+
+    assert connected
+
+    # authenticate second player
+    communicator_second = WebsocketCommunicator(PlaylistDeviceConsumer,
+                                                "/ws/playlist/device/")
+    communicator_second.scope['user'] = provider.player
+    connected, _ = await communicator_second.connect()
+
+    assert not connected
+
+    await communicator_first.disconnect()
+    await communicator_second.disconnect()
 
 
 @pytest.mark.asyncio
