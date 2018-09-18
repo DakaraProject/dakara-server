@@ -20,7 +20,8 @@ class WorkAlternativeTitleCreator:
         """Remove the alternative titles having an incorrect structure
 
         Return
-            A new list with the incorrect alternative titles removed"""
+            A new list with the incorrect alternative titles removed.
+        """
         alt_title_to_remove = []
 
         for index, struct_alt_title in enumerate(work_alternative_titles):
@@ -36,7 +37,7 @@ class WorkAlternativeTitleCreator:
         return [alt_title for alt_title in work_alternative_titles if alt_title not in alt_title_to_remove] # noqa E501
 
     def create_alternative_title(self, work_entry, alt_title):
-        """Create work alternative title in the database if necessary."""
+        """Create work alternative title in the database if necessary"""
         work_alt_title_entry, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create( # noqa E501
                 title__iexact=alt_title,
                 work__title__iexact=work_entry.title,
@@ -51,7 +52,7 @@ class WorkAlternativeTitleCreator:
                          " title '{}'.".format(work_alt_title_entry))
 
     def create_alternative_titles(self, work_entry, work_alternative_titles):
-
+        """Create work alternative titles of a work"""
         # remove the incorrect alternative titles
         work_alternative_titles = self.remove_incorrect_alt_titles(
                 work_alternative_titles)
@@ -99,8 +100,8 @@ class WorkCreator:
         """Remove works having an incorrect structure in a list of works.
 
         Return
-            A new list with the incorrect works removed."""
-
+            A new list with the incorrect works removed.
+        """
         work_to_remove = []
 
         logger.debug("Removing the incorrect work from the current work type.")

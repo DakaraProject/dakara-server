@@ -101,7 +101,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_unused_field(self):
-        """Create works from a work file where there is unused fields."""
+        """Create works from a work file where there is unused fields"""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
@@ -225,7 +225,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_incorrect_alternative_titles(self):
-        """Create works with incorrect alternative titles."""
+        """Create works with incorrect alternative titles"""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
