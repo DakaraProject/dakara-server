@@ -36,11 +36,12 @@ class WorkAlternativeTitleCreator:
 
         return [alt_title for alt_title in work_alternative_titles if alt_title not in alt_title_to_remove] # noqa E501
 
-    def create_alternative_title(self, work_entry, alt_title):
+    def create_alternative_title(self, work_type_entry, work_entry, alt_title):
         """Create work alternative title in the database if necessary"""
         work_alt_title_entry, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create( # noqa E501
                 title__iexact=alt_title,
                 work__title__iexact=work_entry.title,
+                work__work_type=work_type_entry,
                 work__subtitle__iexact=work_entry.subtitle,
                 defaults={
                     'title': alt_title,
@@ -51,7 +52,11 @@ class WorkAlternativeTitleCreator:
             logger.debug("Created alternative"
                          " title '{}'.".format(work_alt_title_entry))
 
-    def create_alternative_titles(self, work_entry, work_alternative_titles):
+    def create_alternative_titles(
+            self,
+            work_type_entry,
+            work_entry,
+            work_alternative_titles):
         """Create work alternative titles of a work"""
         # remove the incorrect alternative titles
         work_alternative_titles = self.remove_incorrect_alt_titles(
@@ -60,6 +65,7 @@ class WorkAlternativeTitleCreator:
         for alt_title in work_alternative_titles:
             # create work alternative title
             self.create_alternative_title(
+                    work_type_entry,
                     work_entry,
                     alt_title)
 
@@ -195,6 +201,7 @@ class WorkCreator:
 
         # get work alternative titles or create them
         self.work_alt_title_creator.create_alternative_titles(
+                work_type_entry,
                 work_entry,
                 work_alternative_titles)
 

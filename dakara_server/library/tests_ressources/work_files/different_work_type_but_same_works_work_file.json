@@ -1,0 +1,20 @@
+{
+    "WorkType 1": [ 
+	{
+	    "title": "Work 1",
+	    "subtitle": "Subtitle 1",
+	    "alternative_titles": [
+		"AltTitle 1"
+	    ]
+	}
+    ],
+    "WorkType 2": [
+	{
+	    "title": "Work 1",
+	    "subtitle": "Subtitle 1",
+	    "alternative_titles": [
+		"AltTitle 1"
+	    ]
+	}
+    ]
+}

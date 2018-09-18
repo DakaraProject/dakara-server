@@ -186,6 +186,44 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[1].title, "Work 1")
         self.assertEqual(works[1].subtitle, "Subtitle 2")
 
+    def test_createworks_with_different_work_types_same_works(self):
+        """Create identical works apart from their worktypes"""
+
+        # Create work type
+        WorkType.objects.create(query_name="WorkType 2")
+
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 2)
+        self.assertEqual(Work.objects.count(), 0)
+
+        # Call command
+        work_file = os.path.join(
+                DIR_WORK_FILES,
+                "different_work_type_but_same_works_work_file.json")
+
+        args = [work_file]
+        opts = {'verbosity': 0}
+        call_command('createworks', *args, **opts)
+
+        # Work assertions
+        works = Work.objects.order_by('work_type__query_name')
+
+        self.assertEqual(len(works), 2)
+
+        self.assertEqual(works[0].title, "Work 1")
+        self.assertEqual(works[0].subtitle, "Subtitle 1")
+        self.assertEqual(works[0].work_type.query_name, "WorkType 1")
+        self.assertCountEqual(
+            [alt.title for alt in works[0].alternative_titles.all()],
+            ["AltTitle 1"])
+
+        self.assertEqual(works[1].title, "Work 1")
+        self.assertEqual(works[1].subtitle, "Subtitle 1")
+        self.assertEqual(works[1].work_type.query_name, "WorkType 2")
+        self.assertCountEqual(
+            [alt.title for alt in works[1].alternative_titles.all()],
+            ["AltTitle 1"])
+
     def test_createworks_with_work_type_without_work_list(self):
         """Check there is no work created when work type value is not a list"""
         # Create work type
