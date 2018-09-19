@@ -41,7 +41,7 @@ class WorkListViewAPIViewTestCase(BaseAPITestCase):
         """
         # Attempt to get works list
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_work_list_type_filter(self):
         """Test to verify work list with work type filter

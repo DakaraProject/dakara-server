@@ -39,7 +39,7 @@ class ArtistListViewAPIViewTestCase(BaseAPITestCase):
         """
         # Attempt to get artists list
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_artist_list_with_query(self):
         """Test to verify artist list with query

@@ -35,7 +35,7 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         """
         # Get users list
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_create_user(self):
         """Test to verify user creation
@@ -208,7 +208,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         """
         # Get simple user details
         response = self.client.get(self.user_url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_patch_user(self):
         """Test to verify user update
@@ -363,7 +363,7 @@ class CurrentUserViewAPIViewTestCase(BaseAPITestCase):
         (Obviously.)
         """
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class PasswordViewUpdateAPIViewTestCase(BaseAPITestCase):

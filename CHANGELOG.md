@@ -35,6 +35,16 @@
 - Alternative titles of a work : search songs and works upon the alternative title of a work.
 - Reorder of the playlist
 - Add createworks command : create works and their alternative titles upon a data structure file.
+- Prevent to add a song to the playlist after a certain karaoke stop date.
+
+### Changed
+
+- Kara status is now handled within the Karaoke object.
+- Karaoke route: `/playlist/kara-status/` > `/playlist/karaoke/`.
+
+### Changed
+
+- Access to routes without authentication gives 401 HTTP error code instead of 403.
 
 ## 1.2.0 - 2018-06-03
 

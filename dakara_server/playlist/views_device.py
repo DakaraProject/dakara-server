@@ -27,10 +27,10 @@ class PlayerDeviceView(APIView):
         """Get next playist entry
         """
         player = models.Player.get_or_create()
-        kara_status = models.KaraStatus.get_object()
+        karaoke = models.Karaoke.get_object()
 
         # get the next playlist entry if the kara is in play mode
-        if kara_status.status == models.KaraStatus.PLAY:
+        if karaoke.status == models.Karaoke.PLAY:
             entry = models.PlaylistEntry.get_next(player.playlist_entry_id)
 
         else:
@@ -57,8 +57,8 @@ class PlayerDeviceView(APIView):
             )
 
         # skip the current playlist entry if the kara is in stop mode
-        kara_status = models.KaraStatus.get_object()
-        if kara_status.status == models.KaraStatus.STOP:
+        karaoke = models.Karaoke.get_object()
+        if karaoke.status == models.Karaoke.STOP:
             player_command = models.PlayerCommand()
             player_command.skip = True
 

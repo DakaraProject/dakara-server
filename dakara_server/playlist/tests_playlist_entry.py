@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 
 from .base_test import BaseAPITestCase, tz
-from .models import PlaylistEntry, Player
+from .models import PlaylistEntry, Player, Karaoke
 
 
 UserModel = get_user_model()
@@ -102,7 +102,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         """
         # Get playlist entries list
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_create_playlist_entry(self):
         """Test to verify playlist entry creation
@@ -125,11 +125,11 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Entry's owner is the user who created it
         self.assertEqual(new_entry.owner.id, self.p_user.id)
 
-    def test_post_create_playlist_entry_kara_status_stop_forbidden(self):
+    def test_post_create_playlist_entry_karaoke_stop_forbidden(self):
         """Test to verify playlist entry cannot be created when kara is stopped
         """
         # stop kara
-        self.set_kara_status_stop()
+        self.set_karaoke_stop()
 
         # Login as playlist user
         self.authenticate(self.manager)
@@ -157,6 +157,143 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+        # post assert there are still 4 in database
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+    def test_post_create_playlist_entry_date_stop_success(self):
+        """Test user can add a song to playlist when before date stop
+        """
+        # set kara stop
+        date_stop = datetime.now(tz) + timedelta(hours=2)
+        karaoke = Karaoke.get_object()
+        karaoke.date_stop = date_stop
+        karaoke.save()
+
+        # login as user
+        self.authenticate(self.p_user)
+
+        # pre assert
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+        # request to add a new entry
+        response = self.client.post(self.url, {'song_id': self.song1.id})
+
+        # assert that the request is accepted
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(PlaylistEntry.objects.count(), 5)
+
+    def test_post_create_playlist_entry_date_stop_forbidden(self):
+        """Test user cannot add song to playlist after its date stop
+        """
+        # set kara stop
+        date_stop = datetime.now(tz)
+        karaoke = Karaoke.get_object()
+        karaoke.date_stop = date_stop
+        karaoke.save()
+
+        # login as user
+        self.authenticate(self.p_user)
+
+        # pre assert
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+        # request to add a new entry
+        response = self.client.post(self.url, {'song_id': self.song1.id})
+
+        # assert that the request is denied
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+    def test_post_create_playlist_entry_date_stop_success_manager(self):
+        """Test manager can add song to playlist after its date stop
+        """
+        # set kara stop
+        date_stop = datetime.now(tz)
+        karaoke = Karaoke.get_object()
+        karaoke.date_stop = date_stop
+        karaoke.save()
+
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+        # request to add a new entry
+        response = self.client.post(self.url, {'song_id': self.song1.id})
+
+        # assert that the response and the database
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(PlaylistEntry.objects.count(), 5)
+
+    def test_post_create_playlist_entry_date_stop_success_admin(self):
+        """Test admin can add song to playlist after its date stop
+        """
+        # set kara stop
+        date_stop = datetime.now(tz)
+        karaoke = Karaoke.get_object()
+        karaoke.date_stop = date_stop
+        karaoke.save()
+
+        # login as admin
+        self.authenticate(self.admin)
+
+        # pre assert
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+        # request to add a new entry
+        response = self.client.post(self.url, {'song_id': self.song1.id})
+
+        # assert that the response and the database
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(PlaylistEntry.objects.count(), 5)
+
+    @patch('playlist.views.datetime',
+           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
+    def test_post_create_playlist_entry_date_stop_forbidden_playlist_playing(
+            self, mocked_datetime):
+        """Test user cannot add song to playlist after its date stop
+
+        Test that only short enough songs can be added.
+        Test when the player is playing.
+        """
+        # patch the now method
+        now = datetime.now(tz)
+        mocked_datetime.now.return_value = now
+
+        # set the player
+        player = Player.get_or_create()
+        player.playlist_entry_id = self.pe1.id
+        play_duration = timedelta(seconds=2)
+        player.timing = play_duration
+        player.save()
+
+        # set kara stop such as to allow song1 to be added and not song2
+        date_stop = now + timedelta(seconds=20)
+        karaoke = Karaoke.get_object()
+        karaoke.date_stop = date_stop
+        karaoke.save()
+
+        # login as user
+        self.authenticate(self.p_user)
+
+        # pre assert
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+        # request to add a new entry which is too long
+        response = self.client.post(self.url, {'song_id': self.song2.id})
+
+        # assert that the request is denied
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(PlaylistEntry.objects.count(), 4)
+
+        # request to add a new entry which is short enough
+        response = self.client.post(self.url, {'song_id': self.song1.id})
+
+        # assert that the request is denied
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(PlaylistEntry.objects.count(), 5)
+
     def test_post_create_user_forbidden(self):
         """Test to verify simple user cannot create playlist entries
         """
@@ -166,6 +303,13 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Attempt to post new playlist entry
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_post_create_user_unauthenticated_forbidden(self):
+        """Test to verify unauthenticated user cannot create playlist entries
+        """
+        # Attempt to post new playlist entry
+        response = self.client.post(self.url, {"song_id": self.song1.id})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_playlist_entries_list_playing_entry(self):
         """Test to verify playlist entries list does not include playing song

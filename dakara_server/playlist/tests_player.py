@@ -271,7 +271,7 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
-    def test_set_player_pause_kara_status_stop_forbidden(self):
+    def test_set_player_pause_karaoke_stop_forbidden(self):
         """Test a user cannot pause a song if the kara is stopped
         """
         # Play next song
@@ -281,7 +281,7 @@ class PlayerManageViewAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.manager)
 
         # Set kara in pause mode
-        self.set_kara_status_stop()
+        self.set_karaoke_stop()
 
         # Request pause
         response = self.client.put(
@@ -442,21 +442,21 @@ class PlayerDeviceViewAPIViewTestCase(BaseAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_get_next_playlis_entry_kara_status_pause(self):
+    def test_get_next_playlis_entry_karaoke_pause(self):
         """Test a player user get no next playlist entry when the kara is paused
         """
         # log as player
         self.authenticate(self.player)
 
         # pause kara
-        self.set_kara_status_pause()
+        self.set_karaoke_pause()
 
         # get next song
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data)
 
-    def test_get_next_playlis_entry_kara_status_pause_with_previous(self):
+    def test_get_next_playlis_entry_karaoke_pause_with_previous(self):
         """Test there is no error when the kara is paused
 
         The player is playing a song.
@@ -465,13 +465,13 @@ class PlayerDeviceViewAPIViewTestCase(BaseAPITestCase):
         self.player_play_next_song()
 
         # pause kara
-        self.set_kara_status_pause()
+        self.set_karaoke_pause()
 
         # ask to play the next song
         # and check there is no error
         self.player_play_next_song()
 
-    def test_put_recieving_status_kara_status_stop(self):
+    def test_put_recieving_status_karaoke_stop(self):
         """Test that the player recieve a skip command when kara is stopped
 
         The kara status is set to stop.
@@ -480,7 +480,7 @@ class PlayerDeviceViewAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.player)
 
         # stop kara
-        self.set_kara_status_stop()
+        self.set_karaoke_stop()
 
         # send status
         response = self.player_play_song(self.pe1.id)
