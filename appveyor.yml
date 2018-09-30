@@ -15,13 +15,13 @@ environment:
 
   # setup tests matrix
   matrix:
-    # - PYTHON: "C:\\Python35-x64"
-    #   PYTHON_VERSION: "3.5.3"
-    #   PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python36-x64"
-      PYTHON_VERSION: "3.6.x"
+    - PYTHON: "C:\\Python35-x64"
+      PYTHON_VERSION: "3.5.3"
       PYTHON_ARCH: "64"
+
+    # - PYTHON: "C:\\Python36-x64"
+    #   PYTHON_VERSION: "3.6.6"
+    #   PYTHON_ARCH: "64"
 
 # check current python version
 init:
@@ -33,8 +33,10 @@ install:
   - "%PYTHON%/Scripts/pip.exe install -r requirements.txt"
 
 # command to run tests
+# the current working directory is not reinitialized between commands
 test_script:
-  - "cd dakara_server && %PYTHON%/python.exe ./manage.py test -v 2"
-  - "cd"
-  - "cd dakara_server && %PYTHON%/Scripts/pytest.exe -v"
+  - "cd dakara_server"
+  - "%PYTHON%/python.exe ./manage.py test -v 2"
+  - "%PYTHON%/Scripts/pytest.exe -v"
+  - "cd .."
   - "%PYTHON%/Scripts/flake8.exe"
