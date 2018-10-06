@@ -142,12 +142,12 @@ class WorkCreator:
             dict_work: dictionnary for which the check is done
             (must have a 'title' field)
         """
-        field_names = ('subtitle', 'alternative_titles')
+        field_names = ('title', 'subtitle', 'alternative_titles')
 
         # get the work title (should have been checked it exists
         # before calling this method)
         work_title = dict_work.get('title')
-        work_subtitle = dict_work.get('subtitle')
+        work_subtitle = dict_work.get('subtitle', "")
 
         for field in dict_work:
             if field not in field_names:
@@ -165,6 +165,15 @@ class WorkCreator:
         work_title = dict_work.get('title')
         work_subtitle = dict_work.get('subtitle', "")
         work_alternative_titles = dict_work.get('alternative_titles', [])
+
+        logger.debug("Get Work with attributes (title:{title}, "
+                     "subtitle:{subtitle}, work_type:{work_type})".format(
+                         title=work_title,
+                         subtitle=work_subtitle,
+                         work_type=work_type_entry.query_name))
+
+        if self.debug:
+            self.debug_parser_work(dict_work)
 
         # get or create works
         if self.update_only:
@@ -187,9 +196,9 @@ class WorkCreator:
 
         else:
             work_entry, work_created = Work.objects.get_or_create(
-                    title__iexact=work_title,
+                    title__exact=work_title,
                     work_type=work_type_entry,
-                    subtitle__iexact=work_subtitle,
+                    subtitle__exact=work_subtitle,
                     defaults={
                         'title': work_title,
                         'work_type': work_type_entry,
@@ -250,9 +259,6 @@ class WorkCreator:
 
                 # get works and their attributes
                 for dict_work in work_listing:
-
-                    if self.debug:
-                        self.debug_parser_work(dict_work)
 
                     self.creatework(work_type_entry, dict_work)
 
