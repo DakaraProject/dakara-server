@@ -42,9 +42,6 @@
 
 - Kara status is now handled within the Karaoke object.
 - Karaoke route: `/playlist/kara-status/` > `/playlist/karaoke/`.
-
-### Changed
-
 - Access to routes without authentication gives 401 HTTP error code instead of 403.
 
 ## 1.2.0 - 2018-06-03
