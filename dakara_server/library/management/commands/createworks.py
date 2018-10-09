@@ -39,10 +39,10 @@ class WorkAlternativeTitleCreator:
     def create_alternative_title(self, work_type_entry, work_entry, alt_title):
         """Create work alternative title in the database if necessary"""
         work_alt_title_entry, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create( # noqa E501
-                title__iexact=alt_title,
-                work__title__iexact=work_entry.title,
+                title=alt_title,
+                work__title=work_entry.title,
                 work__work_type=work_type_entry,
-                work__subtitle__iexact=work_entry.subtitle,
+                work__subtitle=work_entry.subtitle,
                 defaults={
                     'title': alt_title,
                     'work': work_entry}
@@ -166,7 +166,7 @@ class WorkCreator:
         work_subtitle = dict_work.get('subtitle', "")
         work_alternative_titles = dict_work.get('alternative_titles', [])
 
-        logger.debug("Get Work with attributes (title:{title}, "
+        logger.debug("Get Work (title:{title}, "
                      "subtitle:{subtitle}, work_type:{work_type})".format(
                          title=work_title,
                          subtitle=work_subtitle,
@@ -180,12 +180,12 @@ class WorkCreator:
 
             try:
                 work_entry = Work.objects.get(
-                        title__iexact=work_title,
+                        title=work_title,
                         work_type=work_type_entry,
-                        subtitle__iexact=work_subtitle)
+                        subtitle=work_subtitle)
 
             except Work.DoesNotExist:
-                logger.debug("Work with attributes (title:{title}, "
+                logger.debug("Work (title:{title}, "
                              "subtitle:{subtitle}, work_type:{work_type})"
                              " not found (update only).".format(
                                  title=work_title,
@@ -196,9 +196,9 @@ class WorkCreator:
 
         else:
             work_entry, work_created = Work.objects.get_or_create(
-                    title__exact=work_title,
+                    title=work_title,
                     work_type=work_type_entry,
-                    subtitle__exact=work_subtitle,
+                    subtitle=work_subtitle,
                     defaults={
                         'title': work_title,
                         'work_type': work_type_entry,
@@ -230,11 +230,12 @@ class WorkCreator:
         # get works or create it
         for worktype_query_name, work_listing in works.items():
 
-            logger.debug("Get work type '{}'".format(worktype_query_name))
+            logger.debug("Get WorkType query name '{}'".format(
+                worktype_query_name))
             # get work type
             try:
                 work_type_entry = WorkType.objects.get(
-                        query_name__iexact=worktype_query_name
+                        query_name=worktype_query_name
                         )
 
             except WorkType.DoesNotExist:

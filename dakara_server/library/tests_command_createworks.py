@@ -356,3 +356,38 @@ class CommandsTestCase(TestCase):
         self.assertCountEqual(
             [alt.title for alt in works[1].alternative_titles.all()],
             ["AltTitle 1", "AltTitle 3"])
+
+    def test_createworks_case_sensitive_work_file(self):
+        """Test createworks with works which have case-sensitive difference"""
+        # Pre-assertions
+        self.assertEqual(WorkType.objects.count(), 1)
+        self.assertEqual(Work.objects.count(), 0)
+
+        # Call command
+        work_file = os.path.join(
+                DIR_WORK_FILES,
+                'case_sensitive_work_file.json')
+
+        args = [work_file]
+        opts = {'verbosity': 0}
+        call_command('createworks', *args, **opts)
+
+        # Work assertions
+        works = Work.objects.order_by('title', 'subtitle')
+
+        self.assertEqual(len(works), 3)
+
+        self.assertEqual(works[0].title, "Work 1")
+        self.assertEqual(works[0].subtitle, "Subtitle 1")
+        self.assertEqual(works[0].work_type.query_name, "WorkType 1")
+        self.assertEqual(works[0].alternative_titles.count(), 0)
+
+        self.assertEqual(works[1].title, "Work 1")
+        self.assertEqual(works[1].subtitle, "subtitle 1")
+        self.assertEqual(works[1].work_type.query_name, "WorkType 1")
+        self.assertEqual(works[1].alternative_titles.count(), 0)
+
+        self.assertEqual(works[2].title, "work 1")
+        self.assertEqual(works[2].subtitle, "Subtitle 1")
+        self.assertEqual(works[2].work_type.query_name, "WorkType 1")
+        self.assertEqual(works[2].alternative_titles.count(), 0)
