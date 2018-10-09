@@ -25,20 +25,18 @@ class WorkAlternativeTitleCreator:
         alt_title_to_remove = []
 
         for index, struct_alt_title in enumerate(work_alternative_titles):
-
             # check if it is a string
             if not isinstance(struct_alt_title, str):
                 alt_title_to_remove.append(struct_alt_title)
                 logger.debug("Incorrect alternative title at index {} of "
-                             "current work: value must be "
-                             "a string.".format(index))
-                continue
+                             "current work: value must be a string.".format(
+                                 index))
 
         return [alt_title for alt_title in work_alternative_titles if alt_title not in alt_title_to_remove] # noqa E501
 
     def create_alternative_title(self, work_type_entry, work_entry, alt_title):
         """Create work alternative title in the database if necessary"""
-        work_alt_title_entry, work_alt_title_created = WorkAlternativeTitle.objects.get_or_create( # noqa E501
+        alt_title_entry, created = WorkAlternativeTitle.objects.get_or_create(
                 title=alt_title,
                 work__title=work_entry.title,
                 work__work_type=work_type_entry,
@@ -48,9 +46,9 @@ class WorkAlternativeTitleCreator:
                     'work': work_entry}
                 )
 
-        if work_alt_title_created:
+        if created:
             logger.debug("Created alternative"
-                         " title '{}'.".format(work_alt_title_entry))
+                         " title '{}'.".format(alt_title_entry))
 
     def create_alternative_titles(
             self,
@@ -75,9 +73,10 @@ class WorkCreator:
     database provided a work file and a parser.
 
     Args:
-        work_file (str): Absolute path of the file storing the works data.
-        parser (module): Custom python module used to extract data from file.
-        dry_run (bool): Run script in test mode.
+        work_file (str): Absolute path of the file storing the works data
+        parser (module): Custom python module used to extract data from file
+        debug (bool): Enable debug mode if true
+        update_only (bool): Only update existing works, do not create new ones
 
     About parser:
         This module should define a method called `parse_work` which takes
@@ -112,7 +111,6 @@ class WorkCreator:
 
         logger.debug("Removing the incorrect work from the current work type.")
         for index, dict_work in enumerate(work_listing):
-
             # check if it is a dictionary
             if not isinstance(dict_work, dict):
                 work_to_remove.append(dict_work)
@@ -135,49 +133,21 @@ class WorkCreator:
 
         return [work for work in work_listing if work not in work_to_remove]
 
-    def debug_parser_work(self, dict_work):
-        """Display debug messages on a specific work dictionarry.
-
-        Args
-            dict_work: dictionnary for which the check is done
-            (must have a 'title' field)
-        """
-        field_names = ('title', 'subtitle', 'alternative_titles')
-
-        # get the work title (should have been checked it exists
-        # before calling this method)
-        work_title = dict_work.get('title')
-        work_subtitle = dict_work.get('subtitle', "")
-
-        for field in dict_work:
-            if field not in field_names:
-                logger.debug(
-                        "Field '{}' for '{}' subtitled '{}' not in "
-                        "fields taken into account.".format(
-                            field,
-                            work_title,
-                            work_subtitle))
-
     def creatework(self, work_type_entry, dict_work):
         """Create or update a work in database."""
-
         # get the attributes of the work
         work_title = dict_work.get('title')
         work_subtitle = dict_work.get('subtitle', "")
         work_alternative_titles = dict_work.get('alternative_titles', [])
 
-        logger.debug("Get Work (title:{title}, "
-                     "subtitle:{subtitle}, work_type:{work_type})".format(
+        logger.debug("Get Work (title: {title}, "
+                     "subtitle: {subtitle}, work_type: {work_type})".format(
                          title=work_title,
                          subtitle=work_subtitle,
                          work_type=work_type_entry.query_name))
 
-        if self.debug:
-            self.debug_parser_work(dict_work)
-
         # get or create works
         if self.update_only:
-
             try:
                 work_entry = Work.objects.get(
                         title=work_title,
@@ -185,8 +155,8 @@ class WorkCreator:
                         subtitle=work_subtitle)
 
             except Work.DoesNotExist:
-                logger.debug("Work (title:{title}, "
-                             "subtitle:{subtitle}, work_type:{work_type})"
+                logger.debug("Work (title: {title}, "
+                             "subtitle: {subtitle}, work_type: {work_type})"
                              " not found (update only).".format(
                                  title=work_title,
                                  subtitle=work_subtitle,
@@ -229,7 +199,6 @@ class WorkCreator:
         work_success = True
         # get works or create it
         for worktype_query_name, work_listing in works.items():
-
             logger.debug("Get WorkType query name '{}'".format(
                 worktype_query_name))
             # get work type
@@ -244,24 +213,23 @@ class WorkCreator:
                     "Unable to find work type query name '{}'. Use "
                     "createworktypes command first to create "
                     "work types.".format(worktype_query_name))
+                continue
 
-            else:
-                # check the value associated to the work_type is a list
-                if not isinstance(work_listing, list):
-                    work_success = False
-                    logger.warning("Ignore creation of the works associated "
-                                   "to the worktype '{}': "
-                                   "value must be a list.".format(
-                                       worktype_query_name))
-                    continue
+            # check the value associated to the work_type is a list
+            if not isinstance(work_listing, list):
+                work_success = False
+                logger.warning("Ignore creation of the works associated "
+                               "to the worktype '{}': "
+                               "value must be a list.".format(
+                                   worktype_query_name))
+                continue
 
-                # remove the works having an incorrect structure
-                work_listing = self.remove_incorrect_works(work_listing)
+            # remove the works having an incorrect structure
+            work_listing = self.remove_incorrect_works(work_listing)
 
-                # get works and their attributes
-                for dict_work in work_listing:
-
-                    self.creatework(work_type_entry, dict_work)
+            # get works and their attributes
+            for dict_work in work_listing:
+                self.creatework(work_type_entry, dict_work)
 
         if work_success:
             logger.info("Works successfully created.")
