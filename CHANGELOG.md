@@ -30,6 +30,8 @@
 
 ## Unreleased
 
+## 1.3.0 - 2018-10-07
+
 ### Added
 
 - Alternative titles of a work : search songs and works upon the alternative title of a work.
@@ -41,9 +43,6 @@
 
 - Kara status is now handled within the Karaoke object.
 - Karaoke route: `/playlist/kara-status/` > `/playlist/karaoke/`.
-
-### Changed
-
 - Access to routes without authentication gives 401 HTTP error code instead of 403.
 
 ## 1.2.0 - 2018-06-03
