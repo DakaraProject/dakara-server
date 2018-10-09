@@ -32,7 +32,8 @@ class WorkAlternativeTitleCreator:
                              "current work: value must be a string.".format(
                                  index))
 
-        return [alt_title for alt_title in work_alternative_titles if alt_title not in alt_title_to_remove] # noqa E501
+        return [alt_title for alt_title in work_alternative_titles
+                if alt_title not in alt_title_to_remove]
 
     def create_alternative_title(self, work_type_entry, work_entry, alt_title):
         """Create work alternative title in the database if necessary"""
@@ -69,8 +70,9 @@ class WorkAlternativeTitleCreator:
 
 
 class WorkCreator:
-    """Work creator and updater. Create and update works in the
-    database provided a work file and a parser.
+    """Work creator and updater
+
+    Create and update works in the database provided a work file and a parser.
 
     Args:
         work_file (str): Absolute path of the file storing the works data
