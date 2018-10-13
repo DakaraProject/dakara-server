@@ -14,13 +14,17 @@ logger = logging.getLogger(__name__)
 
 
 class WorkAlternativeTitleCreator:
-    """Work alternative title creator."""
+    """Work alternative title creator"""
 
     def remove_incorrect_alt_titles(self, work_alternative_titles):
         """Remove the alternative titles having an incorrect structure
 
-        Return
-            A new list with the incorrect alternative titles removed.
+        Args:
+            work_alternative_titles (list): The list of alt titles to filter
+
+        Returns:
+            list: The new list with the incorrect alternative titles removed.
+
         """
         alt_title_to_remove = []
 
@@ -36,7 +40,14 @@ class WorkAlternativeTitleCreator:
                 if alt_title not in alt_title_to_remove]
 
     def create_alternative_title(self, work_type_entry, work_entry, alt_title):
-        """Create work alternative title in the database if necessary"""
+        """Create work alternative title in the database if necessary
+
+        Args:
+            work_type_entry (obj): The work type entry for the alt title
+            work_entry (obj): The work entry for the alt title
+            alt_title (str): The work alternative title to create if necessary
+
+        """
         alt_title_entry, created = WorkAlternativeTitle.objects.get_or_create(
                 title=alt_title,
                 work__title=work_entry.title,
@@ -56,7 +67,14 @@ class WorkAlternativeTitleCreator:
             work_type_entry,
             work_entry,
             work_alternative_titles):
-        """Create work alternative titles of a work"""
+        """Create work alternative titles of a work
+
+        Args:
+            work_type_entry (obj): The work type entry for these alt titles
+            work_entry (obj): The work entry for these alt titles
+            work_alternative_titles (list): The list of alt titles to create
+
+        """
         # remove the incorrect alternative titles
         work_alternative_titles = self.remove_incorrect_alt_titles(
                 work_alternative_titles)
@@ -74,7 +92,7 @@ class WorkCreator:
 
     Create and update works in the database provided a work file and a parser.
 
-    Args:
+    Attributes:
         work_file (str): Absolute path of the file storing the works data
         parser (module): Custom python module used to extract data from file
         debug (bool): Enable debug mode if true
@@ -86,10 +104,20 @@ class WorkCreator:
             works (dict): keys are a query name worktype, values are
             a list such that each element of this list is a dictionnary with
             the following keys:
-                    title (str): title of the work
-                    subtitle (str): subtitle of the work
-                    alternative_titles (list): list of alternative names of
-                    a work
+                title (str): title of the work (required)
+                subtitle (str): subtitle of the work (required)
+                alternative_titles (list): list of alternative titles of
+                a work
+
+            Example of correct works dictionary:
+                {'WorkType 1':
+                    [
+                        {'title': 'Work 1', 'subtitle': 'Subtitle 1',
+                         'alternative_titles': ['AltTitle 1', 'AltTitle 2']},
+                        {'title': 'Work 2', 'subtitle': 'Subtitle 2'}
+                    ],
+                 'WorkType 2': []}
+
     """
     def __init__(
             self,
@@ -104,10 +132,14 @@ class WorkCreator:
         self.work_alt_title_creator = WorkAlternativeTitleCreator()
 
     def remove_incorrect_works(self, work_listing):
-        """Remove works having an incorrect structure in a list of works.
+        """Remove works having an incorrect structure in a list of works
 
-        Return
-            A new list with the incorrect works removed.
+        Args:
+            work_listing (list): The list of works to filter
+
+        Returns:
+            list: The new list with the incorrect works removed
+
         """
         work_to_remove = []
 
@@ -136,7 +168,13 @@ class WorkCreator:
         return [work for work in work_listing if work not in work_to_remove]
 
     def creatework(self, work_type_entry, dict_work):
-        """Create or update a work in database."""
+        """Create or update a work in database
+
+        Args:
+            work_type_entry (obj): The work type entry object of the work
+            dict_work (dict): The work as a dictionary (see parser doc)
+
+        """
         # get the attributes of the work
         work_title = dict_work.get('title')
         work_subtitle = dict_work.get('subtitle', "")
@@ -190,7 +228,12 @@ class WorkCreator:
         work_entry.save()
 
     def createworks(self):
-        """Create or update works provided."""
+        """Create or update works provided
+
+        Note:
+            Raise a CommandError exception if the work file cannot be read
+
+        """
         # parse the work file to get the data structure
         try:
             works = self.parser.parse_work(self.work_file)
@@ -238,14 +281,11 @@ class WorkCreator:
 
 
 class Command(BaseCommand):
-    """Command available for `manage.py` for creating works or adding
-    extra information to works.
-    """
+    """Command available for `manage.py` for creating works or add info"""
     help = "Create works or add extra information to works."
 
     def add_arguments(self, parser):
-        """Extend arguments for the command
-        """
+        """Extend arguments for the command"""
         parser.add_argument(
             "work-file",
             help="Path of the file storing the works data."
@@ -273,8 +313,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Process the feeding
-        """
+        """Process the feeding"""
         # work file data
         work_file = os.path.normpath(options['work-file'])
 
