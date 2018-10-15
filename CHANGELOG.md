@@ -36,6 +36,7 @@
 
 - Alternative titles of a work : search songs and works upon the alternative title of a work.
 - Reorder of the playlist
+- Add createworks command : create works and their alternative titles upon a data structure file.
 - Prevent to add a song to the playlist after a certain karaoke stop date.
 
 ### Changed
