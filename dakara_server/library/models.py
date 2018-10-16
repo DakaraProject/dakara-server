@@ -47,8 +47,12 @@ class Work(models.Model):
                                   on_delete=models.CASCADE)
 
     def __str__(self):
-        return "{} ({})".format(
+        subtitle_text = "subtitled {} ".format(
+                self.subtitle) if self.subtitle else ""
+
+        return "{} {}({})".format(
             self.title,
+            subtitle_text,
             self.work_type.get_name() if self.work_type else 'unknown type'
         )
 
@@ -65,9 +69,9 @@ class WorkAlternativeTitle(models.Model):
     )
 
     def __str__(self):
-        return "Alternative title {} of work '{}'".format(
+        return "{} [{}]".format(
             self.title,
-            self.work.title
+            self.work
         )
 
 

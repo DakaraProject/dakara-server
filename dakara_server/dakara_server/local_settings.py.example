@@ -87,6 +87,10 @@ LOGGING = {
             'handlers': ['console_interactive'],
             'level': 'INFO',
         },
+        'library.management.commands.createworks': {
+            'handlers': ['console_interactive'],
+            'level': 'INFO',
+        },
         'django': {
             'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
