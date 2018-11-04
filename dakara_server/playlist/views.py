@@ -218,6 +218,13 @@ class DigestView(APIView):
         # Get player
         player = models.Player.get_or_create()
 
+        # manually update the player timing
+        now = datetime.now(tz)
+        if player.playlist_entry:
+            if not player.paused:
+                player.update(timing=player.timing + (now - player.date),
+                              date=now)
+
         # Get player errors
         player_errors_pool = models.PlayerError.objects.all()
 
