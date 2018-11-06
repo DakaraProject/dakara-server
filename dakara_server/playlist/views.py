@@ -311,7 +311,10 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         # get the method associated to the event
         method_name = "receive_{}".format(event)
         if not hasattr(self, method_name):
-            raise ValueError("This event is not valid")
+            # in this case, we raise an error to inform the client that its
+            # request is invalid
+            raise ValueError("This event is not valid '{}'"
+                             .format(event))
 
         method = getattr(self, method_name)
 

@@ -23,6 +23,8 @@ class DakaraJsonWebsocketConsumer(JsonWebsocketConsumer):
         # get the method name associated with the type
         method_name = "receive_{}".format(event['type'])
         if not hasattr(self, method_name):
+            # in this case, we do not raise an error, as this would reset the
+            # websocket connexion
             logger.error("Event of unknown type received '{}'"
                          .format(event['type']))
             return

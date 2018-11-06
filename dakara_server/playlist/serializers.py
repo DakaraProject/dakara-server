@@ -156,8 +156,10 @@ class PlayerStatusSerializer(serializers.Serializer):
         # Idle state
         if player.playlist_entry is None:
             if event not in [player.STARTED_TRANSITION, player.COULD_NOT_PLAY]:
-                raise serializers.ValidationError("This event should not occur"
-                                                  " in this state")
+                raise serializers.ValidationError(
+                    "The '{}' event should not occur when the player is idle"
+                    .format(event)
+                )
 
             return event
 
@@ -172,8 +174,10 @@ class PlayerStatusSerializer(serializers.Serializer):
             if player.in_transition:
                 return event
 
-        raise serializers.ValidationError("This event should not occur"
-                                          " in this state")
+        raise serializers.ValidationError(
+            "The '{}' event should not occur when the player is not idle"
+            .format(event)
+        )
 
 
 class PlayerEntryFinishedSerializer(serializers.Serializer):
