@@ -16,11 +16,18 @@ channel_layer = get_channel_layer()
 @pytest.fixture
 @async_generator
 async def communicator(provider):
+    """Gives a WebSockets communicator
+
+    Use it for tests that does not raise errors.
+    """
+    # create a communicator
     communicator = WebsocketCommunicator(PlaylistDeviceConsumer,
                                          "/ws/playlist/device/")
-    communicator.scope['user'] = provider.player
-    connected, _ = await communicator.connect()
 
+    # artificially give it a user
+    communicator.scope['user'] = provider.player
+
+    connected, _ = await communicator.connect()
     assert connected
 
     await yield_(communicator)
@@ -28,9 +35,41 @@ async def communicator(provider):
     await communicator.disconnect()
 
 
+@pytest.fixture
+@async_generator
+async def communicator_open(provider):
+    """Gives a WebSockets communicator that does not disconnect
+
+    Use it for tests that raise errors.
+    """
+    # create a communicator
+    communicator = WebsocketCommunicator(PlaylistDeviceConsumer,
+                                         "/ws/playlist/device/")
+
+    # artificially give it a user
+    communicator.scope['user'] = provider.player
+
+    connected, _ = await communicator.connect()
+    assert connected
+
+    # give the communicator
+    await yield_(communicator)
+
+    # clean up
+    await channel_layer.group_discard(
+        communicator.instance.group_name,
+        communicator.instance.channel_name
+    )
+
+
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_authentication(provider):
+    """Test to authenticate with a token
+
+    This is the normal mechanism of real-life connection. In the tests, we
+    assume the user is already in the scope.
+    """
     # create a token
     token = Token.objects.create(user=provider.player)
     headers = [
@@ -181,6 +220,33 @@ async def test_send_playlist_entry(provider, player, communicator):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
+async def test_send_playlist_entry_failed_none(player, communicator_open):
+    """Test a null playlist entry cannot be sent to the device
+    """
+    # pre assert
+    assert player.playlist_entry is None
+
+    # call the method
+    await channel_layer.group_send('playlist.device', {
+        'type': 'send_playlist_entry',
+        'playlist_entry': None
+    })
+
+    # wait the outcoming event
+    with pytest.raises(ValueError):
+        await communicator_open.wait()
+
+    # assert there are no side effects
+    player_new = models.Player.get_or_create()
+    assert player_new == player
+
+    # check there are no other messages
+    done = await communicator_open.receive_nothing()
+    assert done
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
 async def test_send_idle(provider, player, communicator):
     """Test to send a new playlist entry to the device
     """
@@ -282,6 +348,30 @@ async def test_send_command_skip(provider, player, communicator):
 
     # check there are no other messages
     done = await communicator.receive_nothing()
+    assert done
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_send_command_failed(player, communicator_open):
+    """Test an invalid command cannot be sent to the player
+    """
+    # call the method
+    await channel_layer.group_send('playlist.device', {
+        'type': 'send_command',
+        'command': 'unknown'
+    })
+
+    # wait the outcoming event
+    with pytest.raises(ValueError):
+        await communicator_open.wait()
+
+    # assert there are no side effects
+    player_new = models.Player.get_or_create()
+    assert player_new == player
+
+    # check there are no other messages
+    done = await communicator_open.receive_nothing()
     assert done
 
 
