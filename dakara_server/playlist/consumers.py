@@ -153,7 +153,7 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
             - the kara status is in play mode;
             - there is a new playlist entry in playlist after the provided one.
         """
-        # get the next playlist entry if the kara is in play mode
+        # request to be idle if the kara is not in play mode
         karaoke = models.Karaoke.get_object()
         if karaoke.status != models.Karaoke.PLAY:
             self.send_idle()
