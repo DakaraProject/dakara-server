@@ -15,7 +15,7 @@ channel_layer = get_channel_layer()
 class DakaraJsonWebsocketConsumer(JsonWebsocketConsumer):
     """Custom consumer for the project
 
-    On receive event, it wil call the corresponding method.
+    On receive event, it will call the corresponding method.
     """
     def receive_json(self, event):
         """Receive all incoming events and call the corresponding method

@@ -281,13 +281,16 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
         elif karaoke.status == models.Karaoke.PLAY:
             player = models.Player.get_or_create()
 
-            # request the player to play the next song if idle
+            # request the player to play the next song if idle,
+            # and there is a next song to play
             if player.playlist_entry is None:
-                broadcast_to_channel(
-                    'playlist.device', 'send_playlist_entry', data={
-                         'playlist_entry': models.PlaylistEntry.get_next()
-                     }
-                )
+                next_playlist_entry = models.PlaylistEntry.get_next()
+                if next_playlist_entry is not None:
+                    broadcast_to_channel(
+                        'playlist.device', 'send_playlist_entry', data={
+                             'playlist_entry': next_playlist_entry
+                         }
+                    )
 
     def get_object(self):
         return models.Karaoke.get_object()

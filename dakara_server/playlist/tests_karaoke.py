@@ -253,3 +253,27 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
 
         karaoke = Karaoke.get_object()
         self.assertEqual(karaoke.date_stop, date_stop)
+
+    @patch('playlist.views.broadcast_to_channel')
+    def test_patch_karaoke_status_play_bug(self, mocked_broadcast_to_channel):
+        """Test send_playlist_entry is not sent when there is nothing to play
+        """
+        url_player_status = reverse('playlist-player-status')
+
+        # login as manager
+        self.authenticate(self.manager)
+
+        # empty the playlist
+        PlaylistEntry.objects.all().delete()
+
+        # the player is not playing anything
+        response = self.client.get(url_player_status)
+        self.assertFalse(response.data['playlist_entry'])
+
+        # send play status
+        response = self.client.patch(self.url, {'status': Karaoke.PLAY})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # post-assertion
+        # no command was sent to device
+        mocked_broadcast_to_channel.assert_not_called()
