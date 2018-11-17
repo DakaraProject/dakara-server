@@ -6,8 +6,8 @@ from django.utils.dateparse import parse_datetime
 from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from .base_test import BaseAPITestCase, tz
-from .models import PlaylistEntry, Player, Karaoke
+from playlist.base_test import BaseAPITestCase, tz
+from playlist.models import PlaylistEntry, Player, Karaoke
 
 
 UserModel = get_user_model()
@@ -71,12 +71,12 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         player.timing = play_duration
         player.save()
 
+        # set the entry
+        self.pe1.date_played = now - play_duration
+        self.pe1.save()
+
         # Login as simple user
         self.authenticate(self.user)
-
-        # Get playlist entries list
-        # Should only return entries with `was_played`=False
-        response = self.client.get(self.url)
 
         # Get playlist entries list
         # Should only return entries with `was_played`=False
@@ -104,7 +104,8 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_post_create_playlist_entry(self):
+    @patch("playlist.views.broadcast_to_channel")
+    def test_post_create_playlist_entry(self, mocked_broadcast_to_channel):
         """Test to verify playlist entry creation
         """
         # Login as playlist user
@@ -121,9 +122,44 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 5)
         new_entry = PlaylistEntry.objects.last()
         # Entry was created with for song1
-        self.assertEqual(new_entry.song.id, self.song1.id)
+        self.assertEqual(new_entry.song, self.song1)
         # Entry's owner is the user who created it
-        self.assertEqual(new_entry.owner.id, self.p_user.id)
+        self.assertEqual(new_entry.owner, self.p_user)
+
+        # check the player was not requested to play this entry immediately
+        mocked_broadcast_to_channel.assert_not_called()
+
+    @patch("playlist.views.broadcast_to_channel")
+    def test_post_create_playlist_entry_empty(self,
+                                              mocked_broadcast_to_channel):
+        """Test to create a playlist entry when the playlist is empty
+
+        The created song should be requested to play immediately.
+        """
+        # empty the playlist
+        PlaylistEntry.objects.all().delete()
+
+        # Login as playlist user
+        self.authenticate(self.p_user)
+
+        # Post new playlist entry
+        response = self.client.post(self.url, {"song_id": self.song1.id})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Check playlist entry has been created in database
+        self.assertEqual(PlaylistEntry.objects.count(), 1)
+        new_entry = PlaylistEntry.objects.last()
+        # Entry was created with for song1
+        self.assertEqual(new_entry.song, self.song1)
+        # Entry's owner is the user who created it
+        self.assertEqual(new_entry.owner, self.p_user)
+
+        # check the player was requested to play this entry immediately
+        mocked_broadcast_to_channel.assert_called_with(
+            'playlist.device',
+            'send_playlist_entry',
+            {'playlist_entry': new_entry}
+        )
 
     def test_post_create_playlist_entry_karaoke_stop_forbidden(self):
         """Test to verify playlist entry cannot be created when kara is stopped
@@ -262,11 +298,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         mocked_datetime.now.return_value = now
 
         # set the player
-        player = Player.get_or_create()
-        player.playlist_entry_id = self.pe1.id
-        play_duration = timedelta(seconds=2)
-        player.timing = play_duration
-        player.save()
+        self.player_play_next_song(timing=timedelta(seconds=2))
 
         # set kara stop such as to allow song1 to be added and not song2
         date_stop = now + timedelta(seconds=20)
@@ -314,11 +346,16 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
     def test_get_playlist_entries_list_playing_entry(self):
         """Test to verify playlist entries list does not include playing song
         """
-        # Simulate a player playing next song
-        self.player_play_next_song()
-
         # Login as simple user
         self.authenticate(self.user)
+
+        # pre assert
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 2)
+
+        # Simulate a player playing next song
+        self.player_play_next_song()
 
         # Get playlist entries list
         response = self.client.get(self.url)

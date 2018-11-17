@@ -3,7 +3,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'hc85nuu)6iu0z6!=5_y=0norbd)g)$syxy*9kw+3np@=0x)#k4'
@@ -11,10 +11,11 @@ SECRET_KEY = 'hc85nuu)6iu0z6!=5_y=0norbd)g)$syxy*9kw+3np@=0x)#k4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: change it to your server hostname in production!
+ALLOWED_HOSTS = ['*']
 
 # Database
-# https://docs.djangoproject.com/en/1.8/ref/settings/#databases
+# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -23,9 +24,18 @@ DATABASES = {
     }
 }
 
+# Channels
+# http://channels.readthedocs.io/en/latest/topics/channel_layers.html
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.8/topics/i18n/
+# https://docs.djangoproject.com/en/1.11/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -68,6 +78,10 @@ LOGGING = {
     },
     'loggers': {
         'playlist.views': {
+            'handlers': ['console_playlist'],
+            'level': 'INFO',
+        },
+        'playlist.consumers': {
             'handlers': ['console_playlist'],
             'level': 'INFO',
         },

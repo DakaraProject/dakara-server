@@ -29,6 +29,10 @@ install:
   - "%PYTHON%/Scripts/pip.exe install -r requirements.txt"
 
 # command to run tests
+# the current working directory is not reinitialized between commands
 test_script:
-  - "cd dakara_server && %PYTHON%/python.exe ./manage.py test -v 2 & cd .."
+  - "cd dakara_server"
+  - "%PYTHON%/python.exe ./manage.py test -v 2"
+  - "%PYTHON%/Scripts/pytest.exe -v"
+  - "cd .."
   - "%PYTHON%/Scripts/flake8.exe"

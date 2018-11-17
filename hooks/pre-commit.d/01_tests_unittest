@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "Running django tests"
+echo "Running django Unittest tests"
 
 (cd ./dakara_server && python ./manage.py test --parallel)

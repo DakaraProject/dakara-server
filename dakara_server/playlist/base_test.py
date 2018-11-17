@@ -3,60 +3,34 @@ from datetime import datetime, timedelta
 import inspect
 
 from django.contrib.auth import get_user_model
-from django.core.urlresolvers import reverse
 from django.core.cache import cache
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
-from rest_framework import status
 
 from library.models import Song, SongTag
-from .models import PlaylistEntry, Karaoke
+from playlist.models import PlaylistEntry, Karaoke, Player
 
 UserModel = get_user_model()
 tz = timezone.get_default_timezone()
 
 
-class BaseAPITestCase(APITestCase):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # change logging level according to verbosity
-        verbosity = self.get_verbosity()
-        if verbosity <= 1:
-            # disable all logging in quiet and normal mode
-            logging.disable(logging.CRITICAL)
-
-        elif verbosity == 2:
-            # enable logging above DEBUG in verbose mode
-            logging.disable(logging.DEBUG)
-
-        # enable all logging in very verbose mode
-
-    def get_verbosity(self):
-        """Get the verbosity level
-
-        Snippet from https://stackoverflow.com/a/27457315/4584444
-        """
-        for stack in reversed(inspect.stack()):
-            options = stack[0].f_locals.get('options')
-            if isinstance(options, dict):
-                return int(options['verbosity'])
-
-        return 1
-
-    def tearDown(self):
-        # Clear cache between tests, so that stored player state is re-init
-        cache.clear()
-
-    def authenticate(self, user):
-        """Authenticate against the provided user
+class Provider:
+    """Provides helper functions for tests
+    """
+    def authenticate(self, user, client=None):
+        """Authenticate and set the token to the embedded client
         """
         token, _ = Token.objects.get_or_create(user=user)
 
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        if client is None:
+            if not hasattr(self, 'client'):
+                raise ValueError("No client available")
+
+            client = self.client
+
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
     @staticmethod
     def create_user(username, playlist_level=None,
@@ -147,6 +121,73 @@ class BaseAPITestCase(APITestCase):
         karaoke.status = Karaoke.PAUSE
         karaoke.save()
 
+    def player_play_next_song(self, *args, **kwargs):
+        """Set the player playing the next song
+        """
+        # get current entry
+        current_entry = PlaylistEntry.get_playing()
+
+        if current_entry is not None:
+            # set current entry as played
+            current_entry.set_finished()
+
+        # get next entry
+        next_entry = PlaylistEntry.get_next()
+
+        return self.player_play_song(next_entry, *args, **kwargs)
+
+    def player_play_song(self, playlist_entry, timing=timedelta(),
+                         paused=False, in_transition=False):
+        """Set the player playing the provided song
+        """
+        # request the entry to play
+        playlist_entry.set_playing()
+
+        # set the player to an arbitrary state
+        player = Player.get_or_create()
+        player.update(
+            timing=timing,
+            paused=paused,
+            in_transition=in_transition
+        )
+        player.save()
+
+        return player
+
+
+class BaseAPITestCase(APITestCase, Provider):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # change logging level according to verbosity
+        verbosity = self.get_verbosity()
+        if verbosity <= 1:
+            # disable all logging in quiet and normal mode
+            logging.disable(logging.CRITICAL)
+
+        elif verbosity == 2:
+            # enable logging above DEBUG in verbose mode
+            logging.disable(logging.DEBUG)
+
+        # enable all logging in very verbose mode
+
+    def get_verbosity(self):
+        """Get the verbosity level
+
+        Snippet from https://stackoverflow.com/a/27457315/4584444
+        """
+        for stack in reversed(inspect.stack()):
+            options = stack[0].f_locals.get('options')
+            if isinstance(options, dict):
+                return int(options['verbosity'])
+
+        return 1
+
+    def tearDown(self):
+        # Clear cache between tests, so that stored player state is re-init
+        cache.clear()
+
     def check_playlist_entry_json(self, json, expected_entry):
         """Method to check a representation against expected playlist entry
         """
@@ -160,57 +201,3 @@ class BaseAPITestCase(APITestCase):
         self.check_playlist_entry_json(json, expected_entry)
         self.assertEqual(parse_datetime(json['date_played']),
                          expected_entry.date_played)
-
-    def player_play_next_song(self, time=0, paused=False):
-        """Simulate player playing the next song at given time
-
-        Return pause/skip commands directed toward the player.
-        """
-        url = reverse('playlist-device-status')
-        # Login as player
-        self.authenticate(self.player)
-
-        # Get next song to play
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        next_id = response.data.get('id')
-
-        return self.player_play_song(next_id, time, paused)
-
-    def player_play_song(self, playlist_entry_id, time=0, paused=False):
-        """Test player playing
-
-        Simulate the player reporting playing the specified song for the given
-        time and pause status.
-        """
-        url = reverse('playlist-device-status')
-        # Login as player
-        self.authenticate(self.player)
-        # Put as if playing next song
-        response = self.client.put(
-            url,
-            {
-                'playlist_entry_id': playlist_entry_id,
-                'timing': time,
-                'paused': paused
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-
-        return response
-
-    def player_send_error(self, playlist_entry_id, message):
-        """Simulate the player reporting an error
-        """
-        url = reverse('playlist-device-error')
-        # Login as player
-        self.authenticate(self.player)
-        # Put as if playing next song
-        response = self.client.post(
-            url,
-            {
-                'playlist_entry': playlist_entry_id,
-                'error_message': message,
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
