@@ -119,12 +119,14 @@ REST_FRAMEWORK = {
 # limit of the playlist size
 PLAYLIST_SIZE_LIMIT = 100
 
-# import local settings
+# import default settings
+from .default_settings import *  # noqa F403
+
 try:
     from .local_settings import *  # noqa F403
 
 except ImportError:
-    from .default_settings import *  # noqa F403
+    pass
 
 # if in debug mode, disable password validation
 if DEBUG: # noqa F405
