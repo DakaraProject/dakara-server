@@ -1,47 +1,46 @@
-import os
+"""
+Django test settings for the Dakara server project.
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+For more information on this file, see
+https://docs.djangoproject.com/en/1.11/topics/settings/
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/1.11/ref/settings/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'hc85nuu)6iu0z6!=5_y=0norbd)g)$syxy*9kw+3np@=0x)#k4'
+This file should not be modified if you are not a dev.
+"""
 
-# SECURITY WARNING: don't run with debug turned on in production!
+from .base import *  # noqa F403
+
+# use test config
+SECRET_KEY = 'test secret key'
 DEBUG = True
-
-# SECURITY WARNING: change it to your server hostname in production!
 ALLOWED_HOSTS = ['*']
 
-# Database
-# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-
+# use sqlite database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
-# Channels
-# http://channels.readthedocs.io/en/latest/topics/channel_layers.html
-
+# use memory channels backend
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 
+# use faster password hasher
+PASSWORD_HASHERS = (
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+)
 
-# Internationalization
-# https://docs.djangoproject.com/en/1.11/topics/i18n/
-
+# use default localization settings
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
 
-# Loggin config
+# enable extended logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -95,7 +94,9 @@ LOGGING = {
         },
         'django': {
             'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'level': 'INFO',
         },
     },
 }
+
+PLAYLIST_SIZE_LIMIT = 100

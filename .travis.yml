@@ -20,6 +20,6 @@ install:
 
 # command to run tests
 script:
-  - (cd dakara_server && ./manage.py test -v 2)
+  - (cd dakara_server && ./manage.py test --settings=dakara_server.settings.test -v 2)
   - (cd dakara_server && pytest -v)
   - flake8

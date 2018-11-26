@@ -1,19 +1,25 @@
 """
-Django settings for dakara_server project.
+Django base settings for the Dakara server project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.11/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
+
+This file should not be modified if you are not a dev.
 """
 
 import os
 
-from .version import __version__ as VERSION, __date__ as DATE  # noqa F401
+from dakara_server.version import (  # noqa F401
+    __version__ as VERSION,
+    __date__ as DATE
+)
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))))
 
 
 # Application definition
@@ -115,19 +121,3 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
-
-# limit of the playlist size
-PLAYLIST_SIZE_LIMIT = 100
-
-# import default settings
-from .default_settings import *  # noqa F403
-
-try:
-    from .local_settings import *  # noqa F403
-
-except ImportError:
-    pass
-
-# if in debug mode, disable password validation
-if DEBUG: # noqa F405
-    AUTH_PASSWORD_VALIDATORS = []

@@ -1,17 +1,36 @@
-import os
+"""
+Django local settings for the Dakara server project.
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+For more information on this file, see
+https://docs.djangoproject.com/en/1.11/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/1.11/ref/settings/
+
+This file is aimed to be used for local use only. For production use, see
+'production.py'/'production_example.py'.
+
+You should not modify this file directly, as your changes will break updates.
+To modify parameters, create a 'development_local.py' file and enter your
+values within.
+"""
+
+import os
+from warnings import warn
+
+from .base import *  # noqa F403
+from .base import BASE_DIR
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'YourSecretKey'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = []
+# Django password security policy
+# https://docs.djangoproject.com/en/1.11/topics/auth/passwords/#module-django.contrib.auth.password_validation
+# AUTH_PASSWORD_VALIDATORS = []
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -99,4 +118,13 @@ LOGGING = {
 }
 
 # limit of the playlist size
-# PLAYLIST_SIZE_LIMIT = 100
+PLAYLIST_SIZE_LIMIT = 100
+
+# import local development settings
+try:
+    from .development_local import *  # noqa F403
+
+except ImportError:
+    warn("You are currently using the default development config file. "
+         "You should create the file 'development_local.py' in "
+         "'dakara_server/dakara_server/settings' to edit its values.")
