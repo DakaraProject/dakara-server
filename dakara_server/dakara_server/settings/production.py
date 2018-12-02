@@ -7,34 +7,29 @@ https://docs.djangoproject.com/en/1.11/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 
-This file is aimed to be used for production use. For local use, see
-'local.py'/'local_example.py'.
-
-To modify this file, copy it to 'production.py'.
+You should not modify this file directly.
+To modify config values, set them as environment variables,
+or in a config file in the dakara root directory:
+either in a `.env` file
+or in a `settings.ini` with a single `[settings]` section.
 """
 
-import os
-from warnings import warn
+from decouple import config, Csv
+from dj_database_url import parse as db_url
 
 from .base import *  # noqa F403
-from .base import BASE_DIR
 
-SECRET_KEY = 'YourSecretKey'
-DEBUG = False
-ALLOWED_HOSTS = ['www.example.com']
-
-# Django password security policy
-# https://docs.djangoproject.com/en/1.11/topics/auth/passwords/#module-django.contrib.auth.password_validation
-# AUTH_PASSWORD_VALIDATORS = []
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', cast=bool, default=False)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+# `DATABASE_URL` is specified according to dj-databse-url plugin
+# https://github.com/kennethreitz/dj-database-url#url-schema
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    'default': config('DATABASE_URL', cast=db_url)
 }
 
 # Channels
@@ -49,9 +44,9 @@ CHANNEL_LAYERS = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = config('LANGUAGE_CODE', default='en-us')
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = config('TIME_ZONE', default='UTC')
 
 # Loggin config
 LOGGING = {
@@ -107,19 +102,10 @@ LOGGING = {
         },
         'django': {
             'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'level': config('DJANGO_LOG_LEVEL', default='INFO'),
         },
     },
 }
 
 # limit of the playlist size
-PLAYLIST_SIZE_LIMIT = 100
-
-# import local production settings
-try:
-    from .development_local import *  # noqa F403
-
-except ImportError:
-    warn("You are currently using the default production config file. "
-         "You should create the file 'production_local.py' in "
-         "'dakara_server/dakara_server/settings' to edit its values.")
+PLAYLIST_SIZE_LIMIT = config('PLAYLIST_SIZE_LIMIT', cast=int, default=100)
