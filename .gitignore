@@ -51,7 +51,6 @@ coverage.xml
 # Django stuff:
 *.log
 *.pot
-local_settings.py
 
 # Sphinx documentation
 docs/_build/
@@ -71,6 +70,10 @@ docs/_build/
 # Vim
 *.sw[po]
 *.vim
+
+# Decouple config files
+.env
+settings.ini
 
 # Template and static files
 **/static

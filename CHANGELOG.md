@@ -30,6 +30,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Configuration is now split in `developement.py` for local use and `production.py` for server use.
+  To override default values, set them in a `.env` file or `settings.ini` file.
+
 ## 1.3.0 - 2018-10-07
 
 ### Added
