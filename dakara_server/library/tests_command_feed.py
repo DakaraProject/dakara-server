@@ -739,3 +739,36 @@ class FeedCommandTestCase(TestCase):
             # New tag
             self.assertEqual(len(song_new.tags.all()), 1)
             self.assertEqual(song_new.tags.all()[0].name, "NEWTAG")
+
+    def test_feed_command_no_work_type(self):
+        """Test feed command when parser return work but not worktype
+           Work should not be created, because a work can not exists
+           without worktype
+        """
+        # Pre-Assertions
+        songs = Song.objects.all()
+        self.assertEqual(len(songs), 0)
+
+        with TemporaryDirectory(prefix="dakara.") as dirpath:
+
+            # Create a file to be feed
+            filename = "The song name - Artist name - Work title - TAG.mp4"
+            self.create_media_file(dirpath, filename)
+
+            # Call command with parser returning work, but no work type
+            self.call_feed_command(dirpath,
+                                   {'parser':
+                                    "library/parser_test_no_work_type.py"})
+
+            songs = Song.objects.all()
+            self.assertEqual(len(songs), 1)
+            song = songs[0]
+            self.assertEqual(song.filename, filename)
+            # Check artist
+            self.assertEqual(len(song.artists.all()), 1)
+            self.assertEqual(song.artists.all()[0].name, "Artist name")
+            # Check work was not created
+            self.assertEqual(len(song.works.all()), 0)
+            # Check tag
+            self.assertEqual(len(song.tags.all()), 1)
+            self.assertEqual(song.tags.all()[0].name, "TAG")
