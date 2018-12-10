@@ -35,4 +35,5 @@ test_script:
   - "%PYTHON%/python.exe ./manage.py test --settings=dakara_server.settings.test -v 2"
   - "%PYTHON%/Scripts/pytest.exe -v"
   - "cd .."
+  - "%PYTHON%/Scripts/black.exe . --check"
   - "%PYTHON%/Scripts/flake8.exe"
