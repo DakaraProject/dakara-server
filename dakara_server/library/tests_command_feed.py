@@ -746,8 +746,7 @@ class FeedCommandTestCase(TestCase):
            without worktype
         """
         # Pre-Assertions
-        songs = Song.objects.all()
-        self.assertEqual(len(songs), 0)
+        self.assertEqual(Song.objects.count(), 0)
 
         with TemporaryDirectory(prefix="dakara.") as dirpath:
 
@@ -768,7 +767,7 @@ class FeedCommandTestCase(TestCase):
             self.assertEqual(len(song.artists.all()), 1)
             self.assertEqual(song.artists.all()[0].name, "Artist name")
             # Check work was not created
-            self.assertEqual(len(song.works.all()), 0)
+            self.assertEqual(song.works.count(), 0)
             # Check tag
             self.assertEqual(len(song.tags.all()), 1)
             self.assertEqual(song.tags.all()[0].name, "TAG")

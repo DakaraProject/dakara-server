@@ -669,8 +669,8 @@ class DatabaseFeederEntry:
                 link.save()
 
             else:
-                logger.warning(("Ignoring creation of work {}, because work " +
-                                "type is not defined").format(self.title_work))
+                logger.warning("Ignoring creation of work {}, because work "
+                               "type is not defined".format(self.title_work))
 
         # Create tags to song if there are any
         if self.tags:
