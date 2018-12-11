@@ -22,5 +22,5 @@ install:
 script:
   - (cd dakara_server && ./manage.py test --settings=dakara_server.settings.test -v 2)
   - (cd dakara_server && pytest -v)
-  - black . --check
+  - if [[ $TRAVIS_PYTHON_VERSION != 3.5 ]]; then black . --check; fi
   - flake8
