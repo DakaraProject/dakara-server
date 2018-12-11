@@ -35,5 +35,5 @@ test_script:
   - "%PYTHON%/python.exe ./manage.py test --settings=dakara_server.settings.test -v 2"
   - "%PYTHON%/Scripts/pytest.exe -v"
   - "cd .."
-  - "if %PYTHON_VERSION% != 3.5 (%PYTHON%/Scripts/black.exe . --check)"
+  - "if NOT %PYTHON_VERSION% == 3.5 (%PYTHON%/Scripts/black.exe . --check)"
   - "%PYTHON%/Scripts/flake8.exe"
