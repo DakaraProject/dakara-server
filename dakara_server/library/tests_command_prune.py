@@ -1,7 +1,7 @@
 from django.core.management import call_command
 from django.test import TestCase
 
-from .models import Artist, Work, Song, SongWorkLink
+from .models import Artist, Work, WorkType, Song, SongWorkLink
 
 
 class PruneCommandTestCase(TestCase):
@@ -42,13 +42,20 @@ class PruneCommandTestCase(TestCase):
     def test_prune_command_works(self):
         """Test prune command for works
         """
+
+        # Create worktype
+        work_type = WorkType()
+        work_type.save()
+
         # Create works
         work1 = Work()
         work1.title = "Work1"
+        work1.work_type = work_type
         work1.save()
 
         work2 = Work()
         work2.title = "Work2"
+        work2.work_type = work_type
         work2.save()
 
         # Create a song linked to work1

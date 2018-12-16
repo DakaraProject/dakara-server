@@ -636,40 +636,41 @@ class DatabaseFeederEntry:
         self.song.artists.clear()
         self.song.tags.clear()
 
-        # Create link to work if there is one
+        # Create link to work if there is work and work type
         if self.title_work:
             if self.work_type_query_name:
                 work_type, created = WorkType.objects.get_or_create(
                     query_name=self.work_type_query_name
                 )
 
+                work, _ = Work.objects.get_or_create(
+                    title=self.title_work,
+                    subtitle=self.subtitle_work,
+                    work_type=work_type
+                )
+
+                link, _ = SongWorkLink.objects.get_or_create(
+                    song_id=self.song.id,
+                    work_id=work.id
+                )
+
+                if self.link_type:
+                    link.link_type = self.link_type
+
+                if self.link_nb:
+                    link.link_type_number = int(self.link_nb)
+
+                else:
+                    link.link_type_number = None
+
+                if self.episodes:
+                    link.episodes = self.episodes
+
+                link.save()
+
             else:
-                work_type = None
-
-            work, _ = Work.objects.get_or_create(
-                title=self.title_work,
-                subtitle=self.subtitle_work,
-                work_type=work_type
-            )
-
-            link, _ = SongWorkLink.objects.get_or_create(
-                song_id=self.song.id,
-                work_id=work.id
-            )
-
-            if self.link_type:
-                link.link_type = self.link_type
-
-            if self.link_nb:
-                link.link_type_number = int(self.link_nb)
-
-            else:
-                link.link_type_number = None
-
-            if self.episodes:
-                link.episodes = self.episodes
-
-            link.save()
+                logger.warning("Ignoring creation of work {}, because work "
+                               "type is not defined".format(self.title_work))
 
         # Create tags to song if there are any
         if self.tags:
