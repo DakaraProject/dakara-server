@@ -9,4 +9,4 @@ then
         exit 0
 fi
 
-black . --check
+black dakara_server --check
