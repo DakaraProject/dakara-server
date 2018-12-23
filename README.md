@@ -2,6 +2,7 @@
 
 [![Travis CI Build Status](https://travis-ci.org/DakaraProject/dakara-server.svg?branch=develop)](https://travis-ci.org/DakaraProject/dakara-server)
 [![Appveyor CI Build status](https://ci.appveyor.com/api/projects/status/2wdia71y3dwsqywp?svg=true)](https://ci.appveyor.com/project/neraste/dakara-server)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 Server for the Dakara project.
 
@@ -124,7 +125,9 @@ ln -s -f ../../hooks/pre-commit.d .git/hooks/pre-commit.d
 
 #### Code style
 
-The code follows the [PEP8](https://www.python.org/dev/peps/pep-0008/) style guide.
+The code follows the [PEP8](https://www.python.org/dev/peps/pep-0008/) style guide (88 chars per line).
 Quality of code is checked with [Flake8](https://pypi.org/project/flake8/).
+Style is enforced using [Black](https://github.com/ambv/black).
+You need to call Black before committing changes.
+You may want to configure your editor to call it automatically.
 Additionnal checking can be manually performed with [Pylint](https://www.pylint.org/).
-You can use [Autopep8](https://pypi.org/project/autopep8/) to automatically format the code according to the style guidelines.
