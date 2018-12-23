@@ -12,20 +12,16 @@ file_encoding = sys.getfilesystemencoding()
 class BaseCommandWithConfig(BaseCommand):
     """Base command class for handling config file
     """
+
     SECTION_NAME = ""
 
     def add_arguments(self, parser):
         """Extend arguments for the command
         """
-        parser.add_argument(
-            "config-file",
-            help="Config file."
-        )
+        parser.add_argument("config-file", help="Config file.")
 
         parser.add_argument(
-            "--quiet",
-            help="Do not display anything on run.",
-            action="store_true"
+            "--quiet", help="Do not display anything on run.", action="store_true"
         )
 
         self.add_arguments_custom(parser)
@@ -38,17 +34,15 @@ class BaseCommandWithConfig(BaseCommand):
         """Setup the tags
         """
         # quiet mode
-        if options['quiet']:
-            self.stdout = open(os.devnull, 'w')
-            self.stderr = open(os.devnull, 'w')
+        if options["quiet"]:
+            self.stdout = open(os.devnull, "w")
+            self.stderr = open(os.devnull, "w")
 
         # check config file
-        config_file = options['config-file']
+        config_file = options["config-file"]
         config_file_encoded = config_file.encode(file_encoding)
         if not os.path.isfile(config_file_encoded):
-            raise CommandError(
-                "Config file '{}' not found".format(config_file)
-            )
+            raise CommandError("Config file '{}' not found".format(config_file))
 
         # open config file
         with open(config_file_encoded, "r", "utf8") as file:
@@ -57,8 +51,7 @@ class BaseCommandWithConfig(BaseCommand):
         # check tag section exists
         if self.SECTION_NAME not in config:
             raise CommandError(
-                "Invalid YAML config file, no branch '{}'".format(
-                    self.SECTION_NAME)
+                "Invalid YAML config file, no branch '{}'".format(self.SECTION_NAME)
             )
 
         self.handle_custom(config[self.SECTION_NAME], *args, **options)

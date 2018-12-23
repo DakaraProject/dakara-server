@@ -5,7 +5,7 @@ import importlib
 
 from django.core.management.base import BaseCommand, CommandError
 
-from library.models import (WorkType, WorkAlternativeTitle, Work)
+from library.models import WorkType, WorkAlternativeTitle, Work
 
 from .feed_components import default_work_parser
 
@@ -32,12 +32,16 @@ class WorkAlternativeTitleCreator:
             # check if it is a string
             if not isinstance(struct_alt_title, str):
                 alt_title_to_remove.append(struct_alt_title)
-                logger.debug("Incorrect alternative title at index {} of "
-                             "current work: value must be a string.".format(
-                                 index))
+                logger.debug(
+                    "Incorrect alternative title at index {} of "
+                    "current work: value must be a string.".format(index)
+                )
 
-        return [alt_title for alt_title in work_alternative_titles
-                if alt_title not in alt_title_to_remove]
+        return [
+            alt_title
+            for alt_title in work_alternative_titles
+            if alt_title not in alt_title_to_remove
+        ]
 
     def create_alternative_title(self, work_type_entry, work_entry, alt_title):
         """Create work alternative title in the database if necessary
@@ -49,24 +53,19 @@ class WorkAlternativeTitleCreator:
 
         """
         alt_title_entry, created = WorkAlternativeTitle.objects.get_or_create(
-                title=alt_title,
-                work__title=work_entry.title,
-                work__work_type=work_type_entry,
-                work__subtitle=work_entry.subtitle,
-                defaults={
-                    'title': alt_title,
-                    'work': work_entry}
-                )
+            title=alt_title,
+            work__title=work_entry.title,
+            work__work_type=work_type_entry,
+            work__subtitle=work_entry.subtitle,
+            defaults={"title": alt_title, "work": work_entry},
+        )
 
         if created:
-            logger.debug("Created alternative"
-                         " title '{}'.".format(alt_title_entry))
+            logger.debug("Created alternative" " title '{}'.".format(alt_title_entry))
 
     def create_alternative_titles(
-            self,
-            work_type_entry,
-            work_entry,
-            work_alternative_titles):
+        self, work_type_entry, work_entry, work_alternative_titles
+    ):
         """Create work alternative titles of a work
 
         Args:
@@ -77,14 +76,12 @@ class WorkAlternativeTitleCreator:
         """
         # remove the incorrect alternative titles
         work_alternative_titles = self.remove_incorrect_alt_titles(
-                work_alternative_titles)
+            work_alternative_titles
+        )
 
         for alt_title in work_alternative_titles:
             # create work alternative title
-            self.create_alternative_title(
-                    work_type_entry,
-                    work_entry,
-                    alt_title)
+            self.create_alternative_title(work_type_entry, work_entry, alt_title)
 
 
 class WorkCreator:
@@ -119,12 +116,8 @@ class WorkCreator:
                  'WorkType 2': []}
 
     """
-    def __init__(
-            self,
-            work_file="",
-            parser=None,
-            debug=False,
-            update_only=False):
+
+    def __init__(self, work_file="", parser=None, debug=False, update_only=False):
         self.work_file = work_file
         self.parser = parser
         self.debug = debug
@@ -148,22 +141,24 @@ class WorkCreator:
             # check if it is a dictionary
             if not isinstance(dict_work, dict):
                 work_to_remove.append(dict_work)
-                logger.debug("Incorrect work at index {}: "
-                             "value must be a dictionary.".format(index))
+                logger.debug(
+                    "Incorrect work at index {}: "
+                    "value must be a dictionary.".format(index)
+                )
                 continue
 
             # check if it has a title field
-            work_title = dict_work.get('title')
+            work_title = dict_work.get("title")
             if not work_title:
                 work_to_remove.append(dict_work)
-                logger.debug("Incorrect work at index {}: "
-                             "no title field found")
+                logger.debug("Incorrect work at index {}: " "no title field found")
                 continue
 
             logger.debug(
-                    "Work '{}' at index '{}' is correctly structured.".format(
-                        work_title,
-                        index))
+                "Work '{}' at index '{}' is correctly structured.".format(
+                    work_title, index
+                )
+            )
 
         return [work for work in work_listing if work not in work_to_remove]
 
@@ -176,53 +171,58 @@ class WorkCreator:
 
         """
         # get the attributes of the work
-        work_title = dict_work.get('title')
-        work_subtitle = dict_work.get('subtitle', "")
-        work_alternative_titles = dict_work.get('alternative_titles', [])
+        work_title = dict_work.get("title")
+        work_subtitle = dict_work.get("subtitle", "")
+        work_alternative_titles = dict_work.get("alternative_titles", [])
 
-        logger.debug("Get Work (title: {title}, "
-                     "subtitle: {subtitle}, work_type: {work_type})".format(
-                         title=work_title,
-                         subtitle=work_subtitle,
-                         work_type=work_type_entry.query_name))
+        logger.debug(
+            "Get Work (title: {title}, "
+            "subtitle: {subtitle}, work_type: {work_type})".format(
+                title=work_title,
+                subtitle=work_subtitle,
+                work_type=work_type_entry.query_name,
+            )
+        )
 
         # get or create works
         if self.update_only:
             try:
                 work_entry = Work.objects.get(
-                        title=work_title,
-                        work_type=work_type_entry,
-                        subtitle=work_subtitle)
+                    title=work_title, work_type=work_type_entry, subtitle=work_subtitle
+                )
 
             except Work.DoesNotExist:
-                logger.debug("Work (title: {title}, "
-                             "subtitle: {subtitle}, work_type: {work_type})"
-                             " not found (update only).".format(
-                                 title=work_title,
-                                 subtitle=work_subtitle,
-                                 work_type=work_type_entry.query_name))
+                logger.debug(
+                    "Work (title: {title}, "
+                    "subtitle: {subtitle}, work_type: {work_type})"
+                    " not found (update only).".format(
+                        title=work_title,
+                        subtitle=work_subtitle,
+                        work_type=work_type_entry.query_name,
+                    )
+                )
 
                 return
 
         else:
             work_entry, work_created = Work.objects.get_or_create(
-                    title=work_title,
-                    work_type=work_type_entry,
-                    subtitle=work_subtitle,
-                    defaults={
-                        'title': work_title,
-                        'work_type': work_type_entry,
-                        'subtitle': work_subtitle}
-                    )
+                title=work_title,
+                work_type=work_type_entry,
+                subtitle=work_subtitle,
+                defaults={
+                    "title": work_title,
+                    "work_type": work_type_entry,
+                    "subtitle": work_subtitle,
+                },
+            )
 
             if work_created:
                 logger.debug("Created work '{}'.".format(work_entry))
 
         # get work alternative titles or create them
         self.work_alt_title_creator.create_alternative_titles(
-                work_type_entry,
-                work_entry,
-                work_alternative_titles)
+            work_type_entry, work_entry, work_alternative_titles
+        )
 
         # save work in the database
         work_entry.save()
@@ -238,35 +238,35 @@ class WorkCreator:
         try:
             works = self.parser.parse_work(self.work_file)
         except BaseException as exc:
-            raise CommandError("Error when reading the work"
-                               " file: {}".format(exc)) from exc
+            raise CommandError(
+                "Error when reading the work" " file: {}".format(exc)
+            ) from exc
 
         work_success = True
         # get works or create it
         for worktype_query_name, work_listing in works.items():
-            logger.debug("Get WorkType query name '{}'".format(
-                worktype_query_name))
+            logger.debug("Get WorkType query name '{}'".format(worktype_query_name))
             # get work type
             try:
-                work_type_entry = WorkType.objects.get(
-                        query_name=worktype_query_name
-                        )
+                work_type_entry = WorkType.objects.get(query_name=worktype_query_name)
 
             except WorkType.DoesNotExist:
                 work_success = False
                 logger.error(
                     "Unable to find work type query name '{}'. Use "
                     "createworktypes command first to create "
-                    "work types.".format(worktype_query_name))
+                    "work types.".format(worktype_query_name)
+                )
                 continue
 
             # check the value associated to the work_type is a list
             if not isinstance(work_listing, list):
                 work_success = False
-                logger.warning("Ignore creation of the works associated "
-                               "to the worktype '{}': "
-                               "value must be a list.".format(
-                                   worktype_query_name))
+                logger.warning(
+                    "Ignore creation of the works associated "
+                    "to the worktype '{}': "
+                    "value must be a list.".format(worktype_query_name)
+                )
                 continue
 
             # remove the works having an incorrect structure
@@ -282,68 +282,61 @@ class WorkCreator:
 
 class Command(BaseCommand):
     """Command available for `manage.py` for creating works or add info"""
+
     help = "Create works or add extra information to works."
 
     def add_arguments(self, parser):
         """Extend arguments for the command"""
         parser.add_argument(
-            "work-file",
-            help="Path of the file storing the works data."
+            "work-file", help="Path of the file storing the works data."
         )
 
         parser.add_argument(
             "--parser",
             help="""Name of a custom python module used to extract data from file name;
             see internal doc for what is expected for this module.""",
-            default=None
+            default=None,
         )
 
         parser.add_argument(
-            "-d",
-            "--debug",
-            help="Display debug messages.",
-            action="store_true"
+            "-d", "--debug", help="Display debug messages.", action="store_true"
         )
 
         parser.add_argument(
             "--update-only",
             help="""Only update the existing works with the creation of
             new alternative titles. Do not create new works.""",
-            action="store_true"
+            action="store_true",
         )
 
     def handle(self, *args, **options):
         """Process the feeding"""
         # work file data
-        work_file = os.path.normpath(options['work-file'])
+        work_file = os.path.normpath(options["work-file"])
 
         # parser
-        if options.get('parser'):
+        if options.get("parser"):
             parser_directory = os.path.join(
-                os.getcwd(),
-                os.path.dirname(options['parser'])
+                os.getcwd(), os.path.dirname(options["parser"])
             )
 
-            parser_name, _ = os.path.splitext(
-                os.path.basename(options['parser']))
+            parser_name, _ = os.path.splitext(os.path.basename(options["parser"]))
             sys.path.append(parser_directory)
             parser = importlib.import_module(parser_name)
         else:
             parser = default_work_parser
 
         # debug
-        debug = options.get('debug')
+        debug = options.get("debug")
         if debug:
             logger.setLevel(logging.DEBUG)
 
         # update only
-        update_only = options.get('update-only', False)
+        update_only = options.get("update-only", False)
 
         work_creator = WorkCreator(
-                work_file=work_file,
-                parser=parser,
-                debug=debug,
-                update_only=update_only)
+            work_file=work_file, parser=parser, debug=debug, update_only=update_only
+        )
 
         # run the work creator
         work_creator.createworks()

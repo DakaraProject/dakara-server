@@ -14,8 +14,7 @@ def parse_work(filepath):
     """
 
     if not os.path.isfile(filepath):
-        raise JSONFileNotFound(
-                "JSON file at path '{}' not found.".format(filepath))
+        raise JSONFileNotFound("JSON file at path '{}' not found.".format(filepath))
 
     with open(filepath) as f:
         return json.load(f)

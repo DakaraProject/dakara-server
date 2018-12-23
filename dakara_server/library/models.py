@@ -9,6 +9,7 @@ from library.fields import UpperCaseCharField
 class Song(models.Model):
     """Song object
     """
+
     title = models.CharField(max_length=255)
     filename = models.CharField(max_length=255)
     directory = models.CharField(max_length=255)
@@ -16,9 +17,9 @@ class Song(models.Model):
     version = models.CharField(max_length=255, blank=True)
     detail = models.CharField(max_length=255, blank=True)
     detail_video = models.CharField(max_length=255, blank=True)
-    tags = models.ManyToManyField('SongTag')
-    artists = models.ManyToManyField('Artist')
-    works = models.ManyToManyField('Work', through='SongWorkLink')
+    tags = models.ManyToManyField("SongTag")
+    artists = models.ManyToManyField("Artist")
+    works = models.ManyToManyField("Work", through="SongWorkLink")
     lyrics = models.TextField(blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
@@ -30,6 +31,7 @@ class Song(models.Model):
 class Artist(models.Model):
     """Artist object
     """
+
     name = models.CharField(max_length=255)
 
     def __str__(self):
@@ -41,37 +43,35 @@ class Work(models.Model):
 
     Example: an anime, a game and so on.
     """
+
     title = models.CharField(max_length=255)
     subtitle = models.CharField(max_length=255, blank=True)
-    work_type = models.ForeignKey('WorkType', on_delete=models.CASCADE)
+    work_type = models.ForeignKey("WorkType", on_delete=models.CASCADE)
 
     def __str__(self):
-        subtitle_text = "subtitled {} ".format(
-                self.subtitle) if self.subtitle else ""
+        subtitle_text = "subtitled {} ".format(self.subtitle) if self.subtitle else ""
 
         return "{} {}({})".format(
             self.title,
             subtitle_text,
-            self.work_type.get_name() if self.work_type else 'unknown type'
+            self.work_type.get_name() if self.work_type else "unknown type",
         )
 
 
 class WorkAlternativeTitle(models.Model):
     """Alternative title of a work
     """
+
     title = models.CharField(max_length=255)
     work = models.ForeignKey(
         Work,
         on_delete=models.CASCADE,
         related_name="alternative_titles",
-        related_query_name="alternative_title"
+        related_query_name="alternative_title",
     )
 
     def __str__(self):
-        return "{} [{}]".format(
-            self.title,
-            self.work
-        )
+        return "{} [{}]".format(self.title, self.work)
 
 
 class WorkType(models.Model):
@@ -79,6 +79,7 @@ class WorkType(models.Model):
 
     Example: anime, games and so on.
     """
+
     name = models.CharField(max_length=255)
     name_plural = models.CharField(max_length=255)
     query_name = models.CharField(max_length=255, unique=True)
@@ -99,10 +100,11 @@ class SongWorkLink(models.Model):
 
     It describes the use of a song within a work.
     """
-    OPENING = 'OP'
-    ENDING = 'ED'
-    INSERT = 'IN'
-    IMAGE = 'IS'
+
+    OPENING = "OP"
+    ENDING = "ED"
+    INSERT = "IN"
+    IMAGE = "IS"
     LINK_TYPE_CHOICES = (
         (OPENING, "Opening"),
         (ENDING, "Ending"),
@@ -118,21 +120,18 @@ class SongWorkLink(models.Model):
 
     def __str__(self):
         return "{} used in {} as {}".format(
-            self.song.title,
-            self.work.title,
-            self.link_type
+            self.song.title, self.work.title, self.link_type
         )
 
 
 class SongTag(models.Model):
     """Song tag object
     """
+
     name = UpperCaseCharField(max_length=255)
     color_hue = models.IntegerField(
-        null=True,
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(360)])
+        null=True, validators=[MinValueValidator(0), MaxValueValidator(360)]
+    )
     disabled = models.BooleanField(default=False)
 
     def __str__(self):

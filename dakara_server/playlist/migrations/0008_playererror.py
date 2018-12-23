@@ -8,38 +8,30 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('playlist', '0007_karaoke_date_stop'),
-    ]
+    dependencies = [("playlist", "0007_karaoke_date_stop")]
 
     operations = [
         migrations.CreateModel(
-            name='PlayerError',
+            name="PlayerError",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID'
-                    )
+                        verbose_name="ID",
+                    ),
                 ),
+                ("error_message", models.CharField(max_length=255)),
+                ("date_created", models.DateTimeField(auto_now_add=True)),
                 (
-                    'error_message',
-                    models.CharField(max_length=255)
-                ),
-                (
-                    'date_created',
-                    models.DateTimeField(auto_now_add=True)
-                ),
-                (
-                    'playlist_entry',
+                    "playlist_entry",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to='playlist.PlaylistEntry'
-                    )
+                        to="playlist.PlaylistEntry",
+                    ),
                 ),
             ],
-        ),
+        )
     ]

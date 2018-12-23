@@ -42,51 +42,35 @@ class DakaraUserManager(UserManager):
 class DakaraUser(AbstractUser):
     """Custom user
     """
+
     objects = DakaraUserManager()
 
     # permission levels per application
-    USER = 'u'
-    MANAGER = 'm'
-    PLAYER = 'p'
+    USER = "u"
+    MANAGER = "m"
+    PLAYER = "p"
 
     # role for Users app
-    LEVELS_USERS = [
-        (USER, "User"),
-        (MANAGER, "Manager"),
-    ]
+    LEVELS_USERS = [(USER, "User"), (MANAGER, "Manager")]
 
     users_permission_level = models.CharField(
-        max_length=1,
-        choices=LEVELS_USERS,
-        null=True,
+        max_length=1, choices=LEVELS_USERS, null=True
     )
 
     # role for Libraryapp
-    LEVELS_LIBRARY = [
-        (USER, "User"),
-        (MANAGER, "Manager"),
-    ]
+    LEVELS_LIBRARY = [(USER, "User"), (MANAGER, "Manager")]
     library_permission_level = models.CharField(
-        max_length=1,
-        choices=LEVELS_LIBRARY,
-        null=True,
+        max_length=1, choices=LEVELS_LIBRARY, null=True
     )
 
     # role for Playlist app
-    LEVELS_PLAYLIST = [
-        (PLAYER, "Player"),
-        (USER, "User"),
-        (MANAGER, "Manager"),
-    ]
+    LEVELS_PLAYLIST = [(PLAYER, "Player"), (USER, "User"), (MANAGER, "Manager")]
 
     playlist_permission_level = models.CharField(
-        max_length=1,
-        choices=LEVELS_PLAYLIST,
-        null=True,
+        max_length=1, choices=LEVELS_PLAYLIST, null=True
     )
 
-    def _has_permission_level(self, user_permission_level,
-                              requested_permission_level):
+    def _has_permission_level(self, user_permission_level, requested_permission_level):
         """Check if the user has the requested app permission level
         """
         # the superuser can do anything
@@ -94,8 +78,10 @@ class DakaraUser(AbstractUser):
             return True
 
         # the manager level includes everyone else level, except for the player
-        if user_permission_level == self.MANAGER and \
-           requested_permission_level != self.PLAYER:
+        if (
+            user_permission_level == self.MANAGER
+            and requested_permission_level != self.PLAYER
+        ):
             return True
 
         return user_permission_level == requested_permission_level
@@ -103,23 +89,18 @@ class DakaraUser(AbstractUser):
     def has_users_permission_level(self, permission_level):
         """Check if the user has the requested users permission level
         """
-        return self._has_permission_level(
-            self.users_permission_level,
-            permission_level
-        )
+        return self._has_permission_level(self.users_permission_level, permission_level)
 
     def has_library_permission_level(self, permission_level):
         """Check if the user has the requested library permission level
         """
         return self._has_permission_level(
-            self.library_permission_level,
-            permission_level
+            self.library_permission_level, permission_level
         )
 
     def has_playlist_permission_level(self, permission_level):
         """Check if the user has the requested playlist permission level
         """
         return self._has_permission_level(
-            self.playlist_permission_level,
-            permission_level
+            self.playlist_permission_level, permission_level
         )

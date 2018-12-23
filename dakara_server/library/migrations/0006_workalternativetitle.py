@@ -8,24 +8,31 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('library', '0005_auto_20180509_1916'),
-    ]
+    dependencies = [("library", "0005_auto_20180509_1916")]
 
     operations = [
         migrations.CreateModel(
-            name='WorkAlternativeTitle',
+            name="WorkAlternativeTitle",
             fields=[
-                ('id', models.AutoField(auto_created=True,
-                                        primary_key=True,
-                                        serialize=False,
-                                        verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('work', models.ForeignKey(
-                    on_delete=django.db.models.deletion.CASCADE,
-                    related_name='alternative_titles',
-                    related_query_name='alternative_title',
-                    to='library.Work')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                (
+                    "work",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="alternative_titles",
+                        related_query_name="alternative_title",
+                        to="library.Work",
+                    ),
+                ),
             ],
-        ),
+        )
     ]

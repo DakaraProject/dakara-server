@@ -30,7 +30,7 @@ class IsPlaylistManagerOrOwnerForDelete(BasePermissionCustom):
             return True
 
         # if delete and the object belongs to the user
-        return request.method == 'DELETE' and obj.owner == request.user
+        return request.method == "DELETE" and obj.owner == request.user
 
 
 class IsPlaylistUserOrReadOnly(BasePermissionCustom):
@@ -121,12 +121,13 @@ class IsPlaylistAndLibraryManagerOrSongCanBeAdded(BasePermissionCustom):
 
     def has_permission_custom(self, request, view):
         # for manager of playlist and library
-        if request.user.has_playlist_permission_level(UserModel.MANAGER) and \
-                request.user.has_library_permission_level(UserModel.MANAGER):
+        if request.user.has_playlist_permission_level(
+            UserModel.MANAGER
+        ) and request.user.has_library_permission_level(UserModel.MANAGER):
             return True
 
         # get song
-        song_id = request.data.get('song_id')
+        song_id = request.data.get("song_id")
         if not song_id:
             return True
 

@@ -13,11 +13,10 @@ tz = timezone.get_default_timezone()
 class PlaylistEntry(OrderedModel):
     """Song in playlist
     """
-    song = models.ForeignKey('library.Song', null=False,
-                             on_delete=models.CASCADE)
+
+    song = models.ForeignKey("library.Song", null=False, on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey(DakaraUser, null=False,
-                              on_delete=models.CASCADE)
+    owner = models.ForeignKey(DakaraUser, null=False, on_delete=models.CASCADE)
     was_played = models.BooleanField(default=False, null=False)
     date_played = models.DateTimeField(null=True)
 
@@ -25,26 +24,22 @@ class PlaylistEntry(OrderedModel):
         pass
 
     def __str__(self):
-        return "{} (for {})".format(
-            self.song,
-            self.owner.username
-        )
+        return "{} (for {})".format(self.song, self.owner.username)
 
     @classmethod
     def get_playing(cls):
-        playlist = cls.objects.filter(
-            was_played=False, date_played__isnull=False
-        )
+        playlist = cls.objects.filter(was_played=False, date_played__isnull=False)
 
         if not playlist:
             return None
 
         if playlist.count() > 1:
-            entries_str = ', '.join([str(e) for e in playlist])
+            entries_str = ", ".join([str(e) for e in playlist])
 
-            raise RuntimeError("It seems that several playlist entries are"
-                               " playing at the same time: {}"
-                               .format(entries_str))
+            raise RuntimeError(
+                "It seems that several playlist entries are"
+                " playing at the same time: {}".format(entries_str)
+            )
 
         return playlist.first()
 
@@ -58,9 +53,7 @@ class PlaylistEntry(OrderedModel):
 
     @classmethod
     def get_playlist_played(cls):
-        playlist = cls.objects.filter(
-            was_played=True
-        )
+        playlist = cls.objects.filter(was_played=True)
 
         return playlist
 
@@ -120,27 +113,19 @@ class Karaoke(models.Model):
 
     Unique for now.
     """
+
     STOP = "stop"
     PLAY = "play"
     PAUSE = "pause"
-    STATUSES = (
-        (STOP, "Stop"),
-        (PLAY, "Play"),
-        (PAUSE, "Pause")
-    )
+    STATUSES = ((STOP, "Stop"), (PLAY, "Play"), (PAUSE, "Pause"))
 
-    status = models.CharField(
-        max_length=5,
-        choices=STATUSES,
-        default=PLAY,
-        null=False,
-    )
+    status = models.CharField(max_length=5, choices=STATUSES, default=PLAY, null=False)
     date_stop = models.DateTimeField(null=True)
 
     def __str__(self):
         return "In {} mode{}".format(
             self.status,
-            " will stop at {}".format(self.date.stop) if self.date_stop else ""
+            " will stop at {}".format(self.date.stop) if self.date_stop else "",
         )
 
     @classmethod
@@ -154,8 +139,10 @@ class Karaoke(models.Model):
 class PlayerError(models.Model):
     """Entries that failed to play
     """
-    playlist_entry = models.ForeignKey(PlaylistEntry, null=False,
-                                       on_delete=models.CASCADE)
+
+    playlist_entry = models.ForeignKey(
+        PlaylistEntry, null=False, on_delete=models.CASCADE
+    )
     error_message = models.CharField(max_length=255)
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -169,38 +156,31 @@ class Player:
     This object is not stored in database, but lives within Django memory
     cache. Please use the `update` method to change its attributes.
     """
-    PLAYER_NAME = 'player'
 
-    STARTED_TRANSITION = 'started_transition'
-    STARTED_SONG = 'started_song'
-    FINISHED = 'finished'
-    COULD_NOT_PLAY = 'could_not_play'
-    PAUSED = 'paused'
-    RESUMED = 'resumed'
+    PLAYER_NAME = "player"
+
+    STARTED_TRANSITION = "started_transition"
+    STARTED_SONG = "started_song"
+    FINISHED = "finished"
+    COULD_NOT_PLAY = "could_not_play"
+    PAUSED = "paused"
+    RESUMED = "resumed"
     EVENTS = (
         (STARTED_TRANSITION, "Started transition"),
         (STARTED_SONG, "Started song"),
         (FINISHED, "Finished"),
         (COULD_NOT_PLAY, "Could not play"),
         (PAUSED, "Paused"),
-        (RESUMED, "Resumed")
+        (RESUMED, "Resumed"),
     )
 
-    PLAY = 'play'
-    PAUSE = 'pause'
-    SKIP = 'skip'
-    COMMANDS = (
-        (PLAY, "Play"),
-        (PAUSE, "Pause"),
-        (SKIP, "Skip"),
-    )
+    PLAY = "play"
+    PAUSE = "pause"
+    SKIP = "skip"
+    COMMANDS = ((PLAY, "Play"), (PAUSE, "Pause"), (SKIP, "Skip"))
 
     def __init__(
-        self,
-        timing=timedelta(),
-        paused=False,
-        in_transition=False,
-        date=None,
+        self, timing=timedelta(), paused=False, in_transition=False, date=None
     ):
         self.timing = timing
         self.paused = paused
@@ -211,16 +191,15 @@ class Player:
         self.update(date=date)
 
     def __eq__(self, other):
-        fields = ('timing', 'paused', 'in_transition', 'date')
+        fields = ("timing", "paused", "in_transition", "date")
 
-        return all(getattr(self, field) == getattr(other, field)
-                   for field in fields)
+        return all(getattr(self, field) == getattr(other, field) for field in fields)
 
     def update(self, date=None, **kwargs):
         """Update the player and set date"""
         # set normal attributes
         for key, value in kwargs.items():
-            if hasattr(self, key) and key != 'playlist_entry':
+            if hasattr(self, key) and key != "playlist_entry":
                 setattr(self, key, value)
 
         # set specific attributes
@@ -250,11 +229,7 @@ class Player:
     def reset(self):
         """Reset the player to its initial state
         """
-        self.update(
-            timing=timedelta(),
-            paused=False,
-            in_transition=False,
-        )
+        self.update(timing=timedelta(), paused=False, in_transition=False)
 
     def __repr__(self):
         return "<{}: {}>".format(self.__class__.__name__, self)
@@ -262,10 +237,10 @@ class Player:
     def __str__(self):
         if self.playlist_entry is not None:
             return "in {} for '{}' at {}{}".format(
-                'pause' if self.paused else 'play',
+                "pause" if self.paused else "play",
                 self.playlist_entry,
                 self.timing,
-                ' (in transition)' if self.in_transition else ''
+                " (in transition)" if self.in_transition else "",
             )
 
         return "idle"

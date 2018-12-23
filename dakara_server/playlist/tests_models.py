@@ -8,6 +8,7 @@ from .models import PlaylistEntry
 class PlaylistEntryModelTestCase(BaseAPITestCase):
     """Test the playlist entry model
     """
+
     def setUp(self):
         self.create_test_data()
 

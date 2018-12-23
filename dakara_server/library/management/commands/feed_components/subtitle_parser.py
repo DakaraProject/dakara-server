@@ -47,6 +47,7 @@ class Pysubs2SubtitleParser(SubtitleParser):
         override_sequence (regex matcher): regex that matches any tag and any
             drawing area.
     """
+
     override_sequence = re.compile(
         r"""
                 \{.*?\\p\d.*?\}     # look for drawing area start tag
@@ -59,7 +60,7 @@ class Pysubs2SubtitleParser(SubtitleParser):
                 |
                 \{.*?\}             # or simply select tags
             """,
-        re.UNICODE | re.VERBOSE
+        re.UNICODE | re.VERBOSE,
     )
 
     def __init__(self, filepath):
@@ -101,22 +102,26 @@ class Pysubs2SubtitleParser(SubtitleParser):
 
             # append the cleaned line conditionnaly
             # Don't append if the line is a duplicate of previous line
-            if not (event_previous and
-                    event_previous.plaintext.strip() == line and
-                    event_previous.start == event.start and
-                    event_previous.end == event.end):
+            if not (
+                event_previous
+                and event_previous.plaintext.strip() == line
+                and event_previous.start == event.start
+                and event_previous.end == event.end
+            ):
 
                 lyrics.append(line)
 
             # update previous line handles
             event_previous = event
 
-        return '\n'.join(lyrics)
+        return "\n".join(lyrics)
 
 
-PARSER_BY_EXTENSION = OrderedDict((
-    ('.ass', Pysubs2SubtitleParser),
-    ('.ssa', Pysubs2SubtitleParser),
-    ('.srt', Pysubs2SubtitleParser),
-    ('.txt', TXTSubtitleParser)
-))
+PARSER_BY_EXTENSION = OrderedDict(
+    (
+        (".ass", Pysubs2SubtitleParser),
+        (".ssa", Pysubs2SubtitleParser),
+        (".srt", Pysubs2SubtitleParser),
+        (".txt", TXTSubtitleParser),
+    )
+)

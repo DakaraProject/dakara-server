@@ -8,6 +8,7 @@ UserModel = get_user_model()
 class DummyRequest:
     """Convert a request dictionary to a request object
     """
+
     def __init__(self, **entries):
         self.__dict__.update(entries)
 

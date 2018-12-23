@@ -8,6 +8,7 @@ from playlist.base_test import BaseAPITestCase
 class DigestViewTestCase(BaseAPITestCase):
     """Test the playlist shorthand view
     """
+
     url = reverse("playlist-digest")
 
     def setUp(self):
@@ -26,12 +27,12 @@ class DigestViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
-        self.assertIn('player_status', response.data)
-        self.assertIsNone(response.data['player_status']['playlist_entry'])
-        self.assertIn('player_errors', response.data)
-        self.assertFalse(response.data['player_errors'])
-        self.assertIn('karaoke', response.data)
-        self.assertEqual(response.data['karaoke']['status'], Karaoke.PLAY)
+        self.assertIn("player_status", response.data)
+        self.assertIsNone(response.data["player_status"]["playlist_entry"])
+        self.assertIn("player_errors", response.data)
+        self.assertFalse(response.data["player_errors"])
+        self.assertIn("karaoke", response.data)
+        self.assertEqual(response.data["karaoke"]["status"], Karaoke.PLAY)
 
     def test_get_playing(self):
         """Get the digest when the player is playing
@@ -49,15 +50,14 @@ class DigestViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
-        self.assertIn('player_status', response.data)
+        self.assertIn("player_status", response.data)
         self.assertEqual(
-            response.data['player_status']['playlist_entry']['id'],
-            self.pe1.id
+            response.data["player_status"]["playlist_entry"]["id"], self.pe1.id
         )
-        self.assertIn('player_errors', response.data)
-        self.assertFalse(response.data['player_errors'])
-        self.assertIn('karaoke', response.data)
-        self.assertEqual(response.data['karaoke']['status'], Karaoke.PLAY)
+        self.assertIn("player_errors", response.data)
+        self.assertFalse(response.data["player_errors"])
+        self.assertIn("karaoke", response.data)
+        self.assertEqual(response.data["karaoke"]["status"], Karaoke.PLAY)
 
     def test_get_errors(self):
         """Get the digest when there are errors
@@ -69,10 +69,12 @@ class DigestViewTestCase(BaseAPITestCase):
 
         # create errors
         errors = [
-            PlayerError.objects.create(playlist_entry=self.pe3,
-                                       error_message="dummy error 1"),
-            PlayerError.objects.create(playlist_entry=self.pe4,
-                                       error_message="dummy error 2"),
+            PlayerError.objects.create(
+                playlist_entry=self.pe3, error_message="dummy error 1"
+            ),
+            PlayerError.objects.create(
+                playlist_entry=self.pe4, error_message="dummy error 2"
+            ),
         ]
 
         # get the digest
@@ -80,20 +82,20 @@ class DigestViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
-        self.assertIn('player_status', response.data)
-        self.assertIsNone(response.data['player_status']['playlist_entry'])
-        self.assertIn('player_errors', response.data)
-        self.assertEqual(len(response.data['player_errors']), 2)
+        self.assertIn("player_status", response.data)
+        self.assertIsNone(response.data["player_status"]["playlist_entry"])
+        self.assertIn("player_errors", response.data)
+        self.assertEqual(len(response.data["player_errors"]), 2)
         self.assertEqual(
-            response.data['player_errors'][0]['playlist_entry']['id'],
-            errors[0].playlist_entry.id
+            response.data["player_errors"][0]["playlist_entry"]["id"],
+            errors[0].playlist_entry.id,
         )
         self.assertEqual(
-            response.data['player_errors'][1]['playlist_entry']['id'],
-            errors[1].playlist_entry.id
+            response.data["player_errors"][1]["playlist_entry"]["id"],
+            errors[1].playlist_entry.id,
         )
-        self.assertIn('karaoke', response.data)
-        self.assertEqual(response.data['karaoke']['status'], Karaoke.PLAY)
+        self.assertIn("karaoke", response.data)
+        self.assertEqual(response.data["karaoke"]["status"], Karaoke.PLAY)
 
     def test_get_karaoke_paused(self):
         """Get the digest when the karaoke is paused
@@ -111,9 +113,9 @@ class DigestViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
-        self.assertIn('player_status', response.data)
-        self.assertIsNone(response.data['player_status']['playlist_entry'])
-        self.assertIn('player_errors', response.data)
-        self.assertFalse(response.data['player_errors'])
-        self.assertIn('karaoke', response.data)
-        self.assertEqual(response.data['karaoke']['status'], Karaoke.PAUSE)
+        self.assertIn("player_status", response.data)
+        self.assertIsNone(response.data["player_status"]["playlist_entry"])
+        self.assertIn("player_errors", response.data)
+        self.assertFalse(response.data["player_errors"])
+        self.assertIn("karaoke", response.data)
+        self.assertEqual(response.data["karaoke"]["status"], Karaoke.PAUSE)

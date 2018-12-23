@@ -8,15 +8,16 @@ UserModel = get_user_model()
 
 
 class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
-    url = reverse('users-list')
+    url = reverse("users-list")
 
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser")
 
         # Create a users manager
-        self.manager = self.create_user("TestUserManager",
-                                        users_level=UserModel.MANAGER)
+        self.manager = self.create_user(
+            "TestUserManager", users_level=UserModel.MANAGER
+        )
 
     def test_get_users_list(self):
         """Test to verify users list
@@ -27,8 +28,8 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Get users list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)
-        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(len(response.data["results"]), 2)
 
     def test_get_users_list_forbidden(self):
         """Test to verify users list is not available when not logged in
@@ -49,8 +50,7 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Post new user
         username_new_user = "TestUserNew"
         response = self.client.post(
-            self.url,
-            {"username": username_new_user, "password": "pwd"}
+            self.url, {"username": username_new_user, "password": "pwd"}
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -68,8 +68,7 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Post new user
         username_new_user = "TestUserNew"
         response = self.client.post(
-            self.url,
-            {"username": username_new_user, "password": "pwd"}
+            self.url, {"username": username_new_user, "password": "pwd"}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -86,11 +85,7 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         username_new_user = "TestNewSuperuser"
         response = self.client.post(
             self.url,
-            {
-                "username": username_new_user,
-                "password": "pwd",
-                "is_superuser": True,
-            }
+            {"username": username_new_user, "password": "pwd", "is_superuser": True},
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -118,8 +113,8 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
                 "password": "pwd",
                 "users_permission_level": UserModel.MANAGER,
                 "library_permission_level": UserModel.MANAGER,
-                "playlist_permission_level": UserModel.MANAGER
-            }
+                "playlist_permission_level": UserModel.MANAGER,
+            },
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -143,8 +138,7 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Post new user with same name as existing user
         username_new_user = self.user.username
         response = self.client.post(
-            self.url,
-            {"username": username_new_user, "password": "pwd"}
+            self.url, {"username": username_new_user, "password": "pwd"}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -152,26 +146,24 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # But with different case
         username_new_user = self.user.username.upper()
         response = self.client.post(
-            self.url,
-            {"username": username_new_user, "password": "pwd"}
+            self.url, {"username": username_new_user, "password": "pwd"}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
-
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser")
 
         # Create a users manager
-        self.manager = self.create_user("TestUserManager",
-                                        users_level=UserModel.MANAGER)
+        self.manager = self.create_user(
+            "TestUserManager", users_level=UserModel.MANAGER
+        )
 
         # Generate url to access these users
-        self.user_url = reverse('users-detail', kwargs={"pk": self.user.id})
-        self.manager_url = reverse('users-detail',
-                                   kwargs={"pk": self.manager.id})
+        self.user_url = reverse("users-detail", kwargs={"pk": self.user.id})
+        self.manager_url = reverse("users-detail", kwargs={"pk": self.manager.id})
 
     def test_get_user(self):
         """Test to verify user details
@@ -182,26 +174,32 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         # Get simple user details
         response = self.client.get(self.user_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertDictEqual(response.data, {
-            "id": self.user.id,
-            "username": self.user.username,
-            "is_superuser": self.user.is_superuser,
-            "users_permission_level": self.user.users_permission_level,
-            "library_permission_level": self.user.library_permission_level,
-            "playlist_permission_level": self.user.playlist_permission_level
-        })
+        self.assertDictEqual(
+            response.data,
+            {
+                "id": self.user.id,
+                "username": self.user.username,
+                "is_superuser": self.user.is_superuser,
+                "users_permission_level": self.user.users_permission_level,
+                "library_permission_level": self.user.library_permission_level,
+                "playlist_permission_level": self.user.playlist_permission_level,
+            },
+        )
 
         # Get manager details
         response = self.client.get(self.manager_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertDictEqual(response.data, {
-            "id": self.manager.id,
-            "username": self.manager.username,
-            "is_superuser": self.manager.is_superuser,
-            "users_permission_level": self.manager.users_permission_level,
-            "library_permission_level": self.manager.library_permission_level,
-            "playlist_permission_level": self.manager.playlist_permission_level
-        })
+        self.assertDictEqual(
+            response.data,
+            {
+                "id": self.manager.id,
+                "username": self.manager.username,
+                "is_superuser": self.manager.is_superuser,
+                "users_permission_level": self.manager.users_permission_level,
+                "library_permission_level": self.manager.library_permission_level,
+                "playlist_permission_level": self.manager.playlist_permission_level,
+            },
+        )
 
     def test_get_user_forbidden(self):
         """Test to verify user details not available when not logged in
@@ -222,8 +220,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
 
         # update simple user to library user
         response = self.client.patch(
-            self.user_url,
-            {"library_permission_level": UserModel.USER}
+            self.user_url, {"library_permission_level": UserModel.USER}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -239,8 +236,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
 
         # attempt to update self to library user
         response = self.client.patch(
-            self.manager_url,
-            {"library_permission_level": UserModel.USER}
+            self.manager_url, {"library_permission_level": UserModel.USER}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -252,8 +248,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
 
         # attempt to update manager to library user
         response = self.client.patch(
-            self.manager_url,
-            {"library_permission_level": UserModel.USER}
+            self.manager_url, {"library_permission_level": UserModel.USER}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -268,10 +263,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         self.authenticate(self.manager)
 
         # update simple user to library user
-        response = self.client.patch(
-            self.user_url,
-            {"is_superuser": True}
-        )
+        response = self.client.patch(self.user_url, {"is_superuser": True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Post-assertion: user is still not superuser
@@ -314,15 +306,16 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
 
 
 class CurrentUserViewAPIViewTestCase(BaseAPITestCase):
-    url = reverse('users-current')
+    url = reverse("users-current")
 
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser")
 
         # Create a users manager
-        self.manager = self.create_user("TestUserManager",
-                                        users_level=UserModel.MANAGER)
+        self.manager = self.create_user(
+            "TestUserManager", users_level=UserModel.MANAGER
+        )
 
     def test_get_current_user(self):
         """Test to verify get current user route
@@ -333,14 +326,17 @@ class CurrentUserViewAPIViewTestCase(BaseAPITestCase):
         # Get current user
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertDictEqual(response.data, {
-            "id": self.user.id,
-            "username": self.user.username,
-            "is_superuser": self.user.is_superuser,
-            "users_permission_level": self.user.users_permission_level,
-            "library_permission_level": self.user.library_permission_level,
-            "playlist_permission_level": self.user.playlist_permission_level
-        })
+        self.assertDictEqual(
+            response.data,
+            {
+                "id": self.user.id,
+                "username": self.user.username,
+                "is_superuser": self.user.is_superuser,
+                "users_permission_level": self.user.users_permission_level,
+                "library_permission_level": self.user.library_permission_level,
+                "playlist_permission_level": self.user.playlist_permission_level,
+            },
+        )
 
         # Login as manager
         self.authenticate(self.manager)
@@ -348,14 +344,17 @@ class CurrentUserViewAPIViewTestCase(BaseAPITestCase):
         # Get current user
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertDictEqual(response.data, {
-            "id": self.manager.id,
-            "username": self.manager.username,
-            "is_superuser": self.manager.is_superuser,
-            "users_permission_level": self.manager.users_permission_level,
-            "library_permission_level": self.manager.library_permission_level,
-            "playlist_permission_level": self.manager.playlist_permission_level
-        })
+        self.assertDictEqual(
+            response.data,
+            {
+                "id": self.manager.id,
+                "username": self.manager.username,
+                "is_superuser": self.manager.is_superuser,
+                "users_permission_level": self.manager.users_permission_level,
+                "library_permission_level": self.manager.library_permission_level,
+                "playlist_permission_level": self.manager.playlist_permission_level,
+            },
+        )
 
     def test_get_current_user_forbidden(self):
         """Test to verify we can't get current user when not logged in
@@ -367,19 +366,18 @@ class CurrentUserViewAPIViewTestCase(BaseAPITestCase):
 
 
 class PasswordViewUpdateAPIViewTestCase(BaseAPITestCase):
-
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser")
 
         # Create a users manager
-        self.manager = self.create_user("TestUserManager",
-                                        users_level=UserModel.MANAGER)
+        self.manager = self.create_user(
+            "TestUserManager", users_level=UserModel.MANAGER
+        )
 
         # Generate url to access these users
-        self.user_url = reverse('users-password', kwargs={"pk": self.user.id})
-        self.manager_url = reverse('users-password',
-                                   kwargs={"pk": self.manager.id})
+        self.user_url = reverse("users-password", kwargs={"pk": self.user.id})
+        self.manager_url = reverse("users-password", kwargs={"pk": self.manager.id})
 
     def test_put_password(self):
         """Test to verify password update
@@ -394,8 +392,7 @@ class PasswordViewUpdateAPIViewTestCase(BaseAPITestCase):
 
         # update own password
         response = self.client.put(
-            self.user_url,
-            {"old_password": "password", "password": new_password}
+            self.user_url, {"old_password": "password", "password": new_password}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -415,10 +412,10 @@ class PasswordViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.user)
 
         # update own password
-        response = self.client.put(self.user_url, {
-            "old_password": "WrongOldpassword",
-            "password": new_password
-        })
+        response = self.client.put(
+            self.user_url,
+            {"old_password": "WrongOldpassword", "password": new_password},
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Post-assertion: user password is still not 'newPassword'
@@ -433,8 +430,7 @@ class PasswordViewUpdateAPIViewTestCase(BaseAPITestCase):
 
         # Attempt to update manager password
         response = self.client.put(
-            self.manager_url,
-            {"old_password": "password", "password": "new"}
+            self.manager_url, {"old_password": "password", "password": "new"}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -445,15 +441,9 @@ class PasswordViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.user)
 
         # update omitting new password
-        response = self.client.put(
-            self.user_url,
-            {"old_password": "password"}
-        )
+        response = self.client.put(self.user_url, {"old_password": "password"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # update omitting old password
-        response = self.client.put(
-            self.user_url,
-            {"password": "password"}
-        )
+        response = self.client.put(self.user_url, {"password": "password"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

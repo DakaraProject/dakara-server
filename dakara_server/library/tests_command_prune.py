@@ -24,16 +24,16 @@ class PruneCommandTestCase(TestCase):
         song1.artists.add(artist1)
 
         # Pre-assertions
-        artists = Artist.objects.order_by('name')
+        artists = Artist.objects.order_by("name")
         self.assertEqual(len(artists), 2)
 
         # Call command
         args = []
-        opts = {'quiet': True, 'artists': True}
-        call_command('prune', *args, **opts)
+        opts = {"quiet": True, "artists": True}
+        call_command("prune", *args, **opts)
 
         # Post-Assertions
-        artists = Artist.objects.order_by('name')
+        artists = Artist.objects.order_by("name")
         # Only artist1 left
         # Artist2 was removed
         self.assertEqual(len(artists), 1)
@@ -66,20 +66,20 @@ class PruneCommandTestCase(TestCase):
         link1 = SongWorkLink()
         link1.work = work1
         link1.song = song1
-        link1.link_type = 'OP'
+        link1.link_type = "OP"
         link1.save()
 
         # Pre-assertions
-        works = Work.objects.order_by('title')
+        works = Work.objects.order_by("title")
         self.assertEqual(len(works), 2)
 
         # Call command
         args = []
-        opts = {'quiet': True, 'works': True}
-        call_command('prune', *args, **opts)
+        opts = {"quiet": True, "works": True}
+        call_command("prune", *args, **opts)
 
         # Post-Assertions
-        works = Work.objects.order_by('title')
+        works = Work.objects.order_by("title")
         # Only work1 left
         # Work2 was removed
         self.assertEqual(len(works), 1)

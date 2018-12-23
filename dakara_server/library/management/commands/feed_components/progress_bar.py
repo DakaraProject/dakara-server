@@ -21,12 +21,9 @@ class TextProgressBar(progressbar.ProgressBar):
             # truncate text if necessary
             if len(text) > length:
                 half = int(length * 0.5)
-                text = text[:half - 2].strip() + '...' + \
-                    text[-half + 1:].strip()
+                text = text[: half - 2].strip() + "..." + text[-half + 1 :].strip()
 
-            widgets = [
-                "{:{length}s} ".format(text, length=length)
-            ]
+            widgets = ["{:{length}s} ".format(text, length=length)]
 
             widgets.extend(self.default_widgets())
             self.widgets = widgets

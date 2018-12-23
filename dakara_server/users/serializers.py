@@ -1,8 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth import (
-    get_user_model,
-    update_session_auth_hash,
-)
+from django.contrib.auth import get_user_model, update_session_auth_hash
 
 UserModel = get_user_model()
 
@@ -10,40 +7,35 @@ UserModel = get_user_model()
 class UserForPublicSerializer(serializers.ModelSerializer):
     """Display public data only
     """
+
     class Meta:
         model = UserModel
-        fields = (
-            'id',
-            'username',
-        )
-        read_only_fields = (
-            'username',
-        )
+        fields = ("id", "username")
+        read_only_fields = ("username",)
 
 
 class UserSerializer(serializers.ModelSerializer):
     """Creation and view
     """
+
     class Meta:
         model = UserModel
         fields = (
-            'id',
-            'username',
-            'password',
-            'is_superuser',
-            'users_permission_level',
-            'library_permission_level',
-            'playlist_permission_level'
+            "id",
+            "username",
+            "password",
+            "is_superuser",
+            "users_permission_level",
+            "library_permission_level",
+            "playlist_permission_level",
         )
         read_only_fields = (
-            'is_superuser',
-            'users_permission_level',
-            'library_permission_level',
-            'playlist_permission_level'
+            "is_superuser",
+            "users_permission_level",
+            "library_permission_level",
+            "playlist_permission_level",
         )
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+        extra_kwargs = {"password": {"write_only": True}}
 
     def validate_username(self, value):
         """Check username unicity in case insensitive way
@@ -76,14 +68,13 @@ class PasswordSerializer(serializers.ModelSerializer):
 
     For editing other user info, create another serializer.
     """
+
     old_password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = UserModel
-        fields = ('password', 'old_password')
-        extra_kwargs = {
-            'password': {'write_only': True, 'required': True}
-        }
+        fields = ("password", "old_password")
+        extra_kwargs = {"password": {"write_only": True, "required": True}}
 
     def validate_old_password(self, value):
         """Check old password is correct
@@ -95,8 +86,8 @@ class PasswordSerializer(serializers.ModelSerializer):
         """Update the password
         """
         password = None
-        if 'password' in validated_data:
-            password = validated_data.pop('password')
+        if "password" in validated_data:
+            password = validated_data.pop("password")
 
         instance = super().update(instance, validated_data)
 
@@ -104,7 +95,7 @@ class PasswordSerializer(serializers.ModelSerializer):
             instance.set_password(password)
             instance.save()
             # keep current user logged in
-            update_session_auth_hash(self.context['request'], instance)
+            update_session_auth_hash(self.context["request"], instance)
 
         return instance
 
@@ -120,8 +111,8 @@ class UserForManagerSerializer(PasswordSerializer):
     class Meta:
         model = UserModel
         fields = (
-            'password',
-            'users_permission_level',
-            'library_permission_level',
-            'playlist_permission_level',
+            "password",
+            "users_permission_level",
+            "library_permission_level",
+            "playlist_permission_level",
         )

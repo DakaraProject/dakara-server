@@ -17,13 +17,14 @@ def file_is_valid(filename):
     Returns:
         (bool) true if the file is valid.
     """
-    return all((
-        # media file
-        os.path.splitext(filename)[1] not in ('.db',),
-
-        # not hidden file
-        filename[0] != ".",
-    ))
+    return all(
+        (
+            # media file
+            os.path.splitext(filename)[1] not in (".db",),
+            # not hidden file
+            filename[0] != ".",
+        )
+    )
 
 
 def file_is_subtitle(filename):

@@ -17,20 +17,20 @@ class DakaraJsonWebsocketConsumer(JsonWebsocketConsumer):
 
     On receive event, it will call the corresponding method.
     """
+
     def receive_json(self, event):
         """Receive all incoming events and call the corresponding method
         """
         # get the method name associated with the type
-        method_name = "receive_{}".format(event['type'])
+        method_name = "receive_{}".format(event["type"])
         if not hasattr(self, method_name):
             # in this case, we do not raise an error, as this would reset the
             # websocket connexion
-            logger.error("Event of unknown type received '{}'"
-                         .format(event['type']))
+            logger.error("Event of unknown type received '{}'".format(event["type"]))
             return
 
         # call the method
-        getattr(self, method_name)(event.get('data'))
+        getattr(self, method_name)(event.get("data"))
 
 
 def broadcast_to_channel(group, method, data=None):
@@ -41,7 +41,7 @@ def broadcast_to_channel(group, method, data=None):
         method (str): name of the method.
         data (dict): data to pass to the method.
     """
-    event = {'type': method}
+    event = {"type": method}
 
     if data:
         event.update(data)
@@ -50,29 +50,25 @@ def broadcast_to_channel(group, method, data=None):
 
 
 class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
-    group_name = 'playlist.device'
+    group_name = "playlist.device"
 
     def connect(self):
         # the group must not exist before connection
         if self.group_name in self.channel_layer.groups:
             self.close()
-            logger.error("Another player tries to connect to playlist "
-                         "device consumer")
+            logger.error(
+                "Another player tries to connect to playlist " "device consumer"
+            )
             return
 
         # ensure user is player
-        if not \
-           self.scope['user'].has_playlist_permission_level(UserModel.PLAYER):
+        if not self.scope["user"].has_playlist_permission_level(UserModel.PLAYER):
             self.close()
-            logger.error("Invalid user tries to connect to playlist "
-                         "device consumer")
+            logger.error("Invalid user tries to connect to playlist " "device consumer")
             return
 
         # create the group
-        async_to_sync(self.channel_layer.group_add)(
-            self.group_name,
-            self.channel_name,
-        )
+        async_to_sync(self.channel_layer.group_add)(self.group_name, self.channel_name)
 
         # reset current playing playlist entry if any
         current_playlist_entry = models.PlaylistEntry.get_playing()
@@ -85,12 +81,11 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
 
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
-            self.group_name,
-            self.channel_name,
+            self.group_name, self.channel_name
         )
 
         # broadcast the player is idle
-        broadcast_to_channel('playlist.front', 'send_player_idle')
+        broadcast_to_channel("playlist.front", "send_player_idle")
 
     def receive_ready(self, event=None):
         """Start to play when the player is ready"""
@@ -101,7 +96,7 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
     def send_playlist_entry(self, event):
         """Send next playlist entry
         """
-        playlist_entry = event['playlist_entry']
+        playlist_entry = event["playlist_entry"]
 
         if playlist_entry is None:
             raise ValueError("Playlist entry must not be None")
@@ -110,12 +105,8 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         logger.info("The player will play '{}'".format(playlist_entry))
 
         # send to device
-        serializer = serializers.PlaylistEntryForPlayerSerializer(
-            playlist_entry)
-        self.send_json({
-            'type': 'playlist_entry',
-            'data': serializer.data
-        })
+        serializer = serializers.PlaylistEntryForPlayerSerializer(playlist_entry)
+        self.send_json({"type": "playlist_entry", "data": serializer.data})
 
     def send_idle(self, event=None):
         """Request the player to be idle
@@ -124,27 +115,19 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         logger.info("The player will play idle screen")
 
         # send to device
-        self.send_json({
-            'type': 'idle'
-        })
+        self.send_json({"type": "idle"})
 
     def send_command(self, event):
         """Send a given command to the player
         """
-        command = event['command']
+        command = event["command"]
 
         if command not in dict(models.Player.COMMANDS).keys():
-            raise ValueError("Unknown command requested '{}'"
-                             .format(command))
+            raise ValueError("Unknown command requested '{}'".format(command))
 
         logger.info("The player will {}".format(command))
 
-        self.send_json({
-            'type': 'command',
-            'data': {
-                'command': command
-            }
-        })
+        self.send_json({"type": "command", "data": {"command": command}})
 
     def handle_next(self, event=None):
         """Prepare the submission of a new playlist entry depending on the context
@@ -163,7 +146,7 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         playlist_entry = models.PlaylistEntry.get_next()
 
         if playlist_entry is not None:
-            self.send_playlist_entry({'playlist_entry': playlist_entry})
+            self.send_playlist_entry({"playlist_entry": playlist_entry})
 
         else:
             self.send_idle()

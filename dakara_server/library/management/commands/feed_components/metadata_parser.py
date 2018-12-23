@@ -67,6 +67,7 @@ class MediainfoMetadataParser(MetadataParser):
 
     It does not seem to work on Windows, as the mediainfo DLL cannot be found.
     """
+
     @staticmethod
     def is_available():
         """Check if the parser is callable
@@ -90,7 +91,7 @@ class MediainfoMetadataParser(MetadataParser):
         Returns timedelta 0 if unable to get duration.
         """
         general_track = self.metadata.tracks[0]
-        duration = getattr(general_track, 'duration', 0) or 0
+        duration = getattr(general_track, "duration", 0) or 0
         return timedelta(milliseconds=int(duration))
 
 
@@ -108,17 +109,14 @@ class FFProbeMetadataParser(MetadataParser):
     wrapper](https://stackoverflow.com/a/36743499) and the [code of
     ffprobe3](https://github.com/DheerendraRathor/ffprobe3/blob/master/ffprobe3/ffprobe.py).
     """
+
     @staticmethod
     def is_available():
         """Check if the parser is callable
         """
         try:
-            with open(os.devnull, 'w') as tempf:
-                subprocess.check_call(
-                    ["ffprobe", "-h"],
-                    stdout=tempf,
-                    stderr=tempf
-                )
+            with open(os.devnull, "w") as tempf:
+                subprocess.check_call(["ffprobe", "-h"], stdout=tempf, stderr=tempf)
 
                 return True
 
@@ -134,17 +132,17 @@ class FFProbeMetadataParser(MetadataParser):
         """
         command = [
             "ffprobe",
-            "-loglevel", "quiet",
-            "-print_format", "json",
+            "-loglevel",
+            "quiet",
+            "-print_format",
+            "json",
             "-show_format",
             "-show_streams",
-            filename
+            filename,
         ]
 
         pipe = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT
+            command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
         )
 
         out, _ = pipe.communicate()
@@ -157,18 +155,16 @@ class FFProbeMetadataParser(MetadataParser):
         Returns timedelta 0 if unable to get duration.
         """
         # try in generic location
-        if 'format' in self.metadata:
-            if 'duration' in self.metadata['format']:
-                return timedelta(seconds=float(
-                    self.metadata['format']['duration']
-                ))
+        if "format" in self.metadata:
+            if "duration" in self.metadata["format"]:
+                return timedelta(seconds=float(self.metadata["format"]["duration"]))
 
         # try in the streams
-        if 'streams' in self.metadata:
+        if "streams" in self.metadata:
             # commonly stream 0 is the video
-            for stream in self.metadata['streams']:
-                if 'duration' in stream:
-                    return timedelta(seconds=float(stream['duration']))
+            for stream in self.metadata["streams"]:
+                if "duration" in stream:
+                    return timedelta(seconds=float(stream["duration"]))
 
         # if nothing is found
         return timedelta(0)

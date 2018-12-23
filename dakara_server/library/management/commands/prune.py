@@ -7,6 +7,7 @@ from library.models import Artist, Work
 class Command(BaseCommand):
     """Command for removing unused objects from database
     """
+
     help = "Remove unused objects from database."
 
     def add_arguments(self, parser):
@@ -16,19 +17,15 @@ class Command(BaseCommand):
         parser.add_argument(
             "--artists",
             help="Remove artists with no songs attached.",
-            action="store_true"
+            action="store_true",
         )
 
         parser.add_argument(
-            "--works",
-            help="Remove works with no songs attached.",
-            action="store_true"
+            "--works", help="Remove works with no songs attached.", action="store_true"
         )
 
         parser.add_argument(
-            "--quiet",
-            help="Do not display anything on run.",
-            action="store_true"
+            "--quiet", help="Do not display anything on run.", action="store_true"
         )
 
     def handle(self, *args, **options):
@@ -36,12 +33,12 @@ class Command(BaseCommand):
         """
 
         # quiet mode
-        if options['quiet']:
-            self.stdout = open(os.devnull, 'w')
-            self.stderr = open(os.devnull, 'w')
+        if options["quiet"]:
+            self.stdout = open(os.devnull, "w")
+            self.stderr = open(os.devnull, "w")
 
         # prune artists if requested
-        if options['artists']:
+        if options["artists"]:
             # TODO: starting from django 1.9 the delete method returns
             # the number of rows affected
             # so this can be done in one call
@@ -51,7 +48,7 @@ class Command(BaseCommand):
             self.stdout.write("Removed {} artists.".format(removed_artists))
 
         # prune works if requested
-        if options['works']:
+        if options["works"]:
             # TODO: starting from django 1.9 the delete method returns
             # the number of rows affected
             # so this can be done in one call

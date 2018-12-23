@@ -35,143 +35,119 @@ logger.info("Dakara server {} ({})".format(settings.VERSION, settings.DATE))
 
 urlpatterns = [
     # Admin route
-    url(
-        r'^admin/',
-        include(admin.site.urls)
-        ),
-
+    url(r"^admin/", include(admin.site.urls)),
     # Authentication routes
-    url(
-        r'^api/auth/',
-        include('rest_framework.urls', namespace='rest_framework')
-        ),
-    url(
-        r'^api/token-auth/',
-        obtain_auth_token
-        ),
-
+    url(r"^api/auth/", include("rest_framework.urls", namespace="rest_framework")),
+    url(r"^api/token-auth/", obtain_auth_token),
     # API routes for internal
-    url(
-        r'^api/version/$',
-        internal_views.VersionView.as_view(),
-        name='version'
-        ),
-
+    url(r"^api/version/$", internal_views.VersionView.as_view(), name="version"),
     # API routes for the users
+    url(r"^api/users/$", users_views.UserListView.as_view(), name="users-list"),
     url(
-        r'^api/users/$',
-        users_views.UserListView.as_view(),
-        name='users-list'
-        ),
-    url(
-        r'^api/users/(?P<pk>[0-9]+)/$',
+        r"^api/users/(?P<pk>[0-9]+)/$",
         users_views.UserView.as_view(),
-        name='users-detail'
-        ),
+        name="users-detail",
+    ),
     url(
-        r'^api/users/(?P<pk>[0-9]+)/password/$',
+        r"^api/users/(?P<pk>[0-9]+)/password/$",
         users_views.PasswordView.as_view(),
-        name='users-password'
-        ),
+        name="users-password",
+    ),
     url(
-        r'^api/users/current/$',
+        r"^api/users/current/$",
         users_views.CurrentUserView.as_view(),
-        name='users-current'
-        ),
-
+        name="users-current",
+    ),
     # API routes for the playlist
     url(
-        r'^api/playlist/player/status/$',
+        r"^api/playlist/player/status/$",
         playlist_views.PlayerStatusView.as_view(),
-        name='playlist-player-status'
-        ),
+        name="playlist-player-status",
+    ),
     url(
-        r'^api/playlist/player/errors/$',
+        r"^api/playlist/player/errors/$",
         playlist_views.PlayerErrorView.as_view(),
-        name='playlist-player-errors'
-        ),
+        name="playlist-player-errors",
+    ),
     url(
-        r'^api/playlist/player/command/$',
+        r"^api/playlist/player/command/$",
         playlist_views.PlayerCommandView.as_view(),
-        name='playlist-player-command'
-        ),
+        name="playlist-player-command",
+    ),
     url(
-        r'^api/playlist/digest/$',
+        r"^api/playlist/digest/$",
         playlist_views.DigestView.as_view(),
-        name='playlist-digest'
-        ),
+        name="playlist-digest",
+    ),
     url(
-        r'^api/playlist/entries/$',
+        r"^api/playlist/entries/$",
         playlist_views.PlaylistEntryListView.as_view(),
-        name='playlist-entries-list'
-        ),
+        name="playlist-entries-list",
+    ),
     url(
-        r'^api/playlist/entries/(?P<pk>[0-9]+)/$',
+        r"^api/playlist/entries/(?P<pk>[0-9]+)/$",
         playlist_views.PlaylistEntryView.as_view(),
-        name='playlist-entries-detail'
-        ),
+        name="playlist-entries-detail",
+    ),
     url(
-        r'^api/playlist/played-entries/$',
+        r"^api/playlist/played-entries/$",
         playlist_views.PlaylistPlayedEntryListView.as_view(),
-        name='playlist-played-entries-list'
-        ),
+        name="playlist-played-entries-list",
+    ),
     url(
-        r'^api/playlist/karaoke/$',
+        r"^api/playlist/karaoke/$",
         playlist_views.KaraokeView.as_view(),
-        name='playlist-karaoke'
-        ),
-
+        name="playlist-karaoke",
+    ),
     # API routes for the library
     url(
-        r'^api/library/songs/$',
+        r"^api/library/songs/$",
         library_views.SongListView.as_view(),
-        name='library-song-list'
-        ),
-    url(
-        r'^api/library/artists/$',
-        library_views.ArtistListView.as_view(),
-        name='library-artist-list'
-        ),
-    url(
-        r'^api/library/works/$',
-        library_views.WorkListView.as_view(),
-        name='library-work-list'
-        ),
-    url(
-        r'^api/library/work-types/$',
-        library_views.WorkTypeListView.as_view(),
-        name='library-worktype-list'
-        ),
-    url(
-        r'^api/library/song-tags/$',
-        library_views.SongTagListView.as_view(),
-        name='library-songtag-list'
-        ),
-    url(
-        r'^api/library/songs/(?P<pk>[0-9]+)/$',
-        library_views.SongView.as_view(),
-        name='library-song-detail'
-        ),
-    url(
-        r'^api/library/song-tags/(?P<pk>[0-9]+)/$',
-        library_views.SongTagView.as_view(),
-        name='library-songtag-detail'
-        ),
-
-    # API documentation routes
-    url(
-        r'^api-docs/',
-        include_docs_urls(title="Dakara server API")
+        name="library-song-list",
     ),
+    url(
+        r"^api/library/artists/$",
+        library_views.ArtistListView.as_view(),
+        name="library-artist-list",
+    ),
+    url(
+        r"^api/library/works/$",
+        library_views.WorkListView.as_view(),
+        name="library-work-list",
+    ),
+    url(
+        r"^api/library/work-types/$",
+        library_views.WorkTypeListView.as_view(),
+        name="library-worktype-list",
+    ),
+    url(
+        r"^api/library/song-tags/$",
+        library_views.SongTagListView.as_view(),
+        name="library-songtag-list",
+    ),
+    url(
+        r"^api/library/songs/(?P<pk>[0-9]+)/$",
+        library_views.SongView.as_view(),
+        name="library-song-detail",
+    ),
+    url(
+        r"^api/library/song-tags/(?P<pk>[0-9]+)/$",
+        library_views.SongTagView.as_view(),
+        name="library-songtag-detail",
+    ),
+    # API documentation routes
+    url(r"^api-docs/", include_docs_urls(title="Dakara server API")),
 ]
 
 if settings.DEBUG:
-    urlpatterns.extend([
+    urlpatterns.extend(
+        [
             # Default to main page
             url(
-                r'^(?!api/|api-docs/?)',  # serve everything but the API routes
-                                          # API documentation routes
+                r"^(?!api/|api-docs/?)",  # serve everything but the API routes
+                # API documentation routes
                 serve,
-                kwargs={'path': 'index.html'}
+                kwargs={"path": "index.html"},
             )
-        ])
+        ]
+    )
