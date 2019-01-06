@@ -95,6 +95,17 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         if not karaoke.ongoing:
             raise PermissionDenied(detail="Karaoke is not ongoing.")
 
+        # Deny creation if karaoke does not allow new entries,
+        # and user is not manager.
+        if (
+            not karaoke.can_add_to_playlist
+            and not self.request.user.has_playlist_permission_level(UserModel.MANAGER)
+            and not self.request.user.is_superuser
+        ):
+            raise PermissionDenied(
+                detail="Karaoke was set to disallow playlist entries creation."
+            )
+
         # Deny the creation of a new playlist entry if it exceeds the playlist
         # capacity set in settings.
         queryset = self.filter_queryset(self.get_queryset())
