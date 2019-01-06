@@ -6,14 +6,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('library', '0002_songtag_disabled'),
-    ]
+    dependencies = [("library", "0002_songtag_disabled")]
 
     operations = [
         migrations.RenameField(
-            model_name='songtag',
-            old_name='color_id',
-            new_name='color_hue',
-        ),
+            model_name="songtag", old_name="color_id", new_name="color_hue"
+        )
     ]

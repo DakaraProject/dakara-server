@@ -2,11 +2,7 @@ import re
 
 from library.models import WorkType
 
-KEYWORDS = [
-    "artist",
-    "work",
-    "title",
-]
+KEYWORDS = ["artist", "work", "title"]
 
 
 class QueryLanguageParser:
@@ -14,8 +10,9 @@ class QueryLanguageParser:
     """
 
     def __init__(self):
-        self.keywords_work_type = [work_type.query_name
-                                   for work_type in WorkType.objects.all()]
+        self.keywords_work_type = [
+            work_type.query_name for work_type in WorkType.objects.all()
+        ]
 
         self.keywords = KEYWORDS + self.keywords_work_type
 
@@ -32,7 +29,9 @@ class QueryLanguageParser:
             |
             (?P<contains2>(?:\\\s|\S)+) # contains with no quotes
         )
-        """.format(keywords_regex=r'|'.join(self.keywords))
+        """.format(
+            keywords_regex=r"|".join(self.keywords)
+        )
 
         self.language_matcher = re.compile(regex, re.I | re.X)
 
@@ -110,18 +109,9 @@ class QueryLanguageParser:
         # create results structure
         # work_type will be filled only if necessary
         result = {
-            "artist": {
-                "contains": [],
-                "exact": []
-            },
-            "work": {
-                "contains": [],
-                "exact": []
-            },
-            "title": {
-                "contains": [],
-                "exact": []
-            },
+            "artist": {"contains": [], "exact": []},
+            "work": {"contains": [], "exact": []},
+            "title": {"contains": [], "exact": []},
             "work_type": {},
             "remaining": [],
             "tag": [],
@@ -131,39 +121,36 @@ class QueryLanguageParser:
             group_index = match.groupdict()
 
             # extract values
-            target = group_index['keyword'].strip().lower()
-            value_exact = (group_index['exact'] or '').strip()
+            target = group_index["keyword"].strip().lower()
+            value_exact = (group_index["exact"] or "").strip()
             value_contains = (
-                group_index['contains'] or
-                group_index['contains2'] or
-                ''
-            ).replace("\\", "").strip()
+                (group_index["contains"] or group_index["contains2"] or "")
+                .replace("\\", "")
+                .strip()
+            )
 
             if target in self.keywords_work_type:
                 # create worktype if not exists
-                if target not in result['work_type']:
-                    result['work_type'][target] = {
-                        "contains": [],
-                        "exact": []
-                    }
+                if target not in result["work_type"]:
+                    result["work_type"][target] = {"contains": [], "exact": []}
 
-                result_target = result['work_type'][target]
+                result_target = result["work_type"][target]
 
             else:
                 result_target = result[target]
 
             if value_contains and not value_exact:
-                result_target['contains'].append(value_contains)
+                result_target["contains"].append(value_contains)
 
             elif value_exact and not value_contains:
-                result_target['exact'].append(value_exact)
+                result_target["exact"].append(value_exact)
 
             else:
                 raise ValueError("Inconsistency")
 
         # deal with remaining
         remaining = self.language_matcher.sub("", query)
-        result['remaining'] = self.split_remaining(remaining)
+        result["remaining"] = self.split_remaining(remaining)
 
         # deal with tags
         for item in result["remaining"][:]:

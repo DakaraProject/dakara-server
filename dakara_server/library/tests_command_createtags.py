@@ -17,18 +17,16 @@ class CreatetagsCommandTestCase(TestCase):
         self.assertEqual(SongTag.objects.count(), 0)
 
         config_file_path = os.path.join(
-            APP_DIR,
-            RESSOURCES_DIR,
-            'createtags_command_config.yaml'
+            APP_DIR, RESSOURCES_DIR, "createtags_command_config.yaml"
         )
 
         # Call command
         args = [config_file_path]
-        opts = {'quiet': True}
-        call_command('createtags', *args, **opts)
+        opts = {"quiet": True}
+        call_command("createtags", *args, **opts)
 
         # Post-Assertions
-        tags = SongTag.objects.order_by('name')
+        tags = SongTag.objects.order_by("name")
         self.assertEqual(len(tags), 2)
         self.assertEqual(tags[0].name, "TAGNAME1")
         self.assertEqual(tags[0].color_hue, 0)
@@ -53,25 +51,23 @@ class CreatetagsCommandTestCase(TestCase):
         tag2.save()
 
         # Pre-Assertions
-        tags = SongTag.objects.order_by('name')
+        tags = SongTag.objects.order_by("name")
         self.assertEqual(len(tags), 2)
         self.assertEqual(tags[0].name, "TAGNAME1")
         self.assertEqual(tags[0].color_hue, None)
         self.assertEqual(tags[1].name, "TAGOLD")
 
         config_file_path = os.path.join(
-            APP_DIR,
-            RESSOURCES_DIR,
-            'createtags_command_config.yaml'
+            APP_DIR, RESSOURCES_DIR, "createtags_command_config.yaml"
         )
 
         # Call command
         args = [config_file_path]
-        opts = {'quiet': True, 'prune': True}
-        call_command('createtags', *args, **opts)
+        opts = {"quiet": True, "prune": True}
+        call_command("createtags", *args, **opts)
 
         # Post-Assertions
-        tags = SongTag.objects.order_by('name')
+        tags = SongTag.objects.order_by("name")
         # Only the two tags from config file
         self.assertEqual(len(tags), 2)
         # Tag 1 has updated color id but same id

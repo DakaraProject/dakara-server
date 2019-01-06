@@ -19,26 +19,27 @@ tz = timezone.get_default_timezone()
 class Provider:
     """Provides helper functions for tests
     """
+
     def authenticate(self, user, client=None):
         """Authenticate and set the token to the embedded client
         """
         token, _ = Token.objects.get_or_create(user=user)
 
         if client is None:
-            if not hasattr(self, 'client'):
+            if not hasattr(self, "client"):
                 raise ValueError("No client available")
 
             client = self.client
 
-        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
 
     @staticmethod
-    def create_user(username, playlist_level=None,
-                    library_level=None, users_level=None, **kwargs):
+    def create_user(
+        username, playlist_level=None, library_level=None, users_level=None, **kwargs
+    ):
         """Create a user with the provided permissions
         """
-        user = UserModel.objects.create_user(username, "", "password",
-                                             **kwargs)
+        user = UserModel.objects.create_user(username, "", "password", **kwargs)
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
         user.users_permission_level = users_level
@@ -55,19 +56,20 @@ class Provider:
         self.user = self.create_user("TestUser")
 
         # create a playlist user
-        self.p_user = self.create_user("TestPlaylistUser",
-                                       playlist_level=UserModel.USER)
+        self.p_user = self.create_user(
+            "TestPlaylistUser", playlist_level=UserModel.USER
+        )
 
         # create a playlist manager
-        self.manager = self.create_user("testPlaylistManager",
-                                        playlist_level=UserModel.MANAGER)
+        self.manager = self.create_user(
+            "testPlaylistManager", playlist_level=UserModel.MANAGER
+        )
 
         # create a player
-        self.player = self.create_user("testPlayer",
-                                       playlist_level=UserModel.PLAYER)
+        self.player = self.create_user("testPlayer", playlist_level=UserModel.PLAYER)
 
         # Create tags
-        self.tag1 = SongTag(name='TAG1')
+        self.tag1 = SongTag(name="TAG1")
         self.tag1.save()
 
         # Create songs
@@ -88,7 +90,7 @@ class Provider:
             song=self.song2,
             owner=self.manager,
             was_played=True,
-            date_played=datetime.now(tz)
+            date_played=datetime.now(tz),
         )
         self.pe3.save()
 
@@ -96,7 +98,7 @@ class Provider:
             song=self.song1,
             owner=self.user,
             was_played=True,
-            date_played=datetime.now(tz) - timedelta(minutes=15)
+            date_played=datetime.now(tz) - timedelta(minutes=15),
         )
         self.pe4.save()
 
@@ -136,8 +138,9 @@ class Provider:
 
         return self.player_play_song(next_entry, *args, **kwargs)
 
-    def player_play_song(self, playlist_entry, timing=timedelta(),
-                         paused=False, in_transition=False):
+    def player_play_song(
+        self, playlist_entry, timing=timedelta(), paused=False, in_transition=False
+    ):
         """Set the player playing the provided song
         """
         # request the entry to play
@@ -145,18 +148,13 @@ class Provider:
 
         # set the player to an arbitrary state
         player = Player.get_or_create()
-        player.update(
-            timing=timing,
-            paused=paused,
-            in_transition=in_transition
-        )
+        player.update(timing=timing, paused=paused, in_transition=in_transition)
         player.save()
 
         return player
 
 
 class BaseAPITestCase(APITestCase, Provider):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -178,9 +176,9 @@ class BaseAPITestCase(APITestCase, Provider):
         Snippet from https://stackoverflow.com/a/27457315/4584444
         """
         for stack in reversed(inspect.stack()):
-            options = stack[0].f_locals.get('options')
+            options = stack[0].f_locals.get("options")
             if isinstance(options, dict):
-                return int(options['verbosity'])
+                return int(options["verbosity"])
 
         return 1
 
@@ -191,13 +189,14 @@ class BaseAPITestCase(APITestCase, Provider):
     def check_playlist_entry_json(self, json, expected_entry):
         """Method to check a representation against expected playlist entry
         """
-        self.assertEqual(json['id'], expected_entry.id)
-        self.assertEqual(json['owner']['id'], expected_entry.owner.id)
-        self.assertEqual(json['song']['id'], expected_entry.song.id)
+        self.assertEqual(json["id"], expected_entry.id)
+        self.assertEqual(json["owner"]["id"], expected_entry.owner.id)
+        self.assertEqual(json["song"]["id"], expected_entry.song.id)
 
     def check_playlist_played_entry_json(self, json, expected_entry):
         """Method to check a representation against expected playlist played entry
         """
         self.check_playlist_entry_json(json, expected_entry)
-        self.assertEqual(parse_datetime(json['date_played']),
-                         expected_entry.date_played)
+        self.assertEqual(
+            parse_datetime(json["date_played"]), expected_entry.date_played
+        )

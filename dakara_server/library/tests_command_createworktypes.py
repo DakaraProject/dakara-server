@@ -17,18 +17,16 @@ class CommandsTestCase(TestCase):
         self.assertEqual(WorkType.objects.count(), 0)
 
         config_file_path = os.path.join(
-            APP_DIR,
-            RESSOURCES_DIR,
-            'createworktypes_command_config.yaml'
+            APP_DIR, RESSOURCES_DIR, "createworktypes_command_config.yaml"
         )
 
         # Call command
         args = [config_file_path]
-        opts = {'quiet': True}
-        call_command('createworktypes', *args, **opts)
+        opts = {"quiet": True}
+        call_command("createworktypes", *args, **opts)
 
         # Post-Assertions
-        work_types = WorkType.objects.order_by('query_name')
+        work_types = WorkType.objects.order_by("query_name")
         self.assertEqual(len(work_types), 2)
         self.assertEqual(work_types[0].query_name, "work-type-one")
         self.assertEqual(work_types[0].name, "Work type one")
@@ -59,24 +57,22 @@ class CommandsTestCase(TestCase):
         work_type_two.save()
 
         # Pre-Assertions
-        work_types = WorkType.objects.order_by('query_name')
+        work_types = WorkType.objects.order_by("query_name")
         self.assertEqual(len(work_types), 2)
         self.assertEqual(work_types[0].query_name, "work-type-one")
         self.assertEqual(work_types[1].query_name, "work-type-wrong")
 
         config_file_path = os.path.join(
-            APP_DIR,
-            RESSOURCES_DIR,
-            'createworktypes_command_config.yaml'
+            APP_DIR, RESSOURCES_DIR, "createworktypes_command_config.yaml"
         )
 
         # Call command
         args = [config_file_path]
-        opts = {'quiet': True, 'prune': True}
-        call_command('createworktypes', *args, **opts)
+        opts = {"quiet": True, "prune": True}
+        call_command("createworktypes", *args, **opts)
 
         # Post-Assertions
-        work_types = WorkType.objects.order_by('query_name')
+        work_types = WorkType.objects.order_by("query_name")
 
         # Only the two work types from config file
         self.assertEqual(len(work_types), 2)

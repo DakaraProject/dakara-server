@@ -8,16 +8,14 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('library', '0006_workalternativetitle'),
-    ]
+    dependencies = [("library", "0006_workalternativetitle")]
 
     operations = [
         migrations.AlterField(
-            model_name='work',
-            name='work_type',
+            model_name="work",
+            name="work_type",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                to='library.WorkType'),
-        ),
+                on_delete=django.db.models.deletion.CASCADE, to="library.WorkType"
+            ),
+        )
     ]

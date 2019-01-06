@@ -7,7 +7,7 @@ from django.test import TestCase
 from .models import WorkType, Work
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-RESSOURCES_DIR = os.path.join('tests_ressources', 'work_files')
+RESSOURCES_DIR = os.path.join("tests_ressources", "work_files")
 DIR_WORK_FILES = os.path.join(APP_DIR, RESSOURCES_DIR)
 
 
@@ -23,16 +23,14 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
         # Call command
-        work_file = os.path.join(
-                DIR_WORK_FILES,
-                'correct_work_file.json')
+        work_file = os.path.join(DIR_WORK_FILES, "correct_work_file.json")
 
         args = [work_file]
-        opts = {'verbosity': 0}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0}
+        call_command("createworks", *args, **opts)
 
         # Work assertions
-        works = Work.objects.order_by('title')
+        works = Work.objects.order_by("title")
 
         self.assertEqual(len(works), 3)
 
@@ -41,7 +39,8 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[0].work_type.query_name, "WorkType 1")
         self.assertCountEqual(
             [alt.title for alt in works[0].alternative_titles.all()],
-            ["AltTitle 1", "AltTitle 2"])
+            ["AltTitle 1", "AltTitle 2"],
+        )
 
         self.assertEqual(works[1].title, "Work 2")
         self.assertEqual(works[1].subtitle, "Subtitle 2")
@@ -53,13 +52,14 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[2].work_type.query_name, "WorkType 1")
         self.assertCountEqual(
             [alt.title for alt in works[2].alternative_titles.all()],
-            ["AltTitle 1", "AltTitle 3"])
+            ["AltTitle 1", "AltTitle 3"],
+        )
 
         # Call the command a second time.
-        call_command('createworks', *args, **opts)
+        call_command("createworks", *args, **opts)
 
         # Check that it did not change the database
-        works = Work.objects.order_by('title')
+        works = Work.objects.order_by("title")
 
         self.assertEqual(len(works), 3)
 
@@ -68,7 +68,8 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[0].work_type.query_name, "WorkType 1")
         self.assertCountEqual(
             [alt.title for alt in works[0].alternative_titles.all()],
-            ["AltTitle 1", "AltTitle 2"])
+            ["AltTitle 1", "AltTitle 2"],
+        )
 
         self.assertEqual(works[1].title, "Work 2")
         self.assertEqual(works[1].subtitle, "Subtitle 2")
@@ -80,7 +81,8 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[2].work_type.query_name, "WorkType 1")
         self.assertCountEqual(
             [alt.title for alt in works[2].alternative_titles.all()],
-            ["AltTitle 1", "AltTitle 3"])
+            ["AltTitle 1", "AltTitle 3"],
+        )
 
     def test_createworks_with_incorrect_work_title(self):
         """Create works from a work where the title is incorrect"""
@@ -89,13 +91,11 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
         # Call command
-        work_file = os.path.join(
-                DIR_WORK_FILES,
-                'title_error_work_file.json')
+        work_file = os.path.join(DIR_WORK_FILES, "title_error_work_file.json")
 
         args = [work_file]
-        opts = {'verbosity': 0}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0}
+        call_command("createworks", *args, **opts)
 
         # Work assertions
         self.assertEqual(Work.objects.count(), 0)
@@ -108,15 +108,15 @@ class CommandsTestCase(TestCase):
 
         # Call command
         work_file = os.path.join(
-                DIR_WORK_FILES,
-                'work_with_unused_field_work_file.json')
+            DIR_WORK_FILES, "work_with_unused_field_work_file.json"
+        )
 
         args = [work_file]
-        opts = {'verbosity': 0}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0}
+        call_command("createworks", *args, **opts)
 
         # Work assertions
-        works = Work.objects.order_by('title')
+        works = Work.objects.order_by("title")
 
         self.assertEqual(len(works), 1)
         self.assertEqual(works[0].title, "Work 1")
@@ -131,13 +131,11 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
         # Call command
-        work_file = os.path.join(
-                DIR_WORK_FILES,
-                'work_type_error_work_file.json')
+        work_file = os.path.join(DIR_WORK_FILES, "work_type_error_work_file.json")
 
         args = [work_file]
-        opts = {'verbosity': 0}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0}
+        call_command("createworks", *args, **opts)
 
         # Work assertion
         self.assertEqual(Work.objects.count(), 0)
@@ -149,13 +147,11 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
         # Call command
-        work_file = os.path.join(
-                DIR_WORK_FILES,
-                'title_missing_work_file.json')
+        work_file = os.path.join(DIR_WORK_FILES, "title_missing_work_file.json")
 
         args = [work_file]
-        opts = {'verbosity': 0}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0}
+        call_command("createworks", *args, **opts)
 
         # Work assertion
         self.assertEqual(Work.objects.count(), 0)
@@ -167,16 +163,14 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
         # Call command
-        work_file = os.path.join(
-                DIR_WORK_FILES,
-                'different_subtitle_work_file.json')
+        work_file = os.path.join(DIR_WORK_FILES, "different_subtitle_work_file.json")
 
         args = [work_file]
-        opts = {'verbosity': 0}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0}
+        call_command("createworks", *args, **opts)
 
         # Work assertion
-        works = Work.objects.order_by('title', 'subtitle')
+        works = Work.objects.order_by("title", "subtitle")
 
         self.assertEqual(len(works), 2)
 
@@ -198,15 +192,15 @@ class CommandsTestCase(TestCase):
 
         # Call command
         work_file = os.path.join(
-                DIR_WORK_FILES,
-                "different_work_type_but_same_works_work_file.json")
+            DIR_WORK_FILES, "different_work_type_but_same_works_work_file.json"
+        )
 
         args = [work_file]
-        opts = {'verbosity': 0}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0}
+        call_command("createworks", *args, **opts)
 
         # Work assertions
-        works = Work.objects.order_by('work_type__query_name')
+        works = Work.objects.order_by("work_type__query_name")
 
         self.assertEqual(len(works), 2)
 
@@ -214,15 +208,15 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[0].subtitle, "Subtitle 1")
         self.assertEqual(works[0].work_type.query_name, "WorkType 1")
         self.assertCountEqual(
-            [alt.title for alt in works[0].alternative_titles.all()],
-            ["AltTitle 1"])
+            [alt.title for alt in works[0].alternative_titles.all()], ["AltTitle 1"]
+        )
 
         self.assertEqual(works[1].title, "Work 1")
         self.assertEqual(works[1].subtitle, "Subtitle 1")
         self.assertEqual(works[1].work_type.query_name, "WorkType 2")
         self.assertCountEqual(
-            [alt.title for alt in works[1].alternative_titles.all()],
-            ["AltTitle 1"])
+            [alt.title for alt in works[1].alternative_titles.all()], ["AltTitle 1"]
+        )
 
     def test_createworks_with_work_type_without_work_list(self):
         """Check there is no work created when work type value is not a list"""
@@ -235,12 +229,12 @@ class CommandsTestCase(TestCase):
 
         # Call command
         work_file = os.path.join(
-                DIR_WORK_FILES,
-                'work_type_without_work_list_work_file.json')
+            DIR_WORK_FILES, "work_type_without_work_list_work_file.json"
+        )
 
         args = [work_file]
-        opts = {'verbosity': 0}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0}
+        call_command("createworks", *args, **opts)
 
         self.assertEqual(Work.objects.count(), 0)
 
@@ -250,15 +244,13 @@ class CommandsTestCase(TestCase):
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
 
-        work_file = os.path.join(
-                DIR_WORK_FILES,
-                'this_file_does_not_exist.json')
+        work_file = os.path.join(DIR_WORK_FILES, "this_file_does_not_exist.json")
 
         with self.assertRaises(CommandError):
             # Call command
             args = [work_file]
-            opts = {'verbosity': 0}
-            call_command('createworks', *args, **opts)
+            opts = {"verbosity": 0}
+            call_command("createworks", *args, **opts)
 
         self.assertEqual(Work.objects.count(), 0)
 
@@ -269,16 +261,14 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
         # Call command
-        work_file = os.path.join(
-                DIR_WORK_FILES,
-                'incorrect_alt_title_work_file.json')
+        work_file = os.path.join(DIR_WORK_FILES, "incorrect_alt_title_work_file.json")
 
         args = [work_file]
-        opts = {'verbosity': 0}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0}
+        call_command("createworks", *args, **opts)
 
         # Work assertions
-        works = Work.objects.order_by('title')
+        works = Work.objects.order_by("title")
 
         self.assertEqual(len(works), 1)
 
@@ -294,32 +284,29 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
         # Get work type
-        work_types = WorkType.objects.order_by('query_name')
+        work_types = WorkType.objects.order_by("query_name")
 
         # Create works
         Work.objects.create(
-                title="Work 1",
-                subtitle="Subtitle 1",
-                work_type=work_types[0])
+            title="Work 1", subtitle="Subtitle 1", work_type=work_types[0]
+        )
         Work.objects.create(title="Work 3", work_type=work_types[0])
 
         # Assert works
-        works = Work.objects.order_by('title')
+        works = Work.objects.order_by("title")
         self.assertEqual(len(works), 2)
         self.assertEqual(works[0].alternative_titles.count(), 0)
         self.assertEqual(works[1].alternative_titles.count(), 0)
 
         # Call command
-        work_file = os.path.join(
-                DIR_WORK_FILES,
-                'correct_work_file.json')
+        work_file = os.path.join(DIR_WORK_FILES, "correct_work_file.json")
 
         args = [work_file]
-        opts = {'verbosity': 0, 'update-only': True}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0, "update-only": True}
+        call_command("createworks", *args, **opts)
 
         # Work assertions
-        works = Work.objects.order_by('title')
+        works = Work.objects.order_by("title")
         self.assertEqual(len(works), 2)  # should not have created any new work
 
         self.assertEqual(works[0].title, "Work 1")
@@ -327,20 +314,22 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[0].work_type.query_name, "WorkType 1")
         self.assertCountEqual(
             [alt.title for alt in works[0].alternative_titles.all()],
-            ["AltTitle 1", "AltTitle 2"])
+            ["AltTitle 1", "AltTitle 2"],
+        )
 
         self.assertEqual(works[1].title, "Work 3")
         self.assertEqual(works[1].subtitle, "")
         self.assertEqual(works[1].work_type.query_name, "WorkType 1")
         self.assertCountEqual(
             [alt.title for alt in works[1].alternative_titles.all()],
-            ["AltTitle 1", "AltTitle 3"])
+            ["AltTitle 1", "AltTitle 3"],
+        )
 
         # Call the command a second time
-        call_command('createworks', *args, **opts)
+        call_command("createworks", *args, **opts)
 
         # Check that it did not change the database
-        works = Work.objects.order_by('title')
+        works = Work.objects.order_by("title")
         self.assertEqual(len(works), 2)  # should not have created any new work
 
         self.assertEqual(works[0].title, "Work 1")
@@ -348,14 +337,16 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[0].work_type.query_name, "WorkType 1")
         self.assertCountEqual(
             [alt.title for alt in works[0].alternative_titles.all()],
-            ["AltTitle 1", "AltTitle 2"])
+            ["AltTitle 1", "AltTitle 2"],
+        )
 
         self.assertEqual(works[1].title, "Work 3")
         self.assertEqual(works[1].subtitle, "")
         self.assertEqual(works[1].work_type.query_name, "WorkType 1")
         self.assertCountEqual(
             [alt.title for alt in works[1].alternative_titles.all()],
-            ["AltTitle 1", "AltTitle 3"])
+            ["AltTitle 1", "AltTitle 3"],
+        )
 
     def test_createworks_case_sensitive_work_file(self):
         """Test createworks with works which have case-sensitive difference"""
@@ -364,16 +355,14 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
         # Call command
-        work_file = os.path.join(
-                DIR_WORK_FILES,
-                'case_sensitive_work_file.json')
+        work_file = os.path.join(DIR_WORK_FILES, "case_sensitive_work_file.json")
 
         args = [work_file]
-        opts = {'verbosity': 0}
-        call_command('createworks', *args, **opts)
+        opts = {"verbosity": 0}
+        call_command("createworks", *args, **opts)
 
         # Work assertions
-        works = Work.objects.order_by('title', 'subtitle')
+        works = Work.objects.order_by("title", "subtitle")
 
         self.assertEqual(len(works), 3)
 

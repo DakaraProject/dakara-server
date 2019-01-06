@@ -7,18 +7,18 @@ import django.core.validators
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('library', '0003_auto_20171229_1841'),
-    ]
+    dependencies = [("library", "0003_auto_20171229_1841")]
 
     operations = [
         migrations.AlterField(
-            model_name='songtag',
-            name='color_hue',
+            model_name="songtag",
+            name="color_hue",
             field=models.IntegerField(
                 validators=[
                     django.core.validators.MinValueValidator(0),
-                    django.core.validators.MaxValueValidator(360)],
-                null=True),
-        ),
+                    django.core.validators.MaxValueValidator(360),
+                ],
+                null=True,
+            ),
+        )
     ]

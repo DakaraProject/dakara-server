@@ -10,7 +10,7 @@ UserModel = get_user_model()
 
 
 class SongTagListViewListAPIViewTestCase(BaseAPITestCase):
-    url = reverse('library-songtag-list')
+    url = reverse("library-songtag-list")
 
     def setUp(self):
         # create a user without any rights
@@ -28,12 +28,12 @@ class SongTagListViewListAPIViewTestCase(BaseAPITestCase):
         # Get tags list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)
-        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(len(response.data["results"]), 2)
 
         # Tags are sorted by name
-        self.check_tag_json(response.data['results'][0], self.tag1)
-        self.check_tag_json(response.data['results'][1], self.tag2)
+        self.check_tag_json(response.data["results"][0], self.tag1)
+        self.check_tag_json(response.data["results"][1], self.tag2)
 
     def test_get_tag_list_forbidden(self):
         """Test to verify unauthenticated user can't get tag list
@@ -46,8 +46,9 @@ class SongTagListViewListAPIViewTestCase(BaseAPITestCase):
 class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
     def setUp(self):
         # create a user without any rights
-        self.manager = self.create_user("TestUserManager",
-                                        library_level=UserModel.MANAGER)
+        self.manager = self.create_user(
+            "TestUserManager", library_level=UserModel.MANAGER
+        )
 
         self.user = self.create_user("TestUser")
 
@@ -55,10 +56,8 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.create_library_test_data()
 
         # create urls
-        self.url_sg1 = reverse('library-songtag-detail',
-                               kwargs={"pk": self.tag1.id})
-        self.url_sg2 = reverse('library-songtag-detail',
-                               kwargs={"pk": self.tag2.id})
+        self.url_sg1 = reverse("library-songtag-detail", kwargs={"pk": self.tag1.id})
+        self.url_sg2 = reverse("library-songtag-detail", kwargs={"pk": self.tag2.id})
 
     def test_update_song_tag_manager(self):
         """Test manager can update tag
@@ -71,10 +70,7 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.assertFalse(tag.disabled)
 
         # alter one tag
-        response = self.client.patch(
-            self.url_sg1,
-            {"disabled": True}
-        )
+        response = self.client.patch(self.url_sg1, {"disabled": True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # the tag should be disabled now
@@ -88,10 +84,7 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.user)
 
         # attempt to alter one tag
-        response = self.client.patch(
-            self.url_sg1,
-            {"disabled": True}
-        )
+        response = self.client.patch(self.url_sg1, {"disabled": True})
 
         # user can't update tag
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

@@ -6,16 +6,16 @@ UserModel = get_user_model()
 
 
 class BaseAPITestCase(APITestCase):
-
     def authenticate(self, user):
         """Authenticate against the provided user
         """
         token = Token.objects.create(user=user)
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
 
     @staticmethod
-    def create_user(username, playlist_level=None,
-                    library_level=None, users_level=None):
+    def create_user(
+        username, playlist_level=None, library_level=None, users_level=None
+    ):
         """Create an user with the provided permissions
         """
         user = UserModel.objects.create_user(username, "", "password")

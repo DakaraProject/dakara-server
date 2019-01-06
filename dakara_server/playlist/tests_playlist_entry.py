@@ -14,13 +14,15 @@ UserModel = get_user_model()
 
 
 class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
-    url = reverse('playlist-entries-list')
+    url = reverse("playlist-entries-list")
 
     def setUp(self):
         self.create_test_data()
 
-    @patch('playlist.views.datetime',
-           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
+    @patch(
+        "playlist.views.datetime",
+        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
+    )
     def test_get_playlist_entries_list(self, mocked_datetime):
         """Test to verify playlist entries list
         """
@@ -35,25 +37,28 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Should only return entries with `was_played`=False
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(len(response.data["results"]), 2)
 
         # Playlist entries are in order of creation
-        pe1 = response.data['results'][0]
-        pe2 = response.data['results'][1]
+        pe1 = response.data["results"][0]
+        pe2 = response.data["results"][1]
         self.check_playlist_entry_json(pe1, self.pe1)
         self.check_playlist_entry_json(pe2, self.pe2)
 
         # check the date of the end of the playlist
-        self.assertEqual(parse_datetime(response.data['date_end']),
-                         now + self.pe1.song.duration + self.pe2.song.duration)
+        self.assertEqual(
+            parse_datetime(response.data["date_end"]),
+            now + self.pe1.song.duration + self.pe2.song.duration,
+        )
 
         # check the date of play of each entries
-        self.assertEqual(parse_datetime(pe1['date_play']), now)
-        self.assertEqual(parse_datetime(pe2['date_play']),
-                         now + self.pe1.song.duration)
+        self.assertEqual(parse_datetime(pe1["date_play"]), now)
+        self.assertEqual(parse_datetime(pe2["date_play"]), now + self.pe1.song.duration)
 
-    @patch('playlist.views.datetime',
-           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
+    @patch(
+        "playlist.views.datetime",
+        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
+    )
     def test_get_playlist_entries_list_while_playing(self, mocked_datetime):
         """Test to verify playlist entries play dates while playing
 
@@ -82,20 +87,23 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Should only return entries with `was_played`=False
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(len(response.data["results"]), 1)
 
         # Playlist entries are in order of creation
-        pe2 = response.data['results'][0]
+        pe2 = response.data["results"][0]
         self.check_playlist_entry_json(pe2, self.pe2)
 
         # check the date of play
-        self.assertEqual(parse_datetime(response.data['date_end']),
-                         now + self.pe1.song.duration - play_duration +
-                         self.pe2.song.duration)
+        self.assertEqual(
+            parse_datetime(response.data["date_end"]),
+            now + self.pe1.song.duration - play_duration + self.pe2.song.duration,
+        )
 
         # check the date of play of each entries
-        self.assertEqual(parse_datetime(pe2['date_play']),
-                         now + self.pe1.song.duration - play_duration)
+        self.assertEqual(
+            parse_datetime(pe2["date_play"]),
+            now + self.pe1.song.duration - play_duration,
+        )
 
     def test_get_playlist_entries_list_forbidden(self):
         """Test to verify playlist entries list forbidden when not logged in
@@ -130,8 +138,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         mocked_broadcast_to_channel.assert_not_called()
 
     @patch("playlist.views.broadcast_to_channel")
-    def test_post_create_playlist_entry_empty(self,
-                                              mocked_broadcast_to_channel):
+    def test_post_create_playlist_entry_empty(self, mocked_broadcast_to_channel):
         """Test to create a playlist entry when the playlist is empty
 
         The created song should be requested to play immediately.
@@ -156,9 +163,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
 
         # check the player was requested to play this entry immediately
         mocked_broadcast_to_channel.assert_called_with(
-            'playlist.device',
-            'send_playlist_entry',
-            {'playlist_entry': new_entry}
+            "playlist.device", "send_playlist_entry", {"playlist_entry": new_entry}
         )
 
     def test_post_create_playlist_entry_karaoke_stop_forbidden(self):
@@ -174,9 +179,8 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @patch('playlist.views.settings')
-    def test_post_create_playlist_entry_playlist_full_forbidden(
-            self, mock_settings):
+    @patch("playlist.views.settings")
+    def test_post_create_playlist_entry_playlist_full_forbidden(self, mock_settings):
         """Test to verify playlist entry creation
         """
         # mock the settings
@@ -212,7 +216,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
         # request to add a new entry
-        response = self.client.post(self.url, {'song_id': self.song1.id})
+        response = self.client.post(self.url, {"song_id": self.song1.id})
 
         # assert that the request is accepted
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -234,7 +238,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
         # request to add a new entry
-        response = self.client.post(self.url, {'song_id': self.song1.id})
+        response = self.client.post(self.url, {"song_id": self.song1.id})
 
         # assert that the request is denied
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -256,7 +260,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
         # request to add a new entry
-        response = self.client.post(self.url, {'song_id': self.song1.id})
+        response = self.client.post(self.url, {"song_id": self.song1.id})
 
         # assert that the response and the database
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -278,16 +282,19 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
         # request to add a new entry
-        response = self.client.post(self.url, {'song_id': self.song1.id})
+        response = self.client.post(self.url, {"song_id": self.song1.id})
 
         # assert that the response and the database
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(PlaylistEntry.objects.count(), 5)
 
-    @patch('playlist.views.datetime',
-           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
+    @patch(
+        "playlist.views.datetime",
+        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
+    )
     def test_post_create_playlist_entry_date_stop_forbidden_playlist_playing(
-            self, mocked_datetime):
+        self, mocked_datetime
+    ):
         """Test user cannot add song to playlist after its date stop
 
         Test that only short enough songs can be added.
@@ -313,14 +320,14 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
         # request to add a new entry which is too long
-        response = self.client.post(self.url, {'song_id': self.song2.id})
+        response = self.client.post(self.url, {"song_id": self.song2.id})
 
         # assert that the request is denied
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
         # request to add a new entry which is short enough
-        response = self.client.post(self.url, {'song_id': self.song1.id})
+        response = self.client.post(self.url, {"song_id": self.song1.id})
 
         # assert that the request is denied
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -352,7 +359,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # pre assert
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(len(response.data["results"]), 2)
 
         # Simulate a player playing next song
         self.player_play_next_song()
@@ -360,10 +367,10 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         # Get playlist entries list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(len(response.data["results"]), 1)
 
         # Playlist entries are in order of creation
-        self.check_playlist_entry_json(response.data['results'][0], self.pe2)
+        self.check_playlist_entry_json(response.data["results"][0], self.pe2)
 
     def test_post_create_playlist_entry_disabled_tag(self):
         """Test playlist entry creation for a song with a disabled tag
@@ -387,9 +394,9 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         The user is manager for playlist and library, the creation is allowed.
         """
         # Login as playlist user
-        user = self.create_user('manager',
-                                playlist_level=UserModel.MANAGER,
-                                library_level=UserModel.MANAGER)
+        user = self.create_user(
+            "manager", playlist_level=UserModel.MANAGER, library_level=UserModel.MANAGER
+        )
         self.authenticate(user)
 
         # Set tag1 disabled
@@ -402,23 +409,13 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
 
 
 class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
-
     def setUp(self):
         self.create_test_data()
 
         # Create urls to access these playlist entries
-        self.url_pe1 = reverse(
-            'playlist-entries-detail',
-            kwargs={
-                "pk": self.pe1.id})
-        self.url_pe2 = reverse(
-            'playlist-entries-detail',
-            kwargs={
-                "pk": self.pe2.id})
-        self.url_pe3 = reverse(
-            'playlist-entries-detail',
-            kwargs={
-                "pk": self.pe3.id})
+        self.url_pe1 = reverse("playlist-entries-detail", kwargs={"pk": self.pe1.id})
+        self.url_pe2 = reverse("playlist-entries-detail", kwargs={"pk": self.pe2.id})
+        self.url_pe3 = reverse("playlist-entries-detail", kwargs={"pk": self.pe3.id})
 
     def test_delete_playlist_entry_manager(self):
         """Test to verify playlist entry deletion as playlist manager
@@ -517,8 +514,7 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
         self.assertListEqual(playlist, [self.pe1, self.pe2])
 
         # Reorder pe2 before pe1
-        response = self.client.put(self.url_pe2,
-                                   data={'before_id': self.pe1.id})
+        response = self.client.put(self.url_pe2, data={"before_id": self.pe1.id})
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -537,8 +533,7 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
         self.assertListEqual(playlist, [self.pe1, self.pe2])
 
         # Reorder pe1 after pe2
-        response = self.client.put(self.url_pe1,
-                                   data={'after_id': self.pe2.id})
+        response = self.client.put(self.url_pe1, data={"after_id": self.pe2.id})
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -553,8 +548,7 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.manager)
 
         # Attempt to reorder pe2 before pe3
-        response = self.client.put(self.url_pe2,
-                                   data={'before_id': self.pe3.id})
+        response = self.client.put(self.url_pe2, data={"before_id": self.pe3.id})
 
         # Played entry not found
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -569,8 +563,7 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.manager)
 
         # Attempt to reorder pe2 before pe1
-        response = self.client.put(self.url_pe2,
-                                   data={'before_id': self.pe1.id})
+        response = self.client.put(self.url_pe2, data={"before_id": self.pe1.id})
 
         # Played entry not found
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -582,8 +575,7 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.p_user)
 
         # Attempt to reorder pe2 before pe1
-        response = self.client.put(self.url_pe2,
-                                   data={'before_id': self.pe1.id})
+        response = self.client.put(self.url_pe2, data={"before_id": self.pe1.id})
 
         # Played entry not found
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -595,9 +587,9 @@ class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.manager)
 
         # Attempt to reorder pe2 before and after pe1
-        response = self.client.put(self.url_pe2,
-                                   data={'before_id': self.pe1.id,
-                                         'after_id': self.pe1.id})
+        response = self.client.put(
+            self.url_pe2, data={"before_id": self.pe1.id, "after_id": self.pe1.id}
+        )
 
         # Validation error
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

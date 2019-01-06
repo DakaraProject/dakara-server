@@ -15,9 +15,8 @@ UserModel = get_user_model()
 class CurrentUserView(views.APIView):
     """View of the current user
     """
-    permission_classes = [
-        IsAuthenticated
-    ]
+
+    permission_classes = [IsAuthenticated]
     serializer_class = serializers.UserSerializer
 
     def get(self, request):
@@ -32,28 +31,27 @@ class CurrentUserView(views.APIView):
 class UserListView(generics.ListCreateAPIView):
     """List and creation of users
     """
+
     model = UserModel
-    queryset = UserModel.objects.all().order_by('username')
+    queryset = UserModel.objects.all().order_by("username")
     serializer_class = serializers.UserSerializer
     pagination_class = UsersPagination
-    permission_classes = [
-        permissions.IsUsersManagerOrReadOnly
-    ]
+    permission_classes = [permissions.IsUsersManagerOrReadOnly]
 
 
 class UserView(generics.RetrieveUpdateDestroyAPIView):
     """Edition and view of a user
     """
+
     model = UserModel
     queryset = UserModel.objects.all()
     permission_classes = [
         permissions.IsUsersManagerOrReadOnly,
-        permissions.IsNotSelfOrReadOnly
+        permissions.IsNotSelfOrReadOnly,
     ]
 
     def get_serializer_class(self):
-        if self.request is not None and \
-           self.request.method in ('PUT', 'PATCH'):
+        if self.request is not None and self.request.method in ("PUT", "PATCH"):
             return serializers.UserForManagerSerializer
 
         return serializers.UserSerializer
@@ -62,9 +60,8 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
 class PasswordView(generics.UpdateAPIView):
     """Edition of a user password
     """
+
     model = UserModel
     queryset = UserModel.objects.all()
     serializer_class = serializers.PasswordSerializer
-    permission_classes = [
-        permissions.IsSelf
-    ]
+    permission_classes = [permissions.IsSelf]

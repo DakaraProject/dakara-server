@@ -11,7 +11,8 @@ from playlist.models import Player, PlaylistEntry
 
 class PlayerStatusViewTestCase(BaseAPITestCase):
     """Test the view of the player"""
-    url = reverse('playlist-player-status')
+
+    url = reverse("playlist-player-status")
 
     def setUp(self):
         self.create_test_data()
@@ -28,10 +29,10 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         # assert the status of the player
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsNone(response.data['playlist_entry'])
-        self.assertEqual(response.data['timing'], 0)
-        self.assertFalse(response.data['paused'])
-        self.assertEqual(parse_datetime(response.data['date']), player.date)
+        self.assertIsNone(response.data["playlist_entry"])
+        self.assertEqual(response.data["timing"], 0)
+        self.assertFalse(response.data["paused"])
+        self.assertEqual(parse_datetime(response.data["date"]), player.date)
 
     def test_get_status_in_transition(self):
         """Test to access the player status when in transition"""
@@ -43,11 +44,11 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         # assert the status of the player
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
-        self.assertTrue(response.data['in_transition'])
-        self.assertEqual(response.data['timing'], 0)
-        self.assertFalse(response.data['paused'])
-        self.assertEqual(parse_datetime(response.data['date']), player.date)
+        self.assertEqual(response.data["playlist_entry"]["id"], self.pe1.id)
+        self.assertTrue(response.data["in_transition"])
+        self.assertEqual(response.data["timing"], 0)
+        self.assertFalse(response.data["paused"])
+        self.assertEqual(parse_datetime(response.data["date"]), player.date)
 
     def test_get_status_in_play_with_timing(self):
         """Test to access the player status when in play with timing"""
@@ -59,39 +60,41 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         # assert the status of the player
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
-        self.assertFalse(response.data['in_transition'])
-        self.assertEqual(response.data['timing'], 2)
-        self.assertFalse(response.data['paused'])
-        self.assertEqual(parse_datetime(response.data['date']), player.date)
+        self.assertEqual(response.data["playlist_entry"]["id"], self.pe1.id)
+        self.assertFalse(response.data["in_transition"])
+        self.assertEqual(response.data["timing"], 2)
+        self.assertFalse(response.data["paused"])
+        self.assertEqual(parse_datetime(response.data["date"]), player.date)
 
     def test_get_status_in_pause_with_timing(self):
         """Test to access the player status when in pause with timing"""
         self.authenticate(self.user)
 
         # set the player in play
-        player = self.player_play_next_song(timing=timedelta(seconds=5),
-                                            paused=True)
+        player = self.player_play_next_song(timing=timedelta(seconds=5), paused=True)
 
         # assert the status of the player
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
-        self.assertFalse(response.data['in_transition'])
-        self.assertEqual(response.data['timing'], 5)
-        self.assertTrue(response.data['paused'])
-        self.assertEqual(parse_datetime(response.data['date']), player.date)
+        self.assertEqual(response.data["playlist_entry"]["id"], self.pe1.id)
+        self.assertFalse(response.data["in_transition"])
+        self.assertEqual(response.data["timing"], 5)
+        self.assertTrue(response.data["paused"])
+        self.assertEqual(parse_datetime(response.data["date"]), player.date)
 
     def test_get_status_forbidden(self):
         """Test to access the player status when not loged in"""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @patch('playlist.views.broadcast_to_channel')
-    @patch('playlist.models.datetime',
-           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
-    def test_put_status_started_transition(self, mocked_datetime,
-                                           mocked_broadcast_to_channel):
+    @patch("playlist.views.broadcast_to_channel")
+    @patch(
+        "playlist.models.datetime",
+        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
+    )
+    def test_put_status_started_transition(
+        self, mocked_datetime, mocked_broadcast_to_channel
+    ):
         """Test player started transition"""
         self.authenticate(self.player)
 
@@ -100,18 +103,21 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         mocked_datetime.now.return_value = now
 
         # perform the request
-        response = self.client.put(self.url, data={
-            'event': 'started_transition',
-            'playlist_entry_id': self.pe1.id,
-            'timing': 0,
-        })
+        response = self.client.put(
+            self.url,
+            data={
+                "event": "started_transition",
+                "playlist_entry_id": self.pe1.id,
+                "timing": 0,
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
-        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
-        self.assertFalse(response.data['paused'])
-        self.assertTrue(response.data['in_transition'])
-        self.assertEqual(response.data['timing'], 0)
+        self.assertEqual(response.data["playlist_entry"]["id"], self.pe1.id)
+        self.assertFalse(response.data["paused"])
+        self.assertTrue(response.data["in_transition"])
+        self.assertEqual(response.data["timing"], 0)
 
         # assert the result
         player = Player.get_or_create()
@@ -123,7 +129,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
 
         # assert an event has been broadcasted to the front
         mocked_broadcast_to_channel.assert_called_with(
-            'playlist.front', 'send_player_status', {'player': player}
+            "playlist.front", "send_player_status", {"player": player}
         )
 
     def test_put_status_started_transition_with_timing(self):
@@ -131,28 +137,34 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.authenticate(self.player)
 
         # perform the request
-        response = self.client.put(self.url, data={
-            'event': 'started_transition',
-            'playlist_entry_id': self.pe1.id,
-            'timing': 2,
-        })
+        response = self.client.put(
+            self.url,
+            data={
+                "event": "started_transition",
+                "playlist_entry_id": self.pe1.id,
+                "timing": 2,
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
-        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
-        self.assertFalse(response.data['paused'])
-        self.assertTrue(response.data['in_transition'])
-        self.assertEqual(response.data['timing'], 0)
+        self.assertEqual(response.data["playlist_entry"]["id"], self.pe1.id)
+        self.assertFalse(response.data["paused"])
+        self.assertTrue(response.data["in_transition"])
+        self.assertEqual(response.data["timing"], 0)
 
         # assert the result
         player = Player.get_or_create()
         self.assertEqual(player.timing, timedelta(0))
 
-    @patch('playlist.views.broadcast_to_channel')
-    @patch('playlist.models.datetime',
-           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
-    def test_put_status_started_song(self, mocked_datetime,
-                                     mocked_broadcast_to_channel):
+    @patch("playlist.views.broadcast_to_channel")
+    @patch(
+        "playlist.models.datetime",
+        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
+    )
+    def test_put_status_started_song(
+        self, mocked_datetime, mocked_broadcast_to_channel
+    ):
         """Test player finished transition"""
         self.authenticate(self.player)
 
@@ -164,18 +176,21 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.player_play_next_song(in_transition=True)
 
         # perform the request
-        response = self.client.put(self.url, data={
-            'event': 'started_song',
-            'playlist_entry_id': self.pe1.id,
-            'timing': 0,
-        })
+        response = self.client.put(
+            self.url,
+            data={
+                "event": "started_song",
+                "playlist_entry_id": self.pe1.id,
+                "timing": 0,
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
-        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
-        self.assertFalse(response.data['paused'])
-        self.assertFalse(response.data['in_transition'])
-        self.assertEqual(response.data['timing'], 0)
+        self.assertEqual(response.data["playlist_entry"]["id"], self.pe1.id)
+        self.assertFalse(response.data["paused"])
+        self.assertFalse(response.data["in_transition"])
+        self.assertEqual(response.data["timing"], 0)
 
         # assert the result
         player = Player.get_or_create()
@@ -187,14 +202,15 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
 
         # assert an event has been broadcasted to the front
         mocked_broadcast_to_channel.assert_called_with(
-            'playlist.front', 'send_player_status', {'player': player}
+            "playlist.front", "send_player_status", {"player": player}
         )
 
-    @patch('playlist.views.broadcast_to_channel')
-    @patch('playlist.models.datetime',
-           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
-    def test_put_status_resumed(self, mocked_datetime,
-                                mocked_broadcast_to_channel):
+    @patch("playlist.views.broadcast_to_channel")
+    @patch(
+        "playlist.models.datetime",
+        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
+    )
+    def test_put_status_resumed(self, mocked_datetime, mocked_broadcast_to_channel):
         """Test event played resumed"""
         self.authenticate(self.player)
 
@@ -206,18 +222,17 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.player_play_next_song(timing=timedelta(seconds=1), paused=True)
 
         # perform the request
-        response = self.client.put(self.url, data={
-            'event': 'resumed',
-            'playlist_entry_id': self.pe1.id,
-            'timing': 2,
-        })
+        response = self.client.put(
+            self.url,
+            data={"event": "resumed", "playlist_entry_id": self.pe1.id, "timing": 2},
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
-        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
-        self.assertFalse(response.data['paused'])
-        self.assertFalse(response.data['in_transition'])
-        self.assertEqual(response.data['timing'], 2)
+        self.assertEqual(response.data["playlist_entry"]["id"], self.pe1.id)
+        self.assertFalse(response.data["paused"])
+        self.assertFalse(response.data["in_transition"])
+        self.assertEqual(response.data["timing"], 2)
 
         # assert the result
         player = Player.get_or_create()
@@ -229,14 +244,15 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
 
         # assert an event has been broadcasted to the front
         mocked_broadcast_to_channel.assert_called_with(
-            'playlist.front', 'send_player_status', {'player': player}
+            "playlist.front", "send_player_status", {"player": player}
         )
 
-    @patch('playlist.views.broadcast_to_channel')
-    @patch('playlist.models.datetime',
-           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
-    def test_put_status_paused(self, mocked_datetime,
-                               mocked_broadcast_to_channel):
+    @patch("playlist.views.broadcast_to_channel")
+    @patch(
+        "playlist.models.datetime",
+        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
+    )
+    def test_put_status_paused(self, mocked_datetime, mocked_broadcast_to_channel):
         """Test event paused player"""
         self.authenticate(self.player)
 
@@ -248,18 +264,17 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.player_play_next_song(timing=timedelta(seconds=1))
 
         # perform the request
-        response = self.client.put(self.url, data={
-            'event': 'paused',
-            'playlist_entry_id': self.pe1.id,
-            'timing': 2,
-        })
+        response = self.client.put(
+            self.url,
+            data={"event": "paused", "playlist_entry_id": self.pe1.id, "timing": 2},
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
-        self.assertEqual(response.data['playlist_entry']['id'], self.pe1.id)
-        self.assertTrue(response.data['paused'])
-        self.assertFalse(response.data['in_transition'])
-        self.assertEqual(response.data['timing'], 2)
+        self.assertEqual(response.data["playlist_entry"]["id"], self.pe1.id)
+        self.assertTrue(response.data["paused"])
+        self.assertFalse(response.data["in_transition"])
+        self.assertEqual(response.data["timing"], 2)
 
         # assert the result
         player = Player.get_or_create()
@@ -271,10 +286,10 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
 
         # assert an event has been broadcasted to the front
         mocked_broadcast_to_channel.assert_called_with(
-            'playlist.front', 'send_player_status', {'player': player}
+            "playlist.front", "send_player_status", {"player": player}
         )
 
-    @patch('playlist.views.broadcast_to_channel')
+    @patch("playlist.views.broadcast_to_channel")
     def test_put_status_finished(self, mocked_broadcast_to_channel):
         """Test event finished"""
         self.authenticate(self.player)
@@ -287,10 +302,9 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.assertFalse(pe1.was_played)
 
         # perform the request
-        response = self.client.put(self.url, data={
-            'event': 'finished',
-            'playlist_entry_id': self.pe1.id,
-        })
+        response = self.client.put(
+            self.url, data={"event": "finished", "playlist_entry_id": self.pe1.id}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the player has not changed
@@ -298,26 +312,31 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.assertIsNone(player.playlist_entry)
 
         # assert the response
-        self.assertIsNone(response.data['playlist_entry'])
-        self.assertFalse(response.data['paused'])
-        self.assertFalse(response.data['in_transition'])
-        self.assertEqual(response.data['timing'], 0)
+        self.assertIsNone(response.data["playlist_entry"])
+        self.assertFalse(response.data["paused"])
+        self.assertFalse(response.data["in_transition"])
+        self.assertEqual(response.data["timing"], 0)
 
         # assert the result
         pe1 = PlaylistEntry.objects.get(pk=self.pe1.id)
         self.assertTrue(pe1.was_played)
 
         # assert an event has been broadcasted to the device
-        mocked_broadcast_to_channel.assert_has_calls([
-            call('playlist.device', 'handle_next'),
-            call('playlist.front', 'send_player_status', {'player': player}),
-        ])
+        mocked_broadcast_to_channel.assert_has_calls(
+            [
+                call("playlist.device", "handle_next"),
+                call("playlist.front", "send_player_status", {"player": player}),
+            ]
+        )
 
-    @patch('playlist.views.broadcast_to_channel')
-    @patch('playlist.models.datetime',
-           side_effect=lambda *args, **kwargs: datetime(*args, **kwargs))
-    def test_put_status_could_not_play(self, mocked_datetime,
-                                       mocked_broadcast_to_channel):
+    @patch("playlist.views.broadcast_to_channel")
+    @patch(
+        "playlist.models.datetime",
+        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
+    )
+    def test_put_status_could_not_play(
+        self, mocked_datetime, mocked_broadcast_to_channel
+    ):
         """Test event could not play"""
         self.authenticate(self.player)
 
@@ -326,17 +345,16 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         mocked_datetime.now.return_value = now
 
         # perform the request
-        response = self.client.put(self.url, data={
-            'event': 'could_not_play',
-            'playlist_entry_id': self.pe1.id,
-        })
+        response = self.client.put(
+            self.url, data={"event": "could_not_play", "playlist_entry_id": self.pe1.id}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
-        self.assertIsNone(response.data['playlist_entry'])
-        self.assertFalse(response.data['paused'])
-        self.assertFalse(response.data['in_transition'])
-        self.assertEqual(response.data['timing'], 0)
+        self.assertIsNone(response.data["playlist_entry"])
+        self.assertFalse(response.data["paused"])
+        self.assertFalse(response.data["in_transition"])
+        self.assertEqual(response.data["timing"], 0)
 
         # assert the result
         player = Player.get_or_create()
@@ -352,7 +370,7 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
 
         # assert an event has been broadcasted to the front
         mocked_broadcast_to_channel.assert_called_with(
-            'playlist.front', 'send_player_status', {'player': player}
+            "playlist.front", "send_player_status", {"player": player}
         )
 
     def test_put_status_failed_wrong_playlist_entry(self):
@@ -363,11 +381,10 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         player_old = self.player_play_next_song(timing=timedelta(seconds=1))
 
         # perform the request
-        response = self.client.put(self.url, data={
-            'event': 'finished',
-            'playlist_entry_id': self.pe2.id,
-            'timing': 2,
-        })
+        response = self.client.put(
+            self.url,
+            data={"event": "finished", "playlist_entry_id": self.pe2.id, "timing": 2},
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # assert the result
@@ -376,21 +393,27 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
 
     def test_put_status_forbidden_not_authenticated(self):
         """Test to set the player when not authenticated"""
-        response = self.client.put(self.url, data={
-            'event': 'started_song',
-            'playlist_entry_id': self.pe1.id,
-            'timing': 2,
-        })
+        response = self.client.put(
+            self.url,
+            data={
+                "event": "started_song",
+                "playlist_entry_id": self.pe1.id,
+                "timing": 2,
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_put_status_forbidden_not_player(self):
         """Test to set the player when not a player user"""
         self.authenticate(self.user)
-        response = self.client.put(self.url, data={
-            'event': 'started_song',
-            'playlist_entry_id': self.pe1.id,
-            'timing': 2,
-        })
+        response = self.client.put(
+            self.url,
+            data={
+                "event": "started_song",
+                "playlist_entry_id": self.pe1.id,
+                "timing": 2,
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_patch_status_invalid_missing_event(self):
@@ -399,10 +422,9 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.authenticate(self.player)
 
         # send a status without event
-        response = self.client.patch(self.url, data={
-            'playlist_entry_id': self.pe1.id,
-            'timing': 2,
-        })
+        response = self.client.patch(
+            self.url, data={"playlist_entry_id": self.pe1.id, "timing": 2}
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_status_invalid_wrong_event(self):
@@ -411,11 +433,10 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.authenticate(self.player)
 
         # send a status without event
-        response = self.client.put(self.url, data={
-            'event': 'invalid',
-            'playlist_entry_id': self.pe1.id,
-            'timing': 2,
-        })
+        response = self.client.put(
+            self.url,
+            data={"event": "invalid", "playlist_entry_id": self.pe1.id, "timing": 2},
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_status_invalid_incoherent_event_idle(self):
@@ -426,10 +447,9 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         # the player is idle
 
         # send a status for finished song
-        response = self.client.put(self.url, data={
-            'event': 'finished',
-            'playlist_entry_id': self.pe1.id,
-        })
+        response = self.client.put(
+            self.url, data={"event": "finished", "playlist_entry_id": self.pe1.id}
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_status_invalid_incoherent_event_play(self):
@@ -441,8 +461,8 @@ class PlayerStatusViewTestCase(BaseAPITestCase):
         self.player_play_next_song()
 
         # send a status for finished song
-        response = self.client.put(self.url, data={
-            'event': 'started_transition',
-            'playlist_entry_id': self.pe1.id,
-        })
+        response = self.client.put(
+            self.url,
+            data={"event": "started_transition", "playlist_entry_id": self.pe1.id},
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

@@ -5,16 +5,15 @@ import subprocess
 class FFmpegWrapper:
     """Wrapper for FFmpeg
     """
+
     @staticmethod
     def is_available():
         """Check if the parser is callable
         """
         try:
-            with open(os.devnull, 'w') as tempf:
+            with open(os.devnull, "w") as tempf:
                 subprocess.check_call(
-                    ["ffmpeg", "-version"],
-                    stdout=tempf,
-                    stderr=tempf
+                    ["ffmpeg", "-version"], stdout=tempf, stderr=tempf
                 )
 
                 return True
@@ -37,16 +36,18 @@ class FFmpegWrapper:
             (bool) true if the extraction process is successful.
         """
         try:
-            with open(os.devnull, 'w') as tempf:
+            with open(os.devnull, "w") as tempf:
                 subprocess.check_call(
                     [
                         "ffmpeg",
-                        "-i", input_file_path,
-                        "-map", "0:s:0",
-                        output_file_path
+                        "-i",
+                        input_file_path,
+                        "-map",
+                        "0:s:0",
+                        output_file_path,
                     ],
                     stdout=tempf,
-                    stderr=tempf
+                    stderr=tempf,
                 )
 
                 return True

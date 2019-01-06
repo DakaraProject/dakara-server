@@ -7,20 +7,16 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('playlist', '0004_auto_20180402_1449'),
-    ]
+    dependencies = [("playlist", "0004_auto_20180402_1449")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='playlistentry',
-            options={'ordering': ('order',)},
+            name="playlistentry", options={"ordering": ("order",)}
         ),
         migrations.AddField(
-            model_name='playlistentry',
-            name='order',
-            field=models.PositiveIntegerField(db_index=True, default=1,
-                                              editable=False),
+            model_name="playlistentry",
+            name="order",
+            field=models.PositiveIntegerField(db_index=True, default=1, editable=False),
             preserve_default=False,
         ),
     ]

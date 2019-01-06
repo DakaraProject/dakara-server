@@ -26,14 +26,16 @@ class LibraryPagination(PageNumberPagination):
     """
 
     def get_paginated_response(self, data):
-        return Response({
-            'pagination': {
-                'current': self.page.number,
-                'last': self.page.paginator.num_pages,
-            },
-            'count': self.page.paginator.count,
-            'results': data,
-        })
+        return Response(
+            {
+                "pagination": {
+                    "current": self.page.number,
+                    "last": self.page.paginator.num_pages,
+                },
+                "count": self.page.paginator.count,
+                "results": data,
+            }
+        )
 
 
 class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
@@ -55,7 +57,7 @@ class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
         # now, they have to be passed to the response
         # this is why this function in overloaded
         if self.query_parsed is not None:
-            response.data['query'] = self.query_parsed
+            response.data["query"] = self.query_parsed
 
         return response
 
@@ -63,6 +65,7 @@ class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
 class SongListView(ListCreateAPIViewWithQueryParsed):
     """List of songs
     """
+
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     serializer_class = serializers.SongSerializer
@@ -75,16 +78,17 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
 
         # hide all songs with disabled tags for non-managers or non-superusers
         user = self.request.user
-        if not (user.is_superuser or
-                user.has_library_permission_level(UserModel.MANAGER)):
+        if not (
+            user.is_superuser or user.has_library_permission_level(UserModel.MANAGER)
+        ):
             query_set = query_set.exclude(tags__disabled=True)
 
         # if 'query' is in the query string then perform search otherwise
         # return all songs
-        if 'query' not in self.request.query_params:
-            return query_set.order_by(Lower('title'))
+        if "query" not in self.request.query_params:
+            return query_set.order_by(Lower("title"))
 
-        query = self.request.query_params.get('query', None)
+        query = self.request.query_params.get("query", None)
         if query:
             # the query can use a syntax, the query language, to specify which
             # term to search and where
@@ -95,48 +99,50 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
             query_list = []
             query_list_many = []
             # specific terms of the research, i.e. artists, works and titles
-            for artist in res['artist']['contains']:
+            for artist in res["artist"]["contains"]:
                 query_list_many.append(Q(artists__name__icontains=artist))
 
-            for artist in res['artist']['exact']:
+            for artist in res["artist"]["exact"]:
                 query_list_many.append(Q(artists__name__iexact=artist))
 
-            for title in res['title']['contains']:
+            for title in res["title"]["contains"]:
                 query_list.append(Q(title__icontains=title))
 
-            for title in res['title']['exact']:
+            for title in res["title"]["exact"]:
                 query_list.append(Q(title__iexact=title))
 
-            for work in res['work']['contains']:
+            for work in res["work"]["contains"]:
                 query_list.append(
-                    Q(works__title__icontains=work) |
-                    Q(works__alternative_title__title__icontains=work)
+                    Q(works__title__icontains=work)
+                    | Q(works__alternative_title__title__icontains=work)
                 )
 
-            for work in res['work']['exact']:
+            for work in res["work"]["exact"]:
                 query_list.append(
-                    Q(works__title__iexact=work) |
-                    Q(works__alternative_title__title__iexact=work)
+                    Q(works__title__iexact=work)
+                    | Q(works__alternative_title__title__iexact=work)
                 )
 
             # specific terms of the research derivating from work
-            for query_name, search_keywords in res['work_type'].items():
-                for keyword in search_keywords['contains']:
+            for query_name, search_keywords in res["work_type"].items():
+                for keyword in search_keywords["contains"]:
                     query_list.append(
                         (
-                            Q(works__title__icontains=keyword) |
-                            Q(works__alternative_title__title__icontains=keyword)  # noqa E501
-                        ) &
-                        Q(works__work_type__query_name=query_name)
+                            Q(works__title__icontains=keyword)
+                            | Q(
+                                works__alternative_title__title__icontains=keyword
+                            )  # noqa E501
+                        )
+                        & Q(works__work_type__query_name=query_name)
                     )
 
-                for keyword in search_keywords['exact']:
+                for keyword in search_keywords["exact"]:
                     query_list.append(
                         (
-                            Q(works__title__iexact=keyword) |
-                            Q(works__alternative_title__title__iexact=keyword)
-                        ) &
-                        Q(works__work_type__query_name=query_name)
+                            Q(works__title__iexact=keyword)
+                            | Q(works__alternative_title__title__iexact=keyword)
+                        )
+                        & Q(works__work_type__query_name=query_name)
                     )
 
                 # one may want to factor the duplicated query on the work type
@@ -146,19 +152,19 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
                 # heavier, for no practical reason
 
             # unspecific terms of the research
-            for remain in res['remaining']:
+            for remain in res["remaining"]:
                 query_list.append(
-                    Q(title__icontains=remain) |
-                    Q(artists__name__icontains=remain) |
-                    Q(works__title__icontains=remain) |
-                    Q(works__alternative_title__title__icontains=remain) |
-                    Q(version__icontains=remain) |
-                    Q(detail__icontains=remain) |
-                    Q(detail_video__icontains=remain)
+                    Q(title__icontains=remain)
+                    | Q(artists__name__icontains=remain)
+                    | Q(works__title__icontains=remain)
+                    | Q(works__alternative_title__title__icontains=remain)
+                    | Q(version__icontains=remain)
+                    | Q(detail__icontains=remain)
+                    | Q(detail_video__icontains=remain)
                 )
 
             # tags
-            for tag in res['tag']:
+            for tag in res["tag"]:
                 query_list_many.append(Q(tags__name=tag))
 
             # now, gather the query objects
@@ -174,12 +180,13 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
             # saving the parsed query to give it back to the client
             self.query_parsed = res
 
-        return query_set.distinct().order_by(Lower('title'))
+        return query_set.distinct().order_by(Lower("title"))
 
 
 class SongView(RetrieveUpdateDestroyAPIView):
     """Edition and display of a song
     """
+
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     queryset = models.Song.objects.all()
@@ -189,6 +196,7 @@ class SongView(RetrieveUpdateDestroyAPIView):
 class ArtistListView(ListCreateAPIViewWithQueryParsed):
     """List of artists
     """
+
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     serializer_class = serializers.ArtistWithCountSerializer
@@ -201,10 +209,10 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
 
         # if 'query' is in the query string then perform search return results
         # of the corresponding query
-        if 'query' not in self.request.query_params:
+        if "query" not in self.request.query_params:
             return query_set.order_by(Lower("name"))
 
-        query = self.request.query_params.get('query', None)
+        query = self.request.query_params.get("query", None)
         if query:
             # there is no need for query language for artists
             # it is used to split terms and for uniformity
@@ -212,9 +220,7 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
             query_list = []
             # only unspecific terms are used
             for remain in res:
-                query_list.append(
-                    Q(name__icontains=remain)
-                )
+                query_list.append(Q(name__icontains=remain))
 
             # gather the query objects
             filter_query = Q()
@@ -223,7 +229,7 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
 
             query_set = query_set.filter(filter_query)
             # saving the parsed query to give it back to the client
-            self.query_parsed = {'remaining': res}
+            self.query_parsed = {"remaining": res}
 
         return query_set.order_by(Lower("name"))
 
@@ -231,6 +237,7 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
 class WorkListView(ListCreateAPIViewWithQueryParsed):
     """List of works
     """
+
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     serializer_class = serializers.WorkSerializer
@@ -243,17 +250,17 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
 
         # if 'type' is in the query string
         # then filter work type
-        if 'type' in self.request.query_params:
-            work_type = self.request.query_params.get('type', None)
+        if "type" in self.request.query_params:
+            work_type = self.request.query_params.get("type", None)
             if work_type:
                 query_set = query_set.filter(work_type__query_name=work_type)
 
         # if 'query' is in the query string then perform search return results
         # of the corresponding query and type filter
-        if 'query' not in self.request.query_params:
+        if "query" not in self.request.query_params:
             return query_set.order_by(Lower("title"), Lower("subtitle"))
 
-        query = self.request.query_params.get('query', None)
+        query = self.request.query_params.get("query", None)
         if query:
             # there is no need for query language for works it is used to split
             # terms and for uniformity
@@ -262,9 +269,9 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
             # only unspecific terms are used
             for remain in res:
                 query_list.append(
-                    Q(title__icontains=remain) |
-                    Q(subtitle__icontains=remain) |
-                    Q(alternative_title__title__icontains=remain)
+                    Q(title__icontains=remain)
+                    | Q(subtitle__icontains=remain)
+                    | Q(alternative_title__title__icontains=remain)
                 )
 
             # gather the query objects
@@ -274,7 +281,7 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
 
             query_set = query_set.filter(filter_query)
             # saving the parsed query to give it back to the client
-            self.query_parsed = {'remaining': res}
+            self.query_parsed = {"remaining": res}
 
         return query_set.distinct().order_by(Lower("title"), Lower("subtitle"))
 
@@ -282,6 +289,7 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
 class WorkTypeListView(ListCreateAPIView):
     """List of work types
     """
+
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     queryset = models.WorkType.objects.all().order_by(Lower("name"))
@@ -291,6 +299,7 @@ class WorkTypeListView(ListCreateAPIView):
 class SongTagListView(ListAPIView):
     """List of song tags
     """
+
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     queryset = models.SongTag.objects.all().order_by(Lower("name"))
@@ -301,6 +310,7 @@ class SongTagListView(ListAPIView):
 class SongTagView(UpdateAPIView):
     """Update a song tag
     """
+
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     queryset = models.SongTag.objects.all()

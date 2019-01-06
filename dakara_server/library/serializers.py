@@ -2,8 +2,15 @@ import os
 
 from rest_framework import serializers
 
-from library.models import Song, Artist, Work, SongWorkLink, WorkType,\
-    SongTag, WorkAlternativeTitle
+from library.models import (
+    Song,
+    Artist,
+    Work,
+    SongWorkLink,
+    WorkType,
+    SongTag,
+    WorkAlternativeTitle,
+)
 
 
 class SecondsDurationField(serializers.DurationField):
@@ -21,12 +28,10 @@ class ArtistSerializer(serializers.ModelSerializer):
 
     Used in song representation.
     """
+
     class Meta:
         model = Artist
-        fields = (
-            'id',
-            'name',
-        )
+        fields = ("id", "name")
 
 
 class ArtistWithCountSerializer(serializers.ModelSerializer):
@@ -35,15 +40,12 @@ class ArtistWithCountSerializer(serializers.ModelSerializer):
     Including a song count.
     Used in artists listing.
     """
+
     song_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Artist
-        fields = (
-            'id',
-            'name',
-            'song_count'
-        )
+        fields = ("id", "name", "song_count")
 
     @staticmethod
     def get_song_count(artist):
@@ -55,59 +57,50 @@ class ArtistWithCountSerializer(serializers.ModelSerializer):
 class WorkAlternativeTitleSerializer(serializers.ModelSerializer):
     """Work alternative title serialize
     """
+
     class Meta:
         model = WorkAlternativeTitle
-        fields = ('title',)
+        fields = ("title",)
 
 
 class WorkTypeSerializer(serializers.ModelSerializer):
     """Work type serializer
     """
+
     class Meta:
         model = WorkType
-        fields = (
-            'name',
-            'name_plural',
-            'query_name',
-            'icon_name'
-        )
+        fields = ("name", "name_plural", "query_name", "icon_name")
 
 
 class WorkNoCountSerializer(serializers.ModelSerializer):
     """Work serializer
     """
-    alternative_titles = WorkAlternativeTitleSerializer(many=True,
-                                                        read_only=True)
+
+    alternative_titles = WorkAlternativeTitleSerializer(many=True, read_only=True)
     work_type = WorkTypeSerializer(many=False, read_only=True)
 
     class Meta:
         model = Work
-        fields = (
-            'id',
-            'title',
-            'subtitle',
-            'alternative_titles',
-            'work_type'
-        )
+        fields = ("id", "title", "subtitle", "alternative_titles", "work_type")
 
 
 class WorkSerializer(serializers.ModelSerializer):
     """Work serializer
     """
-    alternative_titles = WorkAlternativeTitleSerializer(many=True,
-                                                        read_only=True)
+
+    alternative_titles = WorkAlternativeTitleSerializer(many=True, read_only=True)
     work_type = WorkTypeSerializer(many=False, read_only=True)
     song_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Work
         fields = (
-            'id',
-            'title',
-            'subtitle',
-            'alternative_titles',
-            'work_type',
-            'song_count'
+            "id",
+            "title",
+            "subtitle",
+            "alternative_titles",
+            "work_type",
+            "song_count",
         )
 
     @staticmethod
@@ -120,58 +113,50 @@ class WorkSerializer(serializers.ModelSerializer):
 class SongWorkLinkSerializer(serializers.ModelSerializer):
     """Serialization of the use of a song in a work
     """
+
     work = WorkNoCountSerializer(many=False, read_only=True)
 
     class Meta:
         model = SongWorkLink
-        fields = (
-            'work',
-            'link_type',
-            'link_type_number',
-            'episodes',
-        )
+        fields = ("work", "link_type", "link_type_number", "episodes")
 
 
 class SongTagSerializer(serializers.ModelSerializer):
     """Song tags serializer
     """
+
     class Meta:
         model = SongTag
-        fields = (
-            'id',
-            'name',
-            'color_hue',
-            'disabled',
-        )
+        fields = ("id", "name", "color_hue", "disabled")
 
 
 class SongSerializer(serializers.ModelSerializer):
     """Song serializer
     """
+
     duration = SecondsDurationField()
     artists = ArtistSerializer(many=True, read_only=True)
     tags = SongTagSerializer(many=True, read_only=True)
-    works = SongWorkLinkSerializer(many=True, read_only=True,
-                                   source='songworklink_set')
+    works = SongWorkLinkSerializer(many=True, read_only=True, source="songworklink_set")
     lyrics = serializers.SerializerMethodField()
 
     class Meta:
         model = Song
         fields = (
-            'id',
-            'title',
-            'filename',
-            'directory',
-            'duration',
-            'version',
-            'detail',
-            'detail_video',
-            'tags',
-            'artists',
-            'works',
-            'lyrics',
-            'date_created',
-            'date_updated',
+            "id",
+            "title",
+            "filename",
+            "directory",
+            "duration",
+            "version",
+            "detail",
+            "detail_video",
+            "tags",
+            "artists",
+            "works",
+            "lyrics",
+            "date_created",
+            "date_updated",
         )
 
     @staticmethod
@@ -186,12 +171,9 @@ class SongSerializer(serializers.ModelSerializer):
         lyrics_list = song.lyrics.splitlines()
 
         if len(lyrics_list) <= max_lines:
-            return {'text': song.lyrics}
+            return {"text": song.lyrics}
 
-        return {
-            'text': '\n'.join(lyrics_list[:max_lines]),
-            'truncated': True
-        }
+        return {"text": "\n".join(lyrics_list[:max_lines]), "truncated": True}
 
 
 class SongForPlayerSerializer(serializers.ModelSerializer):
@@ -199,21 +181,14 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
 
     To be used by the player.
     """
+
     artists = ArtistSerializer(many=True, read_only=True)
-    works = SongWorkLinkSerializer(
-        many=True,
-        read_only=True,
-        source='songworklink_set')
+    works = SongWorkLinkSerializer(many=True, read_only=True, source="songworklink_set")
     file_path = serializers.SerializerMethodField()
 
     class Meta:
         model = Song
-        fields = (
-            'title',
-            'artists',
-            'works',
-            'file_path',
-        )
+        fields = ("title", "artists", "works", "file_path")
 
     @staticmethod
     def get_file_path(song):

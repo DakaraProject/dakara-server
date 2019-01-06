@@ -26,16 +26,16 @@ UserModel = get_user_model()
 class PlaylistEntryPagination(PageNumberPagination):
     """Pagination setup for playlist entries
     """
+
     page_size = 100
 
 
 class PlaylistEntryView(drf_generics.DestroyAPIView):
     """Edition or deletion of a playlist entry
     """
+
     serializer_class = serializers.PlaylistEntrySerializer
-    permission_classes = [
-        permissions.IsPlaylistManagerOrOwnerForDelete,
-    ]
+    permission_classes = [permissions.IsPlaylistManagerOrOwnerForDelete]
     queryset = models.PlaylistEntry.get_playlist()
 
     def put(self, request, *args, **kwargs):
@@ -43,18 +43,15 @@ class PlaylistEntryView(drf_generics.DestroyAPIView):
 
         serializer = serializers.PlaylistReorderSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response(
-                serializer.errors,
-                status.HTTP_400_BAD_REQUEST
-            )
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-        if 'before_id' in serializer.data:
-            before_id = serializer.data['before_id']
+        if "before_id" in serializer.data:
+            before_id = serializer.data["before_id"]
             before_entry = get_object_or_404(self.get_queryset(), pk=before_id)
             playlist_entry.above(before_entry)
 
         else:
-            after_id = serializer.data['after_id']
+            after_id = serializer.data["after_id"]
             after_entry = get_object_or_404(self.get_queryset(), pk=after_id)
             playlist_entry.below(after_entry)
 
@@ -64,6 +61,7 @@ class PlaylistEntryView(drf_generics.DestroyAPIView):
 class PlaylistEntryListView(drf_generics.ListCreateAPIView):
     """List of entries or creation of a new entry in the playlist
     """
+
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
         permissions.IsPlaylistUserOrReadOnly,
@@ -87,11 +85,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
             date += playlist_entry.song.duration
 
         serializer = serializers.PlaylistEntriesWithDateEndSerializer(
-            {
-                'results': queryset,
-                'date_end': date,
-            },
-            context={'request': request}
+            {"results": queryset, "date_end": date}, context={"request": request}
         )
 
         return Response(serializer.data)
@@ -103,9 +97,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         count = queryset.count()
 
         if count >= settings.PLAYLIST_SIZE_LIMIT:
-            raise PermissionDenied(
-                detail="Playlist is full, please retry later."
-            )
+            raise PermissionDenied(detail="Playlist is full, please retry later.")
 
         # Deny the creation of a new playlist entry if it exceeds karaoke stop
         # date. This case cannot be handled through permission classes at view
@@ -114,10 +106,11 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         # we are creating the object (which obviously doesn't exist yet).
         karaoke = models.Karaoke.get_object()
 
-        if karaoke.date_stop is not None and \
-           not self.request.user.has_playlist_permission_level(
-               UserModel.MANAGER) and \
-           not self.request.user.is_superuser:
+        if (
+            karaoke.date_stop is not None
+            and not self.request.user.has_playlist_permission_level(UserModel.MANAGER)
+            and not self.request.user.is_superuser
+        ):
             # compute playlist end date
             playlist = self.filter_queryset(self.get_queryset())
             player = models.Player.get_or_create()
@@ -132,12 +125,11 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
                 date += playlist_entry.song.duration
 
             # add current entry duration
-            date += serializer.validated_data['song'].duration
+            date += serializer.validated_data["song"].duration
 
             # check that this date does not exceed the stop date
             if date > karaoke.date_stop:
-                raise PermissionDenied(
-                    "This song exceeds the karaoke stop time")
+                raise PermissionDenied("This song exceeds the karaoke stop time")
 
         playlist_was_empty = models.PlaylistEntry.get_next() is None
 
@@ -152,20 +144,25 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         #   - the player is idle.
         next_playlist_entry = models.PlaylistEntry.get_next()
         player = models.Player.get_or_create()
-        if all((
-            karaoke.status == models.Karaoke.PLAY,
-            playlist_was_empty,
-            next_playlist_entry is not None,
-            player.playlist_entry is None,
-        )):
-            broadcast_to_channel('playlist.device', 'send_playlist_entry', {
-                'playlist_entry': next_playlist_entry
-            })
+        if all(
+            (
+                karaoke.status == models.Karaoke.PLAY,
+                playlist_was_empty,
+                next_playlist_entry is not None,
+                player.playlist_entry is None,
+            )
+        ):
+            broadcast_to_channel(
+                "playlist.device",
+                "send_playlist_entry",
+                {"playlist_entry": next_playlist_entry},
+            )
 
 
 class PlaylistPlayedEntryListView(drf_generics.ListAPIView):
     """List of played entries
     """
+
     pagination_class = PlaylistEntryPagination
     serializer_class = serializers.PlaylistPlayedEntryWithDatePlayedSerializer
     queryset = models.PlaylistEntry.get_playlist_played()
@@ -174,6 +171,7 @@ class PlaylistPlayedEntryListView(drf_generics.ListAPIView):
 class PlayerCommandView(drf_generics.UpdateAPIView):
     """Handle player commands
     """
+
     permission_classes = [
         permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly,
         permissions.KaraokeIsNotStoppedOrReadOnly,
@@ -184,19 +182,17 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
         # check the karaoke is not stopped
         karaoke = models.Karaoke.get_object()
         if karaoke.status == models.Karaoke.STOP:
-            raise PermissionDenied("The player cannot receive commands if the "
-                                   "karaoke is stopped")
+            raise PermissionDenied(
+                "The player cannot receive commands if the " "karaoke is stopped"
+            )
 
         # check the player is not idle
         player = models.Player.get_or_create()
         if player.playlist_entry is None:
-            raise PermissionDenied("The player cannot receive commands when "
-                                   "idle")
+            raise PermissionDenied("The player cannot receive commands when " "idle")
 
-        command = serializer.validated_data['command']
-        broadcast_to_channel('playlist.device', 'send_command', {
-            'command': command,
-        })
+        command = serializer.validated_data["command"]
+        broadcast_to_channel("playlist.device", "send_command", {"command": command})
 
     def get_object(self):
         return None
@@ -210,6 +206,7 @@ class DigestView(APIView):
         - player_errors: errors from the player;
         - karaoke: current karaoke session.
     """
+
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
@@ -222,8 +219,7 @@ class DigestView(APIView):
         now = datetime.now(tz)
         if player.playlist_entry:
             if not player.paused:
-                player.update(timing=player.timing + (now - player.date),
-                              date=now)
+                player.update(timing=player.timing + (now - player.date), date=now)
 
         # Get player errors
         player_errors_pool = models.PlayerError.objects.all()
@@ -231,26 +227,24 @@ class DigestView(APIView):
         # Get kara status
         karaoke = models.Karaoke.get_object()
 
-        serializer = serializers.DigestSerializer({
-            "player_status": player,
-            "player_errors": player_errors_pool,
-            "karaoke": karaoke,
-        })
-
-        return Response(
-            serializer.data,
-            status.HTTP_200_OK
+        serializer = serializers.DigestSerializer(
+            {
+                "player_status": player,
+                "player_errors": player_errors_pool,
+                "karaoke": karaoke,
+            }
         )
+
+        return Response(serializer.data, status.HTTP_200_OK)
 
 
 class KaraokeView(drf_generics.RetrieveUpdateAPIView):
     """Get or edit the kara status
     """
+
     queryset = models.Karaoke.objects.all()
     serializer_class = serializers.KaraokeSerializer
-    permission_classes = [
-        permissions.IsPlaylistManagerOrReadOnly,
-    ]
+    permission_classes = [permissions.IsPlaylistManagerOrReadOnly]
 
     def perform_update(self, serializer):
         """Update the karaoke
@@ -258,7 +252,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
         super().perform_update(serializer)
 
         # if the status of the karaoke has changed
-        if 'status' not in serializer.validated_data:
+        if "status" not in serializer.validated_data:
             return
 
         # empty the playlist and clear the player if the new status is stop
@@ -266,7 +260,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
 
         if karaoke.status == models.Karaoke.STOP:
             # request the player to be idle
-            broadcast_to_channel('playlist.device', 'send_idle')
+            broadcast_to_channel("playlist.device", "send_idle")
 
             # clear player
             player = models.Player()
@@ -287,9 +281,9 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
                 next_playlist_entry = models.PlaylistEntry.get_next()
                 if next_playlist_entry is not None:
                     broadcast_to_channel(
-                        'playlist.device', 'send_playlist_entry', data={
-                             'playlist_entry': next_playlist_entry
-                         }
+                        "playlist.device",
+                        "send_playlist_entry",
+                        data={"playlist_entry": next_playlist_entry},
                     )
 
     def get_object(self):
@@ -301,6 +295,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 
     It allows to get and set the player status.
     """
+
     permission_classes = [permissions.IsPlayerOrReadOnly]
     serializer_class = serializers.PlayerStatusSerializer
 
@@ -308,16 +303,15 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         """Handle the new status
         """
         player = serializer.instance
-        entry = serializer.validated_data['playlist_entry']
-        event = serializer.validated_data['event']
+        entry = serializer.validated_data["playlist_entry"]
+        event = serializer.validated_data["event"]
 
         # get the method associated to the event
         method_name = "receive_{}".format(event)
         if not hasattr(self, method_name):
             # in this case, we raise an error to inform the client that its
             # request is invalid
-            raise ValueError("This event is not valid '{}'"
-                             .format(event))
+            raise ValueError("This event is not valid '{}'".format(event))
 
         method = getattr(self, method_name)
 
@@ -327,8 +321,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         player.save()
 
         # broadcast to the front
-        broadcast_to_channel('playlist.front', 'send_player_status',
-                             {'player': player})
+        broadcast_to_channel("playlist.front", "send_player_status", {"player": player})
 
     def receive_finished(self, playlist_entry, player):
         """The player finished a song
@@ -340,11 +333,10 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         player.reset()
 
         # log the info
-        logger.debug("The player has finished playing '{}'"
-                     .format(playlist_entry))
+        logger.debug("The player has finished playing '{}'".format(playlist_entry))
 
         # continue the playlist
-        broadcast_to_channel('playlist.device', 'handle_next')
+        broadcast_to_channel("playlist.device", "handle_next")
 
     def receive_could_not_play(self, playlist_entry, player):
         """The player could not play a song
@@ -354,11 +346,10 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         playlist_entry.set_finished()
 
         # log the info
-        logger.debug("The player could not play '{}'"
-                     .format(playlist_entry))
+        logger.debug("The player could not play '{}'".format(playlist_entry))
 
         # continue the playlist
-        broadcast_to_channel('playlist.device', 'handle_next')
+        broadcast_to_channel("playlist.device", "handle_next")
 
     def receive_started_transition(self, playlist_entry, player):
         """The player started the transition of a playlist entry
@@ -370,8 +361,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         player.update(in_transition=True, timing=timedelta(seconds=0))
 
         # log the info
-        logger.debug("Playing transition of entry '{}'"
-                     .format(playlist_entry))
+        logger.debug("Playing transition of entry '{}'".format(playlist_entry))
 
     def receive_started_song(self, playlist_entry, player):
         """The player started the song of a playlist entry
@@ -380,8 +370,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         player.update(in_transition=False)
 
         # log the info
-        logger.debug("Playing song of entry '{}'"
-                     .format(playlist_entry))
+        logger.debug("Playing song of entry '{}'".format(playlist_entry))
 
     def receive_paused(self, playlist_entry, player):
         """The player switched to pause
@@ -408,9 +397,10 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 class PlayerErrorView(drf_generics.ListCreateAPIView):
     """View of the player errors
     """
+
     permission_classes = [permissions.IsPlayerOrReadOnly]
     serializer_class = serializers.PlayerErrorSerializer
-    queryset = models.PlayerError.objects.order_by('date_created')
+    queryset = models.PlayerError.objects.order_by("date_created")
     pagination_class = PageNumberPagination
 
     def perform_create(self, serializer):
@@ -420,15 +410,17 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
         playlist.
         """
         super().perform_create(serializer)
-        playlist_entry = serializer.validated_data['playlist_entry']
-        message = serializer.validated_data['error_message']
+        playlist_entry = serializer.validated_data["playlist_entry"]
+        message = serializer.validated_data["error_message"]
 
         # log the event
         logger.warning(
-            "Unable to play '{}', remove from playlist, error message: '{}'"
-            .format(playlist_entry, message)
+            "Unable to play '{}', remove from playlist, error message: '{}'".format(
+                playlist_entry, message
+            )
         )
 
         # broadcast the error to the front
-        broadcast_to_channel('playlist.front', 'send_player_error',
-                             {'player_error': serializer.instance})
+        broadcast_to_channel(
+            "playlist.front", "send_player_error", {"player_error": serializer.instance}
+        )

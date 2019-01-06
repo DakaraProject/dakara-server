@@ -4,5 +4,5 @@ from playlist import consumers
 
 
 websocket_urlpatterns = [
-    url(r'^ws/playlist/device/$', consumers.PlaylistDeviceConsumer),
+    url(r"^ws/playlist/device/$", consumers.PlaylistDeviceConsumer)
 ]

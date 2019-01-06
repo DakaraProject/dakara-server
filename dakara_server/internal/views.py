@@ -8,17 +8,12 @@ from rest_framework.permissions import AllowAny
 class VersionView(APIView):
     """Version of the Dakara server
     """
+
     permission_classes = (AllowAny,)
 
     def get(self, request):
         """Get application version number
         """
-        data = {
-            'version': settings.VERSION,
-            'date': settings.DATE
-        }
+        data = {"version": settings.VERSION, "date": settings.DATE}
 
-        return Response(
-            data,
-            status.HTTP_200_OK
-        )
+        return Response(data, status.HTTP_200_OK)

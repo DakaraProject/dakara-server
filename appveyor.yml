@@ -16,7 +16,11 @@ environment:
   # setup tests matrix
   matrix:
     - PYTHON: "C:\\Python35-x64"
-      PYTHON_VERSION: "3.5.3"
+      PYTHON_VERSION: "3.5"
+      PYTHON_ARCH: "64"
+
+    - PYTHON: "C:\\Python36-x64"
+      PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "64"
 
 # check current python version
@@ -35,4 +39,5 @@ test_script:
   - "%PYTHON%/python.exe ./manage.py test --settings=dakara_server.settings.test -v 2"
   - "%PYTHON%/Scripts/pytest.exe -v"
   - "cd .."
+  - "if NOT %PYTHON_VERSION% == 3.5 (%PYTHON%/Scripts/black.exe . --check)"
   - "%PYTHON%/Scripts/flake8.exe"

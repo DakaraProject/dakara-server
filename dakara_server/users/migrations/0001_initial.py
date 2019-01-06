@@ -9,163 +9,169 @@ import users.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('auth', '0006_require_contenttypes_0002'),
-    ]
+    dependencies = [("auth", "0006_require_contenttypes_0002")]
 
     operations = [
         migrations.CreateModel(
-            name='DakaraUser',
+            name="DakaraUser",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         primary_key=True,
                         auto_created=True,
                         serialize=False,
-                        verbose_name='ID'
-                    )
+                        verbose_name="ID",
+                    ),
                 ),
+                ("password", models.CharField(max_length=128, verbose_name="password")),
                 (
-                    'password',
-                    models.CharField(
-                        max_length=128,
-                        verbose_name='password'
-                    )
-                ),
-                (
-                    'last_login',
+                    "last_login",
                     models.DateTimeField(
-                        null=True,
-                        blank=True,
-                        verbose_name='last login'
-                    )
+                        null=True, blank=True, verbose_name="last login"
+                    ),
                 ),
                 (
-                    'is_superuser',
+                    "is_superuser",
                     models.BooleanField(
-                        help_text=('Designates that this user has all '
-                                   'permissions without explicitly '
-                                   'assigning them.'),
+                        help_text=(
+                            "Designates that this user has all "
+                            "permissions without explicitly "
+                            "assigning them."
+                        ),
                         default=False,
-                        verbose_name='superuser status')),
+                        verbose_name="superuser status",
+                    ),
+                ),
                 (
-                    'username',
+                    "username",
                     models.CharField(
                         unique=True,
-                        verbose_name='username',
+                        verbose_name="username",
                         validators=[
                             django.core.validators.RegexValidator(
-                                '^[\\w.@+-]+$',
-                                ('Enter a valid username. This value may '
-                                 'contain only letters, numbers and '
-                                 '@/./+/-/_ characters.'),
-                                'invalid')],
+                                "^[\\w.@+-]+$",
+                                (
+                                    "Enter a valid username. This value may "
+                                    "contain only letters, numbers and "
+                                    "@/./+/-/_ characters."
+                                ),
+                                "invalid",
+                            )
+                        ],
                         max_length=30,
-                        help_text=('Required. 30 characters or fewer. '
-                                   'Letters, digits and @/./+/-/_ only.'),
+                        help_text=(
+                            "Required. 30 characters or fewer. "
+                            "Letters, digits and @/./+/-/_ only."
+                        ),
                         error_messages={
-                            'unique': ('A user with that username '
-                                       'already exists.')})),
-                (
-                    'first_name',
-                    models.CharField(
-                        max_length=30,
-                        blank=True,
-                        verbose_name='first name'
-                    )
+                            "unique": ("A user with that username " "already exists.")
+                        },
+                    ),
                 ),
                 (
-                    'last_name',
+                    "first_name",
                     models.CharField(
-                        max_length=30,
-                        blank=True,
-                        verbose_name='last name'
-                    )
+                        max_length=30, blank=True, verbose_name="first name"
+                    ),
                 ),
                 (
-                    'email',
+                    "last_name",
+                    models.CharField(
+                        max_length=30, blank=True, verbose_name="last name"
+                    ),
+                ),
+                (
+                    "email",
                     models.EmailField(
-                        max_length=254,
-                        blank=True,
-                        verbose_name='email address'
-                    )
+                        max_length=254, blank=True, verbose_name="email address"
+                    ),
                 ),
                 (
-                    'is_staff',
+                    "is_staff",
                     models.BooleanField(
-                        help_text=('Designates whether the user can log into '
-                                   'this admin site.'),
+                        help_text=(
+                            "Designates whether the user can log into "
+                            "this admin site."
+                        ),
                         default=False,
-                        verbose_name='staff status')),
+                        verbose_name="staff status",
+                    ),
+                ),
                 (
-                    'is_active',
+                    "is_active",
                     models.BooleanField(
-                        help_text=('Designates whether this user should be '
-                                   'treated as active. Unselect this instead '
-                                   'of deleting accounts.'),
+                        help_text=(
+                            "Designates whether this user should be "
+                            "treated as active. Unselect this instead "
+                            "of deleting accounts."
+                        ),
                         default=True,
-                        verbose_name='active')),
+                        verbose_name="active",
+                    ),
+                ),
                 (
-                    'date_joined',
+                    "date_joined",
                     models.DateTimeField(
-                        default=django.utils.timezone.now,
-                        verbose_name='date joined'
-                    )
+                        default=django.utils.timezone.now, verbose_name="date joined"
+                    ),
                 ),
                 (
-                    'users_permission_level',
+                    "users_permission_level",
                     models.CharField(
                         max_length=1,
                         null=True,
-                        choices=[('u', 'User'), ('m', 'Manager')])
+                        choices=[("u", "User"), ("m", "Manager")],
+                    ),
                 ),
                 (
-                    'library_permission_level',
+                    "library_permission_level",
                     models.CharField(
                         max_length=1,
                         null=True,
-                        choices=[('u', 'User'), ('m', 'Manager')])
+                        choices=[("u", "User"), ("m", "Manager")],
+                    ),
                 ),
                 (
-                    'playlist_permission_level',
+                    "playlist_permission_level",
                     models.CharField(
                         max_length=1,
                         null=True,
-                        choices=[('p', 'Player'), ('u', 'User'),
-                                 ('m', 'Manager')])
+                        choices=[("p", "Player"), ("u", "User"), ("m", "Manager")],
+                    ),
                 ),
                 (
-                    'groups',
+                    "groups",
                     models.ManyToManyField(
-                        to='auth.Group',
-                        verbose_name='groups',
-                        related_query_name='user',
-                        help_text=('The groups this user belongs to. A user '
-                                   'will get all permissions granted to each '
-                                   'of their groups.'),
+                        to="auth.Group",
+                        verbose_name="groups",
+                        related_query_name="user",
+                        help_text=(
+                            "The groups this user belongs to. A user "
+                            "will get all permissions granted to each "
+                            "of their groups."
+                        ),
                         blank=True,
-                        related_name='user_set')
+                        related_name="user_set",
+                    ),
                 ),
                 (
-                    'user_permissions',
+                    "user_permissions",
                     models.ManyToManyField(
-                        to='auth.Permission',
-                        verbose_name='user permissions',
-                        related_query_name='user',
-                        help_text='Specific permissions for this user.',
+                        to="auth.Permission",
+                        verbose_name="user permissions",
+                        related_query_name="user",
+                        help_text="Specific permissions for this user.",
                         blank=True,
-                        related_name='user_set'
-                     )
+                        related_name="user_set",
+                    ),
                 ),
             ],
             options={
-                'verbose_name_plural': 'users',
-                'verbose_name': 'user',
-                'abstract': False,
+                "verbose_name_plural": "users",
+                "verbose_name": "user",
+                "abstract": False,
             },
-            managers=[
-                ('objects', users.models.DakaraUserManager()),
-            ],
-        ),
+            managers=[("objects", users.models.DakaraUserManager())],
+        )
     ]

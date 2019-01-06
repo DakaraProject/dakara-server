@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('playlist', '0006_auto_20180722_1512'),
-    ]
+    dependencies = [("playlist", "0006_auto_20180722_1512")]
 
     operations = [
         migrations.AddField(
-            model_name='karaoke',
-            name='date_stop',
+            model_name="karaoke",
+            name="date_stop",
             field=models.DateTimeField(null=True),
-        ),
+        )
     ]

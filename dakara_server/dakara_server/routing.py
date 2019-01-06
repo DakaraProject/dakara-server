@@ -5,11 +5,11 @@ from dakara_server.token_auth import TokenAuthMiddlewareStack
 from playlist import routing
 
 
-application = ProtocolTypeRouter({
-    # HTTP is auto-detected
-    'websocket': AllowedHostsOriginValidator(
-        TokenAuthMiddlewareStack(
-            URLRouter(routing.websocket_urlpatterns)
+application = ProtocolTypeRouter(
+    {
+        # HTTP is auto-detected
+        "websocket": AllowedHostsOriginValidator(
+            TokenAuthMiddlewareStack(URLRouter(routing.websocket_urlpatterns))
         )
-    )
-})
+    }
+)
