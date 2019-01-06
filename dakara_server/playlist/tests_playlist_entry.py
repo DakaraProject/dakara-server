@@ -166,11 +166,11 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
             "playlist.device", "send_playlist_entry", {"playlist_entry": new_entry}
         )
 
-    def test_post_create_playlist_entry_karaoke_stop_forbidden(self):
-        """Test to verify playlist entry cannot be created when kara is stopped
+    def test_post_create_playlist_entry_not_ongoing_forbidden(self):
+        """Test to verify playlist entry cannot be created when kara not ongoing
         """
-        # stop kara
-        self.set_karaoke_stop()
+        # Set karaoke not ongoing
+        self.set_karaoke(ongoing=False)
 
         # Login as playlist user
         self.authenticate(self.manager)

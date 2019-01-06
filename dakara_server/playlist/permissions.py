@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 
 from users.permissions import BasePermissionCustom
 from library.models import Song
-from .models import PlaylistEntry, Player, Karaoke
+from .models import PlaylistEntry, Player
 
 
 UserModel = get_user_model()
@@ -155,15 +155,3 @@ class IsPlayerOrReadOnly(BasePermissionCustom):
             return True
 
         return request.user.has_playlist_permission_level(UserModel.PLAYER)
-
-
-class KaraokeIsNotStoppedOrReadOnly(permissions.BasePermission):
-    """Grant access to not safe views if the kara is not in stop mode
-    """
-
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        karaoke = Karaoke.get_object()
-        return karaoke.status != Karaoke.STOP

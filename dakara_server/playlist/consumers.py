@@ -133,12 +133,13 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         """Prepare the submission of a new playlist entry depending on the context
 
         A new playlist entry will be sent to the player if:
-            - the kara status is in play mode;
+            - the karaoke is ongoing and set for player to play next song
             - there is a new playlist entry in playlist after the provided one.
         """
-        # request to be idle if the kara is not in play mode
+        # request to be idle if the kara is not ongoing
+        # or player does not play next song
         karaoke = models.Karaoke.get_object()
-        if karaoke.status != models.Karaoke.PLAY:
+        if not (karaoke.ongoing and karaoke.player_play_next_song):
             self.send_idle()
             return
 

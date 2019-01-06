@@ -114,12 +114,9 @@ class Karaoke(models.Model):
     Unique for now.
     """
 
-    STOP = "stop"
-    PLAY = "play"
-    PAUSE = "pause"
-    STATUSES = ((STOP, "Stop"), (PLAY, "Play"), (PAUSE, "Pause"))
-
-    status = models.CharField(max_length=5, choices=STATUSES, default=PLAY, null=False)
+    ongoing = models.BooleanField(default=True)
+    can_add_to_playlist = models.BooleanField(default=True)
+    player_play_next_song = models.BooleanField(default=True)
     date_stop = models.DateTimeField(null=True)
 
     def __str__(self):

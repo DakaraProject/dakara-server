@@ -1,7 +1,7 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from playlist.models import Karaoke, PlayerError
+from playlist.models import PlayerError
 from playlist.base_test import BaseAPITestCase
 
 
@@ -32,7 +32,9 @@ class DigestViewTestCase(BaseAPITestCase):
         self.assertIn("player_errors", response.data)
         self.assertFalse(response.data["player_errors"])
         self.assertIn("karaoke", response.data)
-        self.assertEqual(response.data["karaoke"]["status"], Karaoke.PLAY)
+        self.assertTrue(response.data["karaoke"]["ongoing"])
+        self.assertTrue(response.data["karaoke"]["can_add_to_playlist"])
+        self.assertTrue(response.data["karaoke"]["player_play_next_song"])
 
     def test_get_playing(self):
         """Get the digest when the player is playing
@@ -57,7 +59,9 @@ class DigestViewTestCase(BaseAPITestCase):
         self.assertIn("player_errors", response.data)
         self.assertFalse(response.data["player_errors"])
         self.assertIn("karaoke", response.data)
-        self.assertEqual(response.data["karaoke"]["status"], Karaoke.PLAY)
+        self.assertTrue(response.data["karaoke"]["ongoing"])
+        self.assertTrue(response.data["karaoke"]["can_add_to_playlist"])
+        self.assertTrue(response.data["karaoke"]["player_play_next_song"])
 
     def test_get_errors(self):
         """Get the digest when there are errors
@@ -95,18 +99,19 @@ class DigestViewTestCase(BaseAPITestCase):
             errors[1].playlist_entry.id,
         )
         self.assertIn("karaoke", response.data)
-        self.assertEqual(response.data["karaoke"]["status"], Karaoke.PLAY)
+        self.assertTrue(response.data["karaoke"]["ongoing"])
+        self.assertTrue(response.data["karaoke"]["can_add_to_playlist"])
+        self.assertTrue(response.data["karaoke"]["player_play_next_song"])
 
-    def test_get_karaoke_paused(self):
-        """Get the digest when the karaoke is paused
+    def test_get_player_does_not_play_next_song(self):
+        """Get the digest when the player does not play next song
 
-        There should be no errors, the player should be idle and the karaoke
-        should be paused.
+        There should be no errors, the player should be idle.
         """
         self.authenticate(self.user)
 
-        # pause the karaoke
-        self.set_karaoke_pause()
+        # set player does not play next song
+        self.set_karaoke(player_play_next_song=False)
 
         # get the digest
         response = self.client.get(self.url)
@@ -118,4 +123,4 @@ class DigestViewTestCase(BaseAPITestCase):
         self.assertIn("player_errors", response.data)
         self.assertFalse(response.data["player_errors"])
         self.assertIn("karaoke", response.data)
-        self.assertEqual(response.data["karaoke"]["status"], Karaoke.PAUSE)
+        self.assertFalse(response.data["karaoke"]["player_play_next_song"])

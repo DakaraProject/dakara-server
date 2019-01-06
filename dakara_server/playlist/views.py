@@ -66,7 +66,6 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
     permission_classes = [
         permissions.IsPlaylistUserOrReadOnly,
         permissions.IsPlaylistAndLibraryManagerOrSongCanBeAdded,
-        permissions.KaraokeIsNotStoppedOrReadOnly,
     ]
     queryset = models.PlaylistEntry.get_playlist()
 
@@ -91,6 +90,11 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         return Response(serializer.data)
 
     def perform_create(self, serializer):
+        # Deny creation if kara is not ongoing
+        karaoke = models.Karaoke.get_object()
+        if not karaoke.ongoing:
+            raise PermissionDenied(detail="Karaoke is not ongoing.")
+
         # Deny the creation of a new playlist entry if it exceeds the playlist
         # capacity set in settings.
         queryset = self.filter_queryset(self.get_queryset())
@@ -104,7 +108,6 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         # level, as permission examination takes place before the data are
         # validated. Moreover, the object permission method won't be called as
         # we are creating the object (which obviously doesn't exist yet).
-        karaoke = models.Karaoke.get_object()
 
         if (
             karaoke.date_stop is not None
@@ -140,15 +143,15 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         # Request the player to play the latest playlist entry immediately if :
         #   - it exists;
         #   - the playlist was empty beforehand;
-        #   - the kara status is set to play;
+        #   - player is set to play next song
         #   - the player is idle.
         next_playlist_entry = models.PlaylistEntry.get_next()
         player = models.Player.get_or_create()
         if all(
             (
-                karaoke.status == models.Karaoke.PLAY,
-                playlist_was_empty,
                 next_playlist_entry is not None,
+                playlist_was_empty,
+                karaoke.player_play_next_song,
                 player.playlist_entry is None,
             )
         ):
@@ -172,18 +175,15 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
     """Handle player commands
     """
 
-    permission_classes = [
-        permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly,
-        permissions.KaraokeIsNotStoppedOrReadOnly,
-    ]
+    permission_classes = [permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly]
     serializer_class = serializers.PlayerCommandSerializer
 
     def perform_update(self, serializer):
-        # check the karaoke is not stopped
+        # check the karaoke is ongoing
         karaoke = models.Karaoke.get_object()
-        if karaoke.status == models.Karaoke.STOP:
+        if not karaoke.ongoing:
             raise PermissionDenied(
-                "The player cannot receive commands if the " "karaoke is stopped"
+                "The player cannot receive commands if the karaoke is not ongoing"
             )
 
         # check the player is not idle
@@ -250,15 +250,10 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
         """Update the karaoke
         """
         super().perform_update(serializer)
-
-        # if the status of the karaoke has changed
-        if "status" not in serializer.validated_data:
-            return
-
-        # empty the playlist and clear the player if the new status is stop
         karaoke = serializer.instance
 
-        if karaoke.status == models.Karaoke.STOP:
+        # empty the playlist and clear the player if the kara is switched to not ongoing
+        if "ongoing" in serializer.validated_data and not karaoke.ongoing:
             # request the player to be idle
             broadcast_to_channel("playlist.device", "send_idle")
 
@@ -272,7 +267,13 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
             # empty the player errors
             models.PlayerError.objects.all().delete()
 
-        elif karaoke.status == models.Karaoke.PLAY:
+            return
+
+        if (
+            karaoke.ongoing
+            and "player_play_next_song" in serializer.validated_data
+            and karaoke.player_play_next_song
+        ):
             player = models.Player.get_or_create()
 
             # request the player to play the next song if idle,
