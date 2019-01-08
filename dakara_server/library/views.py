@@ -1,8 +1,6 @@
 from django.db.models.functions import Lower
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
 from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     UpdateAPIView,
@@ -10,6 +8,7 @@ from rest_framework.generics import (
     ListAPIView,
 )
 
+from internal.pagination import PageNumberPaginationCustom
 from library import models
 from library import serializers
 from library.query_language import QueryLanguageParser
@@ -17,25 +16,6 @@ from library.permissions import IsLibraryManagerOrReadOnly
 
 
 UserModel = get_user_model()
-
-
-class LibraryPagination(PageNumberPagination):
-    """Pagination
-
-    Gives current page number and last page number.
-    """
-
-    def get_paginated_response(self, data):
-        return Response(
-            {
-                "pagination": {
-                    "current": self.page.number,
-                    "last": self.page.paginator.num_pages,
-                },
-                "count": self.page.paginator.count,
-                "results": data,
-            }
-        )
 
 
 class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
@@ -69,7 +49,7 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     serializer_class = serializers.SongSerializer
-    pagination_class = LibraryPagination
+    pagination_class = PageNumberPaginationCustom
 
     def get_queryset(self):
         """Search and filter the songs
@@ -200,7 +180,7 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     serializer_class = serializers.ArtistWithCountSerializer
-    pagination_class = LibraryPagination
+    pagination_class = PageNumberPaginationCustom
 
     def get_queryset(self):
         """Search and filter the artists
@@ -241,7 +221,7 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
     permission_classes = (IsLibraryManagerOrReadOnly,)
 
     serializer_class = serializers.WorkSerializer
-    pagination_class = LibraryPagination
+    pagination_class = PageNumberPaginationCustom
 
     def get_queryset(self):
         """Search and filter the works
@@ -304,7 +284,7 @@ class SongTagListView(ListAPIView):
 
     queryset = models.SongTag.objects.all().order_by(Lower("name"))
     serializer_class = serializers.SongTagSerializer
-    pagination_class = LibraryPagination
+    pagination_class = PageNumberPaginationCustom
 
 
 class SongTagView(UpdateAPIView):

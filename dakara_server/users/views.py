@@ -4,7 +4,7 @@ from rest_framework import views
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 
-from library.views import LibraryPagination as UsersPagination
+from internal.pagination import PageNumberPaginationCustom
 from users import serializers
 from users import permissions
 
@@ -35,7 +35,7 @@ class UserListView(generics.ListCreateAPIView):
     model = UserModel
     queryset = UserModel.objects.all().order_by("username")
     serializer_class = serializers.UserSerializer
-    pagination_class = UsersPagination
+    pagination_class = PageNumberPaginationCustom
     permission_classes = [permissions.IsUsersManagerOrReadOnly]
 
 
