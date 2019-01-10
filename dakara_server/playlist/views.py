@@ -133,7 +133,8 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
 
         playlist_was_empty = models.PlaylistEntry.get_next() is None
 
-        super().perform_create(serializer)
+        # add the owner to the serializer and create data
+        serializer.save(owner=self.request.user)
 
         # TODO broadcast that a new entry has been created
 
