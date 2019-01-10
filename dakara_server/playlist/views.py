@@ -8,11 +8,11 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import generics as drf_generics
 
+from internal.pagination import PageNumberPaginationCustom
 from playlist import models
 from playlist import serializers
 from playlist import permissions
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 UserModel = get_user_model()
 
 
-class PlaylistEntryPagination(PageNumberPagination):
+class PlaylistEntryPagination(PageNumberPaginationCustom):
     """Pagination setup for playlist entries
     """
 
@@ -402,7 +402,6 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
     permission_classes = [permissions.IsPlayerOrReadOnly]
     serializer_class = serializers.PlayerErrorSerializer
     queryset = models.PlayerError.objects.order_by("date_created")
-    pagination_class = PageNumberPagination
 
     def perform_create(self, serializer):
         """Create an error and perform other actions

@@ -8,7 +8,6 @@ from rest_framework.generics import (
     ListAPIView,
 )
 
-from internal.pagination import PageNumberPaginationCustom
 from library import models
 from library import serializers
 from library.query_language import QueryLanguageParser
@@ -47,9 +46,7 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
     """
 
     permission_classes = (IsLibraryManagerOrReadOnly,)
-
     serializer_class = serializers.SongSerializer
-    pagination_class = PageNumberPaginationCustom
 
     def get_queryset(self):
         """Search and filter the songs
@@ -168,7 +165,6 @@ class SongView(RetrieveUpdateDestroyAPIView):
     """
 
     permission_classes = (IsLibraryManagerOrReadOnly,)
-
     queryset = models.Song.objects.all()
     serializer_class = serializers.SongSerializer
 
@@ -178,9 +174,7 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
     """
 
     permission_classes = (IsLibraryManagerOrReadOnly,)
-
     serializer_class = serializers.ArtistWithCountSerializer
-    pagination_class = PageNumberPaginationCustom
 
     def get_queryset(self):
         """Search and filter the artists
@@ -219,9 +213,7 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
     """
 
     permission_classes = (IsLibraryManagerOrReadOnly,)
-
     serializer_class = serializers.WorkSerializer
-    pagination_class = PageNumberPaginationCustom
 
     def get_queryset(self):
         """Search and filter the works
@@ -271,7 +263,6 @@ class WorkTypeListView(ListCreateAPIView):
     """
 
     permission_classes = (IsLibraryManagerOrReadOnly,)
-
     queryset = models.WorkType.objects.all().order_by(Lower("name"))
     serializer_class = serializers.WorkTypeSerializer
 
@@ -281,10 +272,8 @@ class SongTagListView(ListAPIView):
     """
 
     permission_classes = (IsLibraryManagerOrReadOnly,)
-
     queryset = models.SongTag.objects.all().order_by(Lower("name"))
     serializer_class = serializers.SongTagSerializer
-    pagination_class = PageNumberPaginationCustom
 
 
 class SongTagView(UpdateAPIView):
@@ -292,6 +281,5 @@ class SongTagView(UpdateAPIView):
     """
 
     permission_classes = (IsLibraryManagerOrReadOnly,)
-
     queryset = models.SongTag.objects.all()
     serializer_class = serializers.SongTagSerializer
