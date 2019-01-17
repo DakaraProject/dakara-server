@@ -2,130 +2,81 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import permissions
 from django.contrib.auth import get_user_model
 
-from users.permissions import BasePermissionCustom
+from internal.permissions import BasePermissionCustom
 from library.models import Song
-from .models import PlaylistEntry, Player, Karaoke
+from playlist.models import PlaylistEntry, Karaoke
 
 
 UserModel = get_user_model()
 
 
-class IsPlaylistManagerOrOwnerForDelete(BasePermissionCustom):
-    """Handle permissions to modify playlist entries
-
-    Permission scheme:
-        Superuser can edit anything;
-        Playlist manager can edit anything;
-        Authenticated user can only delete their own data;
-        Unauthenticated user cannot see anything.
+class IsPlaylistManager(BasePermissionCustom):
+    """Allow access if the user is super user or playlist manager
     """
 
-    def has_object_permission(self, request, view, obj):
-        # if the user is the superuser or the users manager, allow access
+    def has_permission(self, request, view):
+        # for super user
         if request.user.is_superuser:
             return True
 
         # for manager
-        if request.user.has_playlist_permission_level(UserModel.MANAGER):
-            return True
-
-        # if delete and the object belongs to the user
-        return request.method == "DELETE" and obj.owner == request.user
-
-
-class IsPlaylistUserOrReadOnly(BasePermissionCustom):
-    """Handle permissions for creating playlist entries
-
-    Permission scheme:
-        Superuser can do anything;
-        Playlist user can do anything;
-        Authenticated can only display;
-        Unauthenticated user cannot see anything.
-    """
-
-    def has_permission_custom(self, request, view):
-        # for safe methods only
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        # for modification
-        return request.user.has_playlist_permission_level(UserModel.USER)
-
-
-class IsPlaylistManagerOrReadOnly(BasePermissionCustom):
-    """Handle permissions for changing player status
-
-    Permission scheme:
-        Superuser can do anything;
-        Playlist manager can do anything;
-        Authenticated can only display;
-        Unauthenticated user cannot see anything.
-    """
-
-    def has_permission_custom(self, request, view):
-        # for safe methods only
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        # for modification
         return request.user.has_playlist_permission_level(UserModel.MANAGER)
 
 
-class IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly(BasePermissionCustom):
-    """Handle permissions for views related to playing entry
-
-    Permission scheme:
-        Superuser can edit anything;
-        Playlist manager can edit anything;
-        Authenticated user can only edit data if related to their own playing
-            entry and display anything;
-        Unauthenticated user cannot see anything.
+class IsPlaylistUser(BasePermissionCustom):
+    """Allow access if the user is super user or playlist user
     """
 
-    def has_permission_custom(self, request, view):
-        # for safe methods only
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        # if the user is the superuser or the users manager, allow access
+    def has_permission(self, request, view):
+        # for super user
         if request.user.is_superuser:
             return True
 
-        # for manager
-        if request.user.has_playlist_permission_level(UserModel.MANAGER):
+        # for user
+        return request.user.has_playlist_permission_level(UserModel.USER)
+
+
+class IsPlayer(BasePermissionCustom):
+    """Allow access if the user is super user or player
+    """
+
+    def has_permission(self, request, view):
+        # for super user
+        if request.user.is_superuser:
             return True
 
-        # if the currently playing song belongs to the user
-        # Get player to get playing song
-        player = Player.get_or_create()
-        playlist_entry_id = player.playlist_entry.id
-        playlist_entry = None
-        if playlist_entry_id:
-            playlist_entry = PlaylistEntry.objects.get(id=playlist_entry_id)
+        # for player
+        return request.user.has_playlist_permission_level(UserModel.PLAYER)
 
-        if not playlist_entry:
+
+class IsOwner(permissions.BasePermission):
+    """Allow access if the user owns the object
+    """
+
+    def has_object_permission(self, request, view, obj):
+        return obj.owner == request.user
+
+
+class IsPlayingEntryOwner(BasePermissionCustom):
+    """Allow access if the user owns the playing playlist entry
+    """
+
+    def has_permission(self, request, view):
+        # get the playing song
+        playlist_entry = PlaylistEntry.get_playing()
+
+        # disallow access if there is no playlist entry
+        if playlist_entry is None:
             return False
 
         return playlist_entry.owner == request.user
 
 
-class IsPlaylistAndLibraryManagerOrSongCanBeAdded(BasePermissionCustom):
-    """Handle permission for songs that can be added or not
-
-    Permission scheme:
-        Superuser can do anything;
-        Managerof playlist and library can do anything;
-        Playlist user can only access musics whose tags are not disabled.
-        Unauthenticated user cannot see anything.
+class IsSongEnabled(BasePermissionCustom):
+    """Allow access if the song has no disabled tag
     """
 
-    def has_permission_custom(self, request, view):
-        # for manager of playlist and library
-        if request.user.has_playlist_permission_level(
-            UserModel.MANAGER
-        ) and request.user.has_library_permission_level(UserModel.MANAGER):
-            return True
-
+    def has_permission(self, request, view):
         # get song
         song_id = request.data.get("song_id")
         if not song_id:
@@ -138,23 +89,6 @@ class IsPlaylistAndLibraryManagerOrSongCanBeAdded(BasePermissionCustom):
 
         except ObjectDoesNotExist:
             return True
-
-
-class IsPlayerOrReadOnly(BasePermissionCustom):
-    """Handle permissions player management
-
-    Permission scheme:
-        Superuser can do anything;
-        Player can do anything;
-        Authenticated can only see;
-        Unauthenticated user cannot see anything.
-    """
-
-    def has_permission_custom(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        return request.user.has_playlist_permission_level(UserModel.PLAYER)
 
 
 class KaraokeIsNotStoppedOrReadOnly(permissions.BasePermission):

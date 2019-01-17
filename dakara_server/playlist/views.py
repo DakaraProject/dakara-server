@@ -12,7 +12,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import generics as drf_generics
 
+from internal import permissions as internal_permissions
 from internal.pagination import PageNumberPaginationCustom
+from library import permissions as library_permissions
 from playlist import models
 from playlist import serializers
 from playlist import permissions
@@ -35,7 +37,11 @@ class PlaylistEntryView(drf_generics.DestroyAPIView):
     """
 
     serializer_class = serializers.PlaylistEntrySerializer
-    permission_classes = [permissions.IsPlaylistManagerOrOwnerForDelete]
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlaylistManager
+        | (internal_permissions.IsDelete & permissions.IsOwner),
+    ]
     queryset = models.PlaylistEntry.get_playlist()
 
     def put(self, request, *args, **kwargs):
@@ -64,8 +70,10 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
 
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
-        permissions.IsPlaylistUserOrReadOnly,
-        permissions.IsPlaylistAndLibraryManagerOrSongCanBeAdded,
+        IsAuthenticated,
+        permissions.IsPlaylistUser | internal_permissions.IsReadOnly,
+        (permissions.IsPlaylistManager & library_permissions.IsLibraryManager)
+        | permissions.IsSongEnabled,
         permissions.KaraokeIsNotStoppedOrReadOnly,
     ]
     queryset = models.PlaylistEntry.get_playlist()
@@ -174,7 +182,10 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
     """
 
     permission_classes = [
-        permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly,
+        IsAuthenticated,
+        permissions.IsPlaylistManager
+        | permissions.IsPlayingEntryOwner
+        | internal_permissions.IsReadOnly,
         permissions.KaraokeIsNotStoppedOrReadOnly,
     ]
     serializer_class = serializers.PlayerCommandSerializer
@@ -208,7 +219,7 @@ class DigestView(APIView):
         - karaoke: current karaoke session.
     """
 
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         """Send aggregated player data
@@ -245,7 +256,10 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
 
     queryset = models.Karaoke.objects.all()
     serializer_class = serializers.KaraokeSerializer
-    permission_classes = [permissions.IsPlaylistManagerOrReadOnly]
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlaylistManager | internal_permissions.IsReadOnly,
+    ]
 
     def perform_update(self, serializer):
         """Update the karaoke
@@ -297,7 +311,10 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
     It allows to get and set the player status.
     """
 
-    permission_classes = [permissions.IsPlayerOrReadOnly]
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlayer | internal_permissions.IsReadOnly,
+    ]
     serializer_class = serializers.PlayerStatusSerializer
 
     def perform_update(self, serializer):
@@ -399,7 +416,10 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
     """View of the player errors
     """
 
-    permission_classes = [permissions.IsPlayerOrReadOnly]
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlayer | internal_permissions.IsReadOnly,
+    ]
     serializer_class = serializers.PlayerErrorSerializer
     queryset = models.PlayerError.objects.order_by("date_created")
 

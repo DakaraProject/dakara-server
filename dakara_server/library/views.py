@@ -1,6 +1,7 @@
 from django.db.models.functions import Lower
 from django.db.models import Q
 from django.contrib.auth import get_user_model
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     UpdateAPIView,
@@ -8,10 +9,11 @@ from rest_framework.generics import (
     ListAPIView,
 )
 
+from internal import permissions as internal_permissions
 from library import models
 from library import serializers
+from library import permissions
 from library.query_language import QueryLanguageParser
-from library.permissions import IsLibraryManagerOrReadOnly
 
 
 UserModel = get_user_model()
@@ -45,7 +47,10 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
     """List of songs
     """
 
-    permission_classes = (IsLibraryManagerOrReadOnly,)
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
     serializer_class = serializers.SongSerializer
 
     def get_queryset(self):
@@ -164,7 +169,10 @@ class SongView(RetrieveUpdateDestroyAPIView):
     """Edition and display of a song
     """
 
-    permission_classes = (IsLibraryManagerOrReadOnly,)
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
     queryset = models.Song.objects.all()
     serializer_class = serializers.SongSerializer
 
@@ -173,7 +181,10 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
     """List of artists
     """
 
-    permission_classes = (IsLibraryManagerOrReadOnly,)
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
     serializer_class = serializers.ArtistWithCountSerializer
 
     def get_queryset(self):
@@ -212,7 +223,10 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
     """List of works
     """
 
-    permission_classes = (IsLibraryManagerOrReadOnly,)
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
     serializer_class = serializers.WorkSerializer
 
     def get_queryset(self):
@@ -262,7 +276,10 @@ class WorkTypeListView(ListCreateAPIView):
     """List of work types
     """
 
-    permission_classes = (IsLibraryManagerOrReadOnly,)
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
     queryset = models.WorkType.objects.all().order_by(Lower("name"))
     serializer_class = serializers.WorkTypeSerializer
 
@@ -271,7 +288,10 @@ class SongTagListView(ListAPIView):
     """List of song tags
     """
 
-    permission_classes = (IsLibraryManagerOrReadOnly,)
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
     queryset = models.SongTag.objects.all().order_by(Lower("name"))
     serializer_class = serializers.SongTagSerializer
 
@@ -280,6 +300,9 @@ class SongTagView(UpdateAPIView):
     """Update a song tag
     """
 
-    permission_classes = (IsLibraryManagerOrReadOnly,)
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
     queryset = models.SongTag.objects.all()
     serializer_class = serializers.SongTagSerializer

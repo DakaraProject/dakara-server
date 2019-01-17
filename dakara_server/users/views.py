@@ -4,6 +4,7 @@ from rest_framework import views
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 
+from internal import permissions as internal_permissions
 from users import serializers
 from users import permissions
 
@@ -34,7 +35,10 @@ class UserListView(generics.ListCreateAPIView):
     model = UserModel
     queryset = UserModel.objects.all().order_by("username")
     serializer_class = serializers.UserSerializer
-    permission_classes = [permissions.IsUsersManagerOrReadOnly]
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsUsersManager | internal_permissions.IsReadOnly,
+    ]
 
 
 class UserView(generics.RetrieveUpdateDestroyAPIView):
@@ -44,8 +48,9 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
     model = UserModel
     queryset = UserModel.objects.all()
     permission_classes = [
-        permissions.IsUsersManagerOrReadOnly,
-        permissions.IsNotSelfOrReadOnly,
+        IsAuthenticated,
+        permissions.IsUsersManager & permissions.IsNotSelf
+        | internal_permissions.IsReadOnly,
     ]
 
     def get_serializer_class(self):
@@ -62,4 +67,4 @@ class PasswordView(generics.UpdateAPIView):
     model = UserModel
     queryset = UserModel.objects.all()
     serializer_class = serializers.PasswordSerializer
-    permission_classes = [permissions.IsSelf]
+    permission_classes = [IsAuthenticated, permissions.IsSelf]

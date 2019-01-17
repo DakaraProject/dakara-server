@@ -1,26 +1,32 @@
-from rest_framework import permissions
 from django.contrib.auth import get_user_model
 
-from users.permissions import BasePermissionCustom
+from internal.permissions import BasePermissionCustom
 
 
 UserModel = get_user_model()
 
 
-class IsLibraryManagerOrReadOnly(BasePermissionCustom):
-    """Handle permissions for updating library
-
-    Permission scheme:
-        Superuser can do anything;
-        Library manager can do anything;
-        Authenticated can only display;
-        Unauthenticated user cannot see anything.
+class IsLibraryManager(BasePermissionCustom):
+    """Allow access if user is super user or library manager
     """
 
-    def has_permission_custom(self, request, view):
-        # for safe methods only
-        if request.method in permissions.SAFE_METHODS:
+    def has_permission(self, request, view):
+        # for super user
+        if request.user.is_superuser:
             return True
 
-        # for modification
+        # for manager
         return request.user.has_library_permission_level(UserModel.MANAGER)
+
+
+class IsLibraryUser(BasePermissionCustom):
+    """Allow access if user is super user or library user
+    """
+
+    def has_permission(self, request, view):
+        # for super user
+        if request.user.is_superuser:
+            return True
+
+        # for user
+        return request.user.has_library_permission_level(UserModel.USER)
