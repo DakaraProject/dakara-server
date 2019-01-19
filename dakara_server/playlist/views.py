@@ -1,8 +1,10 @@
 import logging
 from datetime import datetime, timedelta
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from django.utils import timezone
 from django.conf import settings
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from rest_framework import status
@@ -17,10 +19,13 @@ from playlist import models
 from playlist import serializers
 from playlist import permissions
 from playlist.consumers import broadcast_to_channel
+from playlist.date_stop import clear_date_stop
 
 tz = timezone.get_default_timezone()
 logger = logging.getLogger(__name__)
 UserModel = get_user_model()
+scheduler = BackgroundScheduler()
+scheduler.start()
 
 
 class PlaylistEntryPagination(PageNumberPagination):
@@ -253,6 +258,8 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
     """Get or edit the kara status
     """
 
+    KARAOKE_JOB_NAME = "karaoke_date_stop"
+
     queryset = models.Karaoke.objects.all()
     serializer_class = serializers.KaraokeSerializer
     permission_classes = [permissions.IsPlaylistManagerOrReadOnly]
@@ -262,6 +269,30 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
         """
         super().perform_update(serializer)
         karaoke = serializer.instance
+
+        # Management of date stop
+
+        if "date_stop" in serializer.validated_data:
+            # Clear existing scheduled task
+            existing_job_id = cache.get(self.KARAOKE_JOB_NAME)
+            if existing_job_id is not None:
+                existing_job = scheduler.get_job(existing_job_id)
+                if existing_job is not None:
+                    existing_job.remove()
+                    logger.debug("Existing date stop job was found and unscheduled")
+
+                else:
+                    cache.delete(self.KARAOKE_JOB_NAME)
+
+            if karaoke.date_stop is not None:
+                # Schedule date stop clear
+                job = scheduler.add_job(
+                    clear_date_stop, "date", run_date=karaoke.date_stop
+                )
+                cache.set(self.KARAOKE_JOB_NAME, job.id)
+                logger.debug("New date stop job was scheduled")
+
+        # Management of kara status Booleans change
 
         # empty the playlist and clear the player if the kara is switched to not ongoing
         if "ongoing" in serializer.validated_data and not karaoke.ongoing:
