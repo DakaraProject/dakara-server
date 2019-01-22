@@ -71,7 +71,9 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
         IsAuthenticated,
-        permissions.IsPlaylistUser | internal_permissions.IsReadOnly,
+        permissions.IsPlaylistUser
+        | permissions.IsPlaylistManager
+        | internal_permissions.IsReadOnly,
         (permissions.IsPlaylistManager & library_permissions.IsLibraryManager)
         | permissions.IsSongEnabled,
         permissions.KaraokeIsNotStoppedOrReadOnly,
@@ -114,10 +116,8 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         # we are creating the object (which obviously doesn't exist yet).
         karaoke = models.Karaoke.get_object()
 
-        if (
-            karaoke.date_stop is not None
-            and not self.request.user.has_playlist_permission_level(UserModel.MANAGER)
-            and not self.request.user.is_superuser
+        if karaoke.date_stop is not None and not (
+            self.request.user.is_playlist_manager or self.request.user.is_superuser
         ):
             # compute playlist end date
             playlist = self.filter_queryset(self.get_queryset())

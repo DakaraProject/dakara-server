@@ -60,9 +60,7 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
 
         # hide all songs with disabled tags for non-managers or non-superusers
         user = self.request.user
-        if not (
-            user.is_superuser or user.has_library_permission_level(UserModel.MANAGER)
-        ):
+        if not (user.is_superuser or user.is_library_manager):
             query_set = query_set.exclude(tags__disabled=True)
 
         # if 'query' is in the query string then perform search otherwise

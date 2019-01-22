@@ -11,12 +11,7 @@ class IsLibraryManager(BasePermissionCustom):
     """
 
     def has_permission(self, request, view):
-        # for super user
-        if request.user.is_superuser:
-            return True
-
-        # for manager
-        return request.user.has_library_permission_level(UserModel.MANAGER)
+        return request.user.is_superuser or request.user.is_library_manager
 
 
 class IsLibraryUser(BasePermissionCustom):
@@ -24,9 +19,4 @@ class IsLibraryUser(BasePermissionCustom):
     """
 
     def has_permission(self, request, view):
-        # for super user
-        if request.user.is_superuser:
-            return True
-
-        # for user
-        return request.user.has_library_permission_level(UserModel.USER)
+        return request.user.is_superuser or request.user.is_library_user

@@ -19,12 +19,7 @@ class IsUsersManager(BasePermissionCustom):
     """
 
     def has_permission(self, request, view):
-        # for super user
-        if request.user.is_superuser:
-            return True
-
-        # for manager
-        return request.user.has_users_permission_level(UserModel.MANAGER)
+        return request.user.is_superuser or request.user.is_users_manager
 
 
 class IsSelf(BasePermissionCustom):

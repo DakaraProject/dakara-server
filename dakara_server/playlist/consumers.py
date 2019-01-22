@@ -62,7 +62,7 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
             return
 
         # ensure user is player
-        if not self.scope["user"].has_playlist_permission_level(UserModel.PLAYER):
+        if not self.scope["user"].is_player:
             self.close()
             logger.error("Invalid user tries to connect to playlist " "device consumer")
             return

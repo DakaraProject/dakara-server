@@ -15,12 +15,7 @@ class IsPlaylistManager(BasePermissionCustom):
     """
 
     def has_permission(self, request, view):
-        # for super user
-        if request.user.is_superuser:
-            return True
-
-        # for manager
-        return request.user.has_playlist_permission_level(UserModel.MANAGER)
+        return request.user.is_superuser or request.user.is_playlist_manager
 
 
 class IsPlaylistUser(BasePermissionCustom):
@@ -28,12 +23,7 @@ class IsPlaylistUser(BasePermissionCustom):
     """
 
     def has_permission(self, request, view):
-        # for super user
-        if request.user.is_superuser:
-            return True
-
-        # for user
-        return request.user.has_playlist_permission_level(UserModel.USER)
+        return request.user.is_superuser or request.user.is_playlist_user
 
 
 class IsPlayer(BasePermissionCustom):
@@ -41,12 +31,7 @@ class IsPlayer(BasePermissionCustom):
     """
 
     def has_permission(self, request, view):
-        # for super user
-        if request.user.is_superuser:
-            return True
-
-        # for player
-        return request.user.has_playlist_permission_level(UserModel.PLAYER)
+        return request.user.is_superuser or request.user.is_player
 
 
 class IsOwner(permissions.BasePermission):
