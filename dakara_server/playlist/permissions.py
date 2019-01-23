@@ -19,11 +19,12 @@ class IsPlaylistManager(BasePermissionCustom):
 
 
 class IsPlaylistUser(BasePermissionCustom):
-    """Allow access if the user is super user or playlist user
+    """Allow access if the user is super user or playlist manager/user
     """
 
     def has_permission(self, request, view):
-        return request.user.is_superuser or request.user.is_playlist_user
+        user = request.user
+        return user.is_superuser or user.is_playlist_manager or user.is_playlist_user
 
 
 class IsPlayer(BasePermissionCustom):

@@ -71,9 +71,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
         IsAuthenticated,
-        permissions.IsPlaylistUser
-        | permissions.IsPlaylistManager
-        | internal_permissions.IsReadOnly,
+        permissions.IsPlaylistUser | internal_permissions.IsReadOnly,
         (permissions.IsPlaylistManager & library_permissions.IsLibraryManager)
         | permissions.IsSongEnabled,
         permissions.KaraokeIsNotStoppedOrReadOnly,
