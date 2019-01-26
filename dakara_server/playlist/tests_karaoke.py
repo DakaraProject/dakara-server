@@ -9,6 +9,7 @@ from rest_framework import status
 
 from playlist.base_test import BaseAPITestCase
 from playlist.models import Karaoke, PlaylistEntry, PlayerError
+from playlist.date_stop import clear_date_stop
 
 tz = timezone.get_default_timezone()
 
@@ -270,16 +271,52 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
         # no command was sent to device
         mocked_broadcast_to_channel.assert_not_called()
 
-    def test_patch_karaoke_date_stop(self):
-        """Test a manager can modify the kara date stop
+    @patch("playlist.views.scheduler")
+    def test_patch_karaoke_date_stop(self, mocked_scheduler):
+        """Test a manager can modify the kara date stop and scheduler is called
         """
+        # Mock return value of add_job
+        mocked_scheduler.add_job.return_value.id = "job_id"
+
         # login as manager
         self.authenticate(self.manager)
 
-        # set karaoke
+        # set karaoke date stop
         date_stop = datetime.now(tz)
         response = self.client.patch(self.url, {"date_stop": date_stop.isoformat()})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        # Check karaoke was updated
         karaoke = Karaoke.get_object()
         self.assertEqual(karaoke.date_stop, date_stop)
+
+        # Check job was added
+        mocked_scheduler.add_job.assert_called_with(
+            clear_date_stop, "date", run_date=date_stop
+        )
+
+    @patch("playlist.views.scheduler")
+    @patch("playlist.views.cache")
+    def test_patch_karaoke_clear_date_stop(self, mocked_cache, mocked_scheduler):
+        """Test a manager can clear the kara date stop and job is cancelled
+        """
+        # set karaoke date stop
+        karaoke = Karaoke.get_object()
+        date_stop = datetime.now(tz)
+        karaoke.date_stop = date_stop
+        karaoke.save()
+
+        # login as manager
+        self.authenticate(self.manager)
+
+        # clear karaoke date stop
+        response = self.client.patch(self.url, {"date_stop": None})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check karaoke was updated
+        karaoke = Karaoke.get_object()
+        self.assertIsNone(karaoke.date_stop)
+
+        # Check remove was called
+        mocked_cache.get.assert_called_with("karaoke_date_stop")
+        mocked_scheduler.get_job.return_value.remove.assert_called_with()
