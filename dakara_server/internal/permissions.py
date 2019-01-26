@@ -3,6 +3,15 @@ from rest_framework import permissions
 
 class BasePermissionCustom(permissions.BasePermission):
     """Restrict object permission to access permission
+
+    The main problem of `BasePermission` is that the default value for
+    `has_permission_object` is True. This leads to problem when one permission
+    class, that redefines `has_permission_object`, is combined with another
+    one, that does not, with the `or` operator: the resulting
+    `has_permission_object` value is alway True.
+
+    Returning the same value as `has_permission` is for now the least dirty way
+    to avoid this problem.
     """
 
     def has_object_permission(self, request, view, obj):
