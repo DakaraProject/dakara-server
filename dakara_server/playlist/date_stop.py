@@ -1,12 +1,18 @@
 import logging
 from datetime import datetime
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from django.utils import timezone
+from django.core.cache import cache
+
 from playlist.models import Karaoke
 
+KARAOKE_JOB_NAME = "karaoke_date_stop"
 
 tz = timezone.get_default_timezone()
 logger = logging.getLogger(__name__)
+scheduler = BackgroundScheduler()
+scheduler.start()
 
 
 def clear_date_stop():
@@ -21,3 +27,23 @@ def clear_date_stop():
     karaoke.date_stop = None
     karaoke.save()
     logger.info("Date stop was cleared and can add to playlist was disabled")
+
+
+def check_date_stop_on_app_ready():
+    """Check if date stop has expired and clear or schedule job accordingly
+    """
+    karaoke = Karaoke.get_object()
+    if karaoke.date_stop is not None:
+        if karaoke.date_stop < datetime.now(tz):
+            # Date stop has already expired
+            clear_date_stop()
+            return
+
+        # Re-schedule date stop clear if not scheduled yet
+        # Since this method may be called several times at startup
+        if cache.get(KARAOKE_JOB_NAME) is not None:
+            return
+
+        job = scheduler.add_job(clear_date_stop, "date", run_date=karaoke.date_stop)
+        cache.set(KARAOKE_JOB_NAME, job.id)
+        logger.debug("New date stop job was scheduled")

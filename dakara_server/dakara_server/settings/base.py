@@ -32,7 +32,7 @@ INSTALLED_APPS = (
     "channels",
     "ordered_model",
     "library",
-    "playlist",
+    "playlist.apps.PlaylistApp",
     "users",
     "internal",
 )
