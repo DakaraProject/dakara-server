@@ -150,7 +150,9 @@ class CheckDateStopOnAppReadyTestCase(BaseAPITestCase):
     @patch("playlist.date_stop.Karaoke")
     @patch("playlist.date_stop.clear_date_stop")
     @patch("playlist.date_stop.scheduler")
-    def test_database_unavailable(self, mocked_scheduler, mocked_clear_date_stop, MockedKaraoke):
+    def test_database_unavailable(
+        self, mocked_scheduler, mocked_clear_date_stop, MockedKaraoke
+    ):
         """Check there is no crash if the database does not exist
 
         We simulate a crash by raising a `django.db.utils.OperationalError`
@@ -158,7 +160,8 @@ class CheckDateStopOnAppReadyTestCase(BaseAPITestCase):
         """
         # mock the karaoke mock to crash when invoking class method get_object
         MockedKaraoke.get_object.side_effect = OperationalError(
-            "no such table: playlist_karaoke")
+            "no such table: playlist_karaoke"
+        )
 
         # call the method
         check_date_stop_on_app_ready()
