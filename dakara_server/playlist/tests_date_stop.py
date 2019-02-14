@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-from .base_test import BaseAPITestCase, tz
+from django.db.utils import OperationalError
 
 from playlist.date_stop import clear_date_stop, check_date_stop_on_app_ready
 from playlist.models import Karaoke
+from playlist.base_test import BaseAPITestCase, tz
 
 
 class ClearDateStopTestCase(BaseAPITestCase):
@@ -144,4 +145,26 @@ class CheckDateStopOnAppReadyTestCase(BaseAPITestCase):
         check_date_stop_on_app_ready()
 
         # Check add job was not called
+        mocked_scheduler.add_job.assert_not_called()
+
+    @patch("playlist.date_stop.Karaoke")
+    @patch("playlist.date_stop.clear_date_stop")
+    @patch("playlist.date_stop.scheduler")
+    def test_database_unavailable(self, mocked_scheduler, mocked_clear_date_stop, MockedKaraoke):
+        """Check there is no crash if the database does not exist
+
+        We simulate a crash by raising a `django.db.utils.OperationalError`
+        when accessing to `Karaoke.get_object`.
+        """
+        # mock the karaoke mock to crash when invoking class method get_object
+        MockedKaraoke.get_object.side_effect = OperationalError(
+            "no such table: playlist_karaoke")
+
+        # call the method
+        check_date_stop_on_app_ready()
+
+        # check clear date stop was not called
+        mocked_clear_date_stop.assert_not_called()
+
+        # check add job was not called
         mocked_scheduler.add_job.assert_not_called()

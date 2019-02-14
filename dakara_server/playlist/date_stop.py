@@ -4,6 +4,7 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.utils import timezone
 from django.core.cache import cache
+from django.db.utils import OperationalError
 
 from playlist.models import Karaoke
 
@@ -32,7 +33,14 @@ def clear_date_stop():
 def check_date_stop_on_app_ready():
     """Check if date stop has expired and clear or schedule job accordingly
     """
-    karaoke = Karaoke.get_object()
+    try:
+        karaoke = Karaoke.get_object()
+
+    # if database does not exist when checking date stop, abort the function
+    # this case occurs on startup before running tests
+    except OperationalError:
+        return
+
     if karaoke.date_stop is not None:
         if karaoke.date_stop < datetime.now(tz):
             # Date stop has already expired

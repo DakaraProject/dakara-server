@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class PlaylistApp(AppConfig):
+class PlaylistConfig(AppConfig):
     """Playlist app
     """
 
