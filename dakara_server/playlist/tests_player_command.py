@@ -6,7 +6,7 @@ from rest_framework import status
 from .base_test import BaseAPITestCase
 
 
-class PLayerCommandViewTestCase(BaseAPITestCase):
+class PlayerCommandViewTestCase(BaseAPITestCase):
     """Test the commands given to the player
     """
 
