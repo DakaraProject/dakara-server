@@ -70,37 +70,30 @@ class DakaraUser(AbstractUser):
         max_length=1, choices=LEVELS_PLAYLIST, null=True
     )
 
-    def _has_permission_level(self, user_permission_level, requested_permission_level):
-        """Check if the user has the requested app permission level
-        """
-        # the superuser can do anything
-        if self.is_superuser:
-            return True
+    @property
+    def is_users_user(self):
+        return self.users_permission_level == self.USER
 
-        # the manager level includes everyone else level, except for the player
-        if (
-            user_permission_level == self.MANAGER
-            and requested_permission_level != self.PLAYER
-        ):
-            return True
+    @property
+    def is_users_manager(self):
+        return self.users_permission_level == self.MANAGER
 
-        return user_permission_level == requested_permission_level
+    @property
+    def is_library_user(self):
+        return self.library_permission_level == self.USER
 
-    def has_users_permission_level(self, permission_level):
-        """Check if the user has the requested users permission level
-        """
-        return self._has_permission_level(self.users_permission_level, permission_level)
+    @property
+    def is_library_manager(self):
+        return self.library_permission_level == self.MANAGER
 
-    def has_library_permission_level(self, permission_level):
-        """Check if the user has the requested library permission level
-        """
-        return self._has_permission_level(
-            self.library_permission_level, permission_level
-        )
+    @property
+    def is_playlist_user(self):
+        return self.playlist_permission_level == self.USER
 
-    def has_playlist_permission_level(self, permission_level):
-        """Check if the user has the requested playlist permission level
-        """
-        return self._has_permission_level(
-            self.playlist_permission_level, permission_level
-        )
+    @property
+    def is_playlist_manager(self):
+        return self.playlist_permission_level == self.MANAGER
+
+    @property
+    def is_player(self):
+        return self.playlist_permission_level == self.PLAYER

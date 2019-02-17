@@ -16,9 +16,7 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
 
     # get related owner field
     # auto-set related owner field
-    owner = UserForPublicSerializer(
-        read_only=True, default=serializers.CurrentUserDefault()
-    )
+    owner = UserForPublicSerializer(read_only=True)
 
     # get related song field
     song = SongSerializer(many=False, read_only=True)
