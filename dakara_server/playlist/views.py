@@ -9,11 +9,13 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import generics as drf_generics
 
+from internal import permissions as internal_permissions
+from internal.pagination import PageNumberPaginationCustom
+from library import permissions as library_permissions
 from playlist import models
 from playlist import serializers
 from playlist import permissions
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 UserModel = get_user_model()
 
 
-class PlaylistEntryPagination(PageNumberPagination):
+class PlaylistEntryPagination(PageNumberPaginationCustom):
     """Pagination setup for playlist entries
     """
 
@@ -37,7 +39,11 @@ class PlaylistEntryView(drf_generics.DestroyAPIView):
     """
 
     serializer_class = serializers.PlaylistEntrySerializer
-    permission_classes = [permissions.IsPlaylistManagerOrOwnerForDelete]
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlaylistManager
+        | (internal_permissions.IsDelete & permissions.IsOwner),
+    ]
     queryset = models.PlaylistEntry.get_playlist()
 
     def put(self, request, *args, **kwargs):
@@ -66,8 +72,10 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
 
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
-        permissions.IsPlaylistUserOrReadOnly,
-        permissions.IsPlaylistAndLibraryManagerOrSongCanBeAdded,
+        IsAuthenticated,
+        permissions.IsPlaylistUser | internal_permissions.IsReadOnly,
+        (permissions.IsPlaylistManager & library_permissions.IsLibraryManager)
+        | permissions.IsSongEnabled,
     ]
     queryset = models.PlaylistEntry.get_playlist()
 
@@ -101,7 +109,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         # and user is not manager.
         if (
             not karaoke.can_add_to_playlist
-            and not self.request.user.has_playlist_permission_level(UserModel.MANAGER)
+            and not self.request.user.is_playlist_manager
             and not self.request.user.is_superuser
         ):
             raise PermissionDenied(
@@ -122,10 +130,8 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         # validated. Moreover, the object permission method won't be called as
         # we are creating the object (which obviously doesn't exist yet).
 
-        if (
-            karaoke.date_stop is not None
-            and not self.request.user.has_playlist_permission_level(UserModel.MANAGER)
-            and not self.request.user.is_superuser
+        if karaoke.date_stop is not None and not (
+            self.request.user.is_playlist_manager or self.request.user.is_superuser
         ):
             # compute playlist end date
             playlist = self.filter_queryset(self.get_queryset())
@@ -149,7 +155,8 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
 
         playlist_was_empty = models.PlaylistEntry.get_next() is None
 
-        super().perform_create(serializer)
+        # add the owner to the serializer and create data
+        serializer.save(owner=self.request.user)
 
         # TODO broadcast that a new entry has been created
 
@@ -188,7 +195,12 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
     """Handle player commands
     """
 
-    permission_classes = [permissions.IsPlaylistManagerOrPlayingEntryOwnerOrReadOnly]
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlaylistManager
+        | permissions.IsPlayingEntryOwner
+        | internal_permissions.IsReadOnly,
+    ]
     serializer_class = serializers.PlayerCommandSerializer
 
     def perform_update(self, serializer):
@@ -220,7 +232,7 @@ class DigestView(APIView):
         - karaoke: current karaoke session.
     """
 
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         """Send aggregated player data
@@ -257,7 +269,10 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
 
     queryset = models.Karaoke.objects.all()
     serializer_class = serializers.KaraokeSerializer
-    permission_classes = [permissions.IsPlaylistManagerOrReadOnly]
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlaylistManager | internal_permissions.IsReadOnly,
+    ]
 
     def perform_update(self, serializer):
         """Update the karaoke
@@ -334,7 +349,10 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
     It allows to get and set the player status.
     """
 
-    permission_classes = [permissions.IsPlayerOrReadOnly]
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlayer | internal_permissions.IsReadOnly,
+    ]
     serializer_class = serializers.PlayerStatusSerializer
 
     def perform_update(self, serializer):
@@ -436,10 +454,12 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
     """View of the player errors
     """
 
-    permission_classes = [permissions.IsPlayerOrReadOnly]
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlayer | internal_permissions.IsReadOnly,
+    ]
     serializer_class = serializers.PlayerErrorSerializer
     queryset = models.PlayerError.objects.order_by("date_created")
-    pagination_class = PageNumberPagination
 
     def perform_create(self, serializer):
         """Create an error and perform other actions
