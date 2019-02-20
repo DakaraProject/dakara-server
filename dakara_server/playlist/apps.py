@@ -15,11 +15,11 @@ class PlaylistConfig(AppConfig):
         # When the server is run with the `runserver` command, two instances of
         # the project are running and hence this method is called twice: one
         # for the reloader and one for the actual development server. The
-        # reloader creates the environment variable `RUN_MAIN`, so it can be
-        # distinguighed.
+        # reloader creates the environment variable `RUN_MAIN` with the value
+        # "true", so it can be distinguighed.
         # See answers of https://stackoverflow.com/q/33814615
         # See django/utils/autoreload.py
-        if "RUN_MAIN" in os.environ:
+        if os.environ.get("RUN_MAIN") == "true":
             return
 
         # The code bellow cannot be executed by the reloader
