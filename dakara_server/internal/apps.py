@@ -1,6 +1,11 @@
 import os
+import logging
 
 from django.apps import AppConfig
+from django.conf import settings
+
+
+logger = logging.getLogger("django")
 
 
 class DakaraConfig(AppConfig):
@@ -32,3 +37,16 @@ class DakaraConfig(AppConfig):
         This is a stub, that needs to be overriden
         """
         raise NotImplementedError()
+
+
+class InternalConfig(DakaraConfig):
+    """Internal app
+    """
+
+    name = "internal"
+
+    def ready_no_reload(self):
+        """Method called when app start
+        """
+        # log server version
+        logger.info("Dakara server {} ({})".format(settings.VERSION, settings.DATE))

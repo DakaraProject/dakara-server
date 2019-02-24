@@ -34,7 +34,7 @@ INSTALLED_APPS = (
     "library",
     "playlist.apps.PlaylistConfig",
     "users",
-    "internal",
+    "internal.apps.InternalConfig",
 )
 
 MIDDLEWARE_CLASSES = (
