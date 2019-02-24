@@ -1,28 +1,15 @@
-import os
-
-from django.apps import AppConfig
+from internal.apps import DakaraConfig
 
 
-class PlaylistConfig(AppConfig):
+class PlaylistConfig(DakaraConfig):
     """Playlist app
     """
 
     name = "playlist"
 
-    def ready(self):
+    def ready_no_reload(self):
         """Method called when app start
         """
-        # When the server is run with the `runserver` command, two instances of
-        # the project are running and hence this method is called twice: one
-        # for the reloader and one for the actual development server. The
-        # reloader creates the environment variable `RUN_MAIN` with the value
-        # "true", so it can be distinguighed.
-        # See answers of https://stackoverflow.com/q/33814615
-        # See django/utils/autoreload.py
-        if os.environ.get("RUN_MAIN") == "true":
-            return
-
-        # The code bellow cannot be executed by the reloader
         from playlist.date_stop import check_date_stop_on_app_ready
 
         check_date_stop_on_app_ready()
