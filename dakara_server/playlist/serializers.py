@@ -207,7 +207,12 @@ class KaraokeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Karaoke
-        fields = ("status", "date_stop")
+        fields = (
+            "ongoing",
+            "can_add_to_playlist",
+            "player_play_next_song",
+            "date_stop",
+        )
 
 
 class DigestSerializer(serializers.Serializer):

@@ -13,8 +13,6 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-import logging
-
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.conf import settings
@@ -26,11 +24,6 @@ from library import views as library_views
 from playlist import views as playlist_views
 from users import views as users_views
 from internal import views as internal_views
-
-
-# log server version
-logger = logging.getLogger("django")
-logger.info("Dakara server {} ({})".format(settings.VERSION, settings.DATE))
 
 
 urlpatterns = [

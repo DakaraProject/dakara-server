@@ -70,8 +70,10 @@ class PlayerCommandViewTestCase(BaseAPITestCase):
         )
 
     @patch("playlist.views.broadcast_to_channel")
-    def test_put_command_karaoke_stop_forbidden(self, mocked_broadcast_to_channel):
-        """Test a user cannot pause a song if the kara is stopped
+    def test_put_command_karaoke_not_ongoing_forbidden(
+        self, mocked_broadcast_to_channel
+    ):
+        """Test a user cannot pause a song if the kara is not ongoing
         """
         # play next song
         self.player_play_next_song()
@@ -79,8 +81,8 @@ class PlayerCommandViewTestCase(BaseAPITestCase):
         # authenticate manager
         self.authenticate(self.manager)
 
-        # set kara in stop mode
-        self.set_karaoke_stop()
+        # set karaoke not ongoing
+        self.set_karaoke(ongoing=False)
 
         # request pause
         response = self.client.put(self.url, {"command": "pause"})

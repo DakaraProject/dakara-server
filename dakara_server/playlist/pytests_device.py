@@ -372,9 +372,10 @@ async def test_handle_next(provider, player, communicator, client_drf, mocker):
     # we cannot call it within an asynchronous test
     mocked_broadcast_to_channel = mocker.patch("playlist.views.broadcast_to_channel")
 
-    # assert kara status is in play mode
+    # assert kara is ongoing and player play next song
     karaoke = models.Karaoke.get_object()
-    assert karaoke.status == models.Karaoke.PLAY
+    assert karaoke.ongoing
+    assert karaoke.player_play_next_song
 
     # assert player is currently idle
     assert player.playlist_entry is None
@@ -481,14 +482,14 @@ async def test_handle_next(provider, player, communicator, client_drf, mocker):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_handle_next_karaoke_stop(provider, player, communicator):
-    """Test to handle next playlist entries when the karaoke is stopped
+async def test_send_handle_next_karaoke_not_ongoing(provider, player, communicator):
+    """Test to handle next playlist entries when the karaoke is not ongoing
     """
-    # set the kara status in stop mode
-    karaoke = models.Karaoke.get_object()
-    karaoke.status = models.Karaoke.STOP
+    # set the karaoke not ongoing
+    provider.set_karaoke(ongoing=False)
+
+    # empty the playlist
     models.PlaylistEntry.objects.all().delete()
-    karaoke.save()
 
     # assert player is currently idle
     assert player.playlist_entry is None
@@ -513,13 +514,13 @@ async def test_send_handle_next_karaoke_stop(provider, player, communicator):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_handle_next_karaoke_pause(provider, player, communicator):
-    """Test to handle next playlist entries when the karaoke is paused
+async def test_send_handle_next_karaoke_not_play_next_song(
+    provider, player, communicator
+):
+    """Test to handle next playlist entries when the player does not play next song
     """
-    # set the kara status in pause mode
-    karaoke = models.Karaoke.get_object()
-    karaoke.status = models.Karaoke.PAUSE
-    karaoke.save()
+    # set player does not play next song
+    provider.set_karaoke(player_play_next_song=False)
 
     # assert player is currently idle
     assert player.playlist_entry is None

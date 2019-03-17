@@ -34,6 +34,10 @@
 
 - Configuration is now split in `developement.py` for local use and `production.py` for server use.
   To override default values, set them in a `.env` file or `settings.ini` file.
+- Kara status now consists of 3 booleans:
+    * `ongoing`: When false, player does not play, nothing can be added to playlist. In this case, the two other booleans should are meaningless. Equivalent to the old `stop` status;
+    * `can_add_to_playlist`: When false, users who are not playlist manager can't add songs to playlist;
+    * `player_play_next_song`: When false, player finish playing current song if any, but does not play next song. Equivalent to the old `pause` status.
 
 ## 1.3.0 - 2018-10-07
 

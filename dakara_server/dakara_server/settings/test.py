@@ -10,6 +10,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 This file should not be modified if you are not a dev.
 """
 
+import os
+
 from .base import *  # noqa F403
 
 # use test config
@@ -18,7 +20,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 # use sqlite database
-DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3"}}
+DATABASES = {"default": {"NAME": os.devnull, "ENGINE": "django.db.backends.sqlite3"}}
 
 # use memory channels backend
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
@@ -56,6 +58,7 @@ LOGGING = {
     },
     "loggers": {
         "playlist.views": {"handlers": ["console_playlist"], "level": "INFO"},
+        "playlist.date_stop": {"handlers": ["console_playlist"], "level": "INFO"},
         "playlist.consumers": {"handlers": ["console_playlist"], "level": "INFO"},
         "library.management.commands.feed": {
             "handlers": ["console_interactive"],

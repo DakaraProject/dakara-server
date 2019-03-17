@@ -102,25 +102,20 @@ class Provider:
         )
         self.pe4.save()
 
-        # Set kara status in play mode
-        karaoke = Karaoke.get_object()
-        karaoke.status = Karaoke.PLAY
-        karaoke.save()
-
     @staticmethod
-    def set_karaoke_stop():
+    def set_karaoke(ongoing=None, can_add_to_playlist=None, player_play_next_song=None):
         """Put the karaoke in stop state
         """
         karaoke = Karaoke.get_object()
-        karaoke.status = Karaoke.STOP
-        karaoke.save()
+        if ongoing is not None:
+            karaoke.ongoing = ongoing
 
-    @staticmethod
-    def set_karaoke_pause():
-        """Put the karaoke in pause state
-        """
-        karaoke = Karaoke.get_object()
-        karaoke.status = Karaoke.PAUSE
+        if can_add_to_playlist is not None:
+            karaoke.can_add_to_playlist = can_add_to_playlist
+
+        if player_play_next_song is not None:
+            karaoke.player_play_next_song = player_play_next_song
+
         karaoke.save()
 
     def player_play_next_song(self, *args, **kwargs):

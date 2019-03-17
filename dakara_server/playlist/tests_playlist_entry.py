@@ -166,18 +166,44 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
             "playlist.device", "send_playlist_entry", {"playlist_entry": new_entry}
         )
 
-    def test_post_create_playlist_entry_karaoke_stop_forbidden(self):
-        """Test to verify playlist entry cannot be created when kara is stopped
+    def test_post_create_playlist_entry_not_ongoing_forbidden(self):
+        """Test to verify playlist entry cannot be created when kara not ongoing
         """
-        # stop kara
-        self.set_karaoke_stop()
+        # Set karaoke not ongoing
+        self.set_karaoke(ongoing=False)
+
+        # Login as playlist manager
+        self.authenticate(self.manager)
+
+        # Post new playlist entry
+        response = self.client.post(self.url, {"song_id": self.song1.id})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_post_create_playlist_entry_cant_add_to_playlist_forbidden_user(self):
+        """Test to verify playlist entry cannot be created when can't add to playlist
+        """
+        # Set can't add to playlist
+        self.set_karaoke(can_add_to_playlist=False)
+
+        # Login as playlist user
+        self.authenticate(self.user)
+
+        # Post new playlist entry
+        response = self.client.post(self.url, {"song_id": self.song1.id})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_post_create_playlist_entry_cant_add_to_playlist_allowed_manager(self):
+        """Test to verify playlist entry cannot be created when can't add to playlist
+        """
+        # Set can't add to playlist
+        self.set_karaoke(can_add_to_playlist=False)
 
         # Login as playlist user
         self.authenticate(self.manager)
 
         # Post new playlist entry
         response = self.client.post(self.url, {"song_id": self.song1.id})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     @patch("playlist.views.settings")
     def test_post_create_playlist_entry_playlist_full_forbidden(self, mock_settings):

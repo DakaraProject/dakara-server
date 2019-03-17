@@ -32,9 +32,9 @@ INSTALLED_APPS = (
     "channels",
     "ordered_model",
     "library",
-    "playlist",
+    "playlist.apps.PlaylistConfig",
     "users",
-    "internal",
+    "internal.apps.InternalConfig",
 )
 
 MIDDLEWARE_CLASSES = (

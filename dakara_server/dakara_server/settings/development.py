@@ -84,6 +84,7 @@ LOGGING = {
     },
     "loggers": {
         "playlist.views": {"handlers": ["console_playlist"], "level": "INFO"},
+        "playlist.date_stop": {"handlers": ["console_playlist"], "level": "INFO"},
         "playlist.consumers": {"handlers": ["console_playlist"], "level": "INFO"},
         "library.management.commands.feed": {
             "handlers": ["console_interactive"],
