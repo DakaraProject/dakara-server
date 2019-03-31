@@ -195,3 +195,12 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
         """Add directory to song file name
         """
         return os.path.join(song.directory, song.filename)
+
+
+class SongForFeederSerializer(serializers.ModelSerializer):
+    """Song serializer for the feeder
+    """
+
+    class Meta:
+        model = Song
+        fields = ("filename", "directory")

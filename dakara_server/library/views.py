@@ -14,6 +14,7 @@ from library import models
 from library import serializers
 from library import permissions
 from library.query_language import QueryLanguageParser
+from library import views_feeder as feeder  # noqa F401
 
 
 UserModel = get_user_model()
