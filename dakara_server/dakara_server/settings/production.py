@@ -35,6 +35,10 @@ DATABASES = {"default": config("DATABASE_URL", cast=db_url)}
 
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
+# Static root
+# Should point to the static directory served by nginx
+STATIC_ROOT = config("STATIC_ROOT")
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
@@ -65,11 +69,19 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "no_time",
         },
+        "logfile": {
+            "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": config("LOG_FILE_PATH"),
+            "maxBytes": config("LOG_FILE_MAX_SIZE", cast=int),
+            "backupCount": config("LOG_FILE_BACKUP_COUNT", cast=int),
+            "formatter": "default",
+        },
     },
     "loggers": {
-        "playlist.views": {"handlers": ["console_playlist"], "level": "INFO"},
-        "playlist.date_stop": {"handlers": ["console_playlist"], "level": "INFO"},
-        "playlist.consumers": {"handlers": ["console_playlist"], "level": "INFO"},
+        "playlist.views": {"handlers": ["logfile"], "level": "INFO"},
+        "playlist.date_stop": {"handlers": ["logfile"], "level": "INFO"},
+        "playlist.consumers": {"handlers": ["logfile"], "level": "INFO"},
         "library.management.commands.feed": {
             "handlers": ["console_interactive"],
             "level": "INFO",
@@ -79,11 +91,12 @@ LOGGING = {
             "level": "INFO",
         },
         "django": {
-            "handlers": ["console"],
+            "handlers": ["logfile"],
             "level": config("DJANGO_LOG_LEVEL", default="INFO"),
         },
     },
 }
+
 
 # limit of the playlist size
 PLAYLIST_SIZE_LIMIT = config("PLAYLIST_SIZE_LIMIT", cast=int, default=100)
