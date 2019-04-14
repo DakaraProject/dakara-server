@@ -1,8 +1,11 @@
+from datetime import timedelta
+
 from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from .base_test import BaseAPITestCase
+from library.base_test import BaseAPITestCase
+from library.models import Song, Artist, Work, SongWorkLink, SongTag
 
 
 UserModel = get_user_model()
@@ -278,7 +281,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
 
         For a manager, song list includes disabled songs with tags.
         """
-        # Login as simple user
+        # Login as manager
         self.authenticate(self.manager)
 
         # Set tag1 disabled
@@ -295,3 +298,123 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         # Song2 has been excluded from the list
         self.check_song_json(response.data["results"][0], self.song1)
         self.check_song_json(response.data["results"][1], self.song2)
+
+    def test_post_song_simple(self):
+        """Test to create a song without nested artists, tags nor works
+        """
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert the amount of songs
+        self.assertEqual(Song.objects.count(), 2)
+
+        # create a new song
+        song = {
+            "title": "Song3",
+            "filename": "song3",
+            "directory": "directory",
+            "duration": 0,
+        }
+        response = self.client.post(self.url, song)
+
+        # assert the response
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert the created song
+        song = Song.objects.get(title="Song3")
+        self.assertIsNotNone(song)
+        self.assertEqual(song.filename, "song3")
+        self.assertEqual(song.directory, "directory")
+        self.assertEqual(song.duration, timedelta(0))
+
+    def test_post_song_embedded(self):
+        """Test to create a song with nested artists, tags and works
+        """
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert the amount of songs
+        self.assertEqual(Song.objects.count(), 2)
+        self.assertEqual(Artist.objects.count(), 2)
+        self.assertEqual(SongTag.objects.count(), 2)
+        self.assertEqual(Work.objects.count(), 3)
+
+        # create a new song
+        song = {
+            "title": "Song3",
+            "filename": "song3",
+            "directory": "directory",
+            "duration": 0,
+            "artists": [{"name": self.artist1.name}, {"name": "Artist3"}],
+            "tags": [{"name": "TAG3"}, {"name": self.tag1.name}],
+            "works": [
+                {
+                    "work": {
+                        "title": "Work4",
+                        "subtitle": "subtitle4",
+                        "work_type": {"query_name": self.wt1.query_name},
+                    },
+                    "link_type": "OP",
+                    "link_type_number": None,
+                    "episodes": "",
+                },
+                {
+                    "work": {
+                        "title": self.work1.title,
+                        "subtitle": self.work1.subtitle,
+                        "work_type": {"query_name": self.work1.work_type.query_name},
+                    },
+                    "link_type": "ED",
+                    "link_type_number": 2,
+                    "episodes": "1",
+                },
+            ],
+        }
+        response = self.client.post(self.url, song)
+
+        # assert the response
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert the created song
+        song = Song.objects.get(title="Song3")
+        self.assertIsNotNone(song)
+        self.assertEqual(song.filename, "song3")
+        self.assertEqual(song.directory, "directory")
+        self.assertEqual(song.duration, timedelta(0))
+
+        # assert the created artists
+        self.assertEqual(Artist.objects.count(), 3)
+        artist3 = Artist.objects.get(name="Artist3")
+        self.assertIsNotNone(artist3)
+
+        self.assertCountEqual(song.artists.all(), [self.artist1, artist3])
+
+        # assert the created tags
+        self.assertEqual(SongTag.objects.count(), 3)
+        tag3 = SongTag.objects.get(name="TAG3")
+        self.assertIsNotNone(tag3)
+
+        self.assertCountEqual(song.tags.all(), [self.tag1, tag3])
+
+        # assert the created works
+        self.assertEqual(Work.objects.count(), 4)
+        work4 = Work.objects.get(
+            title="Work4", subtitle="subtitle4", work_type=self.wt1
+        )
+        self.assertIsNotNone(work4)
+
+        song_work_link_1 = SongWorkLink.objects.get(song=song, work=self.work1)
+        self.assertIsNotNone(song_work_link_1)
+        self.assertEqual(song_work_link_1.link_type, SongWorkLink.ENDING)
+        self.assertEqual(song_work_link_1.link_type_number, 2)
+        self.assertEqual(song_work_link_1.episodes, "1")
+
+        song_work_link_4 = SongWorkLink.objects.get(song=song, work=work4)
+        self.assertIsNotNone(song_work_link_4)
+        self.assertEqual(song_work_link_4.link_type, SongWorkLink.OPENING)
+        self.assertIsNone(song_work_link_4.link_type_number)
+        self.assertEqual(song_work_link_4.episodes, "")
+
+        self.assertCountEqual(
+            song.songworklink_set.all(), [song_work_link_1, song_work_link_4]
+        )

@@ -70,6 +70,12 @@ class WorkTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkType
         fields = ("name", "name_plural", "query_name", "icon_name")
+        extra_kwargs = {
+            "name": {"required": False},
+            "name_plural": {"required": False},
+            "icon_name": {"required": False},
+            "query_name": {"validators": []},
+        }
 
 
 class WorkNoCountSerializer(serializers.ModelSerializer):
@@ -77,7 +83,7 @@ class WorkNoCountSerializer(serializers.ModelSerializer):
     """
 
     alternative_titles = WorkAlternativeTitleSerializer(many=True, read_only=True)
-    work_type = WorkTypeSerializer(many=False, read_only=True)
+    work_type = WorkTypeSerializer(many=False)
 
     class Meta:
         model = Work
@@ -114,7 +120,7 @@ class SongWorkLinkSerializer(serializers.ModelSerializer):
     """Serialization of the use of a song in a work
     """
 
-    work = WorkNoCountSerializer(many=False, read_only=True)
+    work = WorkNoCountSerializer(many=False)
 
     class Meta:
         model = SongWorkLink
@@ -135,9 +141,9 @@ class SongSerializer(serializers.ModelSerializer):
     """
 
     duration = SecondsDurationField()
-    artists = ArtistSerializer(many=True, read_only=True)
-    tags = SongTagSerializer(many=True, read_only=True)
-    works = SongWorkLinkSerializer(many=True, read_only=True, source="songworklink_set")
+    artists = ArtistSerializer(many=True, required=False)
+    tags = SongTagSerializer(many=True, required=False)
+    works = SongWorkLinkSerializer(many=True, source="songworklink_set", required=False)
     lyrics = serializers.SerializerMethodField()
 
     class Meta:
@@ -174,6 +180,44 @@ class SongSerializer(serializers.ModelSerializer):
             return {"text": song.lyrics}
 
         return {"text": "\n".join(lyrics_list[:max_lines]), "truncated": True}
+
+    def create(self, validated_data):
+        """Create the Song instance
+        """
+        # create vanilla song
+        artists_data = validated_data.pop("artists", [])
+        tags_data = validated_data.pop("tags", [])
+        songworklinks_data = validated_data.pop("songworklink_set", [])
+        song = Song.objects.create(**validated_data)
+
+        # create artists and add them
+        for artist_data in artists_data:
+            artist, _ = Artist.objects.get_or_create(**artist_data)
+            song.artists.add(artist)
+
+        # create tags and add them
+        for tag_data in tags_data:
+            tag, _ = SongTag.objects.get_or_create(**tag_data)
+            song.tags.add(tag)
+
+        # create works and add them
+        for songworklink_data in songworklinks_data:
+            work_data = songworklink_data.pop("work")
+            work_type_data = work_data.pop("work_type")
+
+            # create work type
+            work_type, _ = WorkType.objects.get_or_create(
+                query_name=work_type_data["query_name"],
+                # TODO add defaults
+            )
+
+            # create work
+            work, _ = Work.objects.get_or_create(**work_data, work_type=work_type)
+
+            # create work link
+            SongWorkLink.objects.create(**songworklink_data, song=song, work=work)
+
+        return song
 
 
 class SongForPlayerSerializer(serializers.ModelSerializer):
