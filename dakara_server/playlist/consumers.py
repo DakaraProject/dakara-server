@@ -84,6 +84,17 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
             self.group_name, self.channel_name
         )
 
+        entry = models.PlaylistEntry.get_playing()
+        if entry:
+            # reset the current playing song
+            entry.date_played = None
+            entry.save()
+
+        # set player idle
+        player = models.Player.get_or_create()
+        player.reset()
+        player.save()
+
         # broadcast the player is idle
         broadcast_to_channel("playlist.front", "send_player_idle")
 
