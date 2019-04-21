@@ -32,14 +32,13 @@ class FeederListViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
 
-        # Songs are sorted by title
-        self.assertDictEqual(
-            response.data[0],
-            {"filename": self.song1.filename, "directory": self.song1.directory},
-        )
-        self.assertDictEqual(
-            response.data[1],
-            {"filename": self.song2.filename, "directory": self.song2.directory},
+        # Songs are not sorted
+        self.assertCountEqual(
+            response.data,
+            [
+                {"filename": self.song1.filename, "directory": self.song1.directory},
+                {"filename": self.song2.filename, "directory": self.song2.directory},
+            ],
         )
 
     def test_get_song_list_forbidden(self):
