@@ -123,6 +123,15 @@ class SongWorkLink(models.Model):
             self.song.title, self.work.title, self.link_type
         )
 
+    def __hash__(self):
+        fields = frozenset(
+            (self.song.pk, self.work.pk, self.link_type, self.link_type_number)
+        )
+        return hash(fields)
+
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
 
 class SongTag(models.Model):
     """Song tag object

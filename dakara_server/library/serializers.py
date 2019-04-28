@@ -219,6 +219,58 @@ class SongSerializer(serializers.ModelSerializer):
 
         return song
 
+    def update(self, song, validated_data):
+        """Update the Song instance
+        """
+        # create vanilla song
+        artists_data = validated_data.pop("artists", [])
+        tags_data = validated_data.pop("tags", [])
+        songworklinks_data = validated_data.pop("songworklink_set", [])
+        song = super().update(song, validated_data)
+
+        # create artists and add them
+        artists = [
+            Artist.objects.get_or_create(**artist_data)[0]
+            for artist_data in artists_data
+        ]
+        song.artists.set(artists)
+
+        # create tags and add them
+        tags = [SongTag.objects.get_or_create(**tag_data)[0] for tag_data in tags_data]
+        song.tags.set(tags)
+
+        # create works and add them
+        songworklinks_old = set(song.songworklink_set.all())
+        for songworklink_data in songworklinks_data:
+            work_data = songworklink_data.pop("work")
+            work_type_data = work_data.pop("work_type")
+
+            # create work type
+            work_type, _ = WorkType.objects.get_or_create(
+                query_name=work_type_data["query_name"],
+                # TODO add defaults
+            )
+
+            # create work
+            work, work_created = Work.objects.get_or_create(
+                **work_data, work_type=work_type
+            )
+            songworklink = SongWorkLink(**songworklink_data, song=song, work=work)
+
+            # the link already exists
+            if not work_created and songworklink in songworklinks_old:
+                songworklinks_old.remove(songworklink)
+
+            # otherwise create work link
+            else:
+                songworklink.save()
+
+        # remove removed links
+        for songworklink_old in songworklinks_old:
+            songworklink_old.delete()
+
+        return song
+
 
 class SongForPlayerSerializer(serializers.ModelSerializer):
     """Song serializer
