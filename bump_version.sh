@@ -42,7 +42,6 @@ git tag "$version_number"
 echo "Version bumped to $version_number"
 
 # patch version file for dev version
-version_file=dakara_server/dakara_server/version.py
 cat <<EOF >$version_file
 __version__ = '$dev_version_number'
 __date__ = '$version_date'
