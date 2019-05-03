@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # server version
 if [[ -z $1 ]]
 then
@@ -7,7 +9,15 @@ then
     exit 1
 fi
 
+# next server version
+if [[ -z $2 ]]
+then
+    >&2 echo 'Error: no next version specified'
+    exit 1
+fi
+
 version_number=$1
+dev_version_number=$2-dev
 version_date=$(date -I -u)
 
 # patch version file
@@ -26,7 +36,21 @@ sed -i "/^## Unreleased$/a \\
 # create commit and tag
 git add $version_file $changelog_file
 git commit -m "Version $version_number" --no-verify
-git tag $version_number
+git tag "$version_number"
 
 # say something
 echo "Version bumped to $version_number"
+
+# patch version file for dev version
+version_file=dakara_server/dakara_server/version.py
+cat <<EOF >$version_file
+__version__ = '$dev_version_number'
+__date__ = '$version_date'
+EOF
+
+# create commit
+git add $version_file
+git commit -m "Dev version $dev_version_number" --no-verify
+
+# say something
+echo "Updated to dev version $dev_version_number"
