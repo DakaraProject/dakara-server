@@ -30,6 +30,8 @@
 
 ## Unreleased
 
+## 1.4.0 - 2019-05-03
+
 ### Changed
 
 - Configuration is now split in `developement.py` for local use and `production.py` for server use.
