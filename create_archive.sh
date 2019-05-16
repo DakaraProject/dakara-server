@@ -29,24 +29,24 @@ front_archive_name=dakara-client-web_$front_version_number.zip
 front_archive_url=https://github.com/DakaraProject/dakara-client-web/releases/download/$front_version_number/$front_archive_name
 
 # get client in temporary directory
-wget -q $front_archive_url -O $tmpdir/$front_archive_name
-mkdir -p $tmpdir/$archive_prefix/dakara_server
-unzip -q $tmpdir/$front_archive_name -d $tmpdir/$archive_prefix/dakara_server/
+wget -q "$front_archive_url" -O "$tmpdir/$front_archive_name"
+mkdir -p "$tmpdir/$archive_prefix/dakara_server"
+unzip -q "$tmpdir/$front_archive_name" -d "$tmpdir/$archive_prefix/dakara_server/"
 
 # make server archive
 git archive \
         --format zip \
-        --prefix $archive_prefix/ \
+        --prefix "$archive_prefix/" \
         --worktree-attributes \
-        --output $archive_name \
-        refs/tags/$version_number
+        --output "$archive_name" \
+        "refs/tags/$version_number"
 
 # add client to server archive
 curdir=$PWD
-(cd $tmpdir; zip -qr $curdir/$archive_name $archive_prefix)
+(cd "$tmpdir"; zip -qr "$curdir/$archive_name" "$archive_prefix")
 
 # say something
 echo "Archive created in $archive_name"
 
 # delete temporary directory
-rm -rf $tmpdir
+rm -rf "$tmpdir"

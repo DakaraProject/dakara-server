@@ -5,6 +5,7 @@ from channels.layers import get_channel_layer
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from django.core.urlresolvers import reverse
+from datetime import timedelta
 
 from dakara_server.routing import application
 from playlist.consumers import PlaylistDeviceConsumer
@@ -569,3 +570,24 @@ async def test_connect_reset_playing_playlist_entry(provider, player):
     assert player2.playlist_entry is None
 
     await communicator2.disconnect()
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_disconnect_player_while_playing(provider, player, communicator_open):
+    """Test that current playlist entry is reseted when player is disconnected
+    """
+    # start playing a song
+    provider.player_play_next_song(timing=timedelta(seconds=1))
+    assert player.playlist_entry == provider.pe1
+
+    # stop the player connection
+    await communicator_open.disconnect()
+
+    # assert the play is stopped
+    assert player.playlist_entry is None
+    assert player.timing == timedelta()
+
+    # check there are no other messages
+    done = await communicator_open.receive_nothing()
+    assert done
