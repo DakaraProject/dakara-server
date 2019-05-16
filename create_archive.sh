@@ -43,7 +43,7 @@ git archive \
 
 # add client to server archive
 curdir=$PWD
-(cd "$tmpdir"; zip -qr "$curdir/$archive_name $archive_prefix")
+(cd "$tmpdir"; zip -qr "$curdir/$archive_name" "$archive_prefix")
 
 # say something
 echo "Archive created in $archive_name"
