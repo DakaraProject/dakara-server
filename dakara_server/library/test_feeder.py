@@ -99,7 +99,7 @@ class FeederViewTestCase(BaseAPITestCase):
         response = self.client.post(self.url, {"added": [song], "deleted": []})
 
         # assert the response
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the created song
         self.assertEqual(Song.objects.count(), 3)
@@ -130,7 +130,7 @@ class FeederViewTestCase(BaseAPITestCase):
         )
 
         # assert the response
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the deleted song
         self.assertEqual(Song.objects.count(), 1)

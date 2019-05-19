@@ -1,6 +1,8 @@
+from copy import deepcopy
+
+from rest_framework import status
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated
-from copy import deepcopy
 
 from library import models
 from library import serializers
@@ -39,6 +41,14 @@ class FeederView(CreateAPIView):
         # remove the deleted elements
         for song in list_deleted:
             models.Song.objects.get(**song).delete()
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+
+        # replace returned status code by generic 200
+        response.status_code = status.HTTP_200_OK
+
+        return response
 
     #
     # def post(self, request, *args, **kwargs):
