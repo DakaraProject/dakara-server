@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from rest_framework import status
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -23,14 +21,7 @@ class FeederView(CreateAPIView):
 
     def perform_create(self, serializer):
         # get the list serializer for added elements
-        # TODO do it in a cleaner way
-        data_list = []
-        for data in deepcopy(serializer.validated_data["added"]):
-            data["works"] = data.pop("songworklink_set")
-            data_list.append(data)
-
-        serializer_added = serializers.SongSerializer(data=data_list, many=True)
-        serializer_added.is_valid()
+        serializer_added = serializer.get_subserializer("added")
 
         # save the added elements
         serializer_added.save()
