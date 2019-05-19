@@ -130,9 +130,14 @@ urlpatterns = [
     ),
     # API route for the feeder
     url(
-        r"^api/library/feeder/$",
+        r"^api/library/feeder/retreive/$",
         library_views.feeder.FeederListView.as_view(),
         name="library-feeder-list",
+    ),
+    url(
+        r"^api/library/feeder/$",
+        library_views.feeder.FeederView.as_view(),
+        name="library-feeder",
     ),
     # API documentation routes
     url(r"^api-docs/", include_docs_urls(title="Dakara server API")),

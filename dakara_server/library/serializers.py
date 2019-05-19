@@ -171,6 +171,9 @@ class SongSerializer(serializers.ModelSerializer):
 
         Give at most `max_lines` lines of lyrics and tell if more lines remain.
         """
+        if not isinstance(song, Song):
+            return None
+
         if not song.lyrics:
             return None
 
@@ -293,10 +296,18 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
         return os.path.join(song.directory, song.filename)
 
 
-class SongForFeederSerializer(serializers.ModelSerializer):
+class SongOnlyFilePathSerializer(serializers.ModelSerializer):
     """Song serializer for the feeder
     """
 
     class Meta:
         model = Song
         fields = ("filename", "directory")
+
+
+class FeederSerializer(serializers.Serializer):
+    """Feeder serializer containing two lists
+    """
+
+    added = SongSerializer(many=True)
+    deleted = SongOnlyFilePathSerializer(many=True)
