@@ -335,10 +335,11 @@ class FeederSerializer(serializers.Serializer):
 
         # change the name of the song work link
         for data in data_list:
-            data["works"] = data.pop("songworklink_set")
+            if "songworklink_set" in data:
+                data["works"] = data.pop("songworklink_set")
 
         # recreate a serializer
         serializer = serializer_class(data=data_list, many=True)
-        serializer.is_valid()
+        serializer.is_valid(raise_exception=True)
 
         return serializer
