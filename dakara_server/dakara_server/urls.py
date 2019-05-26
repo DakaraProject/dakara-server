@@ -130,7 +130,7 @@ urlpatterns = [
     ),
     # API route for the feeder
     url(
-        r"^api/library/feeder/retreive/$",
+        r"^api/library/feeder/retrieve/$",
         library_views.feeder.FeederListView.as_view(),
         name="library-feeder-list",
     ),
