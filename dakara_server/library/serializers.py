@@ -303,7 +303,7 @@ class SongOnlyFilePathSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Song
-        fields = ("filename", "directory")
+        fields = ("id", "filename", "directory")
 
 
 class FeederSerializer(serializers.Serializer):

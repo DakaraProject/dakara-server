@@ -39,8 +39,16 @@ class FeederListViewTestCase(BaseAPITestCase):
         self.assertCountEqual(
             response.data,
             [
-                {"filename": self.song1.filename, "directory": self.song1.directory},
-                {"filename": self.song2.filename, "directory": self.song2.directory},
+                {
+                    "id": self.song1.pk,
+                    "filename": self.song1.filename,
+                    "directory": self.song1.directory,
+                },
+                {
+                    "id": self.song2.pk,
+                    "filename": self.song2.filename,
+                    "directory": self.song2.directory,
+                },
             ],
         )
 
