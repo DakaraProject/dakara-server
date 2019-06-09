@@ -12,7 +12,7 @@ class Song(models.Model):
 
     title = models.CharField(max_length=255)
     filename = models.CharField(max_length=255)
-    directory = models.CharField(max_length=255)
+    directory = models.CharField(max_length=255, blank=True)
     duration = models.DurationField(default=timedelta(0))
     version = models.CharField(max_length=255, blank=True)
     detail = models.CharField(max_length=255, blank=True)
