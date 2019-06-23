@@ -40,6 +40,40 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.check_song_json(response.data["results"][0], self.song1)
         self.check_song_json(response.data["results"][1], self.song2)
 
+    def test_get_song_long_lyrics(self):
+        """Test to get a song with few lyrics
+        """
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # add lyrics to one song
+        self.song2.lyrics = """Mary had a little lamb
+Little lamb, little lamb
+Mary had a little lamb
+Its fleece was white as snow
+And everywhere that Mary went
+Mary went, Mary."""
+        self.song2.save()
+
+        # Get songs list
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(len(response.data["results"]), 2)
+
+        # check lyrics
+        self.assertDictEqual(
+            response.data["results"][1]["lyrics_preview"],
+            {
+                "text": """Mary had a little lamb
+Little lamb, little lamb
+Mary had a little lamb
+Its fleece was white as snow
+And everywhere that Mary went""",
+                "truncated": True,
+            },
+        )
+
     def test_get_song_list_forbidden(self):
         """Test to verify unauthenticated user can't get songs list
         """
@@ -314,6 +348,10 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
             "filename": "song3",
             "directory": "directory",
             "duration": 0,
+            "lyrics": "mary had a little lamb",
+            "version": "version 1",
+            "detail": "test",
+            "detail_video": "here",
         }
         response = self.client.post(self.url, song)
 
@@ -326,6 +364,10 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(song.filename, "song3")
         self.assertEqual(song.directory, "directory")
         self.assertEqual(song.duration, timedelta(0))
+        self.assertEqual(song.lyrics, "mary had a little lamb")
+        self.assertEqual(song.version, "version 1")
+        self.assertEqual(song.detail, "test")
+        self.assertEqual(song.detail_video, "here")
 
     def test_post_song_embedded(self):
         """Test to create a song with nested artists, tags and works
@@ -419,6 +461,47 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
             song.songworklink_set.all(), [song_work_link_1, song_work_link_4]
         )
 
+    def test_post_song_embedded_empty(self):
+        """Test to create a song with empty keys for artists, tags and works
+        """
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert the amount of songs
+        self.assertEqual(Song.objects.count(), 2)
+        self.assertEqual(Artist.objects.count(), 2)
+        self.assertEqual(SongTag.objects.count(), 2)
+        self.assertEqual(Work.objects.count(), 3)
+
+        # create a new song
+        song = {
+            "title": "Song3",
+            "filename": "song3",
+            "directory": "directory",
+            "duration": 0,
+            "artists": [],
+            "tags": [],
+            "works": [],
+            "detail": "",
+            "lyrics": "",
+        }
+        response = self.client.post(self.url, song)
+
+        # assert the response
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert the created song
+        song = Song.objects.get(title="Song3")
+        self.assertIsNotNone(song)
+        self.assertEqual(song.filename, "song3")
+        self.assertEqual(song.directory, "directory")
+        self.assertEqual(song.duration, timedelta(0))
+
+        # assert no new artist, tag or work have been created
+        self.assertEqual(Artist.objects.count(), 2)
+        self.assertEqual(SongTag.objects.count(), 2)
+        self.assertEqual(Work.objects.count(), 3)
+
 
 class SongViewAPIViewTestCase(BaseAPITestCase):
     def setUp(self):
@@ -447,6 +530,10 @@ class SongViewAPIViewTestCase(BaseAPITestCase):
             "filename": "song1 new",
             "directory": "directory new",
             "duration": timedelta(seconds=1),
+            "lyrics": "mary had a little lamb",
+            "version": "version 1",
+            "detail": "test",
+            "detail_video": "here",
         }
         response = self.client.put(self.url_song1, song)
 
@@ -459,6 +546,10 @@ class SongViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(song.filename, "song1 new")
         self.assertEqual(song.directory, "directory new")
         self.assertEqual(song.duration, timedelta(seconds=1))
+        self.assertEqual(song.lyrics, "mary had a little lamb")
+        self.assertEqual(song.version, "version 1")
+        self.assertEqual(song.detail, "test")
+        self.assertEqual(song.detail_video, "here")
 
     def test_put_song_embedded(self):
         """Test to update a song with nested artists, tags and works

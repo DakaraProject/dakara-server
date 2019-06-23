@@ -145,7 +145,7 @@ class SongSerializer(serializers.ModelSerializer):
     artists = ArtistSerializer(many=True, required=False)
     tags = SongTagSerializer(many=True, required=False)
     works = SongWorkLinkSerializer(many=True, source="songworklink_set", required=False)
-    lyrics = serializers.SerializerMethodField()
+    lyrics_preview = serializers.SerializerMethodField()
 
     class Meta:
         model = Song
@@ -162,16 +162,19 @@ class SongSerializer(serializers.ModelSerializer):
             "artists",
             "works",
             "lyrics",
+            "lyrics_preview",
             "date_created",
             "date_updated",
         )
+        extra_kwargs = {"lyrics": {"write_only": True}}
 
     @staticmethod
-    def get_lyrics(song, max_lines=5):
+    def get_lyrics_preview(song, max_lines=5):
         """Get an extract of the lyrics
 
         Give at most `max_lines` lines of lyrics and tell if more lines remain.
         """
+        # for unknown reason, the method is called when it should not
         if not isinstance(song, Song):
             return None
 
