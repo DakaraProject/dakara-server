@@ -163,6 +163,21 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
 
         return query_set.distinct().order_by(Lower("title"))
 
+    def get_serializer(self, *args, **kwargs):
+        """Return the serializer instance that should be used for validating and
+        deserializing input, and for serializing output.
+        """
+        data = kwargs.get("data")
+        many = kwargs.get("many")
+
+        # check if the serializer is used to deserialize data
+        # and check if the data is a list
+        if data and isinstance(data, list) and many is None:
+            return super().get_serializer(*args, many=True, **kwargs)
+
+        # otherwise
+        return super().get_serializer(*args, **kwargs)
+
 
 class SongView(RetrieveUpdateDestroyAPIView):
     """Edition and display of a song

@@ -502,6 +502,50 @@ And everywhere that Mary went""",
         self.assertEqual(SongTag.objects.count(), 2)
         self.assertEqual(Work.objects.count(), 3)
 
+    def test_post_song_simple_multi(self):
+        """Test to create two songs without nested artists, tags nor works
+        """
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert the amount of songs
+        self.assertEqual(Song.objects.count(), 2)
+
+        # create a new song
+        songs = [
+            {
+                "title": "Song3",
+                "filename": "song3",
+                "directory": "directory",
+                "duration": 0,
+                "lyrics": "mary had a little lamb",
+                "version": "version 1",
+                "detail": "test",
+                "detail_video": "here",
+            },
+            {
+                "title": "Song4",
+                "filename": "song4",
+                "directory": "directory",
+                "duration": 0,
+                "lyrics": "",
+                "version": "",
+                "detail": "",
+                "detail_video": "",
+            },
+        ]
+        response = self.client.post(self.url, songs)
+
+        # assert the response
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert the amount of songs
+        self.assertEqual(Song.objects.count(), 4)
+
+        # assert the created songs
+        Song.objects.get(title="Song3")
+        Song.objects.get(title="Song4")
+
 
 class SongViewAPIViewTestCase(BaseAPITestCase):
     def setUp(self):
