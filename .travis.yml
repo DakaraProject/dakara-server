@@ -3,6 +3,9 @@ python:
   - "3.5"
   - "3.6"
 
+# enable cache for Python dependencies
+cache: pip
+
 # restrict to branches
 branches:
   only:

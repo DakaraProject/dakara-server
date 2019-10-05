@@ -8,6 +8,10 @@ branches:
   - develop
   - master
 
+# enable cache for Python dependencies
+cache:
+  - "%LOCALAPPDATA%\\pip\\Cache"
+
 environment:
   # setup special environment variable for Appveyor CI test environment
   # it is used to disable some tests that can be harmful in this context
