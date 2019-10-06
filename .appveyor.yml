@@ -33,9 +33,6 @@ init:
 
 # command to install system and python dependencies
 install:
-  # install system dependencies
-  - "cinst ffmpeg"
-
   # install dependencies for test
   - "%PYTHON%/Scripts/pip.exe install -r requirements.txt"
 
