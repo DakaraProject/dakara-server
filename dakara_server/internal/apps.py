@@ -1,11 +1,8 @@
 import os
-import logging
 
 from django.apps import AppConfig
-from django.conf import settings
 
-
-logger = logging.getLogger("django")
+from internal.version import check_version
 
 
 class DakaraConfig(AppConfig):
@@ -48,5 +45,5 @@ class InternalConfig(DakaraConfig):
     def ready_no_reload(self):
         """Method called when app start
         """
-        # log server version
-        logger.info("Dakara server {} ({})".format(settings.VERSION, settings.DATE))
+        # check the version of the server
+        check_version()
