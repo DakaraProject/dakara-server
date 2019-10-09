@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import importlib
+import warnings
 from collections import defaultdict
 from tempfile import TemporaryDirectory
 
@@ -94,6 +95,12 @@ class DatabaseFeeder:
         stderr=sys.stderr,
         tempdir=".",
     ):
+        warnings.warn(
+            "Internal feeder is deprecated and will be removed in next versions, use "
+            "the external feeder project "
+            "https://github.com/DakaraProject/dakara-feeder instead"
+        )
+
         if not isinstance(listing, (list, tuple)):
             raise ValueError("listing argument must be a list or a tuple")
 
