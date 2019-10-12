@@ -30,6 +30,11 @@
 
 ## Unreleased
 
+### Removed
+
+- Feed Command. Feeding is now processed through external feeder. See dakara-feeder project.
+- Replace directory command. Not needed anymore with the new feeder.
+
 ## 1.4.0 - 2019-05-03
 
 ### Changed
