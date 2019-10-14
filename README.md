@@ -106,6 +106,15 @@ Now, just grab some friends and have fun!
 
 ### Development
 
+#### Tests
+
+Tests are written using either Unittest or Pytest.
+Pytest is used to run all tests, regardless the test framework used:
+
+```
+cd dakara_server && pytest
+```
+
 #### Hooks
 
 Git hooks are included in the `hooks` directory.

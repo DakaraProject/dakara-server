@@ -12,7 +12,7 @@ This file should not be modified if you are not a dev.
 
 import os
 
-from .base import *  # noqa F403
+from dakara_server.settings.base import *  # noqa F403
 
 # use test config
 SECRET_KEY = "test secret key"

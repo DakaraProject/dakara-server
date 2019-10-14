@@ -45,7 +45,6 @@ test_script:
   - "cd dakara_server"
 
   # run tests
-  - "py -%PYTHON_VERSION% ./manage.py test --settings=dakara_server.settings.test -v 2"
   - "py -%PYTHON_VERSION% -m pytest -v"
 
   - "cd .."

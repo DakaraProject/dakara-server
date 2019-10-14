@@ -17,7 +17,7 @@ or in a `settings.ini` with a single `[settings]` section.
 from decouple import config, Csv
 from dj_database_url import parse as db_url
 
-from .base import *  # noqa F403
+from dakara_server.settings.base import *  # noqa F403
 
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", cast=bool, default=False)

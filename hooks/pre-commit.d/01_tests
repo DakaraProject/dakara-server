@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "Running django Pytest tests"
+echo "Running django tests"
 
 (cd ./dakara_server && pytest)
