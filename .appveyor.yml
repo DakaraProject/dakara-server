@@ -34,7 +34,7 @@ init:
 # command to install system and python dependencies
 install:
   # install dependencies for test
-  - "%PYTHON%/Scripts/pip.exe install -r requirements.txt"
+  - "py -%PYTHON_VERSION% -m pip install -r requirements.txt"
 
 # command to run tests
 # the current working directory is not reinitialized between commands
