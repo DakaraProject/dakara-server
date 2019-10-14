@@ -2,8 +2,8 @@ import pytest
 from channels.db import database_sync_to_async
 from rest_framework.test import APIClient
 
-from playlist.base_test import Provider
 from playlist.models import Player
+from playlist.tests.base_test import Provider
 
 
 @database_sync_to_async

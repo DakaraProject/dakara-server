@@ -5,8 +5,8 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from playlist.base_test import BaseAPITestCase
 from playlist.models import PlayerError
+from playlist.tests.base_test import BaseAPITestCase
 
 tz = timezone.get_default_timezone()
 

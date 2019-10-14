@@ -1,8 +1,7 @@
 from datetime import datetime
 
-from .base_test import BaseAPITestCase, tz
-
-from .models import PlaylistEntry
+from playlist.models import PlaylistEntry
+from playlist.tests.base_test import BaseAPITestCase, tz
 
 
 class PlaylistEntryModelTestCase(BaseAPITestCase):

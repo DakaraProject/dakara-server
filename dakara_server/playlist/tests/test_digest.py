@@ -2,7 +2,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 
 from playlist.models import PlayerError
-from playlist.base_test import BaseAPITestCase
+from playlist.tests.base_test import BaseAPITestCase
 
 
 class DigestViewTestCase(BaseAPITestCase):

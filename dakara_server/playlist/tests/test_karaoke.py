@@ -7,9 +7,9 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from rest_framework import status
 
-from playlist.base_test import BaseAPITestCase
 from playlist.models import Karaoke, PlaylistEntry, PlayerError
 from playlist.date_stop import clear_date_stop
+from playlist.tests.base_test import BaseAPITestCase
 
 tz = timezone.get_default_timezone()
 

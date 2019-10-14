@@ -5,8 +5,8 @@ from django.core.urlresolvers import reverse
 from django.utils.dateparse import parse_datetime
 from rest_framework import status
 
-from playlist.base_test import BaseAPITestCase, tz
 from playlist.models import Player, PlaylistEntry
+from playlist.tests.base_test import BaseAPITestCase, tz
 
 
 class PlayerStatusViewTestCase(BaseAPITestCase):

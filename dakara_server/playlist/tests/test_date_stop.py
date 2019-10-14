@@ -5,7 +5,7 @@ from django.db.utils import OperationalError
 
 from playlist.date_stop import clear_date_stop, check_date_stop_on_app_ready
 from playlist.models import Karaoke
-from playlist.base_test import BaseAPITestCase, tz
+from playlist.tests.base_test import BaseAPITestCase, tz
 
 
 class ClearDateStopTestCase(BaseAPITestCase):

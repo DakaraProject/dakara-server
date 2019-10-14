@@ -6,8 +6,8 @@ from django.utils.dateparse import parse_datetime
 from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from playlist.base_test import BaseAPITestCase, tz
 from playlist.models import PlaylistEntry, Player, Karaoke
+from playlist.tests.base_test import BaseAPITestCase, tz
 
 
 UserModel = get_user_model()

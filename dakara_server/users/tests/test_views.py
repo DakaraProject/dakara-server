@@ -2,7 +2,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from .base_test import BaseAPITestCase
+from users.tests.base_test import BaseAPITestCase
 
 UserModel = get_user_model()
 

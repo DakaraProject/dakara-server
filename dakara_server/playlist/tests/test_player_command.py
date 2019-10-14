@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from .base_test import BaseAPITestCase
+from playlist.tests.base_test import BaseAPITestCase
 
 
 class PlayerCommandViewTestCase(BaseAPITestCase):
