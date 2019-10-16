@@ -5,11 +5,12 @@ from django.core.urlresolvers import reverse
 from django.utils.dateparse import parse_datetime
 from rest_framework import status
 
+from internal.tests.base_test import tz
 from playlist.models import Player, PlaylistEntry
-from playlist.tests.base_test import BaseAPITestCase, tz
+from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlayerStatusViewTestCase(BaseAPITestCase):
+class PlayerStatusViewTestCase(PlaylistAPITestCase):
     """Test the view of the player"""
 
     url = reverse("playlist-player-status")

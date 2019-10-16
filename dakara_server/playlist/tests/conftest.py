@@ -3,19 +3,19 @@ from channels.db import database_sync_to_async
 from rest_framework.test import APIClient
 
 from playlist.models import Player
-from playlist.tests.base_test import Provider
+from playlist.tests.base_test import PlaylistProvider
 
 
 @database_sync_to_async
-def get_provider():
-    provider = Provider()
+def get_playlist_provider():
+    provider = PlaylistProvider()
     provider.create_test_data()
     return provider
 
 
 @pytest.fixture
-async def provider():
-    return await get_provider()
+async def playlist_provider():
+    return await get_playlist_provider()
 
 
 @pytest.fixture

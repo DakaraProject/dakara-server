@@ -2,16 +2,14 @@ from unittest.mock import patch
 from datetime import datetime
 
 from django.core.urlresolvers import reverse
-from django.utils import timezone
 from rest_framework import status
 
+from internal.tests.base_test import tz
 from playlist.models import PlayerError
-from playlist.tests.base_test import BaseAPITestCase
-
-tz = timezone.get_default_timezone()
+from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlayerErrorViewTestCase(BaseAPITestCase):
+class PlayerErrorViewTestCase(PlaylistAPITestCase):
     """Test the view of the player errors"""
 
     url = reverse("playlist-player-errors")

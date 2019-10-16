@@ -1,50 +1,16 @@
-import logging
 from datetime import datetime, timedelta
-import inspect
 
-from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils.dateparse import parse_datetime
-from django.utils import timezone
-from rest_framework.authtoken.models import Token
-from rest_framework.test import APITestCase
 
+from internal.tests.base_test import BaseAPITestCase, BaseProvider, tz, UserModel
 from library.models import Song, SongTag
 from playlist.models import PlaylistEntry, Karaoke, Player
 
-UserModel = get_user_model()
-tz = timezone.get_default_timezone()
 
-
-class Provider:
-    """Provides helper functions for tests
+class PlaylistProvider(BaseProvider):
+    """Provides helper functions for playlist tests
     """
-
-    def authenticate(self, user, client=None):
-        """Authenticate and set the token to the embedded client
-        """
-        token, _ = Token.objects.get_or_create(user=user)
-
-        if client is None:
-            if not hasattr(self, "client"):
-                raise ValueError("No client available")
-
-            client = self.client
-
-        client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
-
-    @staticmethod
-    def create_user(
-        username, playlist_level=None, library_level=None, users_level=None, **kwargs
-    ):
-        """Create a user with the provided permissions
-        """
-        user = UserModel.objects.create_user(username, "", "password", **kwargs)
-        user.playlist_permission_level = playlist_level
-        user.library_permission_level = library_level
-        user.users_permission_level = users_level
-        user.save()
-        return user
 
     def create_test_data(self):
         """Create test users songs, and playlist entries
@@ -102,21 +68,22 @@ class Provider:
         )
         self.pe4.save()
 
-    @staticmethod
-    def set_karaoke(ongoing=None, can_add_to_playlist=None, player_play_next_song=None):
+    def set_karaoke(
+        self, ongoing=None, can_add_to_playlist=None, player_play_next_song=None
+    ):
         """Put the karaoke in stop state
         """
-        karaoke = Karaoke.get_object()
+        self.karaoke = Karaoke.get_object()
         if ongoing is not None:
-            karaoke.ongoing = ongoing
+            self.karaoke.ongoing = ongoing
 
         if can_add_to_playlist is not None:
-            karaoke.can_add_to_playlist = can_add_to_playlist
+            self.karaoke.can_add_to_playlist = can_add_to_playlist
 
         if player_play_next_song is not None:
-            karaoke.player_play_next_song = player_play_next_song
+            self.karaoke.player_play_next_song = player_play_next_song
 
-        karaoke.save()
+        self.karaoke.save()
 
     def player_play_next_song(self, *args, **kwargs):
         """Set the player playing the next song
@@ -148,39 +115,6 @@ class Provider:
 
         return player
 
-
-class BaseAPITestCase(APITestCase, Provider):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # change logging level according to verbosity
-        verbosity = self.get_verbosity()
-        if verbosity <= 1:
-            # disable all logging in quiet and normal mode
-            logging.disable(logging.CRITICAL)
-
-        elif verbosity == 2:
-            # enable logging above DEBUG in verbose mode
-            logging.disable(logging.DEBUG)
-
-        # enable all logging in very verbose mode
-
-    def get_verbosity(self):
-        """Get the verbosity level
-
-        Snippet from https://stackoverflow.com/a/27457315/4584444
-        """
-        for stack in reversed(inspect.stack()):
-            options = stack[0].f_locals.get("options")
-            if isinstance(options, dict):
-                return int(options["verbosity"])
-
-        return 1
-
-    def tearDown(self):
-        # Clear cache between tests, so that stored player state is re-init
-        cache.clear()
-
     def check_playlist_entry_json(self, json, expected_entry):
         """Method to check a representation against expected playlist entry
         """
@@ -195,3 +129,12 @@ class BaseAPITestCase(APITestCase, Provider):
         self.assertEqual(
             parse_datetime(json["date_played"]), expected_entry.date_played
         )
+
+
+class PlaylistAPITestCase(BaseAPITestCase, PlaylistProvider):
+    """Base playlist test class for Unittest
+    """
+
+    def tearDown(self):
+        # Clear cache between tests, so that stored player state is re-init
+        cache.clear()

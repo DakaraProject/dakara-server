@@ -1,14 +1,11 @@
 from django.core.urlresolvers import reverse
-from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from library.tests.base_test import BaseAPITestCase
+from internal.tests.base_test import UserModel
+from library.tests.base_test import LibraryAPITestCase
 
 
-UserModel = get_user_model()
-
-
-class SongListViewAPIViewTestCase(BaseAPITestCase):
+class SongListViewAPIViewTestCase(LibraryAPITestCase):
     url = reverse("library-song-list")
 
     def setUp(self):
@@ -19,7 +16,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.manager = self.create_user("TestManager", library_level=UserModel.MANAGER)
 
         # create test data
-        self.create_library_test_data()
+        self.create_test_data()
 
     def test_get_song_list(self):
         """Test to verify song list with no query
@@ -209,7 +206,7 @@ class SongListViewAPIViewTestCase(BaseAPITestCase):
         self.authenticate(self.user)
 
         query = (
-            """hey  artist: me work:you wt1:workName title: test\ Test """
+            """hey  artist: me work:you wt1:workName title: test\\ Test """
             """remain stuff #tagg wt3:test artist:"my artist" work:""exact """
             """Work"" i   """
         )

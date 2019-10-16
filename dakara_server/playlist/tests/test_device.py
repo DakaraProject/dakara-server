@@ -2,7 +2,6 @@ import pytest
 from async_generator import yield_, async_generator  # needed for Python 3.5
 from channels.testing import WebsocketCommunicator
 from channels.layers import get_channel_layer
-from rest_framework.authtoken.models import Token
 from rest_framework import status
 from django.core.urlresolvers import reverse
 from datetime import timedelta
@@ -16,7 +15,7 @@ channel_layer = get_channel_layer()
 
 @pytest.fixture
 @async_generator
-async def communicator(provider):
+async def communicator(playlist_provider):
     """Gives a WebSockets communicator
 
     Use it for tests that does not raise errors.
@@ -25,7 +24,7 @@ async def communicator(provider):
     communicator = WebsocketCommunicator(PlaylistDeviceConsumer, "/ws/playlist/device/")
 
     # artificially give it a user
-    communicator.scope["user"] = provider.player
+    communicator.scope["user"] = playlist_provider.player
 
     connected, _ = await communicator.connect()
     assert connected
@@ -37,7 +36,7 @@ async def communicator(provider):
 
 @pytest.fixture
 @async_generator
-async def communicator_open(provider):
+async def communicator_open(playlist_provider):
     """Gives a WebSockets communicator that does not disconnect
 
     Use it for tests that raise errors.
@@ -46,7 +45,7 @@ async def communicator_open(provider):
     communicator = WebsocketCommunicator(PlaylistDeviceConsumer, "/ws/playlist/device/")
 
     # artificially give it a user
-    communicator.scope["user"] = provider.player
+    communicator.scope["user"] = playlist_provider.player
 
     connected, _ = await communicator.connect()
     assert connected
@@ -62,15 +61,15 @@ async def communicator_open(provider):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_authentication(provider):
+async def test_authentication(playlist_provider):
     """Test to authenticate with a token
 
     This is the normal mechanism of real-life connection. In the tests, we
     assume the user is already in the scope.
     """
     # create a token
-    token = Token.objects.create(user=provider.player)
-    headers = [(b"authorization", "Token {}".format(token.key).encode())]
+    headers = []
+    playlist_provider.authenticate(playlist_provider.player, headers=headers)
 
     communicator = WebsocketCommunicator(
         application, "/ws/playlist/device/", headers=headers
@@ -83,11 +82,11 @@ async def test_authentication(provider):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_authenticate_player_successful(provider):
+async def test_authenticate_player_successful(playlist_provider):
     """Test to authenticate as a player
     """
     communicator = WebsocketCommunicator(PlaylistDeviceConsumer, "/ws/playlist/device/")
-    communicator.scope["user"] = provider.player
+    communicator.scope["user"] = playlist_provider.player
     connected, _ = await communicator.connect()
 
     assert connected
@@ -96,14 +95,14 @@ async def test_authenticate_player_successful(provider):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_authenticate_player_twice_failed(provider):
+async def test_authenticate_player_twice_failed(playlist_provider):
     """Test to authenticate two players successively
     """
     # authenticate first player
     communicator_first = WebsocketCommunicator(
         PlaylistDeviceConsumer, "/ws/playlist/device/"
     )
-    communicator_first.scope["user"] = provider.player
+    communicator_first.scope["user"] = playlist_provider.player
     connected, _ = await communicator_first.connect()
 
     assert connected
@@ -112,7 +111,7 @@ async def test_authenticate_player_twice_failed(provider):
     communicator_second = WebsocketCommunicator(
         PlaylistDeviceConsumer, "/ws/playlist/device/"
     )
-    communicator_second.scope["user"] = provider.player
+    communicator_second.scope["user"] = playlist_provider.player
     connected, _ = await communicator_second.connect()
 
     assert not connected
@@ -123,11 +122,11 @@ async def test_authenticate_player_twice_failed(provider):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_authenticate_user_failed(provider):
+async def test_authenticate_user_failed(playlist_provider):
     """Test to authenticate as a normal user
     """
     communicator = WebsocketCommunicator(PlaylistDeviceConsumer, "/ws/playlist/device/")
-    communicator.scope["user"] = provider.user
+    communicator.scope["user"] = playlist_provider.user
     connected, _ = await communicator.connect()
 
     assert not connected
@@ -136,7 +135,9 @@ async def test_authenticate_user_failed(provider):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_receive_ready_send_playlist_entry(provider, player, communicator):
+async def test_receive_ready_send_playlist_entry(
+    playlist_provider, player, communicator
+):
     """Test that a new song is requested to play when the player is ready
 
     There are playlist entries awaiting to be played.
@@ -149,7 +150,7 @@ async def test_receive_ready_send_playlist_entry(provider, player, communicator)
     # get the new song event
     event = await communicator.receive_json_from()
     assert event["type"] == "playlist_entry"
-    assert event["data"]["id"] == provider.pe1.id
+    assert event["data"]["id"] == playlist_provider.pe1.id
 
     # check there are no other messages
     done = await communicator.receive_nothing()
@@ -158,7 +159,7 @@ async def test_receive_ready_send_playlist_entry(provider, player, communicator)
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_receive_ready_send_idle(provider, player, communicator):
+async def test_receive_ready_send_idle(playlist_provider, player, communicator):
     """Test that idle screen is requested to play when the player is ready
 
     The playlist is empty.
@@ -182,16 +183,16 @@ async def test_receive_ready_send_idle(provider, player, communicator):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_playlist_entry(provider, player, communicator):
+async def test_send_playlist_entry(playlist_provider, player, communicator):
     """Test to send a new playlist entry to the device
     """
     # pre assert
-    assert provider.pe1.date_played is None
+    assert playlist_provider.pe1.date_played is None
 
     # call the method
     await channel_layer.group_send(
         "playlist.device",
-        {"type": "send_playlist_entry", "playlist_entry": provider.pe1},
+        {"type": "send_playlist_entry", "playlist_entry": playlist_provider.pe1},
     )
 
     # wait the outcoming event
@@ -199,7 +200,7 @@ async def test_send_playlist_entry(provider, player, communicator):
 
     # assert the event
     assert event["type"] == "playlist_entry"
-    assert event["data"]["id"] == provider.pe1.id
+    assert event["data"]["id"] == playlist_provider.pe1.id
 
     # assert there are no side effects
     player_new = models.Player.get_or_create()
@@ -238,7 +239,7 @@ async def test_send_playlist_entry_failed_none(player, communicator_open):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_idle(provider, player, communicator):
+async def test_send_idle(playlist_provider, player, communicator):
     """Test to send a new playlist entry to the device
     """
     # call the method
@@ -261,7 +262,7 @@ async def test_send_idle(provider, player, communicator):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_command_pause(provider, player, communicator):
+async def test_send_command_pause(playlist_provider, player, communicator):
     """Test to send to the player a pause command
     """
     # call the method
@@ -287,7 +288,7 @@ async def test_send_command_pause(provider, player, communicator):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_command_play(provider, player, communicator):
+async def test_send_command_play(playlist_provider, player, communicator):
     """Test to send to the player a play command
     """
     # call the method
@@ -313,7 +314,7 @@ async def test_send_command_play(provider, player, communicator):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_command_skip(provider, player, communicator):
+async def test_send_command_skip(playlist_provider, player, communicator):
     """Test to send to the player a skip command
     """
     # call the method
@@ -362,12 +363,12 @@ async def test_send_command_failed(player, communicator_open):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_handle_next(provider, player, communicator, client_drf, mocker):
+async def test_handle_next(playlist_provider, player, communicator, client_drf, mocker):
     """Test to handle next playlist entries untill the end of the playlist
     """
     # configure HTTP client
     url = reverse("playlist-player-status")
-    provider.authenticate(provider.player, client_drf)
+    playlist_provider.authenticate(playlist_provider.player, client=client_drf)
 
     # mock the broadcaster
     # we cannot call it within an asynchronous test
@@ -389,24 +390,29 @@ async def test_handle_next(provider, player, communicator, client_drf, mocker):
 
     # assert the event
     assert event["type"] == "playlist_entry"
-    assert event["data"]["id"] == provider.pe1.id
+    assert event["data"]["id"] == playlist_provider.pe1.id
 
     # notify the first playlist entry is being played
     response = client_drf.put(
-        url, data={"event": "started_transition", "playlist_entry_id": provider.pe1.id}
+        url,
+        data={
+            "event": "started_transition",
+            "playlist_entry_id": playlist_provider.pe1.id,
+        },
     )
 
     assert response.status_code == status.HTTP_200_OK
 
     response = client_drf.put(
-        url, data={"event": "started_song", "playlist_entry_id": provider.pe1.id}
+        url,
+        data={"event": "started_song", "playlist_entry_id": playlist_provider.pe1.id},
     )
 
     assert response.status_code == status.HTTP_200_OK
 
     # assert the player has been updated
     player = models.Player.get_or_create()
-    assert player.playlist_entry == provider.pe1
+    assert player.playlist_entry == playlist_provider.pe1
 
     # assert the front has been notified
     mocked_broadcast_to_channel.assert_called_with(
@@ -415,7 +421,7 @@ async def test_handle_next(provider, player, communicator, client_drf, mocker):
 
     # notify the first playlist entry has finished
     response = client_drf.put(
-        url, data={"event": "finished", "playlist_entry_id": provider.pe1.id}
+        url, data={"event": "finished", "playlist_entry_id": playlist_provider.pe1.id}
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -432,28 +438,33 @@ async def test_handle_next(provider, player, communicator, client_drf, mocker):
 
     # assert the event
     assert event["type"] == "playlist_entry"
-    assert event["data"]["id"] == provider.pe2.id
+    assert event["data"]["id"] == playlist_provider.pe2.id
 
     # notify the second playlist entry is being played
     response = client_drf.put(
-        url, data={"event": "started_transition", "playlist_entry_id": provider.pe2.id}
+        url,
+        data={
+            "event": "started_transition",
+            "playlist_entry_id": playlist_provider.pe2.id,
+        },
     )
 
     assert response.status_code == status.HTTP_200_OK
 
     response = client_drf.put(
-        url, data={"event": "started_song", "playlist_entry_id": provider.pe2.id}
+        url,
+        data={"event": "started_song", "playlist_entry_id": playlist_provider.pe2.id},
     )
 
     assert response.status_code == status.HTTP_200_OK
 
     # assert the player has been updated
     player = models.Player.get_or_create()
-    assert player.playlist_entry == provider.pe2
+    assert player.playlist_entry == playlist_provider.pe2
 
     # notify the second playlist entry has finished
     response = client_drf.put(
-        url, data={"event": "finished", "playlist_entry_id": provider.pe2.id}
+        url, data={"event": "finished", "playlist_entry_id": playlist_provider.pe2.id}
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -483,11 +494,13 @@ async def test_handle_next(provider, player, communicator, client_drf, mocker):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_send_handle_next_karaoke_not_ongoing(provider, player, communicator):
+async def test_send_handle_next_karaoke_not_ongoing(
+    playlist_provider, player, communicator
+):
     """Test to handle next playlist entries when the karaoke is not ongoing
     """
     # set the karaoke not ongoing
-    provider.set_karaoke(ongoing=False)
+    playlist_provider.set_karaoke(ongoing=False)
 
     # empty the playlist
     models.PlaylistEntry.objects.all().delete()
@@ -516,12 +529,12 @@ async def test_send_handle_next_karaoke_not_ongoing(provider, player, communicat
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_send_handle_next_karaoke_not_play_next_song(
-    provider, player, communicator
+    playlist_provider, player, communicator
 ):
     """Test to handle next playlist entries when the player does not play next song
     """
     # set player does not play next song
-    provider.set_karaoke(player_play_next_song=False)
+    playlist_provider.set_karaoke(player_play_next_song=False)
 
     # assert player is currently idle
     assert player.playlist_entry is None
@@ -546,15 +559,15 @@ async def test_send_handle_next_karaoke_not_play_next_song(
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_connect_reset_playing_playlist_entry(provider, player):
+async def test_connect_reset_playing_playlist_entry(playlist_provider, player):
     """Test to reset playing playlist entry
     """
     communicator = WebsocketCommunicator(PlaylistDeviceConsumer, "/ws/playlist/device/")
-    communicator.scope["user"] = provider.player
+    communicator.scope["user"] = playlist_provider.player
     connected, _ = await communicator.connect()
 
     # set player playing
-    provider.player_play_next_song()
+    playlist_provider.player_play_next_song()
     assert player.playlist_entry is not None
 
     # disconnect and reconnect the player
@@ -562,7 +575,7 @@ async def test_connect_reset_playing_playlist_entry(provider, player):
     communicator2 = WebsocketCommunicator(
         PlaylistDeviceConsumer, "/ws/playlist/device/"
     )
-    communicator2.scope["user"] = provider.player
+    communicator2.scope["user"] = playlist_provider.player
     connected, _ = await communicator2.connect()
 
     # check that the player is idle
@@ -574,12 +587,14 @@ async def test_connect_reset_playing_playlist_entry(provider, player):
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_disconnect_player_while_playing(provider, player, communicator_open):
+async def test_disconnect_player_while_playing(
+    playlist_provider, player, communicator_open
+):
     """Test that current playlist entry is reseted when player is disconnected
     """
     # start playing a song
-    provider.player_play_next_song(timing=timedelta(seconds=1))
-    assert player.playlist_entry == provider.pe1
+    playlist_provider.player_play_next_song(timing=timedelta(seconds=1))
+    assert player.playlist_entry == playlist_provider.pe1
 
     # stop the player connection
     await communicator_open.disconnect()

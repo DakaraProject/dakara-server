@@ -1,13 +1,11 @@
 from django.core.urlresolvers import reverse
-from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from users.tests.base_test import BaseAPITestCase
+from internal.tests.base_test import UserModel
+from users.tests.base_test import UsersAPITestCase
 
-UserModel = get_user_model()
 
-
-class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
+class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
     url = reverse("users-list")
 
     def setUp(self):
@@ -151,7 +149,7 @@ class UserListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
+class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser")
@@ -305,7 +303,7 @@ class UserViewRetrieveUpdateDestroyTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class CurrentUserViewAPIViewTestCase(BaseAPITestCase):
+class CurrentUserViewAPIViewTestCase(UsersAPITestCase):
     url = reverse("users-current")
 
     def setUp(self):
@@ -365,7 +363,7 @@ class CurrentUserViewAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class PasswordViewUpdateAPIViewTestCase(BaseAPITestCase):
+class PasswordViewUpdateAPIViewTestCase(UsersAPITestCase):
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser")

@@ -1,15 +1,12 @@
 from django.core.urlresolvers import reverse
-from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from library.tests.base_test import BaseAPITestCase
+from internal.tests.base_test import UserModel
+from library.tests.base_test import LibraryAPITestCase
 from library.models import SongTag
 
 
-UserModel = get_user_model()
-
-
-class SongTagListViewListAPIViewTestCase(BaseAPITestCase):
+class SongTagListViewListAPIViewTestCase(LibraryAPITestCase):
     url = reverse("library-songtag-list")
 
     def setUp(self):
@@ -17,7 +14,7 @@ class SongTagListViewListAPIViewTestCase(BaseAPITestCase):
         self.user = self.create_user("TestUser")
 
         # create test data
-        self.create_library_test_data()
+        self.create_test_data()
 
     def test_get_tag_list(self):
         """Test to verify tag list
@@ -43,7 +40,7 @@ class SongTagListViewListAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
+class SongTagViewUpdateAPIViewTestCase(LibraryAPITestCase):
     def setUp(self):
         # create a user without any rights
         self.manager = self.create_user(
@@ -53,7 +50,7 @@ class SongTagViewUpdateAPIViewTestCase(BaseAPITestCase):
         self.user = self.create_user("TestUser")
 
         # create test data
-        self.create_library_test_data()
+        self.create_test_data()
 
         # create urls
         self.url_sg1 = reverse("library-songtag-detail", kwargs={"pk": self.tag1.id})

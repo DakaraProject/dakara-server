@@ -1,10 +1,11 @@
 from datetime import datetime
 
+from internal.tests.base_test import tz
 from playlist.models import PlaylistEntry
-from playlist.tests.base_test import BaseAPITestCase, tz
+from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlaylistEntryModelTestCase(BaseAPITestCase):
+class PlaylistEntryModelTestCase(PlaylistAPITestCase):
     """Test the playlist entry model
     """
 

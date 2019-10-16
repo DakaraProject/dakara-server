@@ -1,10 +1,10 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from library.tests.base_test import BaseAPITestCase
+from library.tests.base_test import LibraryAPITestCase
 
 
-class WorkTypeListViewAPIViewTestCase(BaseAPITestCase):
+class WorkTypeListViewAPIViewTestCase(LibraryAPITestCase):
     url = reverse("library-worktype-list")
 
     def setUp(self):
@@ -12,7 +12,7 @@ class WorkTypeListViewAPIViewTestCase(BaseAPITestCase):
         self.user = self.create_user("TestUser")
 
         # create test data
-        self.create_library_test_data()
+        self.create_test_data()
 
     def test_get_work_type_list(self):
         """Test to verify work type list

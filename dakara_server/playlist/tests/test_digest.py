@@ -2,10 +2,10 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 
 from playlist.models import PlayerError
-from playlist.tests.base_test import BaseAPITestCase
+from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class DigestViewTestCase(BaseAPITestCase):
+class DigestViewTestCase(PlaylistAPITestCase):
     """Test the playlist shorthand view
     """
 

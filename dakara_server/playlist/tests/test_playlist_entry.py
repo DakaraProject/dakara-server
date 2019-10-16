@@ -3,17 +3,14 @@ from datetime import datetime, timedelta
 
 from django.core.urlresolvers import reverse
 from django.utils.dateparse import parse_datetime
-from django.contrib.auth import get_user_model
 from rest_framework import status
 
+from internal.tests.base_test import tz, UserModel
 from playlist.models import PlaylistEntry, Player, Karaoke
-from playlist.tests.base_test import BaseAPITestCase, tz
+from playlist.tests.base_test import PlaylistAPITestCase
 
 
-UserModel = get_user_model()
-
-
-class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
+class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
     url = reverse("playlist-entries-list")
 
     def setUp(self):
@@ -434,7 +431,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
-class PlaylistEntryViewDestroyAPIViewTestCase(BaseAPITestCase):
+class PlaylistEntryViewDestroyAPIViewTestCase(PlaylistAPITestCase):
     def setUp(self):
         self.create_test_data()
 

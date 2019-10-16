@@ -3,18 +3,16 @@ from unittest.mock import patch
 from datetime import datetime
 
 from django.core.urlresolvers import reverse
-from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from rest_framework import status
 
+from internal.tests.base_test import tz
 from playlist.models import Karaoke, PlaylistEntry, PlayerError
 from playlist.date_stop import clear_date_stop
-from playlist.tests.base_test import BaseAPITestCase
-
-tz = timezone.get_default_timezone()
+from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class KaraokeViewRetrieveUpdateAPIViewTestCase(BaseAPITestCase):
+class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
     url = reverse("playlist-karaoke")
     url_digest = reverse("playlist-digest")
 

@@ -1,10 +1,10 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from playlist.tests.base_test import BaseAPITestCase
+from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlaylistPlayedEntryListViewListAPIViewTestCase(BaseAPITestCase):
+class PlaylistPlayedEntryListViewListAPIViewTestCase(PlaylistAPITestCase):
     url = reverse("playlist-played-entries-list")
 
     def setUp(self):

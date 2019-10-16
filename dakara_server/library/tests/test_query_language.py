@@ -19,7 +19,7 @@ class QueryLanguageParserTestCase(TestCase):
         """Test complex query parse
         """
         res = self.parser.parse(
-            """hey  artist: me work:you wt1:workName title: test\ Test """
+            """hey  artist: me work:you wt1:workName title: test\\ Test """
             """remain stuff #tagg wt3:test artist:"my artist" work:""exact """
             """Work"" i   """
         )
