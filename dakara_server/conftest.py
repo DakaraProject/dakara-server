@@ -7,9 +7,4 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dakara_server.settings.test")
 
 
 def pytest_configure():
-    # If you have any test specific settings, you can declare them here,
-    # e.g.
-    # settings.PASSWORD_HASHERS = (
-    #     'django.contrib.auth.hashers.MD5PasswordHasher',
-    # )
     django.setup()
