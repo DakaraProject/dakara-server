@@ -2,9 +2,9 @@ import os
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
-
 from django.test import TestCase
-from .models import WorkType, Work
+
+from library.models import WorkType, Work
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 RESSOURCES_DIR = os.path.join("tests_ressources", "work_files")

@@ -1,7 +1,7 @@
 from django.core.management import call_command
 from django.test import TestCase
 
-from .models import Artist, Work, WorkType, Song, SongWorkLink
+from library.models import Artist, Work, WorkType, Song, SongWorkLink
 
 
 class PruneCommandTestCase(TestCase):

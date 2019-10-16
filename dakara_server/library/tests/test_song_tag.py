@@ -2,8 +2,8 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from .base_test import BaseAPITestCase
-from .models import SongTag
+from library.tests.base_test import BaseAPITestCase
+from library.models import SongTag
 
 
 UserModel = get_user_model()

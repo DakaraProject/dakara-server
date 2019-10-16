@@ -1,7 +1,7 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from .base_test import BaseAPITestCase
+from library.tests.base_test import BaseAPITestCase
 
 
 class WorkListViewAPIViewTestCase(BaseAPITestCase):

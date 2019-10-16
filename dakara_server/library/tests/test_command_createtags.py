@@ -3,7 +3,7 @@ import os
 from django.core.management import call_command
 from django.test import TestCase
 
-from .models import SongTag
+from library.models import SongTag
 
 RESSOURCES_DIR = "tests_ressources"
 APP_DIR = os.path.dirname(os.path.abspath(__file__))

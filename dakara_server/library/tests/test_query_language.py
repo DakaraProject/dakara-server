@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from .query_language import QueryLanguageParser
-from .models import WorkType
+from library.query_language import QueryLanguageParser
+from library.models import WorkType
 
 
 class QueryLanguageParserTestCase(TestCase):

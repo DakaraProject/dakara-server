@@ -3,7 +3,7 @@ import csv
 
 from django.test import TestCase
 
-from .management.commands.feed_components.utils import is_similar
+from library.management.commands.feed_components.utils import is_similar
 
 RESSOURCES_DIR = "tests_ressources"
 APP_DIR = os.path.dirname(os.path.abspath(__file__))

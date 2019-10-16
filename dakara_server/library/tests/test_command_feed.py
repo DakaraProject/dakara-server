@@ -6,8 +6,8 @@ import unittest
 from django.core.management import call_command
 from django.test import TestCase
 
-from .models import Song
-from .management.commands.feed_components.ffmpeg_wrapper import FFmpegWrapper
+from library.models import Song
+from library.management.commands.feed_components.ffmpeg_wrapper import FFmpegWrapper
 
 RESSOURCES_DIR = "tests_ressources"
 SUBTITLES_DIR = "subtitles"
