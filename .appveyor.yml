@@ -39,12 +39,8 @@ install:
 # command to run tests
 # the current working directory is not reinitialized between commands
 test_script:
-  - "cd dakara_server"
-
   # run tests
   - "py -%PYTHON_VERSION% -m pytest -v"
-
-  - "cd .."
 
   # run code formatting tests
   - "if NOT %PYTHON_VERSION% == 3.5 (py -%PYTHON_VERSION% -m  black . --check)"

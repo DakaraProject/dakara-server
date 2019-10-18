@@ -2,4 +2,4 @@
 
 echo "Running django tests"
 
-(cd ./dakara_server && pytest)
+pytest

@@ -19,7 +19,7 @@ install:
 # command to run tests
 script:
   # run tests
-  - (cd dakara_server && pytest -v)
+  - pytest -v
 
   # run code formatting tests
   - if [[ $TRAVIS_PYTHON_VERSION != 3.5 ]]; then black . --check; fi
