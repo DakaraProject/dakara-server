@@ -3,7 +3,7 @@ coverage:
     # rules for the entire project
     project:
       default:
-        target: 95
+        target: 90
 
     # rules for the PR/commit
     patch:
