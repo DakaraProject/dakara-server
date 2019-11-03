@@ -1,0 +1,11 @@
+coverage:
+  status:
+    # rules for the entire project
+    project:
+      default:
+        target: 95
+
+    # rules for the PR/commit
+    patch:
+      default:
+        target: 100

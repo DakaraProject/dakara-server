@@ -40,8 +40,19 @@ install:
 # the current working directory is not reinitialized between commands
 test_script:
   # run tests
-  - "py -%PYTHON_VERSION% -m pytest -v"
+  - "py -%PYTHON_VERSION% -m coverage run -m pytest -v"
 
   # run code formatting tests
   - "if NOT %PYTHON_VERSION% == 3.5 (py -%PYTHON_VERSION% -m  black . --check)"
   - "py -%PYTHON_VERSION% -m flake8"
+
+# commands to manage tests results
+after_test:
+  # show coverage stats
+  - "py -%PYTHON_VERSION% -m coverage report -m"
+
+  # upload coverage stats to codecov.io
+  # coverage must be called manually
+  # codecov token is stored in appveyor settings
+  - "py -%PYTHON_VERSION% -m coverage xml"
+  - "py -%PYTHON_VERSION% -m codecov -X gcov --file coverage.xml"
