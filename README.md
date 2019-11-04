@@ -1,6 +1,6 @@
 # Dakara server
 
-[![Travis CI Build Status](https://travis-ci.org/DakaraProject/dakara-server.svg?branch=develop)](https://travis-ci.org/DakaraProject/dakara-server)
+[![Travis CI Build Status](https://travis-ci.com/DakaraProject/dakara-server.svg?branch=develop)](https://travis-ci.com/DakaraProject/dakara-server)
 [![Appveyor CI Build status](https://ci.appveyor.com/api/projects/status/2wdia71y3dwsqywp?svg=true)](https://ci.appveyor.com/project/neraste/dakara-server)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
@@ -11,8 +11,8 @@ Server for the Dakara project.
 To install Dakara completely, you have to get all the parts of the project.
 Installation guidelines are provided over here:
 
-* [Dakara web client](https://github.com/Nadeflore/dakara-client-web/);
-* [Dakara player VLC](https://github.com/Nadeflore/dakara-player-vlc/).
+* [Dakara web client](https://github.com/DakaraProject/dakara-client-web/);
+* [Dakara player VLC](https://github.com/DakaraProject/dakara-player-vlc/).
 
 #### System requirements
 
@@ -88,9 +88,9 @@ You'll need `ffprobe`, provided by Ffmpeg, for this process to extract files dur
 You'll need `ffmpeg` as well to extract embedded lyrics from files.
 Pass the `-h` parameter to get some help and all the options of the feeder.
 
-Build and link the dist folder from the [client](https://github.com/Nadeflore/dakara-client-web) to `dakara_server/static`.
+Build and link the dist folder from the [client](https://github.com/DakaraProject/dakara-client-web) to `dakara_server/static`.
 
-Setup the [player](https://github.com/Nadeflore/dakara-player-vlc/) accordingly.
+Setup the [player](https://github.com/DakaraProject/dakara-player-vlc/) accordingly.
 
 ### Start the server
 
@@ -105,6 +105,15 @@ Don't forget to start the player as well.
 Now, just grab some friends and have fun!
 
 ### Development
+
+#### Tests
+
+Tests are written using either Unittest or Pytest.
+Pytest is used to run all tests, regardless the test framework used:
+
+```
+cd dakara_server && pytest
+```
 
 #### Hooks
 
