@@ -1,7 +1,0 @@
-#!/bin/bash
-
-echo "Running django Unittest tests"
-
-(cd ./dakara_server && python ./manage.py test \
-        --settings=dakara_server.settings.test \
-        --parallel)

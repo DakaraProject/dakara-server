@@ -33,6 +33,10 @@ sed -i "/^## Unreleased$/a \\
 \\
 ## $version_number - $version_date" $changelog_file
 
+# change version in appveyor config file
+appveyor_file=.appveyor.yml
+sed -i "s/^version: .*-{build}$/version: $version_number-{build}/" $appveyor_file
+
 # create commit and tag
 git add $version_file $changelog_file
 git commit -m "Version $version_number" --no-verify

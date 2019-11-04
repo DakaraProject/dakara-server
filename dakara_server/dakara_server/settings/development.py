@@ -19,8 +19,8 @@ import os
 from decouple import config, Csv
 from dj_database_url import parse as db_url
 
-from .base import *  # noqa F403
-from .base import BASE_DIR
+from dakara_server.settings.base import *  # noqa F403
+from dakara_server.settings.base import BASE_DIR
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
