@@ -30,6 +30,15 @@
 
 ## Unreleased
 
+### Added
+
+- Route to retrieve path of all song in database. Used by the external feeder.
+
+### Changed
+
+- Song creation route now accepts a list of objects to create.
+- Song creation route now accepts nested objects.
+
 ### Removed
 
 - Feed Command. Feeding is now processed through external feeder. See dakara-feeder project.

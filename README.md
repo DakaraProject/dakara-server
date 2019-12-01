@@ -57,40 +57,7 @@ dakara_server/manage.py createtags ./config.yaml # for tags
 dakara_server/manage.py createworktypes ./config.yaml # for work types
 ```
 
-It's time to feed the hungry database with your kara library!
-Suppose you have only one kara folder with all your files inside, you simply call the feeder this way:
-
-```sh
-dakara_server/manage.py feed path/to/kara
-```
-
-Suppose now you have an anime songs folder and a Jpop songs folder in a parent kara folder.
-The files are located in those two subdirectories:
-
-```
-kara
-|-- anime
-`-- jpop
-```
-
-You simply feed the database this way:
-
-```sh
-dakara_server/manage.py feed path/to/kara --directory anime
-dakara_server/manage.py feed path/to/kara --directory jpop
-```
-
-In this case, all imported files will have a path relative to the parent folder.
-When setting up the Dakara player, you shall specify the path of this kara folder.
-
-This may take some time, depending of your collection.
-You'll need `ffprobe`, provided by Ffmpeg, for this process to extract files duration (which is slow).
-You'll need `ffmpeg` as well to extract embedded lyrics from files.
-Pass the `-h` parameter to get some help and all the options of the feeder.
-
 Build and link the dist folder from the [client](https://github.com/DakaraProject/dakara-client-web) to `dakara_server/static`.
-
-Setup the [player](https://github.com/DakaraProject/dakara-player-vlc/) accordingly.
 
 ### Start the server
 
@@ -100,9 +67,13 @@ You're almost done! To start the server app, in the right virtual environment, d
 dakara_server/manage.py runserver
 ```
 
-Don't forget to start the player as well.
+The server part is now setup correctly.
 
-Now, just grab some friends and have fun!
+### Feeder and player
+
+Now setup the [feeder](https://github.com/DakaraProject/dakara-feeder) and [player](https://github.com/DakaraProject/dakara-player-vlc) accroding to their respective documentations.
+
+After all of this is setup, just grab some friends and have fun!
 
 ### Development
 
