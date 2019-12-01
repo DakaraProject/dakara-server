@@ -1,5 +1,4 @@
 import os
-from copy import deepcopy
 
 from rest_framework import serializers
 
@@ -307,42 +306,3 @@ class SongOnlyFilePathSerializer(serializers.ModelSerializer):
     class Meta:
         model = Song
         fields = ("id", "filename", "directory")
-
-
-class FeederSerializer(serializers.Serializer):
-    """Feeder serializer containing two lists
-    """
-
-    added = SongSerializer(many=True)
-    deleted = SongOnlyFilePathSerializer(many=True)
-
-    def get_subserializer(self, field_name):
-        """Retreive a subserializer from a nested structure
-
-        The code is not very glorious, as the data are copied from the current
-        serializer and passed to another serializer.
-
-        Args:
-            field_name (str): name of the subserializer.
-
-        Returns:
-            serializer: serializer of the requested name.
-        """
-        # TODO do this in a cleaner way
-        # get the serializer class
-        field = self.get_fields()[field_name]
-        serializer_class = field.child.__class__
-
-        # get the data
-        data_list = deepcopy(self.validated_data[field_name])
-
-        # change the name of the song work link
-        for data in data_list:
-            if "songworklink_set" in data:
-                data["works"] = data.pop("songworklink_set")
-
-        # recreate a serializer
-        serializer = serializer_class(data=data_list, many=True)
-        serializer.is_valid(raise_exception=True)
-
-        return serializer
