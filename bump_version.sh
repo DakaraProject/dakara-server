@@ -38,7 +38,7 @@ appveyor_file=.appveyor.yml
 sed -i "s/^version: .*-{build}$/version: $version_number-{build}/" $appveyor_file
 
 # create commit and tag
-git add $version_file $changelog_file
+git add $version_file $changelog_file $appveyor_file
 git commit -m "Version $version_number" --no-verify
 git tag "$version_number"
 
@@ -51,8 +51,11 @@ __version__ = "$dev_version_number"
 __date__ = "$version_date"
 EOF
 
+# change version in appveyor config file for dev version
+sed -i "s/^version: .*-{build}$/version: $dev_version_number-{build}/" $appveyor_file
+
 # create commit
-git add $version_file
+git add $version_file $appveyor_file
 git commit -m "Dev version $dev_version_number" --no-verify
 
 # say something
