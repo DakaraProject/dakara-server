@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from library.models import WorkType, WorkAlternativeTitle, Work
 
-from .feed_components import default_work_parser
+from .components import default_work_parser
 
 # get logger
 logger = logging.getLogger(__name__)
