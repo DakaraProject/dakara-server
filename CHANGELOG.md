@@ -30,6 +30,8 @@
 
 ## Unreleased
 
+## 1.5.0 - 2019-12-05
+
 ### Added
 
 - Route to retrieve path of all song in database. Used by the external feeder.
