@@ -48,6 +48,12 @@ You should be asked to create a super user. Do it. Otherwise:
 dakara_server/manage.py createsuperuser
 ```
 
+You should also create a player user:
+
+```
+dakara_server/manage.py createplayer
+```
+
 Now, duplicate `config.yaml.example` to `config.yaml`.
 You'll set up here the different tags and type of works (anime, games…) of your kara library.
 When you're done, tell the server:
@@ -83,7 +89,7 @@ Tests are written using either Unittest or Pytest.
 Pytest is used to run all tests, regardless the test framework used:
 
 ```
-cd dakara_server && pytest
+pytest
 ```
 
 #### Hooks
