@@ -543,6 +543,61 @@ And everywhere that Mary went""",
         Song.objects.get(title="Song3")
         Song.objects.get(title="Song4")
 
+    def test_post_song_embedded_work_subtitle(self):
+        """Test work is created even if similar exists with different subtitle
+        """
+        # Add a subtitle to work1
+        self.work1.subtitle = "returns"
+        self.work1.save()
+
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert the amount of songs
+        self.assertEqual(Song.objects.count(), 2)
+        self.assertEqual(Artist.objects.count(), 2)
+        self.assertEqual(SongTag.objects.count(), 2)
+        self.assertEqual(Work.objects.count(), 3)
+
+        # create a new song
+        # The works is same title and worktype as existing work, but without subtitle
+        # This should create a new work
+        song = {
+            "title": "Song3",
+            "filename": "song3",
+            "directory": "directory",
+            "duration": 0,
+            "artists": [],
+            "tags": [],
+            "works": [
+                {
+                    "work": {
+                        "title": self.work1.title,
+                        "work_type": {"query_name": self.work1.work_type.query_name},
+                    },
+                    "link_type": "ED",
+                    "link_type_number": 2,
+                    "episodes": "1",
+                }
+            ],
+        }
+        response = self.client.post(self.url, song)
+
+        # assert the response
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert the created song
+        song = Song.objects.get(title="Song3")
+        self.assertIsNotNone(song)
+        self.assertEqual(song.filename, "song3")
+        self.assertEqual(song.directory, "directory")
+        self.assertEqual(song.duration, timedelta(0))
+
+        # assert a new work was created
+        self.assertEqual(Work.objects.count(), 4)
+        workNew = Work.objects.get(title="Work1", subtitle="", work_type=self.wt1)
+        self.assertIsNotNone(workNew)
+
 
 class SongViewAPIViewTestCase(LibraryAPITestCase):
     def setUp(self):

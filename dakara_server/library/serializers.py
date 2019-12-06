@@ -218,7 +218,11 @@ class SongSerializer(serializers.ModelSerializer):
             )
 
             # create work
-            work, _ = Work.objects.get_or_create(**work_data, work_type=work_type)
+            work, _ = Work.objects.get_or_create(
+                title=work_data["title"],
+                subtitle=work_data.get("subtitle", ""),
+                work_type=work_type,
+            )
 
             # create work link
             SongWorkLink.objects.create(**songworklink_data, song=song, work=work)

@@ -30,6 +30,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Crash when 2 works exists with same title but different subtitle.
+
 ## 1.5.0 - 2019-12-05
 
 ### Added
