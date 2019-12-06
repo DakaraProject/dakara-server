@@ -2,6 +2,7 @@
 
 [![Travis CI Build Status](https://travis-ci.com/DakaraProject/dakara-server.svg?branch=develop)](https://travis-ci.com/DakaraProject/dakara-server)
 [![Appveyor CI Build status](https://ci.appveyor.com/api/projects/status/2wdia71y3dwsqywp?svg=true)](https://ci.appveyor.com/project/neraste/dakara-server)
+[![Codecov coverage analysis](https://codecov.io/gh/DakaraProject/dakara-server/branch/develop/graph/badge.svg)](https://codecov.io/gh/DakaraProject/dakara-server)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 Server for the Dakara project.
@@ -16,7 +17,7 @@ Installation guidelines are provided over here:
 
 #### System requirements
 
-* Python3, to make everything up and running (supported versions: 3.5 and 3.6);
+* Python3, to make everything up and running (supported versions: 3.5 and 3.6).
 
 Linux and Windows are supported.
 
@@ -28,27 +29,27 @@ It is strongly recommended to run the Dakara server in a virtual environment.
 
 Install dependencies, at the root level of the repo (in the virtual environment):
 
-```
+```sh
 pip install -r requirements.txt
 ```
 
-#### Setting up the server and feeding the database
+#### Setting up the server
 
 Let's create the server database, after loading the virtual environment, do:
 
-```
+```sh
 dakara_server/manage.py migrate
 ```
 
 You should be asked to create a super user. Do it. Otherwise:
 
-```
+```sh
 dakara_server/manage.py createsuperuser
 ```
 
-You should also create a player user:
+You should also create a player user, whose credentials will be used for the [player](https://github.com/DakaraProject/dakara-player-vlc):
 
-```
+```sh
 dakara_server/manage.py createplayer
 ```
 
@@ -61,13 +62,13 @@ dakara_server/manage.py createtags ./config.yaml # for tags
 dakara_server/manage.py createworktypes ./config.yaml # for work types
 ```
 
-Build and link the dist folder from the [client](https://github.com/DakaraProject/dakara-client-web) to `dakara_server/static`.
+Build and link the `dist` folder from the [client](https://github.com/DakaraProject/dakara-client-web) to `dakara_server/static`.
 
 ### Start the server
 
 You're almost done! To start the server app, in the right virtual environment, do:
 
-```
+```sh
 dakara_server/manage.py runserver
 ```
 
@@ -75,7 +76,7 @@ The server part is now setup correctly.
 
 ### Feeder and player
 
-Now setup the [feeder](https://github.com/DakaraProject/dakara-feeder) and [player](https://github.com/DakaraProject/dakara-player-vlc) accroding to their respective documentations.
+Now setup the [feeder](https://github.com/DakaraProject/dakara-feeder) and [player](https://github.com/DakaraProject/dakara-player-vlc) according to their respective documentations.
 
 After all of this is setup, just grab some friends and have fun!
 
@@ -86,7 +87,7 @@ After all of this is setup, just grab some friends and have fun!
 Tests are written using either Unittest or Pytest.
 Pytest is used to run all tests, regardless the test framework used:
 
-```
+```sh
 pytest
 ```
 
@@ -96,13 +97,13 @@ Git hooks are included in the `hooks` directory.
 
 Use the following command to use this hook folder for the project:
 
-```
+```sh
 git config core.hooksPath hooks
 ```
 
 If you're using git < 2.9 you can make a symlink instead:
 
-```
+```sh
 ln -s -f ../../hooks/pre-commit .git/hooks/pre-commit
 ln -s -f ../../hooks/pre-commit.d .git/hooks/pre-commit.d
 ```
