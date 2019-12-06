@@ -13,7 +13,8 @@ To install Dakara completely, you have to get all the parts of the project.
 Installation guidelines are provided over here:
 
 * [Dakara web client](https://github.com/DakaraProject/dakara-client-web/);
-* [Dakara player VLC](https://github.com/DakaraProject/dakara-player-vlc/).
+* [Dakara player VLC](https://github.com/DakaraProject/dakara-player-vlc/);
+* [Dakara feeder](https://github.com/DakaraProject/dakara-feeder).
 
 #### System requirements
 
