@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
+from library.models import Artist
 from library.tests.base_test import LibraryAPITestCase
 
 
@@ -114,3 +115,38 @@ class ArtistListViewAPIViewTestCase(LibraryAPITestCase):
 
         if remaining is not None:
             self.assertEqual(response.data["query"]["remaining"], remaining)
+
+
+class ArtistPruneViewAPIViewTestCase(LibraryAPITestCase):
+    url = reverse("library-artist-prune")
+
+    def setUp(self):
+        # create a user without any rights
+        self.user = self.create_user("TestUser", library_level="m")
+
+        # create test data
+        self.create_test_data()
+
+    def test_delete(self):
+        """Test to prune artists without songs
+        """
+        # login as library manager
+        self.authenticate(self.user)
+
+        # check there are 2 artists
+        self.assertEqual(Artist.objects.count(), 2)
+
+        # prune artists
+        response = self.client.delete(self.url)
+
+        # check http status
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # check the response
+        self.assertDictEqual(response.data, {"deleted_count": 1})
+
+        # check there are only 1 artists remaining
+        self.assertEqual(Artist.objects.count(), 1)
+
+        # check artists with songs remains
+        self.assertEqual(Artist.objects.filter(pk=self.artist2.pk).count(), 0)

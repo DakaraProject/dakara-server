@@ -30,6 +30,14 @@
 
 ## Unreleased
 
+### Added
+
+- Route for prune artists is `/api/library/artists/prune/` and route for prune works is `/api/library/works/prune/`.
+
+### Removed
+
+- Prune Command. Prune for artists and works can be done through the API now.
+
 ## 1.5.1 - 2019-12-06
 
 ### Fixed

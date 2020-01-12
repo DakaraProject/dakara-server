@@ -104,9 +104,19 @@ urlpatterns = [
         name="library-artist-list",
     ),
     url(
+        r"^api/library/artists/prune/$",
+        library_views.ArtistPruneView.as_view(),
+        name="library-artist-prune",
+    ),
+    url(
         r"^api/library/works/$",
         library_views.WorkListView.as_view(),
         name="library-work-list",
+    ),
+    url(
+        r"^api/library/works/prune/$",
+        library_views.WorkPruneView.as_view(),
+        name="library-work-prune",
     ),
     url(
         r"^api/library/work-types/$",

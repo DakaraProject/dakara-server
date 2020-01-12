@@ -1,13 +1,17 @@
+import logging
 from django.db.models.functions import Lower
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     UpdateAPIView,
     ListCreateAPIView,
     ListAPIView,
 )
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
 
 from internal import permissions as internal_permissions
 from library import models
@@ -16,6 +20,8 @@ from library import permissions
 from library.query_language import QueryLanguageParser
 from library import views_feeder as feeder  # noqa F401
 
+
+logger = logging.getLogger(__name__)
 
 UserModel = get_user_model()
 
@@ -233,6 +239,28 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
         return query_set.order_by(Lower("name"))
 
 
+class ArtistPruneView(APIView):
+    """Views for artists to delete
+    """
+
+    permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
+    queryset = models.Artist.objects.filter(song=None)
+
+    def delete(self, request, *args, **kwargs):
+        _, deleted_count = self.queryset.delete()
+
+        logger.info(
+            "Removed: {}".format(
+                ", ".join("{} ({})".format(k, v) for k, v in deleted_count.items())
+            )
+        )
+
+        return Response(
+            {"deleted_count": deleted_count["library.Artist"]},
+            status=status.HTTP_200_OK,
+        )
+
+
 class WorkListView(ListCreateAPIViewWithQueryParsed):
     """List of works
     """
@@ -284,6 +312,27 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
             self.query_parsed = {"remaining": res}
 
         return query_set.distinct().order_by(Lower("title"), Lower("subtitle"))
+
+
+class WorkPruneView(APIView):
+    """Views for works to delete
+    """
+
+    permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
+    queryset = models.Work.objects.filter(song=None)
+
+    def delete(self, request, *args, **kwargs):
+        _, deleted_count = self.queryset.delete()
+
+        logger.info(
+            "Removed: {}".format(
+                ", ".join("{} ({})".format(k, v) for k, v in deleted_count.items())
+            )
+        )
+
+        return Response(
+            {"deleted_count": deleted_count["library.Work"]}, status=status.HTTP_200_OK
+        )
 
 
 class WorkTypeListView(ListCreateAPIView):
