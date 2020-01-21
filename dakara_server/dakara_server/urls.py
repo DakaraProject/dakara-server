@@ -128,6 +128,12 @@ urlpatterns = [
         library_views.SongTagView.as_view(),
         name="library-songtag-detail",
     ),
+    # API route for the feeder
+    url(
+        r"^api/library/feeder/retrieve/$",
+        library_views.feeder.FeederListView.as_view(),
+        name="library-feeder-list",
+    ),
     # API documentation routes
     url(r"^api-docs/", include_docs_urls(title="Dakara server API")),
 ]

@@ -30,6 +30,28 @@
 
 ## Unreleased
 
+## 1.5.1 - 2019-12-06
+
+### Fixed
+
+- Crash when 2 works exists with same title but different subtitle.
+
+## 1.5.0 - 2019-12-05
+
+### Added
+
+- Route to retrieve path of all song in database. Used by the external feeder.
+
+### Changed
+
+- Song creation route now accepts a list of objects to create.
+- Song creation route now accepts nested objects.
+
+### Removed
+
+- Feed Command. Feeding is now processed through external feeder. See dakara-feeder project.
+- Replace directory command. Not needed anymore with the new feeder.
+
 ## 1.4.0 - 2019-05-03
 
 ### Changed

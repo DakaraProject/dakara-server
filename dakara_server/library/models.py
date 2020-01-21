@@ -12,7 +12,7 @@ class Song(models.Model):
 
     title = models.CharField(max_length=255)
     filename = models.CharField(max_length=255)
-    directory = models.CharField(max_length=255)
+    directory = models.CharField(max_length=255, blank=True)
     duration = models.DurationField(default=timedelta(0))
     version = models.CharField(max_length=255, blank=True)
     detail = models.CharField(max_length=255, blank=True)
@@ -122,6 +122,15 @@ class SongWorkLink(models.Model):
         return "{} used in {} as {}".format(
             self.song.title, self.work.title, self.link_type
         )
+
+    def __hash__(self):
+        fields = frozenset(
+            (self.song.pk, self.work.pk, self.link_type, self.link_type_number)
+        )
+        return hash(fields)
+
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
 
 
 class SongTag(models.Model):
