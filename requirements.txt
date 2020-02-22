@@ -19,5 +19,5 @@ pytest-asyncio<0.11.0,>=0.10.0
 pytest-django<3.9.0,>=3.8.0
 pytest-mock<2.1.0,>=2.0.0
 pytest<5.4.0,>=5.3.0
-python-decouple<3.2,>=3.1
+python-decouple<3.4,>=3.3
 pywin32==223; sys_platform == 'win32'
