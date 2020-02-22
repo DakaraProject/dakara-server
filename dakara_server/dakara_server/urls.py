@@ -17,7 +17,7 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.conf import settings
 from django.contrib.staticfiles.views import serve
-from django.urls import include
+from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.documentation import include_docs_urls
 
@@ -29,114 +29,110 @@ from internal import views as internal_views
 
 urlpatterns = [
     # Admin route
-    url(r"^admin/", admin.site.urls),
+    path("admin/", admin.site.urls),
     # Authentication routes
-    url(r"^api/auth/", include("rest_framework.urls", namespace="rest_framework")),
-    url(r"^api/token-auth/", obtain_auth_token),
+    path("api/auth/", include("rest_framework.urls", namespace="rest_framework")),
+    path("api/token-auth/", obtain_auth_token),
     # API routes for internal
-    url(r"^api/version/$", internal_views.VersionView.as_view(), name="version"),
+    path("api/version/", internal_views.VersionView.as_view(), name="version"),
     # API routes for the users
-    url(r"^api/users/$", users_views.UserListView.as_view(), name="users-list"),
-    url(
-        r"^api/users/(?P<pk>[0-9]+)/$",
-        users_views.UserView.as_view(),
-        name="users-detail",
-    ),
-    url(
-        r"^api/users/(?P<pk>[0-9]+)/password/$",
+    path("api/users/", users_views.UserListView.as_view(), name="users-list"),
+    path("api/users/<int:pk>/", users_views.UserView.as_view(), name="users-detail"),
+    path(
+        "api/users/<int:pk>/password/",
         users_views.PasswordView.as_view(),
         name="users-password",
     ),
-    url(
-        r"^api/users/current/$",
+    path(
+        "api/users/current/",
         users_views.CurrentUserView.as_view(),
         name="users-current",
     ),
     # API routes for the playlist
-    url(
-        r"^api/playlist/player/status/$",
+    path(
+        "api/playlist/player/status/",
         playlist_views.PlayerStatusView.as_view(),
         name="playlist-player-status",
     ),
-    url(
-        r"^api/playlist/player/errors/$",
+    path(
+        "api/playlist/player/errors/",
         playlist_views.PlayerErrorView.as_view(),
         name="playlist-player-errors",
     ),
-    url(
-        r"^api/playlist/player/command/$",
+    path(
+        "api/playlist/player/command/",
         playlist_views.PlayerCommandView.as_view(),
         name="playlist-player-command",
     ),
-    url(
-        r"^api/playlist/digest/$",
+    path(
+        "api/playlist/digest/",
         playlist_views.DigestView.as_view(),
         name="playlist-digest",
     ),
-    url(
-        r"^api/playlist/entries/$",
+    path(
+        "api/playlist/entries/",
         playlist_views.PlaylistEntryListView.as_view(),
         name="playlist-entries-list",
     ),
-    url(
-        r"^api/playlist/entries/(?P<pk>[0-9]+)/$",
+    path(
+        "api/playlist/entries/<int:pk>/",
         playlist_views.PlaylistEntryView.as_view(),
         name="playlist-entries-detail",
     ),
-    url(
-        r"^api/playlist/played-entries/$",
+    path(
+        "api/playlist/played-entries/",
         playlist_views.PlaylistPlayedEntryListView.as_view(),
         name="playlist-played-entries-list",
     ),
-    url(
-        r"^api/playlist/karaoke/$",
+    path(
+        "api/playlist/karaoke/",
         playlist_views.KaraokeView.as_view(),
         name="playlist-karaoke",
     ),
     # API routes for the library
-    url(
-        r"^api/library/songs/$",
+    path(
+        "api/library/songs/",
         library_views.SongListView.as_view(),
         name="library-song-list",
     ),
-    url(
-        r"^api/library/artists/$",
+    path(
+        "api/library/artists/",
         library_views.ArtistListView.as_view(),
         name="library-artist-list",
     ),
-    url(
-        r"^api/library/works/$",
+    path(
+        "api/library/works/",
         library_views.WorkListView.as_view(),
         name="library-work-list",
     ),
-    url(
-        r"^api/library/work-types/$",
+    path(
+        "api/library/work-types/",
         library_views.WorkTypeListView.as_view(),
         name="library-worktype-list",
     ),
-    url(
-        r"^api/library/song-tags/$",
+    path(
+        "api/library/song-tags/",
         library_views.SongTagListView.as_view(),
         name="library-songtag-list",
     ),
-    url(
-        r"^api/library/songs/(?P<pk>[0-9]+)/$",
+    path(
+        "api/library/songs/<int:pk>/",
         library_views.SongView.as_view(),
         name="library-song-detail",
     ),
-    url(
-        r"^api/library/song-tags/(?P<pk>[0-9]+)/$",
+    path(
+        "api/library/song-tags/<int:pk>/",
         library_views.SongTagView.as_view(),
         name="library-songtag-detail",
     ),
     # API route for the feeder
-    url(
-        r"^api/library/feeder/retrieve/$",
+    path(
+        "api/library/feeder/retrieve/",
         library_views.feeder.FeederListView.as_view(),
         name="library-feeder-list",
     ),
     # API documentation routes
-    url(r"^api-docs/", include_docs_urls(title="Dakara server API")),
+    path("api-docs/", include_docs_urls(title="Dakara server API")),
 ]
 
 if settings.DEBUG:
