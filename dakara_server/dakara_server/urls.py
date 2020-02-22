@@ -13,10 +13,11 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.conf.urls import include, url
+from django.conf.urls import url
 from django.contrib import admin
 from django.conf import settings
 from django.contrib.staticfiles.views import serve
+from django.urls import include
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.documentation import include_docs_urls
 
@@ -28,7 +29,7 @@ from internal import views as internal_views
 
 urlpatterns = [
     # Admin route
-    url(r"^admin/", include(admin.site.urls)),
+    url(r"^admin/", admin.site.urls),
     # Authentication routes
     url(r"^api/auth/", include("rest_framework.urls", namespace="rest_framework")),
     url(r"^api/token-auth/", obtain_auth_token),

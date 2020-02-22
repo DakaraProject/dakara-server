@@ -3,7 +3,7 @@ from async_generator import yield_, async_generator  # needed for Python 3.5
 from channels.testing import WebsocketCommunicator
 from channels.layers import get_channel_layer
 from rest_framework import status
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from datetime import timedelta
 
 from dakara_server.routing import application

@@ -1,7 +1,7 @@
 from unittest.mock import patch
 from datetime import datetime
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 from internal.tests.base_test import tz

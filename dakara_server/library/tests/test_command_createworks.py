@@ -302,7 +302,7 @@ class CommandsTestCase(TestCase):
         work_file = os.path.join(DIR_WORK_FILES, "correct_work_file.json")
 
         args = [work_file]
-        opts = {"verbosity": 0, "update-only": True}
+        opts = {"verbosity": 0, "update_only": True}
         call_command("createworks", *args, **opts)
 
         # Work assertions
