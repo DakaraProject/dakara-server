@@ -1,4 +1,4 @@
-APScheduler<3.6.0,>=3.5.3
+APScheduler<3.7.0,>=3.6.0
 Django<2.3.0,>=2.2.0
 Markdown<3.3.0,>=3.2.0
 PyYAML==4.2b4
