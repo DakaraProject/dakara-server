@@ -2,12 +2,11 @@ import pytest
 from channels.db import database_sync_to_async
 from rest_framework.test import APIClient
 
-from playlist.models import Player
-from playlist.tests.base_test import PlaylistProvider
-
 
 @database_sync_to_async
 def get_playlist_provider():
+    from playlist.tests.base_test import PlaylistProvider
+
     provider = PlaylistProvider()
     provider.create_test_data()
     return provider
@@ -25,6 +24,8 @@ def client_drf():
 
 @pytest.fixture
 def player():
+    from playlist.models import Player
+
     player = Player()
     player.save()
     return player
