@@ -137,7 +137,7 @@ class SongTag(models.Model):
     """Song tag object
     """
 
-    name = UpperCaseCharField(max_length=255)
+    name = UpperCaseCharField(max_length=255, unique=True)
     color_hue = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(360)]
     )

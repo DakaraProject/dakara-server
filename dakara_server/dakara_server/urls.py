@@ -129,14 +129,14 @@ urlpatterns = [
         name="library-songtag-list",
     ),
     url(
-        r"^api/library/songs/(?P<pk>[0-9]+)/$",
-        library_views.SongView.as_view(),
-        name="library-song-detail",
-    ),
-    url(
         r"^api/library/song-tags/(?P<pk>[0-9]+)/$",
         library_views.SongTagView.as_view(),
         name="library-songtag-detail",
+    ),
+    url(
+        r"^api/library/songs/(?P<pk>[0-9]+)/$",
+        library_views.SongView.as_view(),
+        name="library-song-detail",
     ),
     # API route for the feeder
     url(

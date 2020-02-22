@@ -347,7 +347,7 @@ class WorkTypeListView(ListCreateAPIView):
     serializer_class = serializers.WorkTypeSerializer
 
 
-class SongTagListView(ListAPIView):
+class SongTagListView(ListCreateAPIView):
     """List of song tags
     """
 
@@ -359,8 +359,8 @@ class SongTagListView(ListAPIView):
     serializer_class = serializers.SongTagSerializer
 
 
-class SongTagView(UpdateAPIView):
-    """Update a song tag
+class SongTagView(RetrieveUpdateDestroyAPIView):
+    """View for a song tag
     """
 
     permission_classes = [
