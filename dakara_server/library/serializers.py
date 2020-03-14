@@ -206,39 +206,9 @@ class SongSerializer(serializers.ModelSerializer):
         songworklinks_data = validated_data.pop("songworklink_set", [])
         song = Song.objects.create(**validated_data)
 
-        # create artists and add them
-        for artist_data in artists_data:
-            artist, _ = Artist.objects.get_or_create(**artist_data)
-            song.artists.add(artist)
-
-        # create tags and add them
-        # get the tag with its name only, or create it with all its attributes
-        for tag_data in tags_data:
-            tag, _ = SongTag.objects.get_or_create(
-                name=tag_data["name"], defaults=tag_data
-            )
-            song.tags.add(tag)
-
-        # create works and add them
-        for songworklink_data in songworklinks_data:
-            work_data = songworklink_data.pop("work")
-            work_type_data = work_data.pop("work_type")
-
-            # create work type
-            work_type, _ = WorkType.objects.get_or_create(
-                query_name=work_type_data["query_name"],
-                # TODO add defaults
-            )
-
-            # create work
-            work, _ = Work.objects.get_or_create(
-                title=work_data["title"],
-                subtitle=work_data.get("subtitle", ""),
-                work_type=work_type,
-            )
-
-            # create work link
-            SongWorkLink.objects.create(**songworklink_data, song=song, work=work)
+        self.set_artists(song, artists_data)
+        self.set_tags(song, tags_data)
+        self.set_songworklinks(song, songworklinks_data)
 
         return song
 
@@ -250,24 +220,40 @@ class SongSerializer(serializers.ModelSerializer):
         tags_data = validated_data.pop("tags", [])
         songworklinks_data = validated_data.pop("songworklink_set", [])
         song = super().update(song, validated_data)
+        songworklinks_old = set(song.songworklink_set.all())
 
-        # create artists and add them
+        self.set_artists(song, artists_data)
+        self.set_tags(song, tags_data)
+        self.set_songworklinks(song, songworklinks_data, songworklinks_old)
+
+        return song
+
+    @staticmethod
+    def set_artists(song, artists_data):
+        """Create artists and add them.
+        """
         artists = [
             Artist.objects.get_or_create(**artist_data)[0]
             for artist_data in artists_data
         ]
         song.artists.set(artists)
 
-        # create tags and add them
-        # get the tag with its name only, or create it with all its attributes
+    @staticmethod
+    def set_tags(song, tags_data):
+        """Create tags and add them.
+
+        Get the tag with its name only, or create it with all its attributes.
+        """
         tags = [
             SongTag.objects.get_or_create(name=tag_data["name"], defaults=tag_data)[0]
             for tag_data in tags_data
         ]
         song.tags.set(tags)
 
-        # create works and add them
-        songworklinks_old = set(song.songworklink_set.all())
+    @staticmethod
+    def set_songworklinks(song, songworklinks_data, songworklinks_old=[]):
+        """Create works and add them.
+        """
         for songworklink_data in songworklinks_data:
             work_data = songworklink_data.pop("work")
             work_type_data = work_data.pop("work_type")
@@ -297,8 +283,6 @@ class SongSerializer(serializers.ModelSerializer):
         # remove removed links
         for songworklink_old in songworklinks_old:
             songworklink_old.delete()
-
-        return song
 
 
 class SongForPlayerSerializer(serializers.ModelSerializer):
