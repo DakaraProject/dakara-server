@@ -136,13 +136,23 @@ class SongTagSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "color_hue", "disabled")
 
 
+class SongTagForSongSerializer(serializers.ModelSerializer):
+    """Song tags for song serializer
+    """
+
+    class Meta:
+        model = SongTag
+        fields = ("id", "name", "color_hue", "disabled")
+        extra_kwargs = {"name": {"validators": []}}
+
+
 class SongSerializer(serializers.ModelSerializer):
     """Song serializer
     """
 
     duration = SecondsDurationField()
     artists = ArtistSerializer(many=True, required=False)
-    tags = SongTagSerializer(many=True, required=False)
+    tags = SongTagForSongSerializer(many=True, required=False)
     works = SongWorkLinkSerializer(many=True, source="songworklink_set", required=False)
     lyrics_preview = serializers.SerializerMethodField()
 
@@ -202,8 +212,11 @@ class SongSerializer(serializers.ModelSerializer):
             song.artists.add(artist)
 
         # create tags and add them
+        # get the tag with its name only, or create it with all its attributes
         for tag_data in tags_data:
-            tag, _ = SongTag.objects.get_or_create(**tag_data)
+            tag, _ = SongTag.objects.get_or_create(
+                name=tag_data["name"], defaults=tag_data
+            )
             song.tags.add(tag)
 
         # create works and add them
@@ -246,7 +259,11 @@ class SongSerializer(serializers.ModelSerializer):
         song.artists.set(artists)
 
         # create tags and add them
-        tags = [SongTag.objects.get_or_create(**tag_data)[0] for tag_data in tags_data]
+        # get the tag with its name only, or create it with all its attributes
+        tags = [
+            SongTag.objects.get_or_create(name=tag_data["name"], defaults=tag_data)[0]
+            for tag_data in tags_data
+        ]
         song.tags.set(tags)
 
         # create works and add them

@@ -4,9 +4,7 @@ from django.db.models import Q
 from django.contrib.auth import get_user_model
 from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
-    UpdateAPIView,
     ListCreateAPIView,
-    ListAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
