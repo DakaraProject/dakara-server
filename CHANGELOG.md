@@ -38,6 +38,10 @@
 
 - Prune Command. Prune for artists and works can be done through the API now.
 
+### Fixed
+
+- Crash when updating a song with 2 works existing with same title but different subtitle.
+
 ## 1.5.1 - 2019-12-06
 
 ### Fixed
