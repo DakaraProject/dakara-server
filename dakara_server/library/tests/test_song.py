@@ -871,3 +871,51 @@ class SongViewAPIViewTestCase(LibraryAPITestCase):
         self.assertIsNone(song_work_link_1.link_type_number)
         self.assertEqual(song_work_link_1.episodes, "")
         self.assertCountEqual(song.songworklink_set.all(), [song_work_link_1])
+
+    def test_put_song_embedded_work_subtitle(self):
+        """Test work is created even if similar exists with different subtitle
+        """
+        # Add a subtitle to work1
+        self.work1.subtitle = "returns"
+        self.work1.save()
+
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert the amount of songs
+        self.assertEqual(Song.objects.count(), 2)
+        self.assertEqual(Artist.objects.count(), 2)
+        self.assertEqual(SongTag.objects.count(), 2)
+        self.assertEqual(Work.objects.count(), 3)
+
+        # update song1
+        # The works is same title and worktype as existing work, but without subtitle
+        # This should create a new work
+        song = {
+            "title": "Song1",
+            "filename": "file.mp4",
+            "directory": "directory",
+            "duration": 0,
+            "artists": [],
+            "tags": [],
+            "works": [
+                {
+                    "work": {
+                        "title": self.work1.title,
+                        "work_type": {"query_name": self.work1.work_type.query_name},
+                    },
+                    "link_type": "ED",
+                    "link_type_number": 2,
+                    "episodes": "1",
+                }
+            ],
+        }
+        response = self.client.put(self.url_song1, song)
+
+        # assert the response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert a new work was created
+        self.assertEqual(Work.objects.count(), 4)
+        workNew = Work.objects.get(title="Work1", subtitle="", work_type=self.wt1)
+        self.assertIsNotNone(workNew)
