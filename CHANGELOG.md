@@ -36,7 +36,8 @@
 
 ### Removed
 
-- Prune Command. Prune for artists and works can be done through the API now.
+- `prune` command. Prune for artists and works can be done through the API now.
+- `createtags` and `createworktypes` commands. Creating tags and work types can be done through the API now.
 
 ### Fixed
 
