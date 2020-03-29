@@ -118,10 +118,11 @@ class Karaoke(models.Model):
     can_add_to_playlist = models.BooleanField(default=True)
     player_play_next_song = models.BooleanField(default=True)
     date_stop = models.DateTimeField(null=True)
+    channel_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return "In {} mode{}".format(
-            self.status,
+        return "{}{}".format(
+            "Ongoing" if self.ongoing else "Stopped",
             " will stop at {}".format(self.date.stop) if self.date_stop else "",
         )
 

@@ -1,8 +1,8 @@
-from django.conf.urls import url
+from django.urls import re_path
 
 from playlist import consumers
 
 
 websocket_urlpatterns = [
-    url(r"^ws/playlist/device/$", consumers.PlaylistDeviceConsumer)
+    re_path(r"^ws/playlist/device/$", consumers.PlaylistDeviceConsumer)
 ]

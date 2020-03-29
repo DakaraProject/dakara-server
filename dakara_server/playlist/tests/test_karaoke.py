@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from datetime import datetime
 
@@ -56,7 +56,8 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_patch_karaoke_status_booleans(self):
+    @patch("playlist.views.send_to_channel")
+    def test_patch_karaoke_status_booleans(self, mocked_send_to_channel):
         """Test a manager can modify the karaoke status booleans
         """
         # login as manager
@@ -79,6 +80,7 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         karaoke = Karaoke.get_object()
         self.assertFalse(karaoke.ongoing)
+        mocked_send_to_channel.assert_called_with(ANY, "send_idle")
 
     def test_patch_karaoke_forbidden(self):
         """Test a simple user or an unauthenticated user cannot modify the karaoke
@@ -90,8 +92,8 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         response = self.client.patch(self.url, {"ongoing": False})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_patch_ongoing_false(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_patch_ongoing_false(self, mocked_send_to_channel):
         """Test the playlist has been emptied when the kara is not ongoing
 
         And empty the player errors pool.
@@ -132,7 +134,7 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         self.assertFalse(PlayerError.objects.all())
 
         # the device was requested to be idle
-        mocked_broadcast_to_channel.assert_called_with("playlist.device", "send_idle")
+        mocked_send_to_channel.assert_called_with(ANY, "send_idle")
 
         # the player is not playing anything
         response = self.client.get(url_player_status)
@@ -180,8 +182,8 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         response = self.client.get(url_player_status)
         self.assertTrue(response.data["playlist_entry"])
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_put_resume_kara_player_idle(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_put_resume_kara_player_idle(self, mocked_send_to_channel):
         """Test idle player is requested to play after play next song
 
         Player play next song was false and the player idle.
@@ -207,12 +209,12 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
 
         # post-assertion
         # the player is requested to start
-        mocked_broadcast_to_channel.assert_called_with(
-            "playlist.device", "send_playlist_entry", data={"playlist_entry": self.pe1}
+        mocked_send_to_channel.assert_called_with(
+            ANY, "send_playlist_entry", data={"playlist_entry": self.pe1}
         )
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_put_resume_kara_not_idle(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_put_resume_kara_not_idle(self, mocked_send_to_channel):
         """Test not idle player is not requested after play next song
 
         Player play next song was false and the player not idle.
@@ -235,7 +237,7 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         self.assertTrue(response.data["playlist_entry"])
 
         # reset the mock
-        mocked_broadcast_to_channel.reset_mock()
+        mocked_send_to_channel.reset_mock()
 
         # resume the kara
         response = self.client.put(self.url, {"player_play_next_song": True})
@@ -243,10 +245,10 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
 
         # post-assertion
         # the player is not requested to do anything
-        mocked_broadcast_to_channel.assert_not_called()
+        mocked_send_to_channel.assert_not_called()
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_patch_resume_kara_playlist_empty(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_patch_resume_kara_playlist_empty(self, mocked_send_to_channel):
         """Test send_playlist_entry is not sent when there is nothing to play
         """
         url_player_status = reverse("playlist-player-status")
@@ -267,7 +269,7 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
 
         # post-assertion
         # no command was sent to device
-        mocked_broadcast_to_channel.assert_not_called()
+        mocked_send_to_channel.assert_not_called()
 
     @patch("playlist.views.scheduler")
     def test_patch_karaoke_date_stop(self, mocked_scheduler):

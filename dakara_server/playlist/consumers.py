@@ -12,10 +12,11 @@ logger = logging.getLogger(__name__)
 channel_layer = get_channel_layer()
 
 
-class DakaraJsonWebsocketConsumer(JsonWebsocketConsumer):
-    """Custom consumer for the project
+class DispatchJsonWebsocketConsumer(JsonWebsocketConsumer):
+    """Consumer that dispatch received JSON messages to methods
 
-    On receive event, it will call the corresponding method.
+    On receive event, it will call the corresponding method based the event
+    "type" key using the following pattern: "receive_{type}".
     """
 
     def receive_json(self, event):
@@ -33,41 +34,60 @@ class DakaraJsonWebsocketConsumer(JsonWebsocketConsumer):
         getattr(self, method_name)(event.get("data"))
 
 
-def broadcast_to_channel(group, method, data=None):
-    """Send an event to a channel layer group
+def send_to_channel(name, event_type, data=None):
+    """Send an event to a channel
 
     Args:
-        group (str): name of the group.
-        method (str): name of the method.
+        name (str): name of the channel.
+        event_type (str): type of the event.
         data (dict): data to pass to the method.
     """
-    event = {"type": method}
+    # get channel name
+    if name == PlaylistDeviceConsumer.name:
+        channel_name = PlaylistDeviceConsumer.get_channel_name()
 
+    else:
+        raise NotImplementedError("Unknown consumer name")
+
+    # create event
+    event = {"type": event_type}
     if data:
         event.update(data)
 
-    async_to_sync(channel_layer.group_send)(group, event)
+    # send event to channel
+    async_to_sync(channel_layer.send)(channel_name, event)
 
 
-class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
-    group_name = "playlist.device"
+class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
+    """Consumer to handle device events
+    """
+
+    name = "playlist.device"
+
+    @staticmethod
+    def get_channel_name():
+        """Retreive the channel name
+        """
+        karaoke = models.Karaoke.get_object()
+        return karaoke.channel_name
+
+    def is_connected(self):
+        """Tells if the consumer is connected
+        """
+        return self.get_channel_name() is not None
 
     def connect(self):
-        print(self.channel_layer.groups)
-        # the group must not exist before connection
-        if self.group_name in self.channel_layer.groups:
-            self.close()
-            logger.error("Another player tries to connect to playlist device consumer")
-            return
-
         # ensure user is player
         if not self.scope["user"].is_player:
-            self.close()
             logger.error("Invalid user tries to connect to playlist device consumer")
+            self.close()
             return
 
-        # create the group
-        async_to_sync(self.channel_layer.group_add)(self.group_name, self.channel_name)
+        # check if the channel is already connected
+        if self.is_connected():
+            logger.error("Another player tries to connect to playlist device consumer")
+            self.close()
+            return
 
         # reset current playing playlist entry if any
         current_playlist_entry = models.PlaylistEntry.get_playing()
@@ -75,17 +95,21 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
             current_playlist_entry.date_played = None
             current_playlist_entry.save()
 
+        # register the channel in database
+        karaoke = models.Karaoke.get_object()
+        karaoke.channel_name = self.channel_name
+        karaoke.save()
+
+        # accept the connection
         self.accept()
+
+        # log the connection
         logger.info("Player connected through websocket")
 
     def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard)(
-            self.group_name, self.channel_name
-        )
-
+        # reset the current playing song if any
         entry = models.PlaylistEntry.get_playing()
         if entry:
-            # reset the current playing song
             entry.date_played = None
             entry.save()
 
@@ -94,11 +118,17 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         player.reset()
         player.save()
 
+        # unregister the channel in database
+        karaoke = models.Karaoke.get_object()
+        karaoke.channel_name = None
+        karaoke.save()
+
         # broadcast the player is idle
-        broadcast_to_channel("playlist.front", "send_player_idle")
+        # send_to_channel("playlist.front", "send_player_idle")
 
     def receive_ready(self, event=None):
-        """Start to play when the player is ready"""
+        """Start to play when the player is ready
+        """
         # request to start playing if possible
         logger.info("The player is ready")
         self.handle_next()
