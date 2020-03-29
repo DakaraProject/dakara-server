@@ -8,23 +8,29 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('playlist', '0009_auto_20190106_0734'),
+        ("playlist", "0009_auto_20190106_0734"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='playlistentry',
-            name='order',
-            field=models.PositiveIntegerField(db_index=True, editable=False, verbose_name='order'),
+            model_name="playlistentry",
+            name="order",
+            field=models.PositiveIntegerField(
+                db_index=True, editable=False, verbose_name="order"
+            ),
         ),
         migrations.AlterField(
-            model_name='playlistentry',
-            name='owner',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="playlistentry",
+            name="owner",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AlterField(
-            model_name='playlistentry',
-            name='song',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='library.Song'),
+            model_name="playlistentry",
+            name="song",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="library.Song"
+            ),
         ),
     ]
