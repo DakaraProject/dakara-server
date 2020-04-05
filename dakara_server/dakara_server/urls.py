@@ -124,6 +124,11 @@ urlpatterns = [
         name="library-worktype-list",
     ),
     url(
+        r"^api/library/work-types/(?P<pk>[0-9]+)/$",
+        library_views.WorkTypeView.as_view(),
+        name="library-worktype",
+    ),
+    url(
         r"^api/library/song-tags/$",
         library_views.SongTagListView.as_view(),
         name="library-songtag-list",

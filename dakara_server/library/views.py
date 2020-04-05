@@ -345,6 +345,18 @@ class WorkTypeListView(ListCreateAPIView):
     serializer_class = serializers.WorkTypeSerializer
 
 
+class WorkTypeView(RetrieveUpdateDestroyAPIView):
+    """View for a work type
+    """
+
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
+    queryset = models.WorkType.objects.all()
+    serializer_class = serializers.WorkTypeSerializer
+
+
 class SongTagListView(ListCreateAPIView):
     """List of song tags
     """
