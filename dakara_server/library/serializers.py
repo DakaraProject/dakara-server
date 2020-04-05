@@ -70,10 +70,18 @@ class WorkTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkType
         fields = ("name", "name_plural", "query_name", "icon_name")
+
+
+class WorkTypeForWorkSerializer(serializers.ModelSerializer):
+    """Work type serializer for song
+    """
+
+    class Meta:
+        model = WorkType
+        fields = ("name", "name_plural", "query_name", "icon_name")
         extra_kwargs = {
             "name": {"required": False},
             "name_plural": {"required": False},
-            "icon_name": {"required": False},
             "query_name": {"validators": []},
         }
 
@@ -83,7 +91,7 @@ class WorkNoCountSerializer(serializers.ModelSerializer):
     """
 
     alternative_titles = WorkAlternativeTitleSerializer(many=True, read_only=True)
-    work_type = WorkTypeSerializer(many=False)
+    work_type = WorkTypeForWorkSerializer(many=False)
 
     class Meta:
         model = Work
@@ -95,7 +103,7 @@ class WorkSerializer(serializers.ModelSerializer):
     """
 
     alternative_titles = WorkAlternativeTitleSerializer(many=True, read_only=True)
-    work_type = WorkTypeSerializer(many=False, read_only=True)
+    work_type = WorkTypeForWorkSerializer(many=False, read_only=True)
     song_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -259,9 +267,16 @@ class SongSerializer(serializers.ModelSerializer):
             work_type_data = work_data.pop("work_type")
 
             # create work type
+            # if only query name is provided and work type does not exist,
+            # populate other name fields with query name
+            query_name = work_type_data["query_name"]
             work_type, _ = WorkType.objects.get_or_create(
-                query_name=work_type_data["query_name"],
-                # TODO add defaults
+                query_name=query_name,
+                defaults={
+                    "query_name": query_name,
+                    "name": work_type_data.get("name", query_name),
+                    "name_plural": work_type_data.get("name_plural", query_name),
+                },
             )
 
             # create work
