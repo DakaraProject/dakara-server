@@ -120,19 +120,37 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
         # Post new playlist entry
-        response = self.client.post(self.url, {"song_id": self.song1.id})
+        response = self.client.post(
+            self.url, {"song_id": self.song2.id, "use_instrumental": True}
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check playlist entry has been created in database
         self.assertEqual(PlaylistEntry.objects.count(), 5)
         new_entry = PlaylistEntry.objects.last()
-        # Entry was created with for song1
-        self.assertEqual(new_entry.song, self.song1)
+        # Entry was created with for song2
+        self.assertEqual(new_entry.song, self.song2)
+        self.assertTrue(new_entry.use_instrumental)
         # Entry's owner is the user who created it
         self.assertEqual(new_entry.owner, self.p_user)
 
         # check the player was not requested to play this entry immediately
         mocked_broadcast_to_channel.assert_not_called()
+
+    @patch("playlist.views.broadcast_to_channel")
+    def test_post_create_playlist_entry_not_instrument(
+        self, mocked_broadcast_to_channel
+    ):
+        """Test to verify can't create instrumental entry with not instrumental song
+        """
+        # Login as playlist user
+        self.authenticate(self.p_user)
+
+        # Post new playlist entry
+        response = self.client.post(
+            self.url, {"song_id": self.song1.id, "use_instrumental": True}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @patch("playlist.views.broadcast_to_channel")
     def test_post_create_playlist_entry_empty(self, mocked_broadcast_to_channel):

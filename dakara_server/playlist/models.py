@@ -15,6 +15,7 @@ class PlaylistEntry(OrderedModel):
     """
 
     song = models.ForeignKey("library.Song", null=False, on_delete=models.CASCADE)
+    use_instrumental = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(DakaraUser, null=False, on_delete=models.CASCADE)
     was_played = models.BooleanField(default=False, null=False)

@@ -30,6 +30,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add instrumental track support. New fields are `Song.has_instrumental` and `PlaylistEntry.use_instrumental`.
+
 ### Fixed
 
 - Crash when updating a song with 2 works existing with same title but different subtitle.

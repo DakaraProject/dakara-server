@@ -42,14 +42,18 @@ class PlaylistProvider(BaseProvider):
         self.song1 = Song(title="Song1", duration=timedelta(seconds=5))
         self.song1.save()
         self.song1.tags.add(self.tag1)
-        self.song2 = Song(title="Song2", duration=timedelta(seconds=10))
+        self.song2 = Song(
+            title="Song2", duration=timedelta(seconds=10), has_instrumental=True
+        )
         self.song2.save()
 
         # Create playlist entries
         self.pe1 = PlaylistEntry(song=self.song1, owner=self.manager)
         self.pe1.save()
 
-        self.pe2 = PlaylistEntry(song=self.song2, owner=self.p_user)
+        self.pe2 = PlaylistEntry(
+            song=self.song2, owner=self.p_user, use_instrumental=True
+        )
         self.pe2.save()
 
         self.pe3 = PlaylistEntry(
@@ -121,6 +125,7 @@ class PlaylistProvider(BaseProvider):
         self.assertEqual(json["id"], expected_entry.id)
         self.assertEqual(json["owner"]["id"], expected_entry.owner.id)
         self.assertEqual(json["song"]["id"], expected_entry.song.id)
+        self.assertEqual(json["use_instrumental"], expected_entry.use_instrumental)
 
     def check_playlist_played_entry_json(self, json, expected_entry):
         """Method to check a representation against expected playlist played entry
