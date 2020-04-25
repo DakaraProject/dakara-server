@@ -3,6 +3,10 @@
 <!---
 ## 0.0.1 - 1970-01-01
 
+### Update notes
+
+Any important notes regarding the update.
+
 ### Added
 
 - New stuff.
@@ -29,6 +33,47 @@
 -->
 
 ## Unreleased
+
+### Update notes
+
+When updating Dakara server from 1.5 to 1.6, (which means updating Django from 1.11 to 2.2), the database may have inconstencies that lead to a crash when running `./manage.py runserver`.
+
+To give more details, the database can contain invalid foreign key constraints.
+The reason the problem occurs only with Django 2.0 is because with django 1, sqlite's foreign key constraints were not enforced, as explained in this [release note](https://docs.djangoproject.com/en/2.2/releases/2.0/#foreign-key-constraints-are-now-enabled-on-sqlite).
+The actual reason why the database contains invalid foreign key constraints is due to a bug that was present when the database was created, as reported in this [ticket](https://code.djangoproject.com/ticket/29182) (note that the bug report initially stated that the bug does not occur when migrating using `./manage.py migrate` , but other comments reproduced the bug with it).
+The bug has been fixed, but databases generated with Django 1 contains this bug.
+
+To update the database and get rid of the bug, it is necessary to export, then reimport it using this procedure:
+
+```sh
+# starting from the project directory
+cd dakara_server
+
+# on dakara server v1.5, export parts of the database
+./manage.py dumpdata library >db_library.json
+./manage.py dumpdata users >db_users.json
+./manage.py dumpdata playlist >db_playlist.json
+
+# keep a backup of the database in case
+mv db.squlite3 db_backup.sqlite3
+
+# install the update, install dependencies
+
+# now on dakara server 1.6, migrate
+./manage.py migrate
+
+# reimport the data
+./manage.py loaddata db_library.json
+./manage.py loaddata db_users.json
+./manage.py loaddata db_playlist.json
+
+# check everything is ok
+./manage.py check
+./manage.py runserver
+
+# when you are sure that everything is ok, you can cleanup temporary and backup files
+rm db_backup.sqlite3 db_library.json db_users.json db_playlist.json
+```
 
 ### Added
 

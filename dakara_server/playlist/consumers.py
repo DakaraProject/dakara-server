@@ -26,7 +26,7 @@ class DakaraJsonWebsocketConsumer(JsonWebsocketConsumer):
         if not hasattr(self, method_name):
             # in this case, we do not raise an error, as this would reset the
             # websocket connexion
-            logger.error("Event of unknown type received '{}'".format(event["type"]))
+            logger.error("Event of unknown type received '%s'", event["type"])
             return
 
         # call the method
@@ -53,18 +53,17 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
     group_name = "playlist.device"
 
     def connect(self):
+        print(self.channel_layer.groups)
         # the group must not exist before connection
         if self.group_name in self.channel_layer.groups:
             self.close()
-            logger.error(
-                "Another player tries to connect to playlist " "device consumer"
-            )
+            logger.error("Another player tries to connect to playlist device consumer")
             return
 
         # ensure user is player
         if not self.scope["user"].is_player:
             self.close()
-            logger.error("Invalid user tries to connect to playlist " "device consumer")
+            logger.error("Invalid user tries to connect to playlist device consumer")
             return
 
         # create the group
@@ -113,7 +112,7 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
             raise ValueError("Playlist entry must not be None")
 
         # log the event
-        logger.info("The player will play '{}'".format(playlist_entry))
+        logger.info("The player will play '%s'", playlist_entry)
 
         # send to device
         serializer = serializers.PlaylistEntryForPlayerSerializer(playlist_entry)
@@ -136,7 +135,7 @@ class PlaylistDeviceConsumer(DakaraJsonWebsocketConsumer):
         if command not in dict(models.Player.COMMANDS).keys():
             raise ValueError("Unknown command requested '{}'".format(command))
 
-        logger.info("The player will {}".format(command))
+        logger.info("The player will %s", command)
 
         self.send_json({"type": "command", "data": {"command": command}})
 

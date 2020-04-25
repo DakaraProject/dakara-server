@@ -26,8 +26,16 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("date_created", models.DateTimeField(auto_now_add=True)),
-                ("owner", models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ("song", models.ForeignKey(to="library.Song")),
+                (
+                    "owner",
+                    models.ForeignKey(
+                        to=settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING
+                    ),
+                ),
+                (
+                    "song",
+                    models.ForeignKey(to="library.Song", on_delete=models.DO_NOTHING),
+                ),
             ],
         )
     ]
