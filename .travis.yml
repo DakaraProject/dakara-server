@@ -16,7 +16,11 @@ branches:
 
 # command to install python dependencies
 install:
-  - pip install -r requirements.txt
+  # manually install a recent version of attrs as it is missing from Travis
+  - python -m pip install --upgrade "attrs>=19.3.0"
+
+  # install dependencies for test
+  - python -m pip install -r requirements.txt
 
 # command to run tests
 script:
@@ -24,8 +28,8 @@ script:
   - python -m coverage run -m pytest -v
 
   # run code formatting tests
-  - if [[ $TRAVIS_PYTHON_VERSION != 3.5 ]]; then black . --check; fi
-  - flake8
+  - if [[ $TRAVIS_PYTHON_VERSION != 3.5 ]]; then python -m black . --check; fi
+  - python -m flake8
 
 # commands to manage tests results
 after_script:
