@@ -332,7 +332,7 @@ class Command(BaseCommand):
             logger.setLevel(logging.DEBUG)
 
         # update only
-        update_only = options.get("update-only", False)
+        update_only = options.get("update_only", False)
 
         work_creator = WorkCreator(
             work_file=work_file, parser=parser, debug=debug, update_only=update_only

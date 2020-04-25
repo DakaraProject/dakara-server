@@ -8,4 +8,4 @@ coverage:
     # rules for the PR/commit
     patch:
       default:
-        target: 100
+        target: 95

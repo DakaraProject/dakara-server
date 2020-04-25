@@ -93,7 +93,10 @@ class Migration(migrations.Migration):
                 ),
                 ("link_type_number", models.IntegerField(null=True)),
                 ("episodes", models.CharField(blank=True, max_length=255)),
-                ("song", models.ForeignKey(to="library.Song")),
+                (
+                    "song",
+                    models.ForeignKey(to="library.Song", on_delete=models.DO_NOTHING),
+                ),
             ],
         ),
         migrations.CreateModel(
@@ -133,12 +136,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="work",
             name="work_type",
-            field=models.ForeignKey(null=True, to="library.WorkType"),
+            field=models.ForeignKey(
+                null=True, to="library.WorkType", on_delete=models.DO_NOTHING
+            ),
         ),
         migrations.AddField(
             model_name="songworklink",
             name="work",
-            field=models.ForeignKey(to="library.Work"),
+            field=models.ForeignKey(to="library.Work", on_delete=models.DO_NOTHING),
         ),
         migrations.AddField(
             model_name="song",
