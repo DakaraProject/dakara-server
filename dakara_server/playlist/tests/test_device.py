@@ -10,6 +10,7 @@ from rest_framework import status
 from dakara_server.routing import application
 from playlist import models
 
+
 channel_layer = get_channel_layer()
 
 
@@ -117,6 +118,33 @@ class TestDevice:
         connected, _ = await communicator.connect()
 
         assert not connected
+
+        # close connection
+        await communicator.disconnect()
+
+    async def test_authenticate_playing_entry_playing(self, playlist_provider):
+        """Test to authenticate when a playlist entry is supposed to be playing
+        """
+        # create a communicator
+        communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
+        communicator.scope["user"] = playlist_provider.player
+
+        # set a playlist entry playing
+        playlist_provider.player_play_next_song(timing=timedelta(seconds=10))
+        playlist_entry = await database_sync_to_async(
+            lambda: models.PlaylistEntry.get_playing()
+        )()
+        assert playlist_entry is not None
+
+        # connect and check connection is established
+        connected, _ = await communicator.connect()
+        assert connected
+
+        # check there are no playing playlist entry
+        playlist_entry = await database_sync_to_async(
+            lambda: models.PlaylistEntry.get_playing()
+        )()
+        assert playlist_entry is None
 
         # close connection
         await communicator.disconnect()

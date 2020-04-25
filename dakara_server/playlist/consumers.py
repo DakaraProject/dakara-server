@@ -7,6 +7,7 @@ from asgiref.sync import async_to_sync
 
 from playlist import serializers, models
 
+
 UserModel = get_user_model()
 logger = logging.getLogger(__name__)
 channel_layer = get_channel_layer()
@@ -47,7 +48,7 @@ def send_to_channel(name, event_type, data=None):
         channel_name = PlaylistDeviceConsumer.get_channel_name()
 
     else:
-        raise NotImplementedError("Unknown consumer name")
+        raise UnknownConsumerError("Unknown consumer name requested '{}'".format(name))
 
     # create event
     event = {"type": event_type}
@@ -191,3 +192,8 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
 
         else:
             self.send_idle()
+
+
+class UnknownConsumerError(Exception):
+    """Error raised when trying to access a consumer whose name in unknown
+    """
