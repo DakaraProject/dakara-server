@@ -7,13 +7,13 @@ import library.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('library', '0009_auto_20200329_1303'),
+        ("library", "0009_auto_20200329_1303"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='songtag',
-            name='name',
+            model_name="songtag",
+            name="name",
             field=library.fields.UpperCaseCharField(max_length=255, unique=True),
         ),
     ]
