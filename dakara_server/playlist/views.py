@@ -389,7 +389,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         player.reset()
 
         # log the info
-        logger.debug("The player has finished playing '{}'".format(playlist_entry))
+        logger.debug("The player has finished playing '%s'", playlist_entry)
 
         # continue the playlist
         broadcast_to_channel("playlist.device", "handle_next")
@@ -402,7 +402,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         playlist_entry.set_finished()
 
         # log the info
-        logger.debug("The player could not play '{}'".format(playlist_entry))
+        logger.debug("The player could not play '%s'", playlist_entry)
 
         # continue the playlist
         broadcast_to_channel("playlist.device", "handle_next")
@@ -417,7 +417,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         player.update(in_transition=True, timing=timedelta(seconds=0))
 
         # log the info
-        logger.debug("Playing transition of entry '{}'".format(playlist_entry))
+        logger.debug("Playing transition of entry '%s'", playlist_entry)
 
     def receive_started_song(self, playlist_entry, player):
         """The player started the song of a playlist entry
@@ -426,7 +426,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         player.update(in_transition=False)
 
         # log the info
-        logger.debug("Playing song of entry '{}'".format(playlist_entry))
+        logger.debug("Playing song of entry '%s'", playlist_entry)
 
     def receive_paused(self, playlist_entry, player):
         """The player switched to pause
@@ -473,9 +473,9 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
 
         # log the event
         logger.warning(
-            "Unable to play '{}', remove from playlist, error message: '{}'".format(
-                playlist_entry, message
-            )
+            "Unable to play '%s', remove from playlist, error message: %s",
+            playlist_entry,
+            message,
         )
 
         # broadcast the error to the front

@@ -77,3 +77,6 @@ settings.ini
 
 # Template and static files
 **/static
+
+# Pyenv config
+.python-version

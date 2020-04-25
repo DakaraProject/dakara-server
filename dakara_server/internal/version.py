@@ -11,7 +11,7 @@ def check_version():
     """Check the version of the server and display a warning if on non-release
     """
     # log server version
-    logger.info("Dakara server {} ({})".format(settings.VERSION, settings.DATE))
+    logger.info("Dakara server %s (%s)", settings.VERSION, settings.DATE)
 
     # check version is a release
     version = parse_version(settings.VERSION)
