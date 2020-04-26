@@ -271,6 +271,20 @@ class KaraokeTestCase(PlaylistAPITestCase):
     def setUp(self):
         self.create_test_data()
 
+    def test_str_ongoing(self):
+        """Test stringification
+        """
+        self.set_karaoke(ongoing=True)
+        karaoke = Karaoke.get_object()
+        self.assertEqual(str(karaoke), "Ongoing")
+
+    def test_str_stopped(self):
+        """Test stringification
+        """
+        self.set_karaoke(ongoing=False)
+        karaoke = Karaoke.get_object()
+        self.assertEqual(str(karaoke), "Stopped")
+
     @patch.object(Karaoke.objects, "all")
     def test_clean_channel_names(self, mocked_all):
         """Test to clean all channel names
