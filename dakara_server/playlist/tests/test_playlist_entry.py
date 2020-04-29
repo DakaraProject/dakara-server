@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 from datetime import datetime, timedelta
 
 from django.urls import reverse
@@ -109,8 +109,8 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_post_create_playlist_entry(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_post_create_playlist_entry(self, mocked_send_to_channel):
         """Test to verify playlist entry creation
         """
         # Login as playlist user
@@ -132,10 +132,10 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         self.assertEqual(new_entry.owner, self.p_user)
 
         # check the player was not requested to play this entry immediately
-        mocked_broadcast_to_channel.assert_not_called()
+        mocked_send_to_channel.assert_not_called()
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_post_create_playlist_entry_empty(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_post_create_playlist_entry_empty(self, mocked_send_to_channel):
         """Test to create a playlist entry when the playlist is empty
 
         The created song should be requested to play immediately.
@@ -159,8 +159,8 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         self.assertEqual(new_entry.owner, self.p_user)
 
         # check the player was requested to play this entry immediately
-        mocked_broadcast_to_channel.assert_called_with(
-            "playlist.device", "send_playlist_entry", {"playlist_entry": new_entry}
+        mocked_send_to_channel.assert_called_with(
+            ANY, "send_playlist_entry", {"playlist_entry": new_entry}
         )
 
     def test_post_create_playlist_entry_not_ongoing_forbidden(self):

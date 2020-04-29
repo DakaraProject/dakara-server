@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from django.urls import reverse
 from rest_framework import status
@@ -15,8 +15,8 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
     def setUp(self):
         self.create_test_data()
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_put_command(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_put_command(self, mocked_send_to_channel):
         """Test to send a command (pause)
         """
         # start to play something
@@ -33,12 +33,12 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.data["command"], "pause")
 
         # assert the side effect
-        mocked_broadcast_to_channel.assert_called_once_with(
-            "playlist.device", "send_command", {"command": "pause"}
+        mocked_send_to_channel.assert_called_once_with(
+            ANY, "send_command", {"command": "pause"}
         )
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_put_command_user(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_put_command_user(self, mocked_send_to_channel):
         """Test to test pausing player as user
         """
         # play next song
@@ -53,11 +53,11 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # assert there is no side effects
-        mocked_broadcast_to_channel.assert_not_called()
+        mocked_send_to_channel.assert_not_called()
 
         # play next song and reset mock
         self.player_play_next_song()
-        mocked_broadcast_to_channel.reset_mock()
+        mocked_send_to_channel.reset_mock()
 
         # request pause
         # able to pause own entry
@@ -65,14 +65,12 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the side effect
-        mocked_broadcast_to_channel.assert_called_once_with(
-            "playlist.device", "send_command", {"command": "pause"}
+        mocked_send_to_channel.assert_called_once_with(
+            ANY, "send_command", {"command": "pause"}
         )
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_put_command_karaoke_not_ongoing_forbidden(
-        self, mocked_broadcast_to_channel
-    ):
+    @patch("playlist.views.send_to_channel")
+    def test_put_command_karaoke_not_ongoing_forbidden(self, mocked_send_to_channel):
         """Test a user cannot pause a song if the kara is not ongoing
         """
         # play next song
@@ -89,10 +87,10 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # assert there is no side effects
-        mocked_broadcast_to_channel.assert_not_called()
+        mocked_send_to_channel.assert_not_called()
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_put_command_player_idle_forbidden(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_put_command_player_idle_forbidden(self, mocked_send_to_channel):
         """Test a user cannot pause a song if the player is idle
         """
         # authenticate manager
@@ -103,10 +101,10 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # assert there is no side effects
-        mocked_broadcast_to_channel.assert_not_called()
+        mocked_send_to_channel.assert_not_called()
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_put_command_incorrect_forbidden(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_put_command_incorrect_forbidden(self, mocked_send_to_channel):
         """Test to send an incorrect command
         """
         # start to play something
@@ -120,10 +118,10 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # assert the side effect
-        mocked_broadcast_to_channel.assert_not_called()
+        mocked_send_to_channel.assert_not_called()
 
-    @patch("playlist.views.broadcast_to_channel")
-    def test_put_command_unauthenticated_forbidden(self, mocked_broadcast_to_channel):
+    @patch("playlist.views.send_to_channel")
+    def test_put_command_unauthenticated_forbidden(self, mocked_send_to_channel):
         """Test to send a command when not authenticated
         """
         # start to play something

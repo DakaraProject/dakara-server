@@ -1,7 +1,10 @@
 from datetime import datetime
+from unittest.mock import MagicMock, patch
+
+from django.db.utils import OperationalError
 
 from internal.tests.base_test import tz
-from playlist.models import PlaylistEntry
+from playlist.models import PlaylistEntry, Karaoke, clean_channel_names
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
@@ -259,3 +262,55 @@ class PlaylistEntryModelTestCase(PlaylistAPITestCase):
         # assert there are no entry after playlist entry 2 (since there are no
         # othe entries)
         self.assertIsNone(PlaylistEntry.get_next(self.pe2.id))
+
+
+class KaraokeTestCase(PlaylistAPITestCase):
+    """Test the Karaoke class
+    """
+
+    def setUp(self):
+        self.create_test_data()
+
+    def test_str_ongoing(self):
+        """Test stringification
+        """
+        self.set_karaoke(ongoing=True)
+        karaoke = Karaoke.get_object()
+        self.assertEqual(str(karaoke), "Ongoing")
+
+    def test_str_stopped(self):
+        """Test stringification
+        """
+        self.set_karaoke(ongoing=False)
+        karaoke = Karaoke.get_object()
+        self.assertEqual(str(karaoke), "Stopped")
+
+    @patch.object(Karaoke.objects, "all")
+    def test_clean_channel_names(self, mocked_all):
+        """Test to clean all channel names
+        """
+        karaoke1 = MagicMock()
+        mocked_all.side_effect = [[karaoke1]]
+
+        Karaoke.clean_channel_names()
+
+        self.assertIsNone(karaoke1.channel_name)
+        karaoke1.save.assert_called_with()
+
+
+@patch.object(Karaoke, "clean_channel_names")
+class CleanChannelNamesTestCase(PlaylistAPITestCase):
+    """Test the clean_channel_names function
+    """
+
+    def test_clean_success(self, mocked_clean_channel_names):
+        """Test to request to clean channel names successfuly
+        """
+        clean_channel_names()
+        mocked_clean_channel_names.assert_called_with()
+
+    def test_clean_failure(self, mocked_clean_channel_names):
+        """Test to request to clean channels names unsuccessfuly
+        """
+        mocked_clean_channel_names.side_effect = OperationalError("error message")
+        clean_channel_names()
