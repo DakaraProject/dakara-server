@@ -68,12 +68,10 @@ class PlaylistEntryModelTestCase(PlaylistAPITestCase):
         self.pe2.save()
 
         # assert the method raises an exception
-        with self.assertRaises(RuntimeError) as context_manager:
+        with self.assertRaisesRegex(
+            RuntimeError, r"{}.*{}".format(self.pe1.song, self.pe2.song)
+        ):
             PlaylistEntry.get_playing()
-
-        # assert the error message contains the two playlist entries song
-        self.assertIn(str(self.pe1.song), str(context_manager.exception))
-        self.assertIn(str(self.pe2.song), str(context_manager.exception))
 
     def test_get_playlist_normal(self):
         """Test to get the playlist
