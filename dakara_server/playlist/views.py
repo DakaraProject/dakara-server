@@ -19,7 +19,7 @@ from library import permissions as library_permissions
 from playlist import models
 from playlist import serializers
 from playlist import permissions
-from playlist.consumers import broadcast_to_channel
+from playlist.consumers import send_to_channel
 from playlist.date_stop import KARAOKE_JOB_NAME, scheduler, clear_date_stop
 
 tz = timezone.get_default_timezone()
@@ -175,8 +175,8 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
                 player.playlist_entry is None,
             )
         ):
-            broadcast_to_channel(
-                "playlist.device",
+            send_to_channel(
+                karaoke.channel_name,
                 "send_playlist_entry",
                 {"playlist_entry": next_playlist_entry},
             )
@@ -217,7 +217,7 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
             raise PermissionDenied("The player cannot receive commands when " "idle")
 
         command = serializer.validated_data["command"]
-        broadcast_to_channel("playlist.device", "send_command", {"command": command})
+        send_to_channel(karaoke.channel_name, "send_command", {"command": command})
 
     def get_object(self):
         return None
@@ -307,7 +307,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
         # empty the playlist and clear the player if the kara is switched to not ongoing
         if "ongoing" in serializer.validated_data and not karaoke.ongoing:
             # request the player to be idle
-            broadcast_to_channel("playlist.device", "send_idle")
+            send_to_channel(karaoke.channel_name, "send_idle")
 
             # clear player
             player = models.Player()
@@ -333,8 +333,8 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
             if player.playlist_entry is None:
                 next_playlist_entry = models.PlaylistEntry.get_next()
                 if next_playlist_entry is not None:
-                    broadcast_to_channel(
-                        "playlist.device",
+                    send_to_channel(
+                        karaoke.channel_name,
                         "send_playlist_entry",
                         data={"playlist_entry": next_playlist_entry},
                     )
@@ -377,7 +377,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         player.save()
 
         # broadcast to the front
-        broadcast_to_channel("playlist.front", "send_player_status", {"player": player})
+        # send_to_channel("playlist.front", "send.player.status", {"player": player})
 
     def receive_finished(self, playlist_entry, player):
         """The player finished a song
@@ -392,7 +392,8 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         logger.debug("The player has finished playing '%s'", playlist_entry)
 
         # continue the playlist
-        broadcast_to_channel("playlist.device", "handle_next")
+        karaoke = models.Karaoke.get_object()
+        send_to_channel(karaoke.channel_name, "handle_next")
 
     def receive_could_not_play(self, playlist_entry, player):
         """The player could not play a song
@@ -405,7 +406,8 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         logger.debug("The player could not play '%s'", playlist_entry)
 
         # continue the playlist
-        broadcast_to_channel("playlist.device", "handle_next")
+        karaoke = models.Karaoke.get_object()
+        send_to_channel(karaoke.channel_name, "handle_next")
 
     def receive_started_transition(self, playlist_entry, player):
         """The player started the transition of a playlist entry
@@ -479,6 +481,8 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
         )
 
         # broadcast the error to the front
-        broadcast_to_channel(
-            "playlist.front", "send_player_error", {"player_error": serializer.instance}
-        )
+        # send_to_channel(
+        #     "playlist.front",
+        #     "send.player.error",
+        #     {"player_error": serializer.instance},
+        # )

@@ -1,6 +1,7 @@
 from datetime import timedelta, datetime
 
 from django.db import models
+from django.db.utils import OperationalError
 from django.core.cache import cache
 from django.utils import timezone
 from ordered_model.models import OrderedModel
@@ -119,10 +120,11 @@ class Karaoke(models.Model):
     can_add_to_playlist = models.BooleanField(default=True)
     player_play_next_song = models.BooleanField(default=True)
     date_stop = models.DateTimeField(null=True)
+    channel_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return "In {} mode{}".format(
-            self.status,
+        return "{}{}".format(
+            "Ongoing" if self.ongoing else "Stopped",
             " will stop at {}".format(self.date.stop) if self.date_stop else "",
         )
 
@@ -132,6 +134,24 @@ class Karaoke(models.Model):
         """
         karaoke, _ = cls.objects.get_or_create(pk=1)
         return karaoke
+
+    @classmethod
+    def clean_channel_names(cls):
+        """Remove all channel names
+        """
+        for karaoke in cls.objects.all():
+            karaoke.channel_name = None
+            karaoke.save()
+
+
+def clean_channel_names():
+    try:
+        Karaoke.clean_channel_names()
+
+    # if database does not exist when checking date stop, abort the function
+    # this case occurs on startup before running tests
+    except OperationalError:
+        return
 
 
 class PlayerError(models.Model):

@@ -137,8 +137,11 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         # check the player was not requested to play this entry immediately
         mocked_send_to_channel.assert_not_called()
 
-    @patch("playlist.views.send_to_channel")
-    def test_post_create_playlist_entry_not_instrument(self, mocked_send_to_channel):
+<<<<<<< HEAD
+    @patch("playlist.views.broadcast_to_channel")
+    def test_post_create_playlist_entry_not_instrument(
+        self, mocked_broadcast_to_channel
+    ):
         """Test to verify can't create instrumental entry with not instrumental song
         """
         # Login as playlist user
@@ -150,8 +153,12 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @patch("playlist.views.broadcast_to_channel")
+    def test_post_create_playlist_entry_empty(self, mocked_broadcast_to_channel):
+=======
     @patch("playlist.views.send_to_channel")
     def test_post_create_playlist_entry_empty(self, mocked_send_to_channel):
+>>>>>>> develop
         """Test to create a playlist entry when the playlist is empty
 
         The created song should be requested to play immediately.
