@@ -75,6 +75,11 @@ mv db.squlite3 db_backup.sqlite3
 rm db_backup.sqlite3 db_library.json db_users.json db_playlist.json
 ```
 
+### Changed
+
+- The `createplayer` command accepts now `--username` and `--password` to respectively pass username and password.
+  It also accepts `--noinput` to not prompt any input when calling the command.
+
 ### Fixed
 
 - Crash when updating a song with 2 works existing with same title but different subtitle.
