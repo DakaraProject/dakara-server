@@ -1,3 +1,4 @@
+import textwrap
 from datetime import timedelta, datetime
 
 from django.db import models
@@ -122,10 +123,7 @@ class Karaoke(models.Model):
     channel_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return "{}{}".format(
-            "Ongoing" if self.ongoing else "Stopped",
-            " will stop at {}".format(self.date.stop) if self.date_stop else "",
-        )
+        return "Karaoke"
 
     @classmethod
     def get_object(cls):
@@ -164,7 +162,9 @@ class PlayerError(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return str(self.playlist_entry)
+        return "{}: {}".format(
+            self.playlist_entry, textwrap.shorten(self.error_message, 50)
+        )
 
 
 class Player:
@@ -207,6 +207,12 @@ class Player:
         # at least set the date
         self.update(date=date)
 
+    def __repr__(self):
+        return "<{}: {}>".format(self.__class__.__name__, self)
+
+    def __str__(self):
+        return "Player"
+
     def __eq__(self, other):
         fields = ("timing", "paused", "in_transition", "date")
 
@@ -247,17 +253,3 @@ class Player:
         """Reset the player to its initial state
         """
         self.update(timing=timedelta(), paused=False, in_transition=False)
-
-    def __repr__(self):
-        return "<{}: {}>".format(self.__class__.__name__, self)
-
-    def __str__(self):
-        if self.playlist_entry is not None:
-            return "in {} for '{}' at {}{}".format(
-                "pause" if self.paused else "play",
-                self.playlist_entry,
-                self.timing,
-                " (in transition)" if self.in_transition else "",
-            )
-
-        return "idle"

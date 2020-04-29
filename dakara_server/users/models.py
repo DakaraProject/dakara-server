@@ -43,11 +43,6 @@ class DakaraUserManager(UserManager):
         return False
 
 
-class UserExistsWithDifferentCaseError(ValueError):
-    """Error raised when creating a user with just a different of case
-    """
-
-
 class DakaraUser(AbstractUser):
     """Custom user
     """
@@ -79,6 +74,9 @@ class DakaraUser(AbstractUser):
         max_length=1, choices=LEVELS_PLAYLIST, null=True
     )
 
+    def __str__(self):
+        return self.username
+
     @property
     def is_users_user(self):
         return self.users_permission_level == self.USER
@@ -106,3 +104,8 @@ class DakaraUser(AbstractUser):
     @property
     def is_player(self):
         return self.playlist_permission_level == self.PLAYER
+
+
+class UserExistsWithDifferentCaseError(ValueError):
+    """Error raised when creating a user with just a different of case
+    """

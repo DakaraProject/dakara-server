@@ -1,109 +1,129 @@
-from users.tests.base_test import UsersAPITestCase
-from users.models import DakaraUser, UserExistsWithDifferentCaseError
+import pytest
+
+from users import models
 
 
-class DakaraUserTestCase(UsersAPITestCase):
-    """Test the Dakara user object permissions
+@pytest.mark.django_db
+class TestDakaraUser:
+    """Test the DakaraUser closs
     """
 
     def test_create_user_non_case_unique(self):
         """Test to create to users with just a variation in case
         """
-        DakaraUser.objects.create_user(username="TestUser", password="pass")
+        models.DakaraUser.objects.create_user(username="TestUser", password="pass")
 
-        with self.assertRaisesRegex(
-            UserExistsWithDifferentCaseError,
-            "The username must be case insensitively unique",
+        with pytest.raises(
+            models.UserExistsWithDifferentCaseError,
+            match="The username must be case insensitively unique",
         ):
-            DakaraUser.objects.create_user(username="testuser", password="pass")
+            models.DakaraUser.objects.create_user(username="testuser", password="pass")
 
     def test_users_permission_levels(self):
         """Test the users app permission levels
         """
         # create a users user
-        user = DakaraUser(username="user", users_permission_level=DakaraUser.USER)
-
-        # assert their permissions
-        self.assertTrue(user.is_users_user)
-        self.assertFalse(user.is_users_manager)
-
-        # create a users manager
-        manager = DakaraUser(
-            username="manager", users_permission_level=DakaraUser.MANAGER
+        user = models.DakaraUser(
+            username="user", users_permission_level=models.DakaraUser.USER
         )
 
         # assert their permissions
-        self.assertFalse(manager.is_users_user)
-        self.assertTrue(manager.is_users_manager)
+        assert user.is_users_user
+        assert not user.is_users_manager
 
-        # create a superuser
-        superuser = DakaraUser(username="root", is_superuser=True)
+        # create a users manager
+        manager = models.DakaraUser(
+            username="manager", users_permission_level=models.DakaraUser.MANAGER
+        )
 
         # assert their permissions
-        self.assertFalse(superuser.is_users_user)
-        self.assertFalse(superuser.is_users_manager)
+        assert not manager.is_users_user
+        assert manager.is_users_manager
+
+        # create a superuser
+        superuser = models.DakaraUser(username="root", is_superuser=True)
+
+        # assert their permissions
+        assert not superuser.is_users_user
+        assert not superuser.is_users_manager
 
     def test_library_permission_levels(self):
         """Test the library app permission levels
         """
         # create a library user
-        user = DakaraUser(username="user", library_permission_level=DakaraUser.USER)
-
-        # assert their permissions
-        self.assertTrue(user.is_library_user)
-        self.assertFalse(user.is_library_manager)
-
-        # create a library manager
-        manager = DakaraUser(
-            username="manager", library_permission_level=DakaraUser.MANAGER
+        user = models.DakaraUser(
+            username="user", library_permission_level=models.DakaraUser.USER
         )
 
         # assert their permissions
-        self.assertFalse(manager.is_library_user)
-        self.assertTrue(manager.is_library_manager)
+        assert user.is_library_user
+        assert not user.is_library_manager
 
-        # create a superuser
-        superuser = DakaraUser(username="root", is_superuser=True)
+        # create a library manager
+        manager = models.DakaraUser(
+            username="manager", library_permission_level=models.DakaraUser.MANAGER
+        )
 
         # assert their permissions
-        self.assertFalse(superuser.is_library_user)
-        self.assertFalse(superuser.is_library_manager)
+        assert not manager.is_library_user
+        assert manager.is_library_manager
+
+        # create a superuser
+        superuser = models.DakaraUser(username="root", is_superuser=True)
+
+        # assert their permissions
+        assert not superuser.is_library_user
+        assert not superuser.is_library_manager
 
     def test_playlist_permission_levels(self):
         """Test the playlist app permission levels
         """
         # create a playlist user
-        user = DakaraUser(username="user", playlist_permission_level=DakaraUser.USER)
+        user = models.DakaraUser(
+            username="user", playlist_permission_level=models.DakaraUser.USER
+        )
 
         # assert their permissions
-        self.assertTrue(user.is_playlist_user)
-        self.assertFalse(user.is_playlist_manager)
-        self.assertFalse(user.is_player)
+        assert user.is_playlist_user
+        assert not user.is_playlist_manager
+        assert not user.is_player
 
         # create a playlist manager
-        manager = DakaraUser(
-            username="manager", playlist_permission_level=DakaraUser.MANAGER
+        manager = models.DakaraUser(
+            username="manager", playlist_permission_level=models.DakaraUser.MANAGER
         )
 
         # assert their permissions
-        self.assertFalse(manager.is_playlist_user)
-        self.assertTrue(manager.is_playlist_manager)
-        self.assertFalse(manager.is_player)
+        assert not manager.is_playlist_user
+        assert manager.is_playlist_manager
+        assert not manager.is_player
 
         # create a player
-        player = DakaraUser(
-            username="player", playlist_permission_level=DakaraUser.PLAYER
+        player = models.DakaraUser(
+            username="player", playlist_permission_level=models.DakaraUser.PLAYER
         )
 
         # assert their permissions
-        self.assertFalse(player.is_playlist_user)
-        self.assertFalse(player.is_playlist_manager)
-        self.assertTrue(player.is_player)
+        assert not player.is_playlist_user
+        assert not player.is_playlist_manager
+        assert player.is_player
 
         # create a superuser
-        superuser = DakaraUser(username="root", is_superuser=True)
+        superuser = models.DakaraUser(username="root", is_superuser=True)
 
         # assert their permissions
-        self.assertFalse(superuser.is_playlist_user)
-        self.assertFalse(superuser.is_playlist_manager)
-        self.assertFalse(superuser.is_player)
+        assert not superuser.is_playlist_user
+        assert not superuser.is_playlist_manager
+        assert not superuser.is_player
+
+
+class TestStringification:
+    """Test the string methods
+    """
+
+    def test_dakara_user_str(self):
+        """Test the string representation of a user
+        """
+        user = models.DakaraUser(username="yamadatarou", password="pass")
+
+        assert str(user) == "yamadatarou"

@@ -3,8 +3,6 @@ from datetime import timedelta
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from library.fields import UpperCaseCharField
-
 
 class Song(models.Model):
     """Song object
@@ -49,13 +47,7 @@ class Work(models.Model):
     work_type = models.ForeignKey("WorkType", on_delete=models.CASCADE)
 
     def __str__(self):
-        subtitle_text = "subtitled {} ".format(self.subtitle) if self.subtitle else ""
-
-        return "{} {}({})".format(
-            self.title,
-            subtitle_text,
-            self.work_type.get_name() if self.work_type else "unknown type",
-        )
+        return "{} ({})".format(self.title, self.work_type.get_name())
 
 
 class WorkAlternativeTitle(models.Model):
@@ -119,9 +111,7 @@ class SongWorkLink(models.Model):
     episodes = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
-        return "{} used in {} as {}".format(
-            self.song.title, self.work.title, self.link_type
-        )
+        return "{} <{}> {}".format(self.song, self.link_type, self.work)
 
     def __hash__(self):
         fields = frozenset(
@@ -137,7 +127,7 @@ class SongTag(models.Model):
     """Song tag object
     """
 
-    name = UpperCaseCharField(max_length=255)
+    name = models.CharField(max_length=255)
     color_hue = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(360)]
     )
