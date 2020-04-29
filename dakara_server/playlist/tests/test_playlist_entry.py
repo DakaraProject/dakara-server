@@ -175,6 +175,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         # Post new playlist entry
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("Karaoke is not ongoing", str(response.content))
 
     def test_post_create_playlist_entry_cant_add_to_playlist_forbidden_user(self):
         """Test to verify playlist entry cannot be created when can't add to playlist
@@ -183,11 +184,15 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         self.set_karaoke(can_add_to_playlist=False)
 
         # Login as playlist user
-        self.authenticate(self.user)
+        self.authenticate(self.p_user)
 
         # Post new playlist entry
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn(
+            "Karaoke was set to disallow playlist entries creation",
+            str(response.content),
+        )
 
     def test_post_create_playlist_entry_cant_add_to_playlist_allowed_manager(self):
         """Test to verify playlist entry cannot be created when can't add to playlist
@@ -219,6 +224,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         # Post new playlist entry
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("Playlist is full, please retry later", str(response.content))
 
         # post assert there are still 4 in database
         self.assertEqual(PlaylistEntry.objects.count(), 4)
@@ -265,6 +271,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
 
         # assert that the request is denied
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("This song exceeds the karaoke stop time", str(response.content))
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
     def test_post_create_playlist_entry_date_stop_success_manager(self):
@@ -352,7 +359,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         # request to add a new entry which is short enough
         response = self.client.post(self.url, {"song_id": self.song1.id})
 
-        # assert that the request is denied
+        # assert that the request accepted
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(PlaylistEntry.objects.count(), 5)
 

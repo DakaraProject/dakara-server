@@ -1,20 +1,6 @@
 from django.db import models
 
 
-class SafeDurationField(models.DurationField):
-    """Safe version of DurationField
-
-    It returns integer to the database.
-    """
-
-    def get_db_prep_value(self, *args, **kwargs):
-        value = super().get_db_prep_value(*args, **kwargs)
-        if value is None:
-            return None
-
-        return int(round(value))
-
-
 class UpperCaseCharField(models.CharField):
     """ Override a Django Model Field and make it upper-case
 

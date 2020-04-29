@@ -365,9 +365,11 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         # get the method associated to the event
         method_name = "receive_{}".format(event)
         if not hasattr(self, method_name):
-            # in this case, we raise an error to inform the client that its
-            # request is invalid
-            raise ValueError("This event is not valid '{}'".format(event))
+            # normally, the serializer prevents us to be in this case
+            # we raise an error to inform the client that its request is
+            # invalid
+            # this exception cannot be tested
+            raise UnknownEventError("Event of unknown type received '{}'".format(event))
 
         method = getattr(self, method_name)
 
@@ -486,3 +488,8 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
         #     "send.player.error",
         #     {"player_error": serializer.instance},
         # )
+
+
+class UnknownEventError(ValueError):
+    """Error raised if an unknown event is requested
+    """

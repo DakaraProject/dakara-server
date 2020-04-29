@@ -1,11 +1,21 @@
-from unittest import TestCase
+from users.tests.base_test import UsersAPITestCase
+from users.models import DakaraUser, UserExistsWithDifferentCaseError
 
-from users.models import DakaraUser
 
-
-class DakaraUserTestCase(TestCase):
+class DakaraUserTestCase(UsersAPITestCase):
     """Test the Dakara user object permissions
     """
+
+    def test_create_user_non_case_unique(self):
+        """Test to create to users with just a variation in case
+        """
+        DakaraUser.objects.create_user(username="TestUser", password="pass")
+
+        with self.assertRaisesRegex(
+            UserExistsWithDifferentCaseError,
+            "The username must be case insensitively unique",
+        ):
+            DakaraUser.objects.create_user(username="testuser", password="pass")
 
     def test_users_permission_levels(self):
         """Test the users app permission levels

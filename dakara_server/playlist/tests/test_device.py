@@ -122,6 +122,27 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
+    async def test_authenticate_anonymous_user_failed(self, playlist_provider):
+        """Test to authenticate as a anonymous user
+        """
+        # create a communicator
+        communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
+
+        # check there is no communicator registered
+        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        assert karaoke.channel_name is None
+
+        # connect and check connection is not established
+        connected, _ = await communicator.connect()
+        assert not connected
+
+        # check communicator is registered
+        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        assert karaoke.channel_name is None
+
+        # close connection
+        await communicator.disconnect()
+
     async def test_authenticate_playing_entry_playing(self, playlist_provider):
         """Test to authenticate when a playlist entry is supposed to be playing
         """

@@ -173,10 +173,6 @@ class SongSerializer(serializers.ModelSerializer):
 
         Give at most `max_lines` lines of lyrics and tell if more lines remain.
         """
-        # for unknown reason, the method is called when it should not
-        if not isinstance(song, Song):
-            return None
-
         if not song.lyrics:
             return None
 

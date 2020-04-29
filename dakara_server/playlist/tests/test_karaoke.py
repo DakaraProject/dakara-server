@@ -8,7 +8,7 @@ from rest_framework import status
 
 from internal.tests.base_test import tz
 from playlist.models import Karaoke, PlaylistEntry, PlayerError
-from playlist.date_stop import clear_date_stop
+from playlist.date_stop import clear_date_stop, KARAOKE_JOB_NAME
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
@@ -318,5 +318,49 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         self.assertIsNone(karaoke.date_stop)
 
         # Check remove was called
-        mocked_cache.get.assert_called_with("karaoke_date_stop")
+        mocked_cache.get.assert_called_with(KARAOKE_JOB_NAME)
         mocked_scheduler.get_job.return_value.remove.assert_called_with()
+
+    @patch("playlist.views.scheduler")
+    @patch("playlist.views.cache")
+    def test_patch_karaoke_clear_date_stop_existing_job_id(
+        self, mocked_cache, mocked_scheduler
+    ):
+        """Test a manager can clear existing date stop
+        """
+        # create existing job in cache
+        mocked_cache.get.return_value = "job_id"
+
+        # login as manager
+        self.authenticate(self.manager)
+
+        # clear karaoke date stop
+        response = self.client.patch(self.url, {"date_stop": None})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check remove was called
+        mocked_cache.get.assert_called_with(KARAOKE_JOB_NAME)
+        mocked_scheduler.get_job.return_value.remove.assert_called_with()
+        mocked_cache.delete.assert_not_called()
+
+    @patch("playlist.views.scheduler")
+    @patch("playlist.views.cache")
+    def test_patch_karaoke_clear_date_stop_existing_job_id_no_job(
+        self, mocked_cache, mocked_scheduler
+    ):
+        """Test a manager can clear existing date stop without job
+        """
+        # create existing job in cache
+        mocked_cache.get.return_value = "job_id"
+        mocked_scheduler.get_job.return_value = None
+
+        # login as manager
+        self.authenticate(self.manager)
+
+        # clear karaoke date stop
+        response = self.client.patch(self.url, {"date_stop": None})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check remove was called
+        mocked_cache.get.assert_called_with(KARAOKE_JOB_NAME)
+        mocked_cache.delete.assert_called_with(KARAOKE_JOB_NAME)
