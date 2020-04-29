@@ -58,6 +58,7 @@ dakara_server/manage.py createplayer
 
 If you are deploying the project from sources, you have to add the front.
 Build and link the `dist` folder from the [client](https://github.com/DakaraProject/dakara-client-web) to `dakara_server/static`.
+If you are deploying from release, the front is already included.
 
 ### Start the server
 
