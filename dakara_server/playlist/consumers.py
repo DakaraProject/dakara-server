@@ -43,6 +43,10 @@ def send_to_channel(name, event_type, data=None):
         event_type (str): type of the event.
         data (dict): data to pass to the method.
     """
+    # if the channel does not exist, do nothing
+    if name is None:
+        return
+
     # get channel name
     if name == PlaylistDeviceConsumer.name:
         channel_name = PlaylistDeviceConsumer.get_channel_name()
