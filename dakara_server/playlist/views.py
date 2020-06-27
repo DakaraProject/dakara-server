@@ -392,7 +392,6 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         logger.debug("The player has finished playing '%s'", playlist_entry)
 
         # continue the playlist
-        karaoke = models.Karaoke.get_object()
         send_to_channel("playlist.device", "handle_next")
 
     def receive_could_not_play(self, playlist_entry, player):
@@ -406,7 +405,6 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         logger.debug("The player could not play '%s'", playlist_entry)
 
         # continue the playlist
-        karaoke = models.Karaoke.get_object()
         send_to_channel("playlist.device", "handle_next")
 
     def receive_started_transition(self, playlist_entry, player):
