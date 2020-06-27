@@ -71,3 +71,16 @@ class TestSendToChannel:
             consumers.send_to_channel("unknown", "type", {"key": "value"})
 
         mocked_async_to_sync.assert_not_called()
+
+    def test_send_to_channel_no_name(self, mocker):
+        """Test to send an event to a consumer with no name
+        """
+        mocked_async_to_sync = mocker.patch("playlist.consumers.async_to_sync")
+        mocked_get_channel_name = mocker.patch.object(
+            consumers.PlaylistDeviceConsumer, "get_channel_name"
+        )
+        mocked_get_channel_name.return_value = None
+
+        consumers.send_to_channel("playlist.device", "type", {"key": "value"})
+
+        mocked_async_to_sync.assert_not_called()
