@@ -75,6 +75,10 @@ mv db.squlite3 db_backup.sqlite3
 rm db_backup.sqlite3 db_library.json db_users.json db_playlist.json
 ```
 
+### Added
+
+- Add instrumental track support. New fields are `Song.has_instrumental` and `PlaylistEntry.use_instrumental`.
+
 ### Fixed
 
 - Crash when updating a song with 2 works existing with same title but different subtitle.
