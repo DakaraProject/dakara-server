@@ -31,6 +31,7 @@ INSTALLED_APPS = (
     "rest_framework.authtoken",
     "channels",
     "ordered_model",
+    "rest_registration",
     "library",
     "playlist.apps.PlaylistConfig",
     "users",
@@ -113,3 +114,14 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
+
+REST_REGISTRATION = {
+    "REGISTER_VERIFICATION_URL": "https://frontend-host/verify-user/",
+    "RESET_PASSWORD_VERIFICATION_URL": "https://frontend-host/reset-password/",
+    "REGISTER_EMAIL_VERIFICATION_URL": "https://frontend-host/verify-email/",
+    "VERIFICATION_FROM_EMAIL": "no-reply@example.com",
+    "USER_VERIFICATION_FLAG_FIELD": "validated_by_email",
+    "USER_LOGIN_FIELDS": ["username", "email"],
+}
+
+AUTHENTICATION_BACKENDS = ["users.backend.DakaraModelBackend"]

@@ -45,6 +45,8 @@ class DakaraUser(AbstractUser):
 
     objects = DakaraUserManager()
 
+    email = models.EmailField(max_length=255, unique=True)
+
     # permission levels per application
     USER = "u"
     MANAGER = "m"
@@ -69,6 +71,10 @@ class DakaraUser(AbstractUser):
     playlist_permission_level = models.CharField(
         max_length=1, choices=LEVELS_PLAYLIST, null=True
     )
+
+    validated_by_email = models.BooleanField(default=False)
+
+    validated_by_manager = models.BooleanField(default=False)
 
     @property
     def is_users_user(self):

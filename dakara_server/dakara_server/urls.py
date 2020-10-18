@@ -31,6 +31,7 @@ urlpatterns = [
     # Admin route
     path("admin/", admin.site.urls),
     # Authentication routes
+    path("api/accounts/", include("rest_registration.api.urls")),
     path("api/auth/", include("rest_framework.urls", namespace="rest_framework")),
     path("api/token-auth/", obtain_auth_token),
     # API routes for internal
