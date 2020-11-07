@@ -43,14 +43,18 @@ class BaseProvider:
     ):
         """Create a user with the given permissions
 
+        Extra arguments are passed to `UserModel.objects.create_user`.
+
         Args:
-            username (str): name of the user.
-            playlist_level (str): level of accreditation for playlist app.
-            library_level (str): level of accreditation for library app.
-            users_level (str): level of accreditation for users app.
+            username (str): Name of the user.
+            email (str): Email of the user.
+            password (str): Password of the user.
+            playlist_level (str): Level of accreditation for playlist app.
+            library_level (str): Level of accreditation for library app.
+            users_level (str): Level of accreditation for users app.
 
         Returns:
-            users.models.DakaraUser: created user.
+            users.models.DakaraUser: Created user.
         """
         if email is None:
             email = "{}@example.com".format(username)
