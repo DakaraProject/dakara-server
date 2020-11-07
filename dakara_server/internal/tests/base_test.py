@@ -46,10 +46,14 @@ class BaseProvider:
         Returns:
             users.models.DakaraUser: created user.
         """
-        user = UserModel.objects.create_user(username, "", "password", **kwargs)
+        user = UserModel.objects.create_user(
+            username, "{}@example.com".format(username), "password", **kwargs
+        )
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
         user.users_permission_level = users_level
+        user.validated_by_email = True
+        user.validated_by_manager = True
         user.save()
         return user
 

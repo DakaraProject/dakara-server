@@ -1,7 +1,27 @@
 from rest_framework import serializers
+from rest_registration.utils.users import authenticate_by_login_and_password_or_none
+from rest_registration.api.serializers import DefaultLoginSerializer
 from django.contrib.auth import get_user_model, update_session_auth_hash
 
 UserModel = get_user_model()
+
+
+class DakaraLoginSerializer(DefaultLoginSerializer):
+    """Login users
+    """
+
+    def validate(self, data):
+        # store the user now
+        # any ValidationError should be caught
+        data["user"] = authenticate_by_login_and_password_or_none(
+            data["login"], data["password"]
+        )
+
+        return data
+
+    def get_authenticated_user(self):
+        # return the stored user
+        return self.validated_data["user"]
 
 
 class UserForPublicSerializer(serializers.ModelSerializer):

@@ -116,6 +116,7 @@ REST_FRAMEWORK = {
 }
 
 REST_REGISTRATION = {
+    "LOGIN_SERIALIZER_CLASS": "users.serializers.DakaraLoginSerializer",
     "REGISTER_VERIFICATION_URL": "https://frontend-host/verify-user/",
     "RESET_PASSWORD_VERIFICATION_URL": "https://frontend-host/reset-password/",
     "REGISTER_EMAIL_VERIFICATION_URL": "https://frontend-host/verify-email/",

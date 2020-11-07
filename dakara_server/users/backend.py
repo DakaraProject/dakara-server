@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from rest_framework.exceptions import ValidationError
-
+from django.core.exceptions import ValidationError
 
 UserModel = get_user_model()
 
@@ -44,17 +43,12 @@ class DakaraModelBackend(ModelBackend):
 
         # the email address of the user must have been validated
         if not user.validated_by_email:
-            raise ValidationErrorNonField("This user email has not been validated")
+            raise ValidationError("This user email has not been validated")
 
         # the accont of the user must have been validated by a manager
         if not user.validated_by_manager:
-            raise ValidationErrorNonField(
+            raise ValidationError(
                 "This user account has not been validated by a manager"
             )
 
         return user
-
-
-class ValidationErrorNonField(ValidationError):
-    def __init__(self, detail, *args, **kwargs):
-        super().__init__({"non_field_errors": [detail]}, *args, **kwargs)
