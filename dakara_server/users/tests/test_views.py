@@ -5,6 +5,69 @@ from internal.tests.base_test import UserModel
 from users.tests.base_test import UsersAPITestCase
 
 
+class LoginViewTestCase(UsersAPITestCase):
+    url = reverse("rest_registration:login")
+
+    def setUp(self):
+        # create a user without any rights
+        self.user = self.create_user("TestUser", email="test@user.com", password="pass")
+
+    def test_login_with_username(self):
+        """Test login with username for an activated user
+        """
+
+        # Login request
+        response = self.client.post(self.url, {"login": "testuser", "password": "pass"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["detail"], "Login successful")
+        self.assertIn("token", response.data)
+        self.assertNotEqual(response.data["token"], "")
+
+    def test_login_with_email(self):
+        """Test login with email for an activated user
+        """
+
+        # Login request
+        response = self.client.post(
+            self.url, {"login": "test@user.com", "password": "pass"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_login_not_validated_by_email(self):
+        """Test login with for a user not validated by email
+        """
+
+        # Set user not validated by email
+        self.user.validated_by_email = False
+        self.user.save()
+
+        # Login request
+        response = self.client.post(self.url, {"login": "testuser", "password": "pass"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertListEqual(
+            response.data["non_field_errors"],
+            ["This user email has not been validated"],
+        )
+        self.assertNotIn("token", response.data)
+
+    def test_login_not_validated_by_manager(self):
+        """Test login with for a user not validated by manager
+        """
+
+        # Set user not validated by manager
+        self.user.validated_by_manager = False
+        self.user.save()
+
+        # Login request
+        response = self.client.post(self.url, {"login": "testuser", "password": "pass"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertListEqual(
+            response.data["non_field_errors"],
+            ["This user account has not been validated by a manager"],
+        )
+        self.assertNotIn("token", response.data)
+
+
 class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
     url = reverse("users-list")
 

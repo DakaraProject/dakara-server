@@ -33,7 +33,13 @@ class BaseProvider:
 
     @staticmethod
     def create_user(
-        username, playlist_level=None, library_level=None, users_level=None, **kwargs
+        username,
+        email=None,
+        password="password",
+        playlist_level=None,
+        library_level=None,
+        users_level=None,
+        **kwargs
     ):
         """Create a user with the given permissions
 
@@ -46,9 +52,10 @@ class BaseProvider:
         Returns:
             users.models.DakaraUser: created user.
         """
-        user = UserModel.objects.create_user(
-            username, "{}@example.com".format(username), "password", **kwargs
-        )
+        if email is None:
+            email = "{}@example.com".format(username)
+
+        user = UserModel.objects.create_user(username, email, password, **kwargs)
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
         user.users_permission_level = users_level
