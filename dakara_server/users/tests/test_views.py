@@ -262,6 +262,30 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
             },
         )
 
+    def test_get_user_as_manager(self):
+        """Test to verify user details
+        """
+        # Login as user manager
+        self.authenticate(self.manager)
+
+        # Get simple user details
+        response = self.client.get(self.user_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertDictEqual(
+            response.data,
+            {
+                "id": self.user.id,
+                "username": self.user.username,
+                "email": self.user.email,
+                "is_superuser": self.user.is_superuser,
+                "users_permission_level": self.user.users_permission_level,
+                "library_permission_level": self.user.library_permission_level,
+                "playlist_permission_level": self.user.playlist_permission_level,
+                "validated_by_manager": self.user.validated_by_manager,
+                "validated_by_email": self.user.validated_by_email,
+            },
+        )
+
     def test_get_user_forbidden(self):
         """Test to verify user details not available when not logged in
         """
@@ -288,6 +312,24 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         # Post-assertion: user is now a library user
         user = UserModel.objects.get(id=self.user.id)
         self.assertEqual(user.library_permission_level, UserModel.USER)
+
+    def test_patch_user_validate_by_manager(self):
+        """Test to verify user validation by a manager
+        """
+        # Set user as not validated
+        self.user.validated_by_manager = False
+        self.user.save()
+
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # validate user
+        response = self.client.patch(self.user_url, {"validated_by_manager": True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Post-assertion: user is now validated
+        user = UserModel.objects.get(id=self.user.id)
+        self.assertTrue(user.validated_by_manager)
 
     def test_patch_user_forbidden_self(self):
         """Test to verify user update can't update self

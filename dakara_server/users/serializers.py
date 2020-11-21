@@ -131,8 +131,22 @@ class UserForManagerSerializer(PasswordSerializer):
     class Meta:
         model = UserModel
         fields = (
+            "id",
+            "username",
+            "email",
             "password",
+            "is_superuser",
             "users_permission_level",
             "library_permission_level",
             "playlist_permission_level",
+            "validated_by_manager",
+            "validated_by_email",
         )
+        read_only_fields = (
+            "id",
+            "username",
+            "email",
+            "is_superuser",
+            "validated_by_email",
+        )
+        extra_kwargs = {"password": {"write_only": True}}
