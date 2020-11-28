@@ -35,7 +35,7 @@ class UserForPublicSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Creation and view
+    """View users for non managers
     """
 
     class Meta:
@@ -43,19 +43,11 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "username",
-            "password",
             "is_superuser",
             "users_permission_level",
             "library_permission_level",
             "playlist_permission_level",
         )
-        read_only_fields = (
-            "is_superuser",
-            "users_permission_level",
-            "library_permission_level",
-            "playlist_permission_level",
-        )
-        extra_kwargs = {"password": {"write_only": True}}
 
 
 class PasswordSerializer(serializers.ModelSerializer):
@@ -100,10 +92,6 @@ class PasswordSerializer(serializers.ModelSerializer):
 
 class UserForManagerSerializer(PasswordSerializer):
     """Users edition for managers
-
-    Can edit:
-        Apps permission levels,
-        Password.
     """
 
     class Meta:
@@ -128,3 +116,32 @@ class UserForManagerSerializer(PasswordSerializer):
             "validated_by_email",
         )
         extra_kwargs = {"password": {"write_only": True}}
+
+
+class UserCreationForManagerSerializer(PasswordSerializer):
+    """Users creation for managers
+    """
+
+    class Meta:
+        model = UserModel
+        fields = (
+            "id",
+            "username",
+            "email",
+            "password",
+            "is_superuser",
+            "users_permission_level",
+            "library_permission_level",
+            "playlist_permission_level",
+            "validated_by_manager",
+            "validated_by_email",
+        )
+        read_only_fields = (
+            "id",
+            "is_superuser",
+            "validated_by_email",
+        )
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "validated_by_manager": {"default": True},
+        }

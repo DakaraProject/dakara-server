@@ -1,4 +1,4 @@
-from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from rest_framework import views
 from rest_framework.response import Response
@@ -40,11 +40,8 @@ class UserListView(generics.ListCreateAPIView):
     ]
 
     def get_serializer_class(self):
-        if (
-            permissions.IsUsersManager().has_permission(self.request, self)
-            and self.request.method in SAFE_METHODS
-        ):
-            return serializers.UserForManagerSerializer
+        if permissions.IsUsersManager().has_permission(self.request, self):
+            return serializers.UserCreationForManagerSerializer
 
         return serializers.UserSerializer
 

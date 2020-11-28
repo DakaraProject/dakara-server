@@ -153,7 +153,12 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         # Post new user
         username_new_user = "TestUserNew"
         response = self.client.post(
-            self.url, {"username": username_new_user, "password": "pwd"}
+            self.url,
+            {
+                "username": username_new_user,
+                "email": "email@example.com",
+                "password": "pwd",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -171,7 +176,12 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         # Post new user
         username_new_user = "TestUserNew"
         response = self.client.post(
-            self.url, {"username": username_new_user, "password": "pwd"}
+            self.url,
+            {
+                "username": username_new_user,
+                "email": "email@example.com",
+                "password": "pwd",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -188,35 +198,11 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         username_new_user = "TestNewSuperuser"
         response = self.client.post(
             self.url,
-            {"username": username_new_user, "password": "pwd", "is_superuser": True},
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        # Check user has been created in database and is not superuser
-        self.assertEqual(UserModel.objects.count(), 3)
-        new_user = UserModel.objects.get(username=username_new_user)
-        self.assertFalse(new_user.is_superuser)
-
-    def test_post_create_user_with_permissions_disabled(self):
-        """Test one cannot create a user with extra permissions
-        """
-        # Pre assertions
-        self.assertEqual(UserModel.objects.count(), 2)
-
-        # Login as manager
-        self.authenticate(self.manager)
-
-        # Post new superuser
-        username_new_user = "TestNewSuperuser"
-        response = self.client.post(
-            self.url,
             {
                 "username": username_new_user,
+                "email": "email@example.com",
                 "password": "pwd",
-                "users_permission_level": UserModel.MANAGER,
-                "library_permission_level": UserModel.MANAGER,
-                "playlist_permission_level": UserModel.MANAGER,
+                "is_superuser": True,
             },
         )
 
@@ -225,9 +211,7 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         # Check user has been created in database and is not superuser
         self.assertEqual(UserModel.objects.count(), 3)
         new_user = UserModel.objects.get(username=username_new_user)
-        self.assertEqual(new_user.playlist_permission_level, UserModel.USER)
-        self.assertIsNone(new_user.library_permission_level)
-        self.assertIsNone(new_user.users_permission_level)
+        self.assertFalse(new_user.is_superuser)
 
     def test_post_create_user_already_exists(self):
         """Test for duplicated users
@@ -241,7 +225,12 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         # Post new user with same name as existing user
         username_new_user = self.user.username
         response = self.client.post(
-            self.url, {"username": username_new_user, "password": "pwd"}
+            self.url,
+            {
+                "username": username_new_user,
+                "email": "email@example.com",
+                "password": "pwd",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
