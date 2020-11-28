@@ -29,6 +29,18 @@ def username_different_case_validator(username):
         pass
 
 
+def email_different_case_validator(email):
+    """Raise validation error if a user already exists with a different case email
+    """
+    try:
+        user = DakaraUser.objects.get(email__iexact=email)
+        if user.email != email:
+            raise ValidationError("user with this email address already exists.")
+
+    except ObjectDoesNotExist:
+        pass
+
+
 class DakaraUser(AbstractUser):
     """Custom user
     """
@@ -46,7 +58,9 @@ class DakaraUser(AbstractUser):
         error_messages={"unique": _("A user with that username already exists.")},
     )
 
-    email = models.EmailField(_("email address"), unique=True)
+    email = models.EmailField(
+        _("email address"), unique=True, validators=[email_different_case_validator]
+    )
 
     # permission levels per application
     USER = "u"
