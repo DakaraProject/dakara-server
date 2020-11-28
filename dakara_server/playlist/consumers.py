@@ -50,6 +50,10 @@ def send_to_channel(name, event_type, data=None):
     else:
         raise UnknownConsumerError("Unknown consumer name requested '{}'".format(name))
 
+    # if the channel does not exist, do nothing
+    if channel_name is None:
+        return
+
     # create event
     event = {"type": event_type}
     if data:

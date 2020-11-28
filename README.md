@@ -63,8 +63,6 @@ dakara_server/manage.py createtags ./config.yaml # for tags
 dakara_server/manage.py createworktypes ./config.yaml # for work types
 ```
 
-Build and link the `dist` folder from the [client](https://github.com/DakaraProject/dakara-client-web) to `dakara_server/static`.
-
 ### Start the server
 
 You're almost done! To start the server app, in the right virtual environment, do:
@@ -75,9 +73,9 @@ dakara_server/manage.py runserver
 
 The server part is now setup correctly.
 
-### Feeder and player
+### Web client, Feeder and player
 
-Now setup the [feeder](https://github.com/DakaraProject/dakara-feeder) and [player](https://github.com/DakaraProject/dakara-player-vlc) according to their respective documentations.
+Now setup the [web client](https://github.com/DakaraProject/dakara-client-web), [feeder](https://github.com/DakaraProject/dakara-feeder) and [player](https://github.com/DakaraProject/dakara-player-vlc) according to their respective documentations.
 
 After all of this is setup, just grab some friends and have fun!
 
