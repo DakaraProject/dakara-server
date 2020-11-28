@@ -10,7 +10,7 @@ from users.tests.base_test import UsersAPITestCase
 class RegisterViewTestCase(UsersAPITestCase):
     url = reverse("rest_registration:register")
 
-    def test_create_user_not_unique(self):
+    def test_create_user_name_not_unique(self):
         """Test to create a user with same username as an existing one
         """
         self.user = self.create_user("TestUser", email="test@user.com")
@@ -29,8 +29,8 @@ class RegisterViewTestCase(UsersAPITestCase):
             response.data["username"], ["A user with that username already exists."]
         )
 
-    def test_create_user_not_case_insensitively_unique(self):
-        """Test to create a user with a case difference from an existing one
+    def test_create_user_name_not_case_insensitively_unique(self):
+        """Test to create a user with a case different username from an existing one
         """
         self.user = self.create_user("TestUser", email="test@user.com")
         response = self.client.post(
@@ -68,7 +68,7 @@ class RegisterViewTestCase(UsersAPITestCase):
         )
 
     def test_create_user_email_not_case_insensitively_unique(self):
-        """Test to create a user with a case difference in email from an existing one
+        """Test to create a user with a case different email from an existing one
         """
         self.user = self.create_user("TestUser", email="test@user.com")
         response = self.client.post(
@@ -174,7 +174,7 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         self.assertEqual(response.data["count"], 2)
         self.assertEqual(len(response.data["results"]), 2)
 
-    def test_get_users_list_forbidden(self):
+    def test_get_users_list_unauthorized(self):
         """Test to verify users list is not available when not logged in
         """
         # Get users list
@@ -183,7 +183,7 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
 
     @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
     @patch("users.views.send_register_verification_email_notification")
-    def test_post_create_user(self, mocked_send_email):
+    def test_create_user(self, mocked_send_email):
         """Test to verify user creation
         """
         # Pre assertions
@@ -214,7 +214,7 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
 
     @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
     @patch("users.views.send_register_verification_email_notification")
-    def test_post_create_user_forbidden(self, mocked_send_email):
+    def test_create_user_forbidden(self, mocked_send_email):
         """Test to verify simple user cannot create users
         """
         # Login as simple user
@@ -237,7 +237,7 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
 
     @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
     @patch("users.views.send_register_verification_email_notification")
-    def test_post_create_superuser_disabled(self, mocked_send_email):
+    def test_create_superuser(self, mocked_send_email):
         """Test one cannot create a superuser
         """
         # Pre assertions
@@ -270,7 +270,7 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
 
     @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
     @patch("users.views.send_register_verification_email_notification")
-    def test_post_create_user_already_exists(self, mocked_send_email):
+    def test_create_user_name_already_exists(self, mocked_send_email):
         """Test for duplicated users
 
         Verify user cannot be created when the username is already taken. This
@@ -377,7 +377,7 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
             },
         )
 
-    def test_get_user_forbidden(self):
+    def test_get_user_unauthorized(self):
         """Test to verify user details not available when not logged in
         """
         # Get simple user details
@@ -422,7 +422,7 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         user = UserModel.objects.get(id=self.user.id)
         self.assertTrue(user.validated_by_manager)
 
-    def test_patch_user_forbidden_self(self):
+    def test_patch_self_forbidden(self):
         """Test to verify user update can't update self
         """
         # Login as manager
@@ -446,7 +446,7 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_patch_superuser_forbidden(self):
+    def test_patch_superuser_not_possible(self):
         """Test one cannot set a superuser
         """
         # Pre-assertion: user is not superuser
@@ -478,7 +478,7 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         users = UserModel.objects.filter(id=self.user.id)
         self.assertEqual(len(users), 0)
 
-    def test_delete_user_forbidden_self(self):
+    def test_delete_self_forbidden(self):
         """Test to verify user update can't delete self
         """
         # Login as manager
@@ -550,7 +550,7 @@ class CurrentUserViewAPIViewTestCase(UsersAPITestCase):
             },
         )
 
-    def test_get_current_user_forbidden(self):
+    def test_get_current_user_unauthorized(self):
         """Test to verify we can't get current user when not logged in
 
         (Obviously.)
