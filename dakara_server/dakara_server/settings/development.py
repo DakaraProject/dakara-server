@@ -20,7 +20,7 @@ from decouple import config, Csv
 from dj_database_url import parse as db_url
 
 from dakara_server.settings.base import *  # noqa F403
-from dakara_server.settings.base import BASE_DIR
+from dakara_server.settings.base import BASE_DIR, REST_REGISTRATION
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -106,3 +106,12 @@ PLAYLIST_SIZE_LIMIT = config("PLAYLIST_SIZE_LIMIT", cast=int, default=100)
 
 # email backend
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+REST_REGISTRATION.update(
+    {
+        "REGISTER_VERIFICATION_URL": "http://localhost:3000/verify-email",
+        "RESET_PASSWORD_VERIFICATION_URL": "http://localhost:3000/reset-password",
+        "REGISTER_EMAIL_VERIFICATION_URL": "http://localhost:3000/verify-email-change",
+        "VERIFICATION_FROM_EMAIL": "no-reply@example.com",
+    }
+)
