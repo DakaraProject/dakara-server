@@ -44,7 +44,7 @@ class PlaylistEntryView(drf_generics.DestroyAPIView):
         permissions.IsPlaylistManager
         | (internal_permissions.IsDelete & permissions.IsOwner),
     ]
-    queryset = models.PlaylistEntry.get_playlist()
+    queryset = models.PlaylistEntry.objects.get_playlist()
 
     def put(self, request, *args, **kwargs):
         playlist_entry = self.get_object()
@@ -77,7 +77,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         (permissions.IsPlaylistManager & library_permissions.IsLibraryManager)
         | permissions.IsSongEnabled,
     ]
-    queryset = models.PlaylistEntry.get_playlist()
+    queryset = models.PlaylistEntry.objects.get_playlist()
 
     def get(self, request, *args, **kwargs):
         queryset = self.queryset.all()
@@ -153,7 +153,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
             if date > karaoke.date_stop:
                 raise PermissionDenied("This song exceeds the karaoke stop time")
 
-        playlist_was_empty = models.PlaylistEntry.get_next() is None
+        playlist_was_empty = models.PlaylistEntry.objects.get_next() is None
 
         # add the owner to the serializer and create data
         serializer.save(owner=self.request.user)
@@ -165,7 +165,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         #   - the playlist was empty beforehand;
         #   - player is set to play next song
         #   - the player is idle.
-        next_playlist_entry = models.PlaylistEntry.get_next()
+        next_playlist_entry = models.PlaylistEntry.objects.get_next()
         player = models.Player.get_or_create()
         if all(
             (
@@ -188,7 +188,7 @@ class PlaylistPlayedEntryListView(drf_generics.ListAPIView):
 
     pagination_class = PlaylistEntryPagination
     serializer_class = serializers.PlaylistPlayedEntryWithDatePlayedSerializer
-    queryset = models.PlaylistEntry.get_playlist_played()
+    queryset = models.PlaylistEntry.objects.get_playlist_played()
 
 
 class PlayerCommandView(drf_generics.UpdateAPIView):
@@ -331,7 +331,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
             # request the player to play the next song if idle,
             # and there is a next song to play
             if player.playlist_entry is None:
-                next_playlist_entry = models.PlaylistEntry.get_next()
+                next_playlist_entry = models.PlaylistEntry.objects.get_next()
                 if next_playlist_entry is not None:
                     send_to_channel(
                         "playlist.device",

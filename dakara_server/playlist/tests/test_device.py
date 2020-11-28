@@ -153,7 +153,7 @@ class TestDevice:
         # set a playlist entry playing
         playlist_provider.player_play_next_song(timing=timedelta(seconds=10))
         playlist_entry = await database_sync_to_async(
-            lambda: models.PlaylistEntry.get_playing()
+            lambda: models.PlaylistEntry.objects.get_playing()
         )()
         assert playlist_entry is not None
 
@@ -163,7 +163,7 @@ class TestDevice:
 
         # check there are no playing playlist entry
         playlist_entry = await database_sync_to_async(
-            lambda: models.PlaylistEntry.get_playing()
+            lambda: models.PlaylistEntry.objects.get_playing()
         )()
         assert playlist_entry is None
 

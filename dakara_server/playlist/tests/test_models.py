@@ -17,47 +17,47 @@ class TestPlaylistEntry:
         """Test to get the currently playing entry
         """
         # pre assert no entry is playing
-        assert models.PlaylistEntry.get_playing() is None
+        assert models.PlaylistEntry.objects.get_playing() is None
 
         # set playlist entry 1 is playing
         playlist_provider.pe1.date_played = datetime.now(tz)
         playlist_provider.pe1.save()
 
         # assert playlist entry 1 is now playing
-        assert models.PlaylistEntry.get_playing() == playlist_provider.pe1
+        assert models.PlaylistEntry.objects.get_playing() == playlist_provider.pe1
 
         # set playlist entry 1 was played
         playlist_provider.pe1.was_played = True
         playlist_provider.pe1.save()
 
         # assert no entry is playing any more
-        assert models.PlaylistEntry.get_playing() is None
+        assert models.PlaylistEntry.objects.get_playing() is None
 
     def test_get_playing_abnormal(self, playlist_provider):
         """Test to get the currently playing entry in abnormal condition
         """
         # pre assert no entry is playing
-        assert models.PlaylistEntry.get_playing() is None
+        assert models.PlaylistEntry.objects.get_playing() is None
 
         # set playlist entry 1 was played without setting it playing
         playlist_provider.pe1.was_played = True
         playlist_provider.pe1.save()
 
         # assert still no entry is playing
-        assert models.PlaylistEntry.get_playing() is None
+        assert models.PlaylistEntry.objects.get_playing() is None
 
         # set playlist entry 1 is playing after setting it played
         playlist_provider.pe1.date_played = datetime.now(tz)
         playlist_provider.pe1.save()
 
         # assert still no entry is playing
-        assert models.PlaylistEntry.get_playing() is None
+        assert models.PlaylistEntry.objects.get_playing() is None
 
     def test_get_playing_fail(self, playlist_provider):
         """Test when several entries are supposed to play simultaneously
         """
         # pre assert no entry is playing
-        assert models.PlaylistEntry.get_playing() is None
+        assert models.PlaylistEntry.objects.get_playing() is None
 
         # set playlist entries 1 and 2 are playing
         playlist_provider.pe1.date_played = datetime.now(tz)
@@ -72,13 +72,13 @@ class TestPlaylistEntry:
                 playlist_provider.pe1.song, playlist_provider.pe2.song
             ),
         ):
-            models.PlaylistEntry.get_playing()
+            models.PlaylistEntry.objects.get_playing()
 
     def test_get_playlist_normal(self, playlist_provider):
         """Test to get the playlist
         """
         # pre assert there are 2 entries in playlist
-        playlist = models.PlaylistEntry.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_playlist()
         assert len(playlist) == 2
         assert playlist[0] == playlist_provider.pe1
         assert playlist[1] == playlist_provider.pe2
@@ -88,7 +88,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there is one entry in playlist
-        playlist = models.PlaylistEntry.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_playlist()
         assert len(playlist) == 1
         assert playlist[0] == playlist_provider.pe2
 
@@ -97,7 +97,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there is still one entry in playlist
-        playlist = models.PlaylistEntry.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_playlist()
         assert len(playlist) == 1
         assert playlist[0] == playlist_provider.pe2
 
@@ -105,7 +105,7 @@ class TestPlaylistEntry:
         """Test to get the playlist in abnormal condition
         """
         # pre assert there are 2 entries in playlist
-        playlist = models.PlaylistEntry.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_playlist()
         assert len(playlist) == 2
         assert playlist[0] == playlist_provider.pe1
         assert playlist[1] == playlist_provider.pe2
@@ -115,7 +115,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there is one entry in playlist
-        playlist = models.PlaylistEntry.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_playlist()
         assert len(playlist) == 1
         assert playlist[0] == playlist_provider.pe2
 
@@ -124,7 +124,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there is still one entry in playlist
-        playlist = models.PlaylistEntry.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_playlist()
         assert len(playlist) == 1
         assert playlist[0] == playlist_provider.pe2
 
@@ -132,7 +132,7 @@ class TestPlaylistEntry:
         """Test to get the playlist of played entries
         """
         # pre assert there are 2 entries played
-        playlist_played = models.PlaylistEntry.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
         assert len(playlist_played) == 2
         assert playlist_played[0] == playlist_provider.pe3
         assert playlist_played[1] == playlist_provider.pe4
@@ -142,7 +142,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there are still 2 entries played
-        playlist_played = models.PlaylistEntry.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
         assert len(playlist_played) == 2
         assert playlist_played[0] == playlist_provider.pe3
         assert playlist_played[1] == playlist_provider.pe4
@@ -152,7 +152,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there are now 3 entries played
-        playlist_played = models.PlaylistEntry.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
         assert len(playlist_played) == 3
         assert playlist_played[0] == playlist_provider.pe1
         assert playlist_played[1] == playlist_provider.pe3
@@ -162,7 +162,7 @@ class TestPlaylistEntry:
         """Test to get the playlist of played entries in abnormal condition
         """
         # pre assert there are 2 entries played
-        playlist_played = models.PlaylistEntry.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
         assert len(playlist_played) == 2
         assert playlist_played[0] == playlist_provider.pe3
         assert playlist_played[1] == playlist_provider.pe4
@@ -172,7 +172,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there are now 3 entries played
-        playlist_played = models.PlaylistEntry.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
         assert len(playlist_played) == 3
         assert playlist_played[0] == playlist_provider.pe1
         assert playlist_played[1] == playlist_provider.pe3
@@ -183,7 +183,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there are still 3 entries played
-        playlist_played = models.PlaylistEntry.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
         assert len(playlist_played) == 3
         assert playlist_played[0] == playlist_provider.pe1
         assert playlist_played[1] == playlist_provider.pe3
@@ -193,21 +193,21 @@ class TestPlaylistEntry:
         """Test to get the next entry to play
         """
         # pre assert the next entry is playlist entry 1
-        assert models.PlaylistEntry.get_next() == playlist_provider.pe1
+        assert models.PlaylistEntry.objects.get_next() == playlist_provider.pe1
 
         # set playlist entry 1 is playing
         playlist_provider.pe1.date_played = datetime.now(tz)
         playlist_provider.pe1.save()
 
         # assert the next entry is still playlist entry 1
-        assert models.PlaylistEntry.get_next() == playlist_provider.pe1
+        assert models.PlaylistEntry.objects.get_next() == playlist_provider.pe1
 
         # set playlist entry 1 was played
         playlist_provider.pe1.was_played = True
         playlist_provider.pe1.save()
 
         # assert the next entry is now playlist entry 2
-        assert models.PlaylistEntry.get_next() == playlist_provider.pe2
+        assert models.PlaylistEntry.objects.get_next() == playlist_provider.pe2
 
         # set playlist entry 2 played
         playlist_provider.pe2.date_played = datetime.now(tz)
@@ -215,34 +215,34 @@ class TestPlaylistEntry:
         playlist_provider.pe2.save()
 
         # assert there are no next entries now
-        assert models.PlaylistEntry.get_next() is None
+        assert models.PlaylistEntry.objects.get_next() is None
 
     def test_get_next_abnormal(self, playlist_provider):
         """Test to get the next entry to play in abnormal condition
         """
         # pre assert the next entry is playlist entry 1
-        assert models.PlaylistEntry.get_next() == playlist_provider.pe1
+        assert models.PlaylistEntry.objects.get_next() == playlist_provider.pe1
 
         # set playlist entry 1 was played without setting it playing
         playlist_provider.pe1.was_played = True
         playlist_provider.pe1.save()
 
         # assert the next entry is now playlist entry 2
-        assert models.PlaylistEntry.get_next() == playlist_provider.pe2
+        assert models.PlaylistEntry.objects.get_next() == playlist_provider.pe2
 
         # set playlist entry 1 is playing after setting it played
         playlist_provider.pe1.date_played = datetime.now(tz)
         playlist_provider.pe1.save()
 
         # assert the next entry is still playlist entry 2
-        assert models.PlaylistEntry.get_next() == playlist_provider.pe2
+        assert models.PlaylistEntry.objects.get_next() == playlist_provider.pe2
 
     def test_get_next_relative(self, playlist_provider):
         """Test to get the next entry from a specific one
         """
         # pre assert the entry after playlist entry 1 is playlist entry 2
         assert (
-            models.PlaylistEntry.get_next(playlist_provider.pe1.id)
+            models.PlaylistEntry.objects.get_next(playlist_provider.pe1.id)
             == playlist_provider.pe2
         )
 
@@ -252,7 +252,7 @@ class TestPlaylistEntry:
 
         # assert the entry after playlist entry 1 is still playlist entry 2
         assert (
-            models.PlaylistEntry.get_next(playlist_provider.pe1.id)
+            models.PlaylistEntry.objects.get_next(playlist_provider.pe1.id)
             == playlist_provider.pe2
         )
 
@@ -262,32 +262,34 @@ class TestPlaylistEntry:
 
         # assert there are no entry after playlist entry 1 (since it was
         # played)
-        assert models.PlaylistEntry.get_next(playlist_provider.pe1.id) is None
+        assert models.PlaylistEntry.objects.get_next(playlist_provider.pe1.id) is None
 
         # assert there are no entry after playlist entry 2 (since there are no
         # othe entries)
-        assert models.PlaylistEntry.get_next(playlist_provider.pe2.id) is None
+        assert models.PlaylistEntry.objects.get_next(playlist_provider.pe2.id) is None
 
     def test_set_playing(self, playlist_provider):
         """Test to set a playlist entry playing
         """
         # pre assert no entry is playing
-        assert models.PlaylistEntry.get_playing() is None
+        assert models.PlaylistEntry.objects.get_playing() is None
 
         # play next playlist entry
-        playlist_entry = models.PlaylistEntry.get_next()
+        playlist_entry = models.PlaylistEntry.objects.get_next()
         playlist_entry.set_playing()
 
         # assert entry is playing
-        assert models.PlaylistEntry.get_playing() == playlist_entry
+        assert models.PlaylistEntry.objects.get_playing() == playlist_entry
 
     def test_set_playing_already_playing(self, playlist_provider):
         """Test to set a playlist entry playing when one is already playing
         """
         # play next playlist entry
-        playlist_entry_current = models.PlaylistEntry.get_next()
+        playlist_entry_current = models.PlaylistEntry.objects.get_next()
         playlist_entry_current.set_playing()
-        playlist_entry_next = models.PlaylistEntry.get_next(playlist_entry_current.id)
+        playlist_entry_next = models.PlaylistEntry.objects.get_next(
+            playlist_entry_current.id
+        )
 
         # assert you cannot play another entry
         with pytest.raises(RuntimeError, match="A playlist entry is currently in play"):
@@ -296,7 +298,7 @@ class TestPlaylistEntry:
     def test_set_finished(self, playlist_provider):
         """Test to finish a playlist entry
         """
-        playlist_entry_current = models.PlaylistEntry.get_next()
+        playlist_entry_current = models.PlaylistEntry.objects.get_next()
 
         # pre assert current playlist entry is not played
         assert not playlist_entry_current.was_played
@@ -311,7 +313,7 @@ class TestPlaylistEntry:
     def test_set_finished_not_playing(self, playlist_provider):
         """Test to finish a playlist entry when it was not playing
         """
-        playlist_entry_current = models.PlaylistEntry.get_next()
+        playlist_entry_current = models.PlaylistEntry.objects.get_next()
 
         # pre assert current playlist entry is not played
         assert not playlist_entry_current.was_played
