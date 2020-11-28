@@ -73,7 +73,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
     def get_channel_name():
         """Retreive the channel name
         """
-        karaoke = models.Karaoke.get_object()
+        karaoke = models.Karaoke.objects.get_object()
         return karaoke.channel_name
 
     def is_connected(self):
@@ -109,7 +109,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
             current_playlist_entry.save()
 
         # register the channel in database
-        karaoke = models.Karaoke.get_object()
+        karaoke = models.Karaoke.objects.get_object()
         karaoke.channel_name = self.channel_name
         karaoke.save()
 
@@ -132,7 +132,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         player.save()
 
         # unregister the channel in database
-        karaoke = models.Karaoke.get_object()
+        karaoke = models.Karaoke.objects.get_object()
         karaoke.channel_name = None
         karaoke.save()
 
@@ -191,7 +191,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         """
         # request to be idle if the kara is not ongoing
         # or player does not play next song
-        karaoke = models.Karaoke.get_object()
+        karaoke = models.Karaoke.objects.get_object()
         if not (karaoke.ongoing and karaoke.player_play_next_song):
             self.send_idle()
             return

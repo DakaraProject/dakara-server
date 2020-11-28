@@ -250,7 +250,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         """
         # set kara stop
         date_stop = datetime.now(tz) + timedelta(hours=2)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
         karaoke.save()
 
@@ -272,7 +272,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         """
         # set kara stop
         date_stop = datetime.now(tz)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
         karaoke.save()
 
@@ -295,7 +295,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         """
         # set kara stop
         date_stop = datetime.now(tz)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
         karaoke.save()
 
@@ -317,7 +317,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         """
         # set kara stop
         date_stop = datetime.now(tz)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
         karaoke.save()
 
@@ -355,7 +355,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
 
         # set kara stop such as to allow song1 to be added and not song2
         date_stop = now + timedelta(seconds=20)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
         karaoke.save()
 

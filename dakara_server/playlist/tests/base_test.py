@@ -77,7 +77,7 @@ class PlaylistProvider(BaseProvider):
     ):
         """Put the karaoke in stop state
         """
-        self.karaoke = Karaoke.get_object()
+        self.karaoke = Karaoke.objects.get_object()
         if ongoing is not None:
             self.karaoke.ongoing = ongoing
 

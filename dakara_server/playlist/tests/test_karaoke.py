@@ -23,7 +23,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
         """Test an authenticated user can access the karaoke
         """
         # set stop date
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         date_stop = datetime.now(tz)
         karaoke.date_stop = date_stop
         karaoke.save()
@@ -66,19 +66,19 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
         # set can add to playlist to false
         response = self.client.patch(self.url, {"can_add_to_playlist": False})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertFalse(karaoke.can_add_to_playlist)
 
         # set player play next song to false
         response = self.client.patch(self.url, {"player_play_next_song": False})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertFalse(karaoke.player_play_next_song)
 
         # set karaoke ongoing to false
         response = self.client.patch(self.url, {"ongoing": False})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertFalse(karaoke.ongoing)
         mocked_send_to_channel.assert_called_with(ANY, "send_idle")
 
@@ -287,7 +287,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check karaoke was updated
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertEqual(karaoke.date_stop, date_stop)
 
         # Check job was added
@@ -301,7 +301,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
         """Test a manager can clear the kara date stop and job is cancelled
         """
         # set karaoke date stop
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         date_stop = datetime.now(tz)
         karaoke.date_stop = date_stop
         karaoke.save()
@@ -314,7 +314,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check karaoke was updated
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertIsNone(karaoke.date_stop)
 
         # Check remove was called

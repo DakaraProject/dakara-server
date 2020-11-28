@@ -42,7 +42,9 @@ class TestDevice:
         communicator.scope["user"] = playlist_provider.player
 
         # check there is no communicator registered
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
         assert karaoke.channel_name is None
 
         # connect and check connection is established
@@ -50,7 +52,9 @@ class TestDevice:
         assert connected
 
         # check communicator is registered
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
         assert karaoke.channel_name is not None
 
         # close connection
@@ -72,7 +76,9 @@ class TestDevice:
         )
 
         # check there is no communicator registered
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
         assert karaoke.channel_name is None
 
         # connect and check connection is established
@@ -81,7 +87,9 @@ class TestDevice:
         assert communicator.scope["user"] == playlist_provider.player
 
         # check communicator is registered
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
         assert karaoke.channel_name is not None
 
         # close connection
@@ -129,7 +137,9 @@ class TestDevice:
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
 
         # check there is no communicator registered
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
         assert karaoke.channel_name is None
 
         # connect and check connection is not established
@@ -137,7 +147,9 @@ class TestDevice:
         assert not connected
 
         # check communicator is registered
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
         assert karaoke.channel_name is None
 
         # close connection
@@ -228,7 +240,9 @@ class TestDevice:
         # pre assert
         assert playlist_provider.pe1.date_played is None
 
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
 
         # call the method
         await channel_layer.send(
@@ -262,7 +276,9 @@ class TestDevice:
         # pre assert
         assert player.playlist_entry is None
 
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
 
         # call the method
         await channel_layer.send(
@@ -289,7 +305,9 @@ class TestDevice:
     async def test_send_idle(self, playlist_provider, player, communicator):
         """Test to send a new playlist entry to the device
         """
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
 
         # call the method
         await channel_layer.send(karaoke.channel_name, {"type": "send_idle"})
@@ -316,7 +334,9 @@ class TestDevice:
     async def test_send_command_pause(self, playlist_provider, player, communicator):
         """Test to send to the player a pause command
         """
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
 
         # call the method
         await channel_layer.send(
@@ -346,7 +366,9 @@ class TestDevice:
     async def test_send_command_play(self, playlist_provider, player, communicator):
         """Test to send to the player a play command
         """
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
 
         # call the method
         await channel_layer.send(
@@ -376,7 +398,9 @@ class TestDevice:
     async def test_send_command_skip(self, playlist_provider, player, communicator):
         """Test to send to the player a skip command
         """
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
 
         # call the method
         await channel_layer.send(
@@ -406,7 +430,9 @@ class TestDevice:
     async def test_send_command_failed(self, player, communicator):
         """Test an invalid command cannot be sent to the player
         """
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
 
         # call the method
         await channel_layer.send(
@@ -444,7 +470,9 @@ class TestDevice:
         # mocked_send_to_channel = mocker.patch("playlist.views.send_to_channel")
 
         # assert kara is ongoing and player play next song
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
         assert karaoke.ongoing
         assert karaoke.player_play_next_song
 
@@ -581,7 +609,9 @@ class TestDevice:
             lambda: playlist_provider.set_karaoke(ongoing=False)
         )()
 
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
 
         # empty the playlist
         await database_sync_to_async(
@@ -623,7 +653,9 @@ class TestDevice:
             lambda: playlist_provider.set_karaoke(player_play_next_song=False)
         )()
 
-        karaoke = await database_sync_to_async(lambda: models.Karaoke.get_object())()
+        karaoke = await database_sync_to_async(
+            lambda: models.Karaoke.objects.get_object()
+        )()
 
         # assert player is currently idle
         assert player.playlist_entry is None

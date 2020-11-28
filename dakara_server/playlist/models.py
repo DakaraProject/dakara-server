@@ -124,11 +124,41 @@ class PlaylistEntry(OrderedModel):
         self.save()
 
 
+class KaraokeManager(models.Manager):
+    """Manager of karaoke objects
+
+    Only one karaoke object can exist for now.
+    """
+
+    def get_object(self):
+        """Get the first instance of kara status
+        """
+        karaoke, _ = self.get_or_create(pk=1)
+        return karaoke
+
+    def clean_channel_names(self):
+        """Remove all channel names
+        """
+        for karaoke in self.all():
+            karaoke.channel_name = None
+            karaoke.save()
+
+
+def clean_channel_names():
+    try:
+        Karaoke.objects.clean_channel_names()
+
+    # if database does not exist when checking date stop, abort the function
+    # this case occurs on startup before running tests
+    except OperationalError:
+        return
+
+
 class Karaoke(models.Model):
     """Current kara
-
-    Unique for now.
     """
+
+    objects = KaraokeManager()
 
     ongoing = models.BooleanField(default=True)
     can_add_to_playlist = models.BooleanField(default=True)
@@ -138,31 +168,6 @@ class Karaoke(models.Model):
 
     def __str__(self):
         return "Karaoke"
-
-    @classmethod
-    def get_object(cls):
-        """Get the first instance of kara status
-        """
-        karaoke, _ = cls.objects.get_or_create(pk=1)
-        return karaoke
-
-    @classmethod
-    def clean_channel_names(cls):
-        """Remove all channel names
-        """
-        for karaoke in cls.objects.all():
-            karaoke.channel_name = None
-            karaoke.save()
-
-
-def clean_channel_names():
-    try:
-        Karaoke.clean_channel_names()
-
-    # if database does not exist when checking date stop, abort the function
-    # this case occurs on startup before running tests
-    except OperationalError:
-        return
 
 
 class PlayerError(models.Model):

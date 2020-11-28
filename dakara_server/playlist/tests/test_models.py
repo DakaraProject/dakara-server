@@ -334,7 +334,7 @@ class TestKaraoke:
         karaoke1 = MagicMock()
         mocked_all.side_effect = [[karaoke1]]
 
-        models.Karaoke.clean_channel_names()
+        models.Karaoke.objects.clean_channel_names()
 
         assert karaoke1.channel_name is None
         karaoke1.save.assert_called_with()
@@ -348,7 +348,7 @@ class TestCleanChannel:
         """Test to request to clean channel names successfuly
         """
         mocked_clean_channel_names = mocker.patch.object(
-            models.Karaoke, "clean_channel_names"
+            models.Karaoke.objects, "clean_channel_names"
         )
         models.clean_channel_names()
         mocked_clean_channel_names.assert_called_with()
@@ -357,7 +357,7 @@ class TestCleanChannel:
         """Test to request to clean channels names unsuccessfuly
         """
         mocked_clean_channel_names = mocker.patch.object(
-            models.Karaoke, "clean_channel_names"
+            models.Karaoke.objects, "clean_channel_names"
         )
         mocked_clean_channel_names.side_effect = OperationalError("error message")
         models.clean_channel_names()

@@ -101,7 +101,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         # Deny creation if kara is not ongoing
-        karaoke = models.Karaoke.get_object()
+        karaoke = models.Karaoke.objects.get_object()
         if not karaoke.ongoing:
             raise PermissionDenied(detail="Karaoke is not ongoing.")
 
@@ -205,7 +205,7 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
 
     def perform_update(self, serializer):
         # check the karaoke is ongoing
-        karaoke = models.Karaoke.get_object()
+        karaoke = models.Karaoke.objects.get_object()
         if not karaoke.ongoing:
             raise PermissionDenied(
                 "The player cannot receive commands if the karaoke is not ongoing"
@@ -250,7 +250,7 @@ class DigestView(APIView):
         player_errors_pool = models.PlayerError.objects.all()
 
         # Get kara status
-        karaoke = models.Karaoke.get_object()
+        karaoke = models.Karaoke.objects.get_object()
 
         serializer = serializers.DigestSerializer(
             {
@@ -340,7 +340,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
                     )
 
     def get_object(self):
-        return models.Karaoke.get_object()
+        return models.Karaoke.objects.get_object()
 
 
 class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
