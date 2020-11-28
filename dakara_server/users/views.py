@@ -1,16 +1,14 @@
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import generics
-from rest_framework import views
+from rest_framework import generics, views
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_registration.settings import registration_settings
 from rest_registration.utils.verification_notifications import (
     send_register_verification_email_notification,
 )
 
 from internal import permissions as internal_permissions
-from users import serializers
-from users import permissions
+from users import permissions, serializers
 
 
 UserModel = get_user_model()
@@ -44,6 +42,7 @@ class UserListView(generics.ListCreateAPIView):
     ]
 
     def get_serializer_class(self):
+        # serializer depends on permission level
         if permissions.IsUsersManager().has_permission(self.request, self):
             return serializers.UserCreationForManagerSerializer
 
@@ -70,6 +69,7 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
     ]
 
     def get_serializer_class(self):
+        # serializer depends on permission level
         if permissions.IsUsersManager().has_permission(self.request, self):
             return serializers.UserForManagerSerializer
 
