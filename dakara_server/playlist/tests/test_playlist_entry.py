@@ -10,7 +10,7 @@ from playlist.models import PlaylistEntry, Player, Karaoke
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
+class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
     url = reverse("playlist-entries-list")
 
     def setUp(self):
@@ -454,7 +454,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
-class PlaylistEntryViewDestroyAPIViewTestCase(PlaylistAPITestCase):
+class PlaylistEntryViewTestCase(PlaylistAPITestCase):
     def setUp(self):
         self.create_test_data()
 

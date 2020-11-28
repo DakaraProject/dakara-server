@@ -4,7 +4,7 @@ from rest_framework import status
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlaylistPlayedEntryListViewListAPIViewTestCase(PlaylistAPITestCase):
+class PlaylistPlayedEntryListViewTestCase(PlaylistAPITestCase):
     url = reverse("playlist-played-entries-list")
 
     def setUp(self):

@@ -8,7 +8,7 @@ from library.models import Song, Artist, Work, SongWorkLink, SongTag
 from library.tests.base_test import LibraryAPITestCase
 
 
-class SongListViewAPIViewTestCase(LibraryAPITestCase):
+class SongListViewTestCase(LibraryAPITestCase):
     url = reverse("library-song-list")
 
     def setUp(self):
@@ -599,7 +599,7 @@ And everywhere that Mary went""",
         self.assertIsNotNone(workNew)
 
 
-class SongViewAPIViewTestCase(LibraryAPITestCase):
+class SongViewTestCase(LibraryAPITestCase):
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser")

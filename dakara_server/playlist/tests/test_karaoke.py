@@ -12,7 +12,7 @@ from playlist.date_stop import clear_date_stop, KARAOKE_JOB_NAME
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
+class KaraokeViewTestCase(PlaylistAPITestCase):
     url = reverse("playlist-karaoke")
     url_digest = reverse("playlist-digest")
 

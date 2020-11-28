@@ -5,7 +5,7 @@ from internal.tests.base_test import UserModel
 from users.tests.base_test import UsersAPITestCase
 
 
-class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
+class UserListViewTestCase(UsersAPITestCase):
     url = reverse("users-list")
 
     def setUp(self):
@@ -149,7 +149,7 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
+class UserViewTestCase(UsersAPITestCase):
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser")
@@ -303,7 +303,7 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class CurrentUserViewAPIViewTestCase(UsersAPITestCase):
+class CurrentUserViewTestCase(UsersAPITestCase):
     url = reverse("users-current")
 
     def setUp(self):
