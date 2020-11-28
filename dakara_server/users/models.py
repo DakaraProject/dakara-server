@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.utils.translation import gettext_lazy as _
 
 
 class DakaraUserManager(UserManager):
@@ -12,31 +13,20 @@ class DakaraUserManager(UserManager):
         """
         return self.get(username__iexact=username)
 
-    def _create_user(self, username, *args, **kwargs):
-        """Generic method to create new users
 
-        Check if the username is free, otherwise raise a `ValueError`.
-        """
-        # check if username is free before creating user with this username
-        if self.is_username_taken(username):
-            raise ValueError("The username must be case insensitively unique")
+def username_different_case_validator(username):
+    """Raise validation error if a user already exists with a different case
 
-        return super()._create_user(username, *args, **kwargs)
+    If a user already exists with the same case, the unique constraint already
+    raises an error.
+    """
+    try:
+        user = DakaraUser.objects.get_by_natural_key(username)
+        if user.username != username:
+            raise ValidationError(_("A user with that username already exists."))
 
-    def is_username_taken(self, username):
-        """Check if a similar username exists with the natural method
-
-        Since we've set the search to be case insensitive, it will find it case
-        insensitively.
-        """
-        try:
-            if self.get_by_natural_key(username):
-                return True
-
-        except ObjectDoesNotExist:
-            pass
-
-        return False
+    except ObjectDoesNotExist:
+        pass
 
 
 class DakaraUser(AbstractUser):
@@ -45,7 +35,18 @@ class DakaraUser(AbstractUser):
 
     objects = DakaraUserManager()
 
-    email = models.EmailField(max_length=255, unique=True)
+    username = models.CharField(
+        _("username"),
+        max_length=150,
+        unique=True,
+        help_text=_(
+            "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
+        ),
+        validators=[AbstractUser.username_validator, username_different_case_validator],
+        error_messages={"unique": _("A user with that username already exists.")},
+    )
+
+    email = models.EmailField(_("email address"), unique=True)
 
     # permission levels per application
     USER = "u"

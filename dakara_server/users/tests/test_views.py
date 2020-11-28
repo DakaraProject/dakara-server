@@ -5,6 +5,48 @@ from internal.tests.base_test import UserModel
 from users.tests.base_test import UsersAPITestCase
 
 
+class RegisterViewTestCase(UsersAPITestCase):
+    url = reverse("rest_registration:register")
+
+    def test_create_user_not_unique(self):
+        """Test to create a user with same username as an existing one
+        """
+        self.user = self.create_user("TestUser", email="test@user.com")
+        response = self.client.post(
+            self.url,
+            {
+                "username": "TestUser",
+                "email": "test2@user.com",
+                "password": "password",
+                "password_confirm": "password",
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertListEqual(
+            response.data["username"], ["A user with that username already exists."]
+        )
+
+    def test_create_user_not_case_insensitively_unique(self):
+        """Test to create a user with a case difference from an existing one
+        """
+        self.user = self.create_user("TestUser", email="test@user.com")
+        response = self.client.post(
+            self.url,
+            {
+                "username": "testuser",
+                "email": "test2@user.com",
+                "password": "password",
+                "password_confirm": "password",
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertListEqual(
+            response.data["username"], ["A user with that username already exists."]
+        )
+
+
 class LoginViewTestCase(UsersAPITestCase):
     url = reverse("rest_registration:login")
 

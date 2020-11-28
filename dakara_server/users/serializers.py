@@ -57,28 +57,6 @@ class UserSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {"password": {"write_only": True}}
 
-    def validate_username(self, value):
-        """Check username unicity in case insensitive way
-        """
-        if UserModel.objects.is_username_taken(value):
-            raise serializers.ValidationError(
-                "The username must be case insensitively unique"
-            )
-
-        return value
-
-    def create(self, validated_data):
-        """Create a user
-
-        We shouldn't use the parent class method, as it will bypass the
-        UserManager's secured user creation methods.
-        """
-        instance = UserModel.objects.create_user(**validated_data)
-        instance.playlist_permission_level = UserModel.USER
-        instance.save()
-
-        return instance
-
 
 class PasswordSerializer(serializers.ModelSerializer):
     """Password edition
