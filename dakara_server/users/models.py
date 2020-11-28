@@ -69,7 +69,7 @@ class DakaraUser(AbstractUser):
     LEVELS_PLAYLIST = [(PLAYER, "Player"), (USER, "User"), (MANAGER, "Manager")]
 
     playlist_permission_level = models.CharField(
-        max_length=1, choices=LEVELS_PLAYLIST, null=True
+        max_length=1, choices=LEVELS_PLAYLIST, null=True, default=USER
     )
 
     validated_by_email = models.BooleanField(default=False)

@@ -94,6 +94,6 @@ class DakaraUserTestCase(TestCase):
         superuser = DakaraUser(username="root", is_superuser=True)
 
         # assert their permissions
-        self.assertFalse(superuser.is_playlist_user)
+        self.assertTrue(superuser.is_playlist_user)
         self.assertFalse(superuser.is_playlist_manager)
         self.assertFalse(superuser.is_player)
