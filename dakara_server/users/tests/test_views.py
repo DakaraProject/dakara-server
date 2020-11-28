@@ -1,3 +1,5 @@
+from unittest.mock import ANY, patch
+
 from django.urls import reverse
 from rest_framework import status
 
@@ -179,7 +181,9 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_post_create_user(self):
+    @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
+    @patch("users.views.send_register_verification_email_notification")
+    def test_post_create_user(self, mocked_send_email):
         """Test to verify user creation
         """
         # Pre assertions
@@ -205,7 +209,12 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         new_user = UserModel.objects.get(username=username_new_user)
         self.assertEqual(new_user.username, username_new_user)
 
-    def test_post_create_user_forbidden(self):
+        # Check verification email was sent
+        mocked_send_email.assert_called_with(ANY, new_user)
+
+    @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
+    @patch("users.views.send_register_verification_email_notification")
+    def test_post_create_user_forbidden(self, mocked_send_email):
         """Test to verify simple user cannot create users
         """
         # Login as simple user
@@ -223,7 +232,12 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_post_create_superuser_disabled(self):
+        # Check verification email was not sent
+        mocked_send_email.assert_not_called()
+
+    @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
+    @patch("users.views.send_register_verification_email_notification")
+    def test_post_create_superuser_disabled(self, mocked_send_email):
         """Test one cannot create a superuser
         """
         # Pre assertions
@@ -251,7 +265,12 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         new_user = UserModel.objects.get(username=username_new_user)
         self.assertFalse(new_user.is_superuser)
 
-    def test_post_create_user_already_exists(self):
+        # Check verification email was sent
+        mocked_send_email.assert_called_with(ANY, new_user)
+
+    @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
+    @patch("users.views.send_register_verification_email_notification")
+    def test_post_create_user_already_exists(self, mocked_send_email):
         """Test for duplicated users
 
         Verify user cannot be created when the username is already taken. This
@@ -279,6 +298,9 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
             self.url, {"username": username_new_user, "password": "pwd"}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Check verification email was not sent
+        mocked_send_email.assert_not_called()
 
 
 class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):

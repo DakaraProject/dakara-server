@@ -1,8 +1,12 @@
+from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from rest_framework import views
 from rest_framework.response import Response
-from django.contrib.auth import get_user_model
+from rest_registration.settings import registration_settings
+from rest_registration.utils.verification_notifications import (
+    send_register_verification_email_notification,
+)
 
 from internal import permissions as internal_permissions
 from users import serializers
@@ -44,6 +48,13 @@ class UserListView(generics.ListCreateAPIView):
             return serializers.UserCreationForManagerSerializer
 
         return serializers.UserSerializer
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+
+        # send verification email if requested
+        if registration_settings.REGISTER_VERIFICATION_ENABLED:
+            send_register_verification_email_notification(self.request, user)
 
 
 class UserView(generics.RetrieveUpdateDestroyAPIView):
