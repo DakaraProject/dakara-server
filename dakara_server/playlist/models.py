@@ -93,7 +93,7 @@ class PlaylistEntry(OrderedModel):
         pass
 
     def __str__(self):
-        return "{} (for {})".format(self.song, self.owner.username)
+        return "{} (for {})".format(self.song, self.owner)
 
     def set_playing(self):
         """The playlist entry has started to play

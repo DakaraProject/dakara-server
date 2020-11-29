@@ -24,7 +24,7 @@ class Song(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.title)
+        return self.title
 
 
 class Artist(models.Model):
@@ -34,7 +34,7 @@ class Artist(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return str(self.name)
+        return self.name
 
 
 class Work(models.Model):
@@ -48,7 +48,7 @@ class Work(models.Model):
     work_type = models.ForeignKey("WorkType", on_delete=models.CASCADE)
 
     def __str__(self):
-        return "{} ({})".format(self.title, self.work_type.get_name())
+        return "{} ({})".format(self.title, self.work_type)
 
 
 class WorkAlternativeTitle(models.Model):
@@ -80,11 +80,6 @@ class WorkType(models.Model):
     icon_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return str(self.get_name())
-
-    def get_name(self):
-        """Get the pretty name of the work type or the default one
-        """
         return self.name or self.query_name
 
 
@@ -135,4 +130,4 @@ class SongTag(models.Model):
     disabled = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.name)
+        return self.name
