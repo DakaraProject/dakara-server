@@ -611,8 +611,8 @@ class SongViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
         # Create urls to access these playlist entries
-        self.url_song1 = reverse("library-song-detail", kwargs={"pk": self.song1.id})
-        self.url_song2 = reverse("library-song-detail", kwargs={"pk": self.song2.id})
+        self.url_song1 = reverse("library-song", kwargs={"pk": self.song1.id})
+        self.url_song2 = reverse("library-song", kwargs={"pk": self.song2.id})
 
     def test_put_song_simple(self):
         """Test to update a song without nested artists, tags nor works

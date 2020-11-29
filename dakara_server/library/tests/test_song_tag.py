@@ -53,8 +53,8 @@ class SongTagViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
         # create urls
-        self.url_sg1 = reverse("library-songtag-detail", kwargs={"pk": self.tag1.id})
-        self.url_sg2 = reverse("library-songtag-detail", kwargs={"pk": self.tag2.id})
+        self.url_sg1 = reverse("library-songtag", kwargs={"pk": self.tag1.id})
+        self.url_sg2 = reverse("library-songtag", kwargs={"pk": self.tag2.id})
 
     def test_update_song_tag_manager(self):
         """Test manager can update tag

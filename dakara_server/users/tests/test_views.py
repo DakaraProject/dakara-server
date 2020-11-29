@@ -160,8 +160,8 @@ class UserViewTestCase(UsersAPITestCase):
         )
 
         # Generate url to access these users
-        self.user_url = reverse("users-detail", kwargs={"pk": self.user.id})
-        self.manager_url = reverse("users-detail", kwargs={"pk": self.manager.id})
+        self.user_url = reverse("users", kwargs={"pk": self.user.id})
+        self.manager_url = reverse("users", kwargs={"pk": self.manager.id})
 
     def test_get_user(self):
         """Test to verify user details

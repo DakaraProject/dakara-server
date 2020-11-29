@@ -459,9 +459,9 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.create_test_data()
 
         # Create urls to access these playlist entries
-        self.url_pe1 = reverse("playlist-entries-detail", kwargs={"pk": self.pe1.id})
-        self.url_pe2 = reverse("playlist-entries-detail", kwargs={"pk": self.pe2.id})
-        self.url_pe3 = reverse("playlist-entries-detail", kwargs={"pk": self.pe3.id})
+        self.url_pe1 = reverse("playlist-entries", kwargs={"pk": self.pe1.id})
+        self.url_pe2 = reverse("playlist-entries", kwargs={"pk": self.pe2.id})
+        self.url_pe3 = reverse("playlist-entries", kwargs={"pk": self.pe3.id})
 
     def test_delete_playlist_entry_manager(self):
         """Test to verify playlist entry deletion as playlist manager
