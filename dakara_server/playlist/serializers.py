@@ -28,8 +28,14 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlaylistEntry
-        fields = ("id", "date_created", "owner", "song", "song_id")
+        fields = ("id", "date_created", "owner", "song", "song_id", "use_instrumental")
         read_only_fields = ("date_created",)
+
+    def validate(self, data):
+        if data.get("use_instrumental") and not data["song"].has_instrumental:
+            raise serializers.ValidationError("Song does not have instrumental")
+
+        return data
 
 
 class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
@@ -41,7 +47,7 @@ class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlaylistEntry
-        fields = ("id", "song", "date_created", "owner")
+        fields = ("id", "song", "date_created", "owner", "use_instrumental")
         read_only_fields = ("date_created",)
 
 
@@ -55,7 +61,14 @@ class PlaylistEntryWithDatePlaySerializer(PlaylistEntrySerializer):
     date_play = serializers.DateTimeField(read_only=True)
 
     class Meta(PlaylistEntrySerializer.Meta):
-        fields = ("id", "date_created", "date_play", "owner", "song")
+        fields = (
+            "id",
+            "date_created",
+            "date_play",
+            "owner",
+            "song",
+            "use_instrumental",
+        )
 
 
 class PlaylistPlayedEntryWithDatePlayedSerializer(PlaylistEntrySerializer):
@@ -65,7 +78,14 @@ class PlaylistPlayedEntryWithDatePlayedSerializer(PlaylistEntrySerializer):
     """
 
     class Meta(PlaylistEntrySerializer.Meta):
-        fields = ("id", "date_created", "date_played", "owner", "song")
+        fields = (
+            "id",
+            "date_created",
+            "date_played",
+            "owner",
+            "song",
+            "use_instrumental",
+        )
         read_only_fields = ("date_created", "date_played")
 
 

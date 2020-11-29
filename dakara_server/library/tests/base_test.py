@@ -64,6 +64,7 @@ class LibraryProvider(BaseProvider):
             version="Version2",
             detail="Detail2",
             detail_video="Detail_Video2",
+            has_instrumental=True,
         )
         self.song2.save()
         self.song2.tags.add(self.tag1)
@@ -82,6 +83,7 @@ class LibraryProvider(BaseProvider):
         self.assertEqual(json["version"], expected_song.version)
         self.assertEqual(json["detail"], expected_song.detail)
         self.assertEqual(json["detail_video"], expected_song.detail_video)
+        self.assertEqual(json["has_instrumental"], expected_song.has_instrumental)
 
         # tags
         expected_tags = expected_song.tags.all()

@@ -630,6 +630,7 @@ class SongViewAPIViewTestCase(LibraryAPITestCase):
             "version": "version 1",
             "detail": "test",
             "detail_video": "here",
+            "has_instrumental": True,
         }
         response = self.client.put(self.url_song1, song)
 
@@ -646,6 +647,7 @@ class SongViewAPIViewTestCase(LibraryAPITestCase):
         self.assertEqual(song.version, "version 1")
         self.assertEqual(song.detail, "test")
         self.assertEqual(song.detail_video, "here")
+        self.assertTrue(song.has_instrumental)
 
     def test_put_song_embedded(self):
         """Test to update a song with nested artists, tags and works

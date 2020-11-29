@@ -162,6 +162,7 @@ class SongSerializer(serializers.ModelSerializer):
             "works",
             "lyrics",
             "lyrics_preview",
+            "has_instrumental",
             "date_created",
             "date_updated",
         )
@@ -296,7 +297,7 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Song
-        fields = ("title", "artists", "works", "file_path")
+        fields = ("title", "artists", "works", "file_path", "has_instrumental")
 
     @staticmethod
     def get_file_path(song):

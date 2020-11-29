@@ -34,6 +34,13 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Changed
+
+- The `createplayer` command accepts now `--username` and `--password` to respectively pass username and password.
+  It also accepts `--noinput` to not prompt any input when calling the command.
+
+## 1.6.0 - 2020-09-05
+
 ### Update notes
 
 When updating Dakara server from 1.5 to 1.6, (which means updating Django from 1.11 to 2.2), the database may have inconstencies that lead to a crash when running `./manage.py runserver`.
@@ -75,10 +82,9 @@ mv db.squlite3 db_backup.sqlite3
 rm db_backup.sqlite3 db_library.json db_users.json db_playlist.json
 ```
 
-### Changed
+### Added
 
-- The `createplayer` command accepts now `--username` and `--password` to respectively pass username and password.
-  It also accepts `--noinput` to not prompt any input when calling the command.
+- Add instrumental track support. New fields are `Song.has_instrumental` and `PlaylistEntry.use_instrumental`.
 
 ### Fixed
 
