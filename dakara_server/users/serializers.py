@@ -145,3 +145,14 @@ class UserCreationForManagerSerializer(PasswordSerializer):
             "password": {"write_only": True},
             "validated_by_manager": {"default": True},
         }
+
+    def create(self, validated_data):
+        """Create a user
+
+        We shouldn't use the parent class method, as it will bypass the
+        UserManager's secured user creation methods.
+        """
+        instance = UserModel.objects.create_user(**validated_data)
+        instance.save()
+
+        return instance
