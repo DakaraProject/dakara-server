@@ -134,6 +134,6 @@ AUTHENTICATION_BACKENDS = ["users.backend.DakaraModelBackend"]
 
 
 HOST_URLS = {
-    "NOTIFICATION_TO_MANAGERS_URL": "https://frontend-host/settings/users",
+    "USER_EDIT_URL": "https://frontend-host/settings/users/{}",
     "LOGIN_URL": "https://frontend-host/login",
 }

@@ -38,7 +38,7 @@ def send_notification_to_managers(user):
     # create message content
     template = get_template("notification_to_managers.txt")
     content = template.render(
-        {"user": user, "url": settings.HOST_URLS["NOTIFICATION_TO_MANAGERS_URL"]}
+        {"user": user, "url": settings.HOST_URLS["USER_EDIT_URL"].format(user.id)}
     )
 
     # send the mail
