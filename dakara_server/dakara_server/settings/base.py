@@ -34,7 +34,7 @@ INSTALLED_APPS = (
     "rest_registration",
     "library",
     "playlist.apps.PlaylistConfig",
-    "users",
+    "users.apps.UsersConfig",
     "internal.apps.InternalConfig",
 )
 
@@ -63,7 +63,6 @@ ROOT_URLCONF = "dakara_server.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": ["templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -115,15 +114,23 @@ REST_FRAMEWORK = {
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
+
+SENDER_EMAIL = "no-reply@example.com"
+
+
+# Django rest registration config
 REST_REGISTRATION = {
     "LOGIN_AUTHENTICATE_SESSION": False,
     "LOGIN_SERIALIZER_CLASS": "users.serializers.DakaraLoginSerializer",
     "REGISTER_VERIFICATION_URL": "https://frontend-host/verify-user/",
     "RESET_PASSWORD_VERIFICATION_URL": "https://frontend-host/reset-password/",
     "REGISTER_EMAIL_VERIFICATION_URL": "https://frontend-host/verify-email/",
-    "VERIFICATION_FROM_EMAIL": "no-reply@example.com",
+    "VERIFICATION_FROM_EMAIL": SENDER_EMAIL,
     "USER_VERIFICATION_FLAG_FIELD": "validated_by_email",
     "USER_LOGIN_FIELDS": ["username", "email"],
 }
 
 AUTHENTICATION_BACKENDS = ["users.backend.DakaraModelBackend"]
+
+
+HOST_URLS = {"NOTIFICATION_TO_MANAGERS_URL": "https://frontend-host/settings/users"}

@@ -115,3 +115,5 @@ REST_REGISTRATION.update(
         "VERIFICATION_FROM_EMAIL": "no-reply@example.com",
     }
 )
+
+HOST_URLS = {"NOTIFICATION_TO_MANAGERS_URL": "http://localhost:3000/settings/users"}

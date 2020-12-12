@@ -10,6 +10,28 @@ from users.tests.base_test import UsersAPITestCase
 class RegisterViewTestCase(UsersAPITestCase):
     url = reverse("rest_registration:register")
 
+    @patch("users.signals.send_mail")
+    def test_create_user(self, mocked_send_mail):
+        """Test to create a user
+        """
+        self.manager = self.create_user(
+            "TestManger", email="test@manager.com", users_level=UserModel.MANAGER
+        )
+        response = self.client.post(
+            self.url,
+            {
+                "username": "TestUser",
+                "email": "test@user.com",
+                "password": "password",
+                "password_confirm": "password",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        mocked_send_mail.assert_called_with(
+            "New user registered", ANY, ANY, ["test@manager.com"], fail_silently=False
+        )
+
     def test_create_user_name_not_unique(self):
         """Test to create a user with same username as an existing one
         """
