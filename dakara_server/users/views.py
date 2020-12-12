@@ -9,6 +9,7 @@ from rest_registration.utils.verification_notifications import (
 
 from internal import permissions as internal_permissions
 from users import permissions, serializers
+from users import emails
 
 
 UserModel = get_user_model()
@@ -74,6 +75,15 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
             return serializers.UserForManagerSerializer
 
         return serializers.UserSerializer
+
+    def perform_update(self, serializer):
+        validated_by_manager_old = serializer.instance.validated_by_manager
+        super().perform_update(serializer)
+        validated_by_manager_new = serializer.instance.validated_by_manager
+
+        if not validated_by_manager_old and validated_by_manager_new:
+            # user has been validated by manager, send notification
+            emails.send_notification_to_user_validated(serializer.instance)
 
 
 class PasswordView(generics.UpdateAPIView):

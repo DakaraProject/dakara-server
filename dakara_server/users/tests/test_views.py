@@ -10,7 +10,7 @@ from users.tests.base_test import UsersAPITestCase
 class RegisterViewTestCase(UsersAPITestCase):
     url = reverse("rest_registration:register")
 
-    @patch("users.signals.send_mail")
+    @patch("users.emails.send_mail")
     def test_create_user(self, mocked_send_mail):
         """Test to create a user
         """
@@ -426,7 +426,8 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         user = UserModel.objects.get(id=self.user.id)
         self.assertEqual(user.library_permission_level, UserModel.USER)
 
-    def test_patch_user_validate_by_manager(self):
+    @patch("users.emails.send_mail")
+    def test_patch_user_validate_by_manager(self, mocked_send_mail):
         """Test to verify user validation by a manager
         """
         # Set user as not validated
@@ -443,6 +444,10 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         # Post-assertion: user is now validated
         user = UserModel.objects.get(id=self.user.id)
         self.assertTrue(user.validated_by_manager)
+
+        mocked_send_mail.assert_called_with(
+            "Account validated", ANY, ANY, [self.user.email], fail_silently=False,
+        )
 
     def test_patch_self_forbidden(self):
         """Test to verify user update can't update self

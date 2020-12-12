@@ -116,4 +116,7 @@ REST_REGISTRATION.update(
     }
 )
 
-HOST_URLS = {"NOTIFICATION_TO_MANAGERS_URL": "http://localhost:3000/settings/users"}
+HOST_URLS = {
+    "NOTIFICATION_TO_MANAGERS_URL": "http://localhost:3000/settings/users",
+    "LOGIN_URL": "http://localhost:3000/login",
+}

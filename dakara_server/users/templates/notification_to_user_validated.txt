@@ -1,0 +1,3 @@
+Your account has been validated, you can now login:
+
+{{ url | safe }}

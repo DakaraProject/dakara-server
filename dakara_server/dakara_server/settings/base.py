@@ -133,4 +133,7 @@ REST_REGISTRATION = {
 AUTHENTICATION_BACKENDS = ["users.backend.DakaraModelBackend"]
 
 
-HOST_URLS = {"NOTIFICATION_TO_MANAGERS_URL": "https://frontend-host/settings/users"}
+HOST_URLS = {
+    "NOTIFICATION_TO_MANAGERS_URL": "https://frontend-host/settings/users",
+    "LOGIN_URL": "https://frontend-host/login",
+}
