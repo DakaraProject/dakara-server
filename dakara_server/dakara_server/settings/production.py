@@ -97,6 +97,17 @@ LOGGING = {
     },
 }
 
+# email backend
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_PORT = config("EMAIL_PORT", cast=int, default="25")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default="false")
+EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default="false")
+EMAIL_TIMEOUT = config("EMAIL_TIMEOUT", cast=int, default="0") or None
+EMAIL_SSL_KEYFILE = config("EMAIL_SSL_KEYFILE", default="") or None
+EMAIL_SSL_CERTIFICATE = config("EMAIL_SSL_CERTIFICATE", default="") or None
 
-# limit of the playlist size
-PLAYLIST_SIZE_LIMIT = config("PLAYLIST_SIZE_LIMIT", cast=int, default=100)
+# values imported from base config
+# SENDER_EMAIL is get from the environment
+# HOST_URL is get from the environment

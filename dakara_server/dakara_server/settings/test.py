@@ -73,3 +73,8 @@ LOGGING = {
 }
 
 PLAYLIST_SIZE_LIMIT = 100
+EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
+
+# values imported from base config
+# SENDER_EMAIL is get from the environment
+# HOST_URL is get from the environment

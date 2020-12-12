@@ -12,6 +12,8 @@ This file should not be modified if you are not a dev.
 
 import os
 
+from decouple import config
+
 from dakara_server.version import __version__ as VERSION, __date__ as DATE  # noqa F401
 
 
@@ -115,16 +117,17 @@ REST_FRAMEWORK = {
 }
 
 
-SENDER_EMAIL = "no-reply@example.com"
+SENDER_EMAIL = config("SENDER_EMAIL", default="no-reply@example.com")
+HOST_URL = config("HOST_URL", default="https://frontend-host")
 
 
 # Django rest registration config
 REST_REGISTRATION = {
     "LOGIN_AUTHENTICATE_SESSION": False,
     "LOGIN_SERIALIZER_CLASS": "users.serializers.DakaraLoginSerializer",
-    "REGISTER_VERIFICATION_URL": "https://frontend-host/verify-user/",
-    "RESET_PASSWORD_VERIFICATION_URL": "https://frontend-host/reset-password/",
-    "REGISTER_EMAIL_VERIFICATION_URL": "https://frontend-host/verify-email/",
+    "REGISTER_VERIFICATION_URL": HOST_URL + "/verify-user/",
+    "RESET_PASSWORD_VERIFICATION_URL": HOST_URL + "/reset-password/",
+    "REGISTER_EMAIL_VERIFICATION_URL": HOST_URL + "/verify-email/",
     "VERIFICATION_FROM_EMAIL": SENDER_EMAIL,
     "USER_VERIFICATION_FLAG_FIELD": "validated_by_email",
     "USER_LOGIN_FIELDS": ["username", "email"],
@@ -133,7 +136,11 @@ REST_REGISTRATION = {
 AUTHENTICATION_BACKENDS = ["users.backend.DakaraModelBackend"]
 
 
+# Front URLs
 HOST_URLS = {
-    "USER_EDIT_URL": "https://frontend-host/settings/users/{}",
-    "LOGIN_URL": "https://frontend-host/login",
+    "USER_EDIT_URL": HOST_URL + "/settings/users/{}",
+    "LOGIN_URL": HOST_URL + "/login",
 }
+
+# limit of the playlist size
+PLAYLIST_SIZE_LIMIT = config("PLAYLIST_SIZE_LIMIT", cast=int, default=100)

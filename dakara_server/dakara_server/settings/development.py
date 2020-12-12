@@ -16,22 +16,23 @@ or in a `settings.ini` with a single `[settings]` section.
 
 import os
 
-from decouple import config, Csv
+from decouple import config
 from dj_database_url import parse as db_url
 
 from dakara_server.settings.base import *  # noqa F403
-from dakara_server.settings.base import BASE_DIR, REST_REGISTRATION
+from dakara_server.settings.base import BASE_DIR
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
-SECRET_KEY = config("SECRET_KEY", default="YourSecretKey")
-DEBUG = config("DEBUG", cast=bool, default=True)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv(), default="*")
+SECRET_KEY = "YourSecretKey"
+DEBUG = True
+ALLOWED_HOSTS = ["*"]
 
 # Django password security policy
 # https://docs.djangoproject.com/en/1.11/topics/auth/passwords/#module-django.contrib.auth.password_validation
-AUTH_PASSWORD_VALIDATORS = config("AUTH_PASSWORD_VALIDATORS", cast=Csv(), default="")
+
+AUTH_PASSWORD_VALIDATORS = []
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -39,11 +40,7 @@ AUTH_PASSWORD_VALIDATORS = config("AUTH_PASSWORD_VALIDATORS", cast=Csv(), defaul
 # https://github.com/kennethreitz/dj-database-url#url-schema
 
 DATABASES = {
-    "default": config(
-        "DATABASE_URL",
-        default="sqlite:///" + os.path.join(BASE_DIR, "db.sqlite3"),
-        cast=db_url,
-    )
+    "default": db_url("sqlite:///" + os.path.join(BASE_DIR, "db.sqlite3")),
 }
 
 # Channels
@@ -54,9 +51,9 @@ CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-LANGUAGE_CODE = config("LANGUAGE_CODE", default="en-us")
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = config("TIME_ZONE", default="UTC")
+TIME_ZONE = "UTC"
 
 # Loggin config
 LOGGING = {
@@ -101,22 +98,9 @@ LOGGING = {
     },
 }
 
-# limit of the playlist size
-PLAYLIST_SIZE_LIMIT = config("PLAYLIST_SIZE_LIMIT", cast=int, default=100)
-
 # email backend
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-REST_REGISTRATION.update(
-    {
-        "REGISTER_VERIFICATION_URL": "http://localhost:3000/verify-email",
-        "RESET_PASSWORD_VERIFICATION_URL": "http://localhost:3000/reset-password",
-        "REGISTER_EMAIL_VERIFICATION_URL": "http://localhost:3000/verify-email-change",
-        "VERIFICATION_FROM_EMAIL": "no-reply@example.com",
-    }
-)
-
-HOST_URLS = {
-    "USER_EDIT_URL": "http://localhost:3000/settings/users/{}",
-    "LOGIN_URL": "http://localhost:3000/login",
-}
+# values imported from base config
+# SENDER_EMAIL is get from the environment
+# HOST_URL is get from the environment
