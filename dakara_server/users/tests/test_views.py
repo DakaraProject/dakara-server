@@ -10,8 +10,8 @@ from users.tests.base_test import UsersAPITestCase
 class RegisterViewTestCase(UsersAPITestCase):
     url = reverse("rest_registration:register")
 
-    @patch("users.emails.send_mail")
-    def test_create_user(self, mocked_send_mail):
+    @patch("users.emails.send_notification_to_managers")
+    def test_create_user(self, mocked_send_notification_to_managers):
         """Test to create a user
         """
         self.manager = self.create_user(
@@ -28,11 +28,11 @@ class RegisterViewTestCase(UsersAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        mocked_send_mail.assert_called_with(
-            "New user registered", ANY, ANY, ["test@manager.com"], fail_silently=False
-        )
+        user = UserModel.objects.last()
+        mocked_send_notification_to_managers.assert_called_once_with(user)
 
-    def test_create_user_name_not_unique(self):
+    @patch("users.emails.send_notification_to_managers")
+    def test_create_user_name_not_unique(self, mocked_send_notification_to_managers):
         """Test to create a user with same username as an existing one
         """
         self.user = self.create_user("TestUser", email="test@user.com")
@@ -51,7 +51,12 @@ class RegisterViewTestCase(UsersAPITestCase):
             response.data["username"], ["A user with that username already exists."]
         )
 
-    def test_create_user_name_not_case_insensitively_unique(self):
+        mocked_send_notification_to_managers.assert_not_called()
+
+    @patch("users.emails.send_notification_to_managers")
+    def test_create_user_name_not_case_insensitively_unique(
+        self, mocked_send_notification_to_managers
+    ):
         """Test to create a user with a case different username from an existing one
         """
         self.user = self.create_user("TestUser", email="test@user.com")
@@ -70,7 +75,10 @@ class RegisterViewTestCase(UsersAPITestCase):
             response.data["username"], ["A user with that username already exists."]
         )
 
-    def test_create_user_email_not_unique(self):
+        mocked_send_notification_to_managers.assert_not_called()
+
+    @patch("users.emails.send_notification_to_managers")
+    def test_create_user_email_not_unique(self, mocked_send_notification_to_managers):
         """Test to create a user with same email as an existing one
         """
         self.user = self.create_user("TestUser", email="test@user.com")
@@ -89,7 +97,12 @@ class RegisterViewTestCase(UsersAPITestCase):
             response.data["email"], ["user with this email address already exists."]
         )
 
-    def test_create_user_email_not_case_insensitively_unique(self):
+        mocked_send_notification_to_managers.assert_not_called()
+
+    @patch("users.emails.send_notification_to_managers")
+    def test_create_user_email_not_case_insensitively_unique(
+        self, mocked_send_notification_to_managers
+    ):
         """Test to create a user with a case different email from an existing one
         """
         self.user = self.create_user("TestUser", email="test@user.com")
@@ -107,6 +120,8 @@ class RegisterViewTestCase(UsersAPITestCase):
         self.assertListEqual(
             response.data["email"], ["user with this email address already exists."]
         )
+
+        mocked_send_notification_to_managers.assert_not_called()
 
 
 class LoginViewTestCase(UsersAPITestCase):
@@ -406,7 +421,8 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         response = self.client.get(self.user_url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_patch_user(self):
+    @patch("users.emails.send_notification_to_user_validated")
+    def test_patch_user(self, mocked_send_notification_to_user_validated):
         """Test to verify user update
         """
         # Pre-assertion: user has no library rights
@@ -426,8 +442,13 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         user = UserModel.objects.get(id=self.user.id)
         self.assertEqual(user.library_permission_level, UserModel.USER)
 
-    @patch("users.emails.send_mail")
-    def test_patch_user_validate_by_manager(self, mocked_send_mail):
+        # assert no mail was sent, as the edition did not change account validation
+        mocked_send_notification_to_user_validated.assert_not_called()
+
+    @patch("users.emails.send_notification_to_user_validated")
+    def test_patch_user_validate_by_manager(
+        self, mocked_send_notification_to_user_validated
+    ):
         """Test to verify user validation by a manager
         """
         # Set user as not validated
@@ -445,9 +466,8 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         user = UserModel.objects.get(id=self.user.id)
         self.assertTrue(user.validated_by_manager)
 
-        mocked_send_mail.assert_called_with(
-            "Account validated", ANY, ANY, [self.user.email], fail_silently=False,
-        )
+        # assert mail was sent
+        mocked_send_notification_to_user_validated.assert_called_once_with(user)
 
     def test_patch_self_forbidden(self):
         """Test to verify user update can't update self
