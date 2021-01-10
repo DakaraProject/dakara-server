@@ -6,7 +6,7 @@ from library.tests.base_test import LibraryAPITestCase
 from library.models import SongTag
 
 
-class SongTagListViewListAPIViewTestCase(LibraryAPITestCase):
+class SongTagListViewTestCase(LibraryAPITestCase):
     url = reverse("library-songtag-list")
 
     def setUp(self):
@@ -40,7 +40,7 @@ class SongTagListViewListAPIViewTestCase(LibraryAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class SongTagViewUpdateAPIViewTestCase(LibraryAPITestCase):
+class SongTagViewTestCase(LibraryAPITestCase):
     def setUp(self):
         # create a user without any rights
         self.manager = self.create_user(
@@ -53,8 +53,8 @@ class SongTagViewUpdateAPIViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
         # create urls
-        self.url_sg1 = reverse("library-songtag-detail", kwargs={"pk": self.tag1.id})
-        self.url_sg2 = reverse("library-songtag-detail", kwargs={"pk": self.tag2.id})
+        self.url_sg1 = reverse("library-songtag", kwargs={"pk": self.tag1.id})
+        self.url_sg2 = reverse("library-songtag", kwargs={"pk": self.tag2.id})
 
     def test_update_song_tag_manager(self):
         """Test manager can update tag

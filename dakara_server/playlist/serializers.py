@@ -130,7 +130,7 @@ class PlayerStatusSerializer(serializers.Serializer):
         return data
 
     def validate_playlist_entry_id(self, playlist_entry):
-        next_playlist_entry = PlaylistEntry.get_next()
+        next_playlist_entry = PlaylistEntry.objects.get_next()
 
         if next_playlist_entry != playlist_entry:
             raise serializers.ValidationError(
@@ -204,8 +204,8 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
     def validate_playlist_entry_id(self, playlist_entry):
         # check the playlist entry is currently playing or was played
         if (
-            playlist_entry != PlaylistEntry.get_playing()
-            and playlist_entry not in PlaylistEntry.get_playlist_played()
+            playlist_entry != PlaylistEntry.objects.get_playing()
+            and playlist_entry not in PlaylistEntry.objects.get_playlist_played()
         ):
             raise serializers.ValidationError(
                 "The playlist entry must be " "currently playing or already " "played"

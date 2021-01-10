@@ -49,7 +49,7 @@ class IsPlayingEntryOwner(BasePermissionCustom):
 
     def has_permission(self, request, view):
         # get the playing song
-        playlist_entry = PlaylistEntry.get_playing()
+        playlist_entry = PlaylistEntry.objects.get_playing()
 
         # disallow access if there is no playlist entry
         if playlist_entry is None:

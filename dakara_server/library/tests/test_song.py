@@ -8,7 +8,7 @@ from library.models import Song, Artist, Work, SongWorkLink, SongTag
 from library.tests.base_test import LibraryAPITestCase
 
 
-class SongListViewAPIViewTestCase(LibraryAPITestCase):
+class SongListViewTestCase(LibraryAPITestCase):
     url = reverse("library-song-list")
 
     def setUp(self):
@@ -599,7 +599,7 @@ And everywhere that Mary went""",
         self.assertIsNotNone(workNew)
 
 
-class SongViewAPIViewTestCase(LibraryAPITestCase):
+class SongViewTestCase(LibraryAPITestCase):
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser")
@@ -611,8 +611,8 @@ class SongViewAPIViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
         # Create urls to access these playlist entries
-        self.url_song1 = reverse("library-song-detail", kwargs={"pk": self.song1.id})
-        self.url_song2 = reverse("library-song-detail", kwargs={"pk": self.song2.id})
+        self.url_song1 = reverse("library-song", kwargs={"pk": self.song1.id})
+        self.url_song2 = reverse("library-song", kwargs={"pk": self.song2.id})
 
     def test_put_song_simple(self):
         """Test to update a song without nested artists, tags nor works

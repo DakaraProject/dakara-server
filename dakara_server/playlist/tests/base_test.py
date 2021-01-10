@@ -77,7 +77,7 @@ class PlaylistProvider(BaseProvider):
     ):
         """Put the karaoke in stop state
         """
-        self.karaoke = Karaoke.get_object()
+        self.karaoke = Karaoke.objects.get_object()
         if ongoing is not None:
             self.karaoke.ongoing = ongoing
 
@@ -93,14 +93,14 @@ class PlaylistProvider(BaseProvider):
         """Set the player playing the next song
         """
         # get current entry
-        current_entry = PlaylistEntry.get_playing()
+        current_entry = PlaylistEntry.objects.get_playing()
 
         if current_entry is not None:
             # set current entry as played
             current_entry.set_finished()
 
         # get next entry
-        next_entry = PlaylistEntry.get_next()
+        next_entry = PlaylistEntry.objects.get_next()
 
         return self.player_play_song(next_entry, *args, **kwargs)
 

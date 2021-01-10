@@ -15,11 +15,15 @@ class DakaraUserManager(UserManager):
     def _create_user(self, username, *args, **kwargs):
         """Generic method to create new users
 
-        Check if the username is free, otherwise raise a `ValueError`.
+        Check if the username is free, otherwise raise a
+        `UserExistsWithDifferentCaseError`.
         """
         # check if username is free before creating user with this username
         if self.is_username_taken(username):
-            raise ValueError("The username must be case insensitively unique")
+            # normally the serializer prevents to be in this case
+            raise UserExistsWithDifferentCaseError(
+                "The username must be case insensitively unique"
+            )
 
         return super()._create_user(username, *args, **kwargs)
 
@@ -70,6 +74,9 @@ class DakaraUser(AbstractUser):
         max_length=1, choices=LEVELS_PLAYLIST, null=True
     )
 
+    def __str__(self):
+        return self.username
+
     @property
     def is_users_user(self):
         return self.users_permission_level == self.USER
@@ -97,3 +104,8 @@ class DakaraUser(AbstractUser):
     @property
     def is_player(self):
         return self.playlist_permission_level == self.PLAYER
+
+
+class UserExistsWithDifferentCaseError(ValueError):
+    """Error raised when creating a user with just a different of case
+    """
