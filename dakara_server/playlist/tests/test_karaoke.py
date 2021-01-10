@@ -8,11 +8,11 @@ from rest_framework import status
 
 from internal.tests.base_test import tz
 from playlist.models import Karaoke, PlaylistEntry, PlayerError
-from playlist.date_stop import clear_date_stop
+from playlist.date_stop import clear_date_stop, KARAOKE_JOB_NAME
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
+class KaraokeViewTestCase(PlaylistAPITestCase):
     url = reverse("playlist-karaoke")
     url_digest = reverse("playlist-digest")
 
@@ -23,7 +23,7 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         """Test an authenticated user can access the karaoke
         """
         # set stop date
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         date_stop = datetime.now(tz)
         karaoke.date_stop = date_stop
         karaoke.save()
@@ -66,19 +66,19 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         # set can add to playlist to false
         response = self.client.patch(self.url, {"can_add_to_playlist": False})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertFalse(karaoke.can_add_to_playlist)
 
         # set player play next song to false
         response = self.client.patch(self.url, {"player_play_next_song": False})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertFalse(karaoke.player_play_next_song)
 
         # set karaoke ongoing to false
         response = self.client.patch(self.url, {"ongoing": False})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertFalse(karaoke.ongoing)
         mocked_send_to_channel.assert_called_with(ANY, "send_idle")
 
@@ -287,7 +287,7 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check karaoke was updated
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertEqual(karaoke.date_stop, date_stop)
 
         # Check job was added
@@ -301,7 +301,7 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         """Test a manager can clear the kara date stop and job is cancelled
         """
         # set karaoke date stop
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         date_stop = datetime.now(tz)
         karaoke.date_stop = date_stop
         karaoke.save()
@@ -314,9 +314,53 @@ class KaraokeViewRetrieveUpdateAPIViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check karaoke was updated
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertIsNone(karaoke.date_stop)
 
         # Check remove was called
-        mocked_cache.get.assert_called_with("karaoke_date_stop")
+        mocked_cache.get.assert_called_with(KARAOKE_JOB_NAME)
         mocked_scheduler.get_job.return_value.remove.assert_called_with()
+
+    @patch("playlist.views.scheduler")
+    @patch("playlist.views.cache")
+    def test_patch_karaoke_clear_date_stop_existing_job_id(
+        self, mocked_cache, mocked_scheduler
+    ):
+        """Test a manager can clear existing date stop
+        """
+        # create existing job in cache
+        mocked_cache.get.return_value = "job_id"
+
+        # login as manager
+        self.authenticate(self.manager)
+
+        # clear karaoke date stop
+        response = self.client.patch(self.url, {"date_stop": None})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check remove was called
+        mocked_cache.get.assert_called_with(KARAOKE_JOB_NAME)
+        mocked_scheduler.get_job.return_value.remove.assert_called_with()
+        mocked_cache.delete.assert_not_called()
+
+    @patch("playlist.views.scheduler")
+    @patch("playlist.views.cache")
+    def test_patch_karaoke_clear_date_stop_existing_job_id_no_job(
+        self, mocked_cache, mocked_scheduler
+    ):
+        """Test a manager can clear existing date stop without job
+        """
+        # create existing job in cache
+        mocked_cache.get.return_value = "job_id"
+        mocked_scheduler.get_job.return_value = None
+
+        # login as manager
+        self.authenticate(self.manager)
+
+        # clear karaoke date stop
+        response = self.client.patch(self.url, {"date_stop": None})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check remove was called
+        mocked_cache.get.assert_called_with(KARAOKE_JOB_NAME)
+        mocked_cache.delete.assert_called_with(KARAOKE_JOB_NAME)

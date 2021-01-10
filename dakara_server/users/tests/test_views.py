@@ -187,7 +187,7 @@ class LoginViewTestCase(UsersAPITestCase):
         self.assertNotIn("token", response.data)
 
 
-class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
+class UserListViewTestCase(UsersAPITestCase):
     url = reverse("users-list")
 
     def setUp(self):
@@ -340,7 +340,7 @@ class UserListViewListCreateAPIViewTestCase(UsersAPITestCase):
         mocked_send_email.assert_not_called()
 
 
-class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
+class UserViewTestCase(UsersAPITestCase):
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser")
@@ -351,8 +351,8 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         )
 
         # Generate url to access these users
-        self.user_url = reverse("users-detail", kwargs={"pk": self.user.id})
-        self.manager_url = reverse("users-detail", kwargs={"pk": self.manager.id})
+        self.user_url = reverse("users", kwargs={"pk": self.user.id})
+        self.manager_url = reverse("users", kwargs={"pk": self.manager.id})
 
     def test_get_user(self):
         """Test to verify user details
@@ -546,7 +546,7 @@ class UserViewRetrieveUpdateDestroyTestCase(UsersAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class CurrentUserViewAPIViewTestCase(UsersAPITestCase):
+class CurrentUserViewTestCase(UsersAPITestCase):
     url = reverse("users-current")
 
     def setUp(self):

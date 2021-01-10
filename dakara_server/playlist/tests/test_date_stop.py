@@ -15,7 +15,7 @@ class ClearDateStopTestCase(PlaylistAPITestCase):
         """
 
         # Set up karaoke with date stop and can add to playlist enabled
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertTrue(karaoke.can_add_to_playlist)
         karaoke.date_stop = datetime.now(tz) - timedelta(minutes=10)
         karaoke.save()
@@ -24,7 +24,7 @@ class ClearDateStopTestCase(PlaylistAPITestCase):
             clear_date_stop()
 
         # Check clear date stop was cleared and can add to playlist was disabled
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertFalse(karaoke.can_add_to_playlist)
         self.assertIsNone(karaoke.date_stop)
 
@@ -42,7 +42,7 @@ class ClearDateStopTestCase(PlaylistAPITestCase):
         """
 
         # Set up karaoke with date stop and can add to playlist enabled
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertTrue(karaoke.can_add_to_playlist)
         karaoke.date_stop = datetime.now(tz) + timedelta(minutes=10)
         karaoke.save()
@@ -51,7 +51,7 @@ class ClearDateStopTestCase(PlaylistAPITestCase):
             clear_date_stop()
 
         # Check clear date stop was cleared and can add to playlist was disabled
-        karaoke_new = Karaoke.get_object()
+        karaoke_new = Karaoke.objects.get_object()
         self.assertTrue(karaoke_new.can_add_to_playlist)
         self.assertEqual(karaoke_new.date_stop, karaoke.date_stop)
 
@@ -70,7 +70,7 @@ class CheckDateStopOnAppReadyTestCase(PlaylistAPITestCase):
         """
 
         # Set stop date in the past
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = datetime.now(tz) - timedelta(minutes=10)
         karaoke.save()
 
@@ -92,7 +92,7 @@ class CheckDateStopOnAppReadyTestCase(PlaylistAPITestCase):
         mocked_scheduler.add_job.return_value.id = "job_id"
 
         # Set stop date in the future
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         date_stop = datetime.now(tz) + timedelta(minutes=10)
         karaoke.date_stop = date_stop
         karaoke.save()
@@ -114,7 +114,7 @@ class CheckDateStopOnAppReadyTestCase(PlaylistAPITestCase):
         """Check nothing happen when date stop is not set
         """
         # Assert stop date is not set
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         self.assertIsNone(karaoke.date_stop)
 
         # Call method
@@ -134,7 +134,7 @@ class CheckDateStopOnAppReadyTestCase(PlaylistAPITestCase):
         mocked_scheduler.add_job.return_value.id = "job_id"
 
         # Set stop date in the future
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         date_stop = datetime.now(tz) + timedelta(minutes=10)
         karaoke.date_stop = date_stop
         karaoke.save()
@@ -164,10 +164,10 @@ class CheckDateStopOnAppReadyTestCase(PlaylistAPITestCase):
         """Check there is no crash if the database does not exist
 
         We simulate a crash by raising a `django.db.utils.OperationalError`
-        when accessing to `Karaoke.get_object`.
+        when accessing to `Karaoke.objects.get_object`.
         """
         # mock the karaoke mock to crash when invoking class method get_object
-        MockedKaraoke.get_object.side_effect = OperationalError(
+        MockedKaraoke.objects.get_object.side_effect = OperationalError(
             "no such table: playlist_karaoke"
         )
 

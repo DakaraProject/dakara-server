@@ -1,11 +1,12 @@
 import os
+from abc import ABC, abstractmethod
 
 from django.apps import AppConfig
 
 from internal.version import check_version
 
 
-class DakaraConfig(AppConfig):
+class DakaraConfig(AppConfig, ABC):
     """Dakara generic config
 
     This class call the ready_no_reload method on startup,
@@ -28,12 +29,12 @@ class DakaraConfig(AppConfig):
         # The code bellow cannot be executed by the reloader
         self.ready_no_reload()
 
+    @abstractmethod
     def ready_no_reload(self):
         """Method called when app start, but not called by reloader
 
         This is a stub, that needs to be overriden
         """
-        raise NotImplementedError()
 
 
 class InternalConfig(DakaraConfig):
