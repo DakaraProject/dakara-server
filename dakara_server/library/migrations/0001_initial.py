@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import datetime
-import library.fields
 
 
 class Migration(migrations.Migration):
@@ -63,7 +62,7 @@ class Migration(migrations.Migration):
                         primary_key=True,
                     ),
                 ),
-                ("name", library.fields.UpperCaseCharField(max_length=255)),
+                ("name", models.CharField(max_length=255)),
                 ("color_id", models.IntegerField(null=True)),
             ],
         ),

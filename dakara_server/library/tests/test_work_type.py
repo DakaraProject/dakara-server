@@ -4,7 +4,7 @@ from rest_framework import status
 from library.tests.base_test import LibraryAPITestCase
 
 
-class WorkTypeListViewAPIViewTestCase(LibraryAPITestCase):
+class WorkTypeListViewTestCase(LibraryAPITestCase):
     url = reverse("library-worktype-list")
 
     def setUp(self):
