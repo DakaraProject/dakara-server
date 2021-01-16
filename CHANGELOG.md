@@ -34,6 +34,11 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Changed
+
+- The `createplayer` command accepts now `--username` and `--password` to respectively pass username and password.
+  It also accepts `--noinput` to not prompt any input when calling the command.
+
 ## 1.6.0 - 2020-09-05
 
 ### Update notes
