@@ -202,13 +202,17 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
         read_only_fields = ("date_created",)
 
     def validate_playlist_entry_id(self, playlist_entry):
-        # check the playlist entry is currently playing or was played
-        if (
-            playlist_entry != PlaylistEntry.objects.get_playing()
-            and playlist_entry not in PlaylistEntry.objects.get_playlist_played()
+        # check the playlist entry is currently playing, or was played, or is
+        # about to be played
+        if not (
+            playlist_entry == PlaylistEntry.objects.get_playing()
+            or playlist_entry in PlaylistEntry.objects.get_playlist_played()
+            or PlaylistEntry.objects.get_playing() is None
+            and playlist_entry == PlaylistEntry.objects.get_next()
         ):
             raise serializers.ValidationError(
-                "The playlist entry must be " "currently playing or already " "played"
+                "The playlist entry must be currently playing, or already "
+                "played, or about to be played"
             )
 
         return playlist_entry
