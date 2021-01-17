@@ -56,10 +56,6 @@ You should also create a player user, whose credentials will be used for the [pl
 dakara_server/manage.py createplayer
 ```
 
-If you are deploying the project from sources, you have to add the front.
-Build and link the `dist` folder from the [client](https://github.com/DakaraProject/dakara-client-web) to `dakara_server/static`.
-If you are deploying from release, the front is already included.
-
 ### Start the server
 
 You're almost done! To start the server app, in the right virtual environment, do:
@@ -70,9 +66,9 @@ dakara_server/manage.py runserver
 
 The server part is now set up correctly.
 
-### Feeder and player
+### Web client, Feeder and player
 
-Now setup the [feeder](https://github.com/DakaraProject/dakara-feeder) and [player](https://github.com/DakaraProject/dakara-player-vlc) according to their respective documentations.
+Now setup the [web client](https://github.com/DakaraProject/dakara-client-web), [feeder](https://github.com/DakaraProject/dakara-feeder) and [player](https://github.com/DakaraProject/dakara-player-vlc) according to their respective documentations.
 
 After all of this is setup, just grab some friends and have fun!
 

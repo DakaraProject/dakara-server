@@ -3,8 +3,6 @@ from datetime import timedelta
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from library.fields import UpperCaseCharField
-
 
 class Song(models.Model):
     """Song object
@@ -21,11 +19,12 @@ class Song(models.Model):
     artists = models.ManyToManyField("Artist")
     works = models.ManyToManyField("Work", through="SongWorkLink")
     lyrics = models.TextField(blank=True)
+    has_instrumental = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.title)
+        return self.title
 
 
 class Artist(models.Model):
@@ -35,7 +34,7 @@ class Artist(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return str(self.name)
+        return self.name
 
 
 class Work(models.Model):
@@ -49,13 +48,7 @@ class Work(models.Model):
     work_type = models.ForeignKey("WorkType", on_delete=models.CASCADE)
 
     def __str__(self):
-        subtitle_text = "subtitled {} ".format(self.subtitle) if self.subtitle else ""
-
-        return "{} {}({})".format(
-            self.title,
-            subtitle_text,
-            self.work_type.get_name() if self.work_type else "unknown type",
-        )
+        return "{} ({})".format(self.title, self.work_type)
 
 
 class WorkAlternativeTitle(models.Model):
@@ -87,11 +80,6 @@ class WorkType(models.Model):
     icon_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return str(self.get_name())
-
-    def get_name(self):
-        """Get the pretty name of the work type or the default one
-        """
         return self.name or self.query_name
 
 
@@ -119,9 +107,7 @@ class SongWorkLink(models.Model):
     episodes = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
-        return "{} used in {} as {}".format(
-            self.song.title, self.work.title, self.link_type
-        )
+        return "{} <{}> {}".format(self.song, self.link_type, self.work)
 
     def __hash__(self):
         fields = frozenset(
@@ -137,11 +123,11 @@ class SongTag(models.Model):
     """Song tag object
     """
 
-    name = UpperCaseCharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True)
     color_hue = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(360)]
     )
     disabled = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.name)
+        return self.name

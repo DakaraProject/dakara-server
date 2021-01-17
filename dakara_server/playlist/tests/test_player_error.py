@@ -126,6 +126,32 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         # assert the result
         self.assertEqual(PlayerError.objects.count(), 0)
 
+    def test_post_error_playlist_entry_pending(self):
+        """Test to create an error when playlist entry is pending to be played
+
+        This case corresponds to a file not found error being send before the
+        transition screen started to play."""
+        # pre assert
+        self.assertEqual(PlayerError.objects.count(), 0)
+
+        # set first playlit entry played
+        self.pe1.date_played = datetime.now(tz)
+        self.pe1.was_played = True
+        self.pe1.save()
+
+        # log as player
+        self.authenticate(self.player)
+
+        # request to create an error
+        response = self.client.post(
+            self.url,
+            data={"playlist_entry_id": self.pe2.id, "error_message": "file not found"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert the result
+        self.assertEqual(PlayerError.objects.count(), 1)
+
     def test_post_error_forbidden_not_authenticated(self):
         """Test to create an error when not loged in"""
         # start playing

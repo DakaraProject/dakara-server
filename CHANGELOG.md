@@ -34,6 +34,22 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Added
+
+- Route for prune artists is `/api/library/artists/prune/` and route for prune works is `/api/library/works/prune/`.
+
+### Changed
+
+- The `createplayer` command accepts now `--username` and `--password` to respectively pass username and password.
+  It also accepts `--noinput` to not prompt any input when calling the command.
+
+### Removed
+
+- `prune` command. Prune for artists and works can be done through the API now.
+- `createtags` and `createworktypes` commands. Creating tags and work types can be done through the API now.
+
+## 1.6.0 - 2020-09-05
+
 ### Update notes
 
 When updating Dakara server from 1.5 to 1.6, (which means updating Django from 1.11 to 2.2), the database may have inconstencies that lead to a crash when running `./manage.py runserver`.
@@ -77,12 +93,7 @@ rm db_backup.sqlite3 db_library.json db_users.json db_playlist.json
 
 ### Added
 
-- Route for prune artists is `/api/library/artists/prune/` and route for prune works is `/api/library/works/prune/`.
-
-### Removed
-
-- `prune` command. Prune for artists and works can be done through the API now.
-- `createtags` and `createworktypes` commands. Creating tags and work types can be done through the API now.
+- Add instrumental track support. New fields are `Song.has_instrumental` and `PlaylistEntry.use_instrumental`.
 
 ### Fixed
 

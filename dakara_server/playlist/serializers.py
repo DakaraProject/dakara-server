@@ -28,8 +28,14 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlaylistEntry
-        fields = ("id", "date_created", "owner", "song", "song_id")
+        fields = ("id", "date_created", "owner", "song", "song_id", "use_instrumental")
         read_only_fields = ("date_created",)
+
+    def validate(self, data):
+        if data.get("use_instrumental") and not data["song"].has_instrumental:
+            raise serializers.ValidationError("Song does not have instrumental")
+
+        return data
 
 
 class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
@@ -41,7 +47,7 @@ class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlaylistEntry
-        fields = ("id", "song", "date_created", "owner")
+        fields = ("id", "song", "date_created", "owner", "use_instrumental")
         read_only_fields = ("date_created",)
 
 
@@ -55,7 +61,14 @@ class PlaylistEntryWithDatePlaySerializer(PlaylistEntrySerializer):
     date_play = serializers.DateTimeField(read_only=True)
 
     class Meta(PlaylistEntrySerializer.Meta):
-        fields = ("id", "date_created", "date_play", "owner", "song")
+        fields = (
+            "id",
+            "date_created",
+            "date_play",
+            "owner",
+            "song",
+            "use_instrumental",
+        )
 
 
 class PlaylistPlayedEntryWithDatePlayedSerializer(PlaylistEntrySerializer):
@@ -65,7 +78,14 @@ class PlaylistPlayedEntryWithDatePlayedSerializer(PlaylistEntrySerializer):
     """
 
     class Meta(PlaylistEntrySerializer.Meta):
-        fields = ("id", "date_created", "date_played", "owner", "song")
+        fields = (
+            "id",
+            "date_created",
+            "date_played",
+            "owner",
+            "song",
+            "use_instrumental",
+        )
         read_only_fields = ("date_created", "date_played")
 
 
@@ -110,7 +130,7 @@ class PlayerStatusSerializer(serializers.Serializer):
         return data
 
     def validate_playlist_entry_id(self, playlist_entry):
-        next_playlist_entry = PlaylistEntry.get_next()
+        next_playlist_entry = PlaylistEntry.objects.get_next()
 
         if next_playlist_entry != playlist_entry:
             raise serializers.ValidationError(
@@ -182,13 +202,17 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
         read_only_fields = ("date_created",)
 
     def validate_playlist_entry_id(self, playlist_entry):
-        # check the playlist entry is currently playing or was played
-        if (
-            playlist_entry != PlaylistEntry.get_playing()
-            and playlist_entry not in PlaylistEntry.get_playlist_played()
+        # check the playlist entry is currently playing, or was played, or is
+        # about to be played
+        if not (
+            playlist_entry == PlaylistEntry.objects.get_playing()
+            or playlist_entry in PlaylistEntry.objects.get_playlist_played()
+            or PlaylistEntry.objects.get_playing() is None
+            and playlist_entry == PlaylistEntry.objects.get_next()
         ):
             raise serializers.ValidationError(
-                "The playlist entry must be " "currently playing or already " "played"
+                "The playlist entry must be currently playing, or already "
+                "played, or about to be played"
             )
 
         return playlist_entry

@@ -6,7 +6,7 @@ from library.tests.base_test import LibraryAPITestCase
 from library.models import WorkType
 
 
-class WorkTypeListViewAPIViewTestCase(LibraryAPITestCase):
+class WorkTypeListViewTestCase(LibraryAPITestCase):
     url = reverse("library-worktype-list")
 
     def setUp(self):

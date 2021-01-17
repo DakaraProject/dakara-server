@@ -37,7 +37,7 @@ urlpatterns = [
     path("api/version/", internal_views.VersionView.as_view(), name="version"),
     # API routes for the users
     path("api/users/", users_views.UserListView.as_view(), name="users-list"),
-    path("api/users/<int:pk>/", users_views.UserView.as_view(), name="users-detail"),
+    path("api/users/<int:pk>/", users_views.UserView.as_view(), name="users"),
     path(
         "api/users/<int:pk>/password/",
         users_views.PasswordView.as_view(),
@@ -77,7 +77,7 @@ urlpatterns = [
     path(
         "api/playlist/entries/<int:pk>/",
         playlist_views.PlaylistEntryView.as_view(),
-        name="playlist-entries-detail",
+        name="playlist-entries",
     ),
     path(
         "api/playlist/played-entries/",
@@ -133,12 +133,12 @@ urlpatterns = [
     path(
         "api/library/songs/<int:pk>/",
         library_views.SongView.as_view(),
-        name="library-song-detail",
+        name="library-song",
     ),
     path(
         "api/library/song-tags/<int:pk>/",
         library_views.SongTagView.as_view(),
-        name="library-songtag-detail",
+        name="library-songtag",
     ),
     # API route for the feeder
     path(

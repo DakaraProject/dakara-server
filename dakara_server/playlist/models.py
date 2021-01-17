@@ -1,35 +1,25 @@
+import textwrap
 from datetime import timedelta, datetime
 
 from django.db import models
 from django.db.utils import OperationalError
 from django.core.cache import cache
 from django.utils import timezone
-from ordered_model.models import OrderedModel
+from ordered_model.models import OrderedModel, OrderedModelManager
 
 from users.models import DakaraUser
 
 tz = timezone.get_default_timezone()
 
 
-class PlaylistEntry(OrderedModel):
-    """Song in playlist
+class PlaylistManager(OrderedModelManager):
+    """Manager of playlist objects
     """
 
-    song = models.ForeignKey("library.Song", null=False, on_delete=models.CASCADE)
-    date_created = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey(DakaraUser, null=False, on_delete=models.CASCADE)
-    was_played = models.BooleanField(default=False, null=False)
-    date_played = models.DateTimeField(null=True)
-
-    class Meta(OrderedModel.Meta):
-        pass
-
-    def __str__(self):
-        return "{} (for {})".format(self.song, self.owner.username)
-
-    @classmethod
-    def get_playing(cls):
-        playlist = cls.objects.filter(was_played=False, date_played__isnull=False)
+    def get_playing(self):
+        """Get the current playlist entry
+        """
+        playlist = self.filter(was_played=False, date_played__isnull=False)
 
         if not playlist:
             return None
@@ -44,41 +34,66 @@ class PlaylistEntry(OrderedModel):
 
         return playlist.first()
 
-    @classmethod
-    def get_playlist(cls):
-        queryset = cls.objects.exclude(
+    def get_playlist(self):
+        """Get the playlist of ongoing entries
+        """
+        queryset = self.exclude(
             models.Q(was_played=True) | models.Q(date_played__isnull=False)
         )
 
         return queryset
 
-    @classmethod
-    def get_playlist_played(cls):
-        playlist = cls.objects.filter(was_played=True)
+    def get_playlist_played(self):
+        """Get the playlist of passed entries
+        """
+        playlist = self.filter(was_played=True)
 
         return playlist
 
-    @classmethod
-    def get_next(cls, entry_id=None):
-        """Retrieve next playlist entry
+    def get_next(self, entry_id=None):
+        """Get next playlist entry
 
         Returns the next playlist entry in playlist excluding entry with
         specified id and alredy played songs.
+
+        Args:
+            entry_id (int): If specified, exclude the corresponding playlist
+                entry.
         """
         if entry_id is None:
-            playlist = cls.objects.exclude(was_played=True)
+            playlist = self.exclude(was_played=True)
 
         else:
             # do not process a played entry
-            if cls.get_playlist_played().filter(pk=entry_id):
+            if self.get_playlist_played().filter(pk=entry_id):
                 return None
 
-            playlist = cls.get_playlist().exclude(pk=entry_id)
+            playlist = self.get_playlist().exclude(pk=entry_id)
 
         if not playlist:
             return None
 
         return playlist.first()
+
+
+class PlaylistEntry(OrderedModel):
+    """Song in playlist
+    """
+
+    objects = PlaylistManager()
+
+    song = models.ForeignKey("library.Song", null=False, on_delete=models.CASCADE)
+    use_instrumental = models.BooleanField(default=False)
+    date_created = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(DakaraUser, null=False, on_delete=models.CASCADE)
+    was_played = models.BooleanField(default=False, null=False)
+    date_played = models.DateTimeField(null=True)
+
+    class Meta(OrderedModel.Meta):
+        pass
+
+    def __str__(self):
+        return "{} (for {})".format(self.song, self.owner)
 
     def set_playing(self):
         """The playlist entry has started to play
@@ -87,7 +102,7 @@ class PlaylistEntry(OrderedModel):
             Player: the current player.
         """
         # check that no other playlist entry is playing
-        if self.get_playing() is not None:
+        if PlaylistEntry.objects.get_playing() is not None:
             raise RuntimeError("A playlist entry is currently in play")
 
         # set the playlist entry
@@ -101,7 +116,7 @@ class PlaylistEntry(OrderedModel):
             Player: the current player.
         """
         # check the current playlist entry is in play
-        if self != self.get_playing():
+        if self != PlaylistEntry.objects.get_playing():
             raise RuntimeError("This playlist entry is not playing")
 
         # set the playlist entry
@@ -109,11 +124,41 @@ class PlaylistEntry(OrderedModel):
         self.save()
 
 
+class KaraokeManager(models.Manager):
+    """Manager of karaoke objects
+
+    Only one karaoke object can exist for now.
+    """
+
+    def get_object(self):
+        """Get the first instance of kara status
+        """
+        karaoke, _ = self.get_or_create(pk=1)
+        return karaoke
+
+    def clean_channel_names(self):
+        """Remove all channel names
+        """
+        for karaoke in self.all():
+            karaoke.channel_name = None
+            karaoke.save()
+
+
+def clean_channel_names():
+    try:
+        Karaoke.objects.clean_channel_names()
+
+    # if database does not exist when checking date stop, abort the function
+    # this case occurs on startup before running tests
+    except OperationalError:
+        return
+
+
 class Karaoke(models.Model):
     """Current kara
-
-    Unique for now.
     """
+
+    objects = KaraokeManager()
 
     ongoing = models.BooleanField(default=True)
     can_add_to_playlist = models.BooleanField(default=True)
@@ -122,35 +167,7 @@ class Karaoke(models.Model):
     channel_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return "{}{}".format(
-            "Ongoing" if self.ongoing else "Stopped",
-            " will stop at {}".format(self.date.stop) if self.date_stop else "",
-        )
-
-    @classmethod
-    def get_object(cls):
-        """Get the first instance of kara status
-        """
-        karaoke, _ = cls.objects.get_or_create(pk=1)
-        return karaoke
-
-    @classmethod
-    def clean_channel_names(cls):
-        """Remove all channel names
-        """
-        for karaoke in cls.objects.all():
-            karaoke.channel_name = None
-            karaoke.save()
-
-
-def clean_channel_names():
-    try:
-        Karaoke.clean_channel_names()
-
-    # if database does not exist when checking date stop, abort the function
-    # this case occurs on startup before running tests
-    except OperationalError:
-        return
+        return "Karaoke"
 
 
 class PlayerError(models.Model):
@@ -164,7 +181,9 @@ class PlayerError(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return str(self.playlist_entry)
+        return "{}: {}".format(
+            self.playlist_entry, textwrap.shorten(self.error_message, 50)
+        )
 
 
 class Player:
@@ -207,6 +226,12 @@ class Player:
         # at least set the date
         self.update(date=date)
 
+    def __repr__(self):
+        return "<{}: {}>".format(self.__class__.__name__, self)
+
+    def __str__(self):
+        return "Player"
+
     def __eq__(self, other):
         fields = ("timing", "paused", "in_transition", "date")
 
@@ -224,7 +249,7 @@ class Player:
 
     @property
     def playlist_entry(self):
-        return PlaylistEntry.get_playing()
+        return PlaylistEntry.objects.get_playing()
 
     @classmethod
     def get_or_create(cls):
@@ -247,17 +272,3 @@ class Player:
         """Reset the player to its initial state
         """
         self.update(timing=timedelta(), paused=False, in_transition=False)
-
-    def __repr__(self):
-        return "<{}: {}>".format(self.__class__.__name__, self)
-
-    def __str__(self):
-        if self.playlist_entry is not None:
-            return "in {} for '{}' at {}{}".format(
-                "pause" if self.paused else "play",
-                self.playlist_entry,
-                self.timing,
-                " (in transition)" if self.in_transition else "",
-            )
-
-        return "idle"

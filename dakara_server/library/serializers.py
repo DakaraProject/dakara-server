@@ -180,6 +180,7 @@ class SongSerializer(serializers.ModelSerializer):
             "works",
             "lyrics",
             "lyrics_preview",
+            "has_instrumental",
             "date_created",
             "date_updated",
         )
@@ -191,10 +192,6 @@ class SongSerializer(serializers.ModelSerializer):
 
         Give at most `max_lines` lines of lyrics and tell if more lines remain.
         """
-        # for unknown reason, the method is called when it should not
-        if not isinstance(song, Song):
-            return None
-
         if not song.lyrics:
             return None
 
@@ -312,7 +309,7 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Song
-        fields = ("title", "artists", "works", "file_path")
+        fields = ("title", "artists", "works", "file_path", "has_instrumental")
 
     @staticmethod
     def get_file_path(song):

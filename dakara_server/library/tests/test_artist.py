@@ -5,7 +5,7 @@ from library.models import Artist
 from library.tests.base_test import LibraryAPITestCase
 
 
-class ArtistListViewAPIViewTestCase(LibraryAPITestCase):
+class ArtistListViewTestCase(LibraryAPITestCase):
     url = reverse("library-artist-list")
 
     def setUp(self):

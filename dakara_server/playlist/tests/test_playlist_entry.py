@@ -10,7 +10,7 @@ from playlist.models import PlaylistEntry, Player, Karaoke
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
+class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
     url = reverse("playlist-entries-list")
 
     def setUp(self):
@@ -120,19 +120,35 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
         # Post new playlist entry
-        response = self.client.post(self.url, {"song_id": self.song1.id})
+        response = self.client.post(
+            self.url, {"song_id": self.song2.id, "use_instrumental": True}
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check playlist entry has been created in database
         self.assertEqual(PlaylistEntry.objects.count(), 5)
         new_entry = PlaylistEntry.objects.last()
-        # Entry was created with for song1
-        self.assertEqual(new_entry.song, self.song1)
+        # Entry was created with for song2
+        self.assertEqual(new_entry.song, self.song2)
+        self.assertTrue(new_entry.use_instrumental)
         # Entry's owner is the user who created it
         self.assertEqual(new_entry.owner, self.p_user)
 
         # check the player was not requested to play this entry immediately
         mocked_send_to_channel.assert_not_called()
+
+    @patch("playlist.views.send_to_channel")
+    def test_post_create_playlist_entry_not_instrument(self, mocked_send_to_channel):
+        """Test to verify can't create instrumental entry with not instrumental song
+        """
+        # Login as playlist user
+        self.authenticate(self.p_user)
+
+        # Post new playlist entry
+        response = self.client.post(
+            self.url, {"song_id": self.song1.id, "use_instrumental": True}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @patch("playlist.views.send_to_channel")
     def test_post_create_playlist_entry_empty(self, mocked_send_to_channel):
@@ -175,6 +191,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         # Post new playlist entry
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("Karaoke is not ongoing", str(response.content))
 
     def test_post_create_playlist_entry_cant_add_to_playlist_forbidden_user(self):
         """Test to verify playlist entry cannot be created when can't add to playlist
@@ -183,11 +200,15 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         self.set_karaoke(can_add_to_playlist=False)
 
         # Login as playlist user
-        self.authenticate(self.user)
+        self.authenticate(self.p_user)
 
         # Post new playlist entry
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn(
+            "Karaoke was set to disallow playlist entries creation",
+            str(response.content),
+        )
 
     def test_post_create_playlist_entry_cant_add_to_playlist_allowed_manager(self):
         """Test to verify playlist entry cannot be created when can't add to playlist
@@ -219,6 +240,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         # Post new playlist entry
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("Playlist is full, please retry later", str(response.content))
 
         # post assert there are still 4 in database
         self.assertEqual(PlaylistEntry.objects.count(), 4)
@@ -228,7 +250,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         """
         # set kara stop
         date_stop = datetime.now(tz) + timedelta(hours=2)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
         karaoke.save()
 
@@ -250,7 +272,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         """
         # set kara stop
         date_stop = datetime.now(tz)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
         karaoke.save()
 
@@ -265,6 +287,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
 
         # assert that the request is denied
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("This song exceeds the karaoke stop time", str(response.content))
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
     def test_post_create_playlist_entry_date_stop_success_manager(self):
@@ -272,7 +295,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         """
         # set kara stop
         date_stop = datetime.now(tz)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
         karaoke.save()
 
@@ -294,7 +317,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         """
         # set kara stop
         date_stop = datetime.now(tz)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
         karaoke.save()
 
@@ -332,7 +355,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
 
         # set kara stop such as to allow song1 to be added and not song2
         date_stop = now + timedelta(seconds=20)
-        karaoke = Karaoke.get_object()
+        karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
         karaoke.save()
 
@@ -352,7 +375,7 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         # request to add a new entry which is short enough
         response = self.client.post(self.url, {"song_id": self.song1.id})
 
-        # assert that the request is denied
+        # assert that the request accepted
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(PlaylistEntry.objects.count(), 5)
 
@@ -431,14 +454,14 @@ class PlaylistEntryListViewListCreateAPIViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
-class PlaylistEntryViewDestroyAPIViewTestCase(PlaylistAPITestCase):
+class PlaylistEntryViewTestCase(PlaylistAPITestCase):
     def setUp(self):
         self.create_test_data()
 
         # Create urls to access these playlist entries
-        self.url_pe1 = reverse("playlist-entries-detail", kwargs={"pk": self.pe1.id})
-        self.url_pe2 = reverse("playlist-entries-detail", kwargs={"pk": self.pe2.id})
-        self.url_pe3 = reverse("playlist-entries-detail", kwargs={"pk": self.pe3.id})
+        self.url_pe1 = reverse("playlist-entries", kwargs={"pk": self.pe1.id})
+        self.url_pe2 = reverse("playlist-entries", kwargs={"pk": self.pe2.id})
+        self.url_pe3 = reverse("playlist-entries", kwargs={"pk": self.pe3.id})
 
     def test_delete_playlist_entry_manager(self):
         """Test to verify playlist entry deletion as playlist manager
