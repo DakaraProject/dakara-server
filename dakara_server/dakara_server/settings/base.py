@@ -125,7 +125,7 @@ HOST_URL = config("HOST_URL", default="https://frontend-host")
 REST_REGISTRATION = {
     "LOGIN_AUTHENTICATE_SESSION": False,
     "LOGIN_SERIALIZER_CLASS": "users.serializers.DakaraLoginSerializer",
-    "REGISTER_VERIFICATION_URL": HOST_URL + "/verify-user/",
+    "REGISTER_VERIFICATION_URL": HOST_URL + "/verify-registration/",
     "RESET_PASSWORD_VERIFICATION_URL": HOST_URL + "/reset-password/",
     "REGISTER_EMAIL_VERIFICATION_URL": HOST_URL + "/verify-email/",
     "VERIFICATION_FROM_EMAIL": SENDER_EMAIL,
