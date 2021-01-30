@@ -84,13 +84,3 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
         if not validated_by_manager_old and validated_by_manager_new:
             # user has been validated by manager, send notification
             emails.send_notification_to_user_validated(serializer.instance)
-
-
-class PasswordView(generics.UpdateAPIView):
-    """Edition of a user password
-    """
-
-    model = UserModel
-    queryset = UserModel.objects.all()
-    serializer_class = serializers.PasswordSerializer
-    permission_classes = [IsAuthenticated, permissions.IsSelf]

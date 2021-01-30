@@ -50,47 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class PasswordSerializer(serializers.ModelSerializer):
-    """Password edition
-
-    Can edit:
-        Password.
-
-    For editing other user info, create another serializer.
-    """
-
-    old_password = serializers.CharField(write_only=True, required=True)
-
-    class Meta:
-        model = UserModel
-        fields = ("password", "old_password")
-        extra_kwargs = {"password": {"write_only": True, "required": True}}
-
-    def validate_old_password(self, value):
-        """Check old password is correct
-        """
-        if not self.instance.check_password(value):
-            raise serializers.ValidationError("Wrong password")
-
-    def update(self, instance, validated_data):
-        """Update the password
-        """
-        password = None
-        if "password" in validated_data:
-            password = validated_data.pop("password")
-
-        instance = super().update(instance, validated_data)
-
-        if password:
-            instance.set_password(password)
-            instance.save()
-            # keep current user logged in
-            update_session_auth_hash(self.context["request"], instance)
-
-        return instance
-
-
-class UserForManagerSerializer(PasswordSerializer):
+class UserForManagerSerializer(serializers.ModelSerializer):
     """Users edition for managers
     """
 
@@ -117,8 +77,25 @@ class UserForManagerSerializer(PasswordSerializer):
         )
         extra_kwargs = {"password": {"write_only": True}}
 
+    def update(self, instance, validated_data):
+        """Update the password
+        """
+        password = None
+        if "password" in validated_data:
+            password = validated_data.pop("password")
 
-class UserCreationForManagerSerializer(PasswordSerializer):
+        instance = super().update(instance, validated_data)
+
+        if password:
+            instance.set_password(password)
+            instance.save()
+            # keep current user logged in
+            update_session_auth_hash(self.context["request"], instance)
+
+        return instance
+
+
+class UserCreationForManagerSerializer(serializers.ModelSerializer):
     """Users creation for managers
     """
 

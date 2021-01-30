@@ -38,11 +38,6 @@ urlpatterns = [
     path("api/users/", users_views.UserListView.as_view(), name="users-list"),
     path("api/users/<int:pk>/", users_views.UserView.as_view(), name="users"),
     path(
-        "api/users/<int:pk>/password/",
-        users_views.PasswordView.as_view(),
-        name="users-password",
-    ),
-    path(
         "api/users/current/",
         users_views.CurrentUserView.as_view(),
         name="users-current",
