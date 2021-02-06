@@ -124,6 +124,20 @@ class RegisterViewTestCase(UsersAPITestCase):
         mocked_send_notification_to_managers.assert_not_called()
 
 
+class SendResetPasswordLinklViewTestCase(UsersAPITestCase):
+    url = reverse("rest_registration:send-reset-password-link")
+
+    def setUp(self):
+        # create a user without any rights
+        self.user = self.create_user("TestUser", email="test@user.com", password="pass")
+
+    def test_username_insensitive(self):
+        """Check send reset password link with a username with different case"""
+        response = self.client.post(self.url, {"login": "testuser"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
 class LoginViewTestCase(UsersAPITestCase):
     url = reverse("rest_registration:login")
 
