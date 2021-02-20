@@ -19,48 +19,36 @@ environment:
 
   # setup tests matrix
   matrix:
-    - PYTHON: "C:\\Python35-x64"
-      PYTHON_VERSION: "3.5"
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python36-x64"
-      PYTHON_VERSION: "3.6"
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python37-x64"
-      PYTHON_VERSION: "3.7"
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python38-x64"
-      PYTHON_VERSION: "3.8"
-      PYTHON_ARCH: "64"
+    - PYTHON: "3.6"
+    - PYTHON: "3.7"
+    - PYTHON: "3.8"
 
 # check current python version
 init:
-  - "py -%PYTHON_VERSION% --version"
+  - "py -%PYTHON% --version"
 
 # command to install system and python dependencies
 install:
   # install dependencies for test
-  - "py -%PYTHON_VERSION% -m pip install -r requirements.txt"
+  - "py -%PYTHON% -m pip install -r requirements.txt"
 
 # command to run tests
 # the current working directory is not reinitialized between commands
 test_script:
   # run tests
-  - "py -%PYTHON_VERSION% -m coverage run -m pytest -v"
+  - "py -%PYTHON% -m coverage run -m pytest -v"
 
   # run code formatting tests
-  - "if NOT %PYTHON_VERSION% == 3.5 (py -%PYTHON_VERSION% -m  black . --check)"
-  - "py -%PYTHON_VERSION% -m flake8"
+  - "py -%PYTHON% -m  black . --check"
+  - "py -%PYTHON% -m flake8"
 
 # commands to manage tests results
 after_test:
   # show coverage stats
-  - "py -%PYTHON_VERSION% -m coverage report -m"
+  - "py -%PYTHON% -m coverage report -m"
 
   # upload coverage stats to codecov.io
   # coverage must be called manually
   # codecov token is stored in appveyor settings
-  - "py -%PYTHON_VERSION% -m coverage xml"
-  - "py -%PYTHON_VERSION% -m codecov -X gcov --file coverage.xml"
+  - "py -%PYTHON% -m coverage xml"
+  - "py -%PYTHON% -m codecov -X gcov --file coverage.xml"
