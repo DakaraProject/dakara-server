@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import ValidationError
@@ -42,7 +43,7 @@ class DakaraModelBackend(ModelBackend):
             return user
 
         # the email address of the user must have been validated
-        if not user.validated_by_email:
+        if settings.EMAIL_ENABLED and not user.validated_by_email:
             raise ValidationError("This user email has not been validated")
 
         # the accont of the user must have been validated by a manager

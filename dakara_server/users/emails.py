@@ -25,6 +25,9 @@ def get_managers_emails():
 def send_notification_to_managers(user):
     """Send a notification email to user managers that a new user registered
     """
+    if not settings.EMAIL_ENABLED:
+        return
+
     # get users manager and superuser email
     managers_emails = get_managers_emails()
 
@@ -54,6 +57,9 @@ def send_notification_to_managers(user):
 def send_notification_to_user_validated(user):
     """Send a notification email to validated user
     """
+    if not settings.EMAIL_ENABLED:
+        return
+
     # create message content
     template = get_template("notification_to_user_validated.txt")
     content = template.render({"url": settings.HOST_URLS["LOGIN_URL"]})

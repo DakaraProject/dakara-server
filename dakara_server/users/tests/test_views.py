@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from internal.tests.base_test import UserModel
-from users.tests.base_test import UsersAPITestCase
+from users.tests.base_test import config_email_disabled, UsersAPITestCase
 
 
 class RegisterViewTestCase(UsersAPITestCase):
@@ -190,6 +190,19 @@ class LoginViewTestCase(UsersAPITestCase):
         )
         self.assertNotIn("token", response.data)
 
+    @config_email_disabled
+    def test_login_not_validated_by_email_email_disabled(self):
+        """Test login with for a user not validated by email but email disabled config
+        """
+
+        # Set user not validated by email
+        self.user.validated_by_email = False
+        self.user.save()
+
+        # Login request
+        response = self.client.post(self.url, {"login": "testuser", "password": "pass"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_login_not_validated_by_manager(self):
         """Test login with for a user not validated by manager
         """
@@ -239,7 +252,6 @@ class UserListViewTestCase(UsersAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user(self, mocked_send_email):
         """Test to verify user creation
@@ -270,7 +282,29 @@ class UserListViewTestCase(UsersAPITestCase):
         # Check verification email was sent
         mocked_send_email.assert_called_with(ANY, new_user)
 
-    @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
+    @config_email_disabled
+    @patch("users.views.send_register_verification_email_notification")
+    def test_create_user_email_disabled(self, mocked_send_email):
+        """Test user creation does not send verification email with email disabled
+        """
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # Post new user
+        username_new_user = "TestUserNew"
+        response = self.client.post(
+            self.url,
+            {
+                "username": username_new_user,
+                "email": "email@example.com",
+                "password": "pwd",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Check verification email was not sent
+        mocked_send_email.assert_not_called()
+
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user_forbidden(self, mocked_send_email):
         """Test to verify simple user cannot create users
@@ -293,7 +327,6 @@ class UserListViewTestCase(UsersAPITestCase):
         # Check verification email was not sent
         mocked_send_email.assert_not_called()
 
-    @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
     @patch("users.views.send_register_verification_email_notification")
     def test_create_superuser(self, mocked_send_email):
         """Test one cannot create a superuser
@@ -326,7 +359,6 @@ class UserListViewTestCase(UsersAPITestCase):
         # Check verification email was sent
         mocked_send_email.assert_called_with(ANY, new_user)
 
-    @patch("users.views.registration_settings.REGISTER_VERIFICATION_ENABLED", True)
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user_name_already_exists(self, mocked_send_email):
         """Test for duplicated users

@@ -119,6 +119,7 @@ REST_FRAMEWORK = {
 
 SENDER_EMAIL = config("SENDER_EMAIL", default="no-reply@example.com")
 HOST_URL = config("HOST_URL", default="https://frontend-host")
+EMAIL_ENABLED = config("EMAIL_ENABLED", default=True, cast=bool)
 
 
 # Django rest registration config
@@ -133,6 +134,9 @@ REST_REGISTRATION = {
     "VERIFICATION_FROM_EMAIL": SENDER_EMAIL,
     "USER_VERIFICATION_FLAG_FIELD": "validated_by_email",
     "USER_LOGIN_FIELDS": ["username", "email"],
+    "REGISTER_VERIFICATION_ENABLED": EMAIL_ENABLED,
+    "REGISTER_EMAIL_VERIFICATION_ENABLED": EMAIL_ENABLED,
+    "RESET_PASSWORD_VERIFICATION_ENABLED": EMAIL_ENABLED,
 }
 
 AUTHENTICATION_BACKENDS = ["users.backend.DakaraModelBackend"]

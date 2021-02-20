@@ -1,7 +1,7 @@
 from unittest.mock import ANY, patch
 
 from internal.tests.base_test import UserModel
-from users.tests.base_test import UsersAPITestCase
+from users.tests.base_test import config_email_disabled, UsersAPITestCase
 from users import emails
 
 
@@ -29,6 +29,20 @@ class SendNotificationToManagersTestCase(UsersAPITestCase):
         content = mocked_send_mail.call_args_list[0][0][1]
         self.assertIn("TestUser (test@user.com)", content)
         self.assertIn("/settings/users/{}".format(user.id), content)
+
+    @config_email_disabled
+    def test_send_email_disabled(self, mocked_send_mail):
+        """Test notification email to managers not sent when emails are disabled
+        """
+        self.create_user(
+            "TestManger", email="test@manager.com", users_level=UserModel.MANAGER
+        )
+        user = self.create_user("TestUser", email="test@user.com")
+
+        emails.send_notification_to_managers(user)
+
+        # assert call
+        mocked_send_mail.assert_not_called()
 
     def test_send_no_managers(self, mocked_send_mail):
         """Test send notification email when there are no managers
@@ -64,3 +78,13 @@ class SendNotificationToUserValidated(UsersAPITestCase):
         mocked_send_mail.assert_called_with(
             "Account validated", ANY, ANY, [user.email], fail_silently=False,
         )
+
+    @config_email_disabled
+    def test_send_email_disabled(self, mocked_send_mail):
+        """Test notification to user not sent when email disabled
+        """
+        user = self.create_user("TestUser", email="test@user.com")
+
+        emails.send_notification_to_user_validated(user)
+
+        mocked_send_mail.assert_not_called()
