@@ -498,6 +498,41 @@ class UserViewTestCase(UsersAPITestCase):
         # assert no mail was sent, as the edition did not change account validation
         mocked_send_notification_to_user_validated.assert_not_called()
 
+    def test_patch_user_cant_edit_password(self):
+        """Test to verify manager can't edit password when mail enabled
+        """
+        # Keep old user password
+        old_user_password = UserModel.objects.get(id=self.user.id).password
+
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # attempt to update password
+        response = self.client.patch(self.user_url, {"password": "newPass"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Post-assertion: user password is unchanged
+        user = UserModel.objects.get(id=self.user.id)
+        self.assertEqual(user.password, old_user_password)
+
+    @config_email_disabled
+    def test_patch_user_edit_password(self):
+        """Test to verify manager can edit password when mail disabled
+        """
+        # Keep old user password
+        old_user_password = UserModel.objects.get(id=self.user.id).password
+
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # Update password
+        response = self.client.patch(self.user_url, {"password": "newPass"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Post-assertion: user password is unchanged
+        user = UserModel.objects.get(id=self.user.id)
+        self.assertNotEqual(user.password, old_user_password)
+
     @patch("users.emails.send_notification_to_user_validated")
     def test_patch_user_validate_by_manager(
         self, mocked_send_notification_to_user_validated

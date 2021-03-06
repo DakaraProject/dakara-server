@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from rest_framework import generics, views
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -72,7 +73,10 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
     def get_serializer_class(self):
         # serializer depends on permission level
         if permissions.IsUsersManager().has_permission(self.request, self):
-            return serializers.UserForManagerSerializer
+            if settings.EMAIL_ENABLED:
+                return serializers.UserForManagerSerializer
+
+            return serializers.UserForManagerWithPasswordSerializer
 
         return serializers.UserSerializer
 
