@@ -15,6 +15,9 @@ branches:
 
 # command to install python dependencies
 install:
+  # upgrade pip
+  - python -m pip install --upgrade pip
+
   # manually install a recent version of attrs as it is missing from Travis
   - python -m pip install --upgrade "attrs>=19.3.0"
 

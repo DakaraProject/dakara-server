@@ -28,6 +28,12 @@ It is strongly recommended to run the Dakara server in a virtual environment.
 
 #### Python dependencies
 
+Having a recent enough versio of `pip` is required to install some dependencies properly:
+
+```sh
+pip install --upgrade pip
+```
+
 Install dependencies, at the root level of the repo (in the virtual environment):
 
 ```sh

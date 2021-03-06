@@ -29,6 +29,9 @@ init:
 
 # command to install system and python dependencies
 install:
+  # upgrade pip
+  - "py -%PYTHON_VERSION% -m pip install --upgrade pip"
+
   # install dependencies for test
   - "py -%PYTHON% -m pip install -r requirements.txt"
 
