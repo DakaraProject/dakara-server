@@ -33,7 +33,7 @@ urlpatterns = [
     path("api/accounts/", include("rest_registration.api.urls")),
     path("api/auth/", include("rest_framework.urls", namespace="rest_framework")),
     # API routes for internal
-    path("api/version/", internal_views.VersionView.as_view(), name="version"),
+    path("api/settings/", internal_views.SettingsView.as_view(), name="settings"),
     # API routes for the users
     path("api/users/", users_views.UserListView.as_view(), name="users-list"),
     path("api/users/<int:pk>/", users_views.UserView.as_view(), name="users"),
