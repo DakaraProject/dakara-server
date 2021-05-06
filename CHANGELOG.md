@@ -39,6 +39,10 @@ Any important notes regarding the update.
 - The `createplayer` command accepts now `--username` and `--password` to respectively pass username and password.
   It also accepts `--noinput` to not prompt any input when calling the command.
 
+### Removed
+
+- Dropped support of Python 3.5.
+
 ## 1.6.0 - 2020-09-05
 
 ### Update notes
