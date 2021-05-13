@@ -1,7 +1,7 @@
 # Dakara server
 
-[![Travis CI Build Status](https://travis-ci.com/DakaraProject/dakara-server.svg?branch=develop)](https://travis-ci.com/DakaraProject/dakara-server)
-[![Appveyor CI Build status](https://ci.appveyor.com/api/projects/status/2wdia71y3dwsqywp?svg=true)](https://ci.appveyor.com/project/neraste/dakara-server)
+<!-- Badges are displayed for the develop branch -->
+[![Appveyor CI Build status](https://ci.appveyor.com/api/projects/status/2wdia71y3dwsqywp/branch/develop?svg=true)](https://ci.appveyor.com/project/neraste/dakara-server/branch/develop)
 [![Codecov coverage analysis](https://codecov.io/gh/DakaraProject/dakara-server/branch/develop/graph/badge.svg)](https://codecov.io/gh/DakaraProject/dakara-server)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
@@ -18,7 +18,7 @@ Installation guidelines are provided over here:
 
 #### System requirements
 
-* Python3, to make everything up and running (supported versions: 3.5, 3.6, 3.7 and 3.8).
+* Python3, to make everything up and running (supported versions: 3.6, 3.7, 3.8 and 3.9).
 
 Linux and Windows are supported.
 
@@ -38,6 +38,12 @@ Install dependencies, at the root level of the repo (in the virtual environment)
 
 ```sh
 pip install -r requirements.txt
+```
+
+For development, you need the extra dependencies:
+
+```sh
+pip install -r requirements_dev.txt
 ```
 
 #### Setting up the server

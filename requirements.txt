@@ -1,22 +1,14 @@
 APScheduler<3.7.0,>=3.6.0
-Django<2.3.0,>=2.2.0
-Markdown<3.3.0,>=3.2.0
-PyYAML==4.2b4
-Pygments<2.6.0,>=2.5.0
-black==19.10b0; python_version >= '3.6'
 channels<2.5.0,>=2.4.0
-codecov
 coreapi<2.4.0,>=2.3.3
-coverage
 dj-database-url<0.6.0,>=0.5.0
-django-ordered-model<3.4.0,>=3.3.0
 django-filter<2.3.0,>=2.2.0
+django-ordered-model<3.4.0,>=3.3.0
+Django<2.3.0,>=2.2.0
 djangorestframework<3.12.0,>=3.11.0
-flake8
+Markdown<3.3.0,>=3.2.0
 progressbar2==3.34.3
-pytest-asyncio<0.11.0,>=0.10.0
-pytest-django<3.9.0,>=3.8.0
-pytest-mock<2.1.0,>=2.0.0
-pytest<5.4.0,>=5.3.0
+Pygments<2.6.0,>=2.5.0
 python-decouple<3.4,>=3.3
 pywin32==227; sys_platform == 'win32'
+PyYAML==4.2b4
