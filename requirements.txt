@@ -11,4 +11,4 @@ progressbar2==3.34.3
 Pygments<2.6.0,>=2.5.0
 python-decouple<3.4,>=3.3
 pywin32==227; sys_platform == 'win32'
-PyYAML==4.2b4
+PyYAML==5.4
