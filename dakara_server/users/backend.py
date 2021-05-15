@@ -25,10 +25,13 @@ class DakaraModelBackend(ModelBackend):
                 # Run the default password hasher once to reduce the timing
                 # difference between an existing and a nonexistent user (#20760).
                 UserModel().set_password(password)
-                return None
+                user = None
 
-            if not (user.check_password(password) and self.user_can_authenticate(user)):
-                return None
+            else:
+                if not (
+                    user.check_password(password) and self.user_can_authenticate(user)
+                ):
+                    user = None
 
         else:
             # otherwise authenticate using default process (i.e. using username)
