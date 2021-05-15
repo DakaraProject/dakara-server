@@ -8,7 +8,7 @@ from rest_registration.api.serializers import (
     DefaultLoginSerializer,
     DefaultSendResetPasswordLinkSerializer,
 )
-from django.contrib.auth import get_user_model, update_session_auth_hash
+from django.contrib.auth import get_user_model
 
 UserModel = get_user_model()
 
@@ -138,8 +138,6 @@ class UserForManagerWithPasswordSerializer(serializers.ModelSerializer):
         if password:
             instance.set_password(password)
             instance.save()
-            # keep current user logged in
-            update_session_auth_hash(self.context["request"], instance)
 
         return instance
 
