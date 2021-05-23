@@ -1,66 +1,24 @@
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils.translation import gettext_lazy as _
 
-
-class DakaraUserManager(UserManager):
-    """Custom user manager to handle case insensitive usernames
-    """
-
-    def get_by_natural_key(self, username):
-        """Search a username case insensitively
-        """
-        return self.get(username__iexact=username)
-
-
-def username_different_case_validator(username):
-    """Raise validation error if a user already exists with a different case
-
-    If a user already exists with the same case, the unique constraint already
-    raises an error.
-    """
-    try:
-        user = DakaraUser.objects.get_by_natural_key(username)
-        if user.username != username:
-            raise ValidationError(_("A user with that username already exists."))
-
-    except ObjectDoesNotExist:
-        pass
-
-
-def email_different_case_validator(email):
-    """Raise validation error if a user already exists with a different case email
-    """
-    try:
-        user = DakaraUser.objects.get(email__iexact=email)
-        if user.email != email:
-            raise ValidationError("user with this email address already exists.")
-
-    except ObjectDoesNotExist:
-        pass
+from users.fields import CaseInsensitiveCharField, CaseInsensitiveEmailField
 
 
 class DakaraUser(AbstractUser):
     """Custom user
     """
 
-    objects = DakaraUserManager()
-
-    username = models.CharField(
+    username = CaseInsensitiveCharField(
         _("username"),
         max_length=150,
         unique=True,
         help_text=_(
             "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
         ),
-        validators=[AbstractUser.username_validator, username_different_case_validator],
-        error_messages={"unique": _("A user with that username already exists.")},
     )
 
-    email = models.EmailField(
-        _("email address"), unique=True, validators=[email_different_case_validator]
-    )
+    email = CaseInsensitiveEmailField(_("email address"), unique=True)
 
     # permission levels per application
     USER = "u"

@@ -48,7 +48,7 @@ class RegisterViewTestCase(UsersAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertListEqual(
-            response.data["username"], ["A user with that username already exists."]
+            response.data["username"], ["user with this username already exists."]
         )
 
         mocked_send_notification_to_managers.assert_not_called()
@@ -72,7 +72,7 @@ class RegisterViewTestCase(UsersAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertListEqual(
-            response.data["username"], ["A user with that username already exists."]
+            response.data["username"], ["user with this username already exists."]
         )
 
         mocked_send_notification_to_managers.assert_not_called()
