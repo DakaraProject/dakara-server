@@ -126,8 +126,6 @@ EMAIL_ENABLED = config("EMAIL_ENABLED", default=True, cast=bool)
 REST_REGISTRATION = {
     "LOGIN_AUTHENTICATE_SESSION": False,
     "LOGIN_SERIALIZER_CLASS": "users.serializers.DakaraLoginSerializer",
-    "SEND_RESET_PASSWORD_LINK_SERIALIZER_CLASS": "users.serializers."
-    "DakaraSendResetPasswordLinkSerializer",
     "REGISTER_VERIFICATION_URL": HOST_URL + "/verify-registration/",
     "RESET_PASSWORD_VERIFICATION_URL": HOST_URL + "/reset-password/",
     "REGISTER_EMAIL_VERIFICATION_URL": HOST_URL + "/verify-email/",

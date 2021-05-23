@@ -14,36 +14,40 @@ class DakaraModelBackend(ModelBackend):
     account validated by a manager.
     """
 
-    def authenticate(self, request, username=None, email=None, password=None, **kwargs):
+    def authenticate(self, request, username=None, email=None, password=None):
+        """Authenticate user either by username or by email
+        """
         if email is not None:
-            # try to authenticate by email first (case insensitively)
+            # authenticate with email first
             # code inspired from django.contrib.auth.backends.ModelBackend.authenticate
             try:
-                user = UserModel.objects.get(email__iexact=email)
+                user = UserModel.objects.get(email=email)
 
             except UserModel.DoesNotExist:
                 # Run the default password hasher once to reduce the timing
                 # difference between an existing and a nonexistent user (#20760).
                 UserModel().set_password(password)
-                user = None
+                return None
 
             else:
                 if not (
                     user.check_password(password) and self.user_can_authenticate(user)
                 ):
-                    user = None
+                    return None
+
+            return user
 
         else:
-            # otherwise authenticate using default process (i.e. using username)
-            user = super().authenticate(request, username, password, **kwargs)
+            # otherwise authenticate with default username
+            return super().authenticate(request, username, password)
 
-        # do not perform extra checks if the user cannot be logged in
-        if user is None:
-            return None
+    def user_can_authenticate(self, user):
+        if not super().user_can_authenticate(user):
+            return False
 
         # the superuser can always log in
         if user.is_superuser:
-            return user
+            return True
 
         # the email address of the user must have been validated
         if settings.EMAIL_ENABLED and not user.validated_by_email:
@@ -55,4 +59,4 @@ class DakaraModelBackend(ModelBackend):
                 "This user account has not been validated by a manager"
             )
 
-        return user
+        return True

@@ -142,7 +142,7 @@ class SendResetPasswordLinklViewTestCase(UsersAPITestCase):
 
         response = self.client.post(self.url, {"login": "doesnotexists"})
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class LoginViewTestCase(UsersAPITestCase):
