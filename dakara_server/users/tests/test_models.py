@@ -5,7 +5,7 @@ from users import models
 
 @pytest.mark.django_db
 class TestDakaraUser:
-    """Test the DakaraUser closs
+    """Test the DakaraUser class
     """
 
     def test_users_permission_levels(self):

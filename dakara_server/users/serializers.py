@@ -73,6 +73,9 @@ class UserForManagerSerializer(serializers.ModelSerializer):
 
 
 class UserForManagerWithPasswordSerializer(serializers.ModelSerializer):
+    """Users edition for managers if emails are disabled
+    """
+
     class Meta:
         model = UserModel
         fields = (

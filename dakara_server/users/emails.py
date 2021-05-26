@@ -12,7 +12,7 @@ UserModel = get_user_model()
 
 
 def get_managers_emails():
-    """Get users manager and superuser email
+    """Get users managers and superusers email
     """
     return [
         user.email
@@ -41,7 +41,7 @@ def send_notification_to_managers(user):
     # create message content
     template = get_template("notification_to_managers.txt")
     content = template.render(
-        {"user": user, "url": settings.HOST_URLS["USER_EDIT_URL"].format(user.id)}
+        {"user": user, "url": settings.HOST_URLS["USER_EDIT_URL"].format(id=user.id)}
     )
 
     # send the mail

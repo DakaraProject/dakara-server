@@ -137,12 +137,12 @@ REST_REGISTRATION = {
     "RESET_PASSWORD_VERIFICATION_ENABLED": EMAIL_ENABLED,
 }
 
-AUTHENTICATION_BACKENDS = ["users.backend.DakaraModelBackend"]
+AUTHENTICATION_BACKENDS = ["users.backends.DakaraModelBackend"]
 
 
 # Front URLs
 HOST_URLS = {
-    "USER_EDIT_URL": HOST_URL + "/settings/users/{}",
+    "USER_EDIT_URL": HOST_URL + "/settings/users/{id}",
     "LOGIN_URL": HOST_URL + "/login",
 }
 

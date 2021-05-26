@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 from django.core.exceptions import ValidationError
 
-from users.backend import DakaraModelBackend
+from users.backends import DakaraModelBackend
 from users.tests.base_test import UsersAPITestCase, config_email_disabled
 
 

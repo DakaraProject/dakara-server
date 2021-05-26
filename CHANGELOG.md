@@ -36,10 +36,10 @@ Any important notes regarding the update.
 
 ### Added
 
-- Authentication by email is possible, in addition to authentication by user name.
+- Authentication by email is now possible, in addition to authentication by user name.
   This requires a working email server in production.
   Creating a new account can be done from the login page.
-  In order to be functional, the account must have its email address validated (with a special link sent by email at account creation) and must be validated by an users manager (user managers are notified by email each time a new account is created).
+  In order to be functional, the account must have its email address validated (with a special link sent by email during account creation) and must be validated by an users manager (user managers are notified by email each time a new account is created).
   For production, this feature is enabled by default and can be disabled with the environment variable `EMAIL_ENABLED` set to `false`.
   This legacy configuration is designed for local servers, not exposed online.
   In this case the email address is automatically validated during account creation, but still has to be validated by an user manager.
@@ -53,6 +53,7 @@ Any important notes regarding the update.
     * Login: `api/token-auth/` -> `api/accounts/login/`, fields are now `login` and `password`;
     * Logout: `api/token-auth/logout/` -> `api/accounts/logout/`;
     * Change password: `api/users/<pk>/password/` -> `api/accounts/change-password/`.
+- If emails are enabled, an user manager cannot change users password anymore.
 
 ### Removed
 
