@@ -1,3 +1,5 @@
+from unittest.mock import ANY
+
 import pytest
 
 from users import models
@@ -124,3 +126,47 @@ class TestStringification:
         user = models.DakaraUser(username="yamadatarou", password="pass")
 
         assert str(user) == "yamadatarou"
+
+
+@pytest.mark.django_db
+class TestSendValidationEmail:
+    """Test a validation email is sent when user is created
+    """
+
+    def test_send_validation_email_superuser(self, mocker):
+        """Test to send message on superuser creation
+        """
+        mocked_send_email = mocker.patch(
+            "users.signals.send_register_verification_email_notification"
+        )
+        superuser = models.DakaraUser.objects.create_user(
+            username="root", email="root@example", password="pass", is_superuser=True
+        )
+
+        mocked_send_email.assert_called_with(ANY, superuser)
+
+    def test_send_validation_email_superuser_email_disabled(
+        self, mocker, config_email_disabled
+    ):
+        """Test email not sent if email disabled
+        """
+        mocked_send_email = mocker.patch(
+            "users.signals.send_register_verification_email_notification"
+        )
+        models.DakaraUser.objects.create_user(
+            username="root", email="root@example", password="pass", is_superuser=True
+        )
+
+        mocked_send_email.assert_not_called()
+
+    def test_send_validation_email_normal_user(self, mocker):
+        """Test to not send message on normal user creation
+        """
+        mocked_send_email = mocker.patch(
+            "users.signals.send_register_verification_email_notification"
+        )
+        models.DakaraUser.objects.create_user(
+            username="user", email="user@example", password="pass"
+        )
+
+        mocked_send_email.assert_not_called()
