@@ -17,7 +17,8 @@ def get_managers_emails():
     return [
         user.email
         for user in UserModel.objects.filter(
-            Q(users_permission_level=UserModel.MANAGER) | Q(is_superuser=True)
+            Q(validated_by_email=True)
+            & (Q(users_permission_level=UserModel.MANAGER) | Q(is_superuser=True))
         )
     ]
 

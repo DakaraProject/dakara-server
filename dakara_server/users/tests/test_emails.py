@@ -64,7 +64,7 @@ class SendNotificationToManagersTestCase(UsersAPITestCase):
 
 
 @patch("users.emails.send_mail")
-class SendNotificationToUserValidated(UsersAPITestCase):
+class SendNotificationToUserValidatedTestCase(UsersAPITestCase):
     """Test the send_notification_to_user_validated function
     """
 
@@ -88,3 +88,23 @@ class SendNotificationToUserValidated(UsersAPITestCase):
         emails.send_notification_to_user_validated(user)
 
         mocked_send_mail.assert_not_called()
+
+
+class GetManagersEmailsTestCase(UsersAPITestCase):
+    """Test get_managers_emails function
+    """
+
+    def test_get_managers_emails(self):
+        # Create users in database
+        self.create_user("User", email="user@example.com")
+        manager_validated = self.create_user(
+            "ManagerValidated", email="mv@example.com", users_level=UserModel.MANAGER
+        )
+        manager_unvalidated = self.create_user(
+            "ManagerUnValidated", email="muv@example.com", users_level=UserModel.MANAGER
+        )
+        manager_unvalidated.validated_by_email = False
+        manager_unvalidated.save()
+
+        # Check only validated manager is returned
+        self.assertCountEqual([manager_validated.email], emails.get_managers_emails())
