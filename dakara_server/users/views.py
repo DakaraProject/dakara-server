@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.db import transaction
 from rest_framework import generics, views
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -51,11 +52,12 @@ class UserListView(generics.ListCreateAPIView):
         return serializers.UserSerializer
 
     def perform_create(self, serializer):
-        user = serializer.save()
+        with transaction.atomic():
+            user = serializer.save()
 
-        # send verification email if requested
-        if registration_settings.REGISTER_VERIFICATION_ENABLED:
-            send_register_verification_email_notification(self.request, user)
+            # send verification email if requested
+            if registration_settings.REGISTER_VERIFICATION_ENABLED:
+                send_register_verification_email_notification(self.request, user)
 
 
 class UserView(generics.RetrieveUpdateDestroyAPIView):

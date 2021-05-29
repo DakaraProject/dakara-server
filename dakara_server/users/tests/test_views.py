@@ -282,6 +282,37 @@ class UserListViewTestCase(UsersAPITestCase):
         # Check verification email was sent
         mocked_send_email.assert_called_with(ANY, new_user)
 
+    @patch("users.views.send_register_verification_email_notification")
+    def test_create_user_mail_send_fail(self, mocked_send_email):
+        """Test to verify user not created if mail send fail
+        """
+        # Patch send email to raise exception
+        class MailSendFailException(Exception):
+            pass
+
+        mocked_send_email.side_effect = MailSendFailException("Mail send failed.")
+
+        # Pre assertions
+        self.assertEqual(UserModel.objects.count(), 2)
+
+        # Login as manager
+        self.authenticate(self.manager)
+
+        # Post new user
+        username_new_user = "TestUserNew"
+        with self.assertRaises(MailSendFailException):
+            self.client.post(
+                self.url,
+                {
+                    "username": username_new_user,
+                    "email": "email@example.com",
+                    "password": "pwd",
+                },
+            )
+
+        # Check user has not been created in database
+        self.assertEqual(UserModel.objects.count(), 2)
+
     @config_email_disabled
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user_email_disabled(self, mocked_send_email):
