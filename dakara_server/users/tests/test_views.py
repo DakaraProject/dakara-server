@@ -691,7 +691,9 @@ class CurrentUserViewTestCase(UsersAPITestCase):
             {
                 "id": self.user.id,
                 "username": self.user.username,
+                "email": self.user.email,
                 "is_superuser": self.user.is_superuser,
+                "validated_by_email": self.user.validated_by_email,
                 "users_permission_level": self.user.users_permission_level,
                 "library_permission_level": self.user.library_permission_level,
                 "playlist_permission_level": self.user.playlist_permission_level,
@@ -709,7 +711,9 @@ class CurrentUserViewTestCase(UsersAPITestCase):
             {
                 "id": self.manager.id,
                 "username": self.manager.username,
+                "email": self.manager.email,
                 "is_superuser": self.manager.is_superuser,
+                "validated_by_email": self.manager.validated_by_email,
                 "users_permission_level": self.manager.users_permission_level,
                 "library_permission_level": self.manager.library_permission_level,
                 "playlist_permission_level": self.manager.playlist_permission_level,

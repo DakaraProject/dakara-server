@@ -46,6 +46,24 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
+class UserSerializerCurrent(serializers.ModelSerializer):
+    """View users for current user
+    """
+
+    class Meta:
+        model = UserModel
+        fields = (
+            "id",
+            "username",
+            "email",
+            "is_superuser",
+            "validated_by_email",
+            "users_permission_level",
+            "library_permission_level",
+            "playlist_permission_level",
+        )
+
+
 class UserForManagerSerializer(serializers.ModelSerializer):
     """Users edition for managers
     """
