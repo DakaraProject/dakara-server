@@ -1,5 +1,6 @@
 from unittest.mock import ANY, patch
 
+
 from internal.tests.base_test import UserModel
 from users.tests.base_test import config_email_disabled, UsersAPITestCase
 from users import emails
@@ -63,6 +64,20 @@ class SendNotificationToManagersTestCase(UsersAPITestCase):
         )
 
 
+class GetNotificationToManagersTestCase(UsersAPITestCase):
+    """Test the get_notification_to_managers function
+    """
+
+    def test_get(self):
+        """Test to get notification template for managers
+        """
+        user = self.create_user("TestUser", email="test@user.com")
+        content = emails.get_notification_to_managers(user)
+
+        self.assertIn("TestUser (test@user.com)", content)
+        self.assertIn("http://frontend-host/settings/users/1", content)
+
+
 @patch("users.emails.send_mail")
 class SendNotificationToUserValidatedTestCase(UsersAPITestCase):
     """Test the send_notification_to_user_validated function
@@ -108,3 +123,15 @@ class GetManagersEmailsTestCase(UsersAPITestCase):
 
         # Check only validated manager is returned
         self.assertCountEqual([manager_validated.email], emails.get_managers_emails())
+
+
+class GetNotificationToUserValidatedTestCase(UsersAPITestCase):
+    """Test the get_notification_to_user_validated function
+    """
+
+    def test_get(self):
+        """Test to get notification template for validated users
+        """
+        content = emails.get_notification_to_user_validated()
+
+        self.assertIn("http://frontend-host/login", content)

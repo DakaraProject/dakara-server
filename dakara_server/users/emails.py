@@ -39,19 +39,28 @@ def send_notification_to_managers(user):
         )
         return
 
-    # create message content
-    template = get_template("notification_to_managers.txt")
-    content = template.render(
-        {"user": user, "url": settings.HOST_URLS["USER_EDIT_URL"].format(id=user.id)}
-    )
-
     # send the mail
     send_mail(
         "New user registered",
-        content,
+        get_notification_to_managers(user),
         settings.SENDER_EMAIL,
         managers_emails,
         fail_silently=False,
+    )
+
+
+def get_notification_to_managers(user):
+    """Create notification message for managers
+
+    Args:
+        user (DakaraUser): User in the message.
+
+    Returns:
+        str: Notification message.
+    """
+    template = get_template("notification_to_managers.txt")
+    return template.render(
+        {"user": user, "url": settings.HOST_URLS["USER_EDIT_URL"].format(id=user.id)}
     )
 
 
@@ -61,15 +70,21 @@ def send_notification_to_user_validated(user):
     if not settings.EMAIL_ENABLED:
         return
 
-    # create message content
-    template = get_template("notification_to_user_validated.txt")
-    content = template.render({"url": settings.HOST_URLS["LOGIN_URL"]})
-
     # send the mail
     send_mail(
         "Account validated",
-        content,
+        get_notification_to_user_validated(),
         settings.SENDER_EMAIL,
         [user.email],
         fail_silently=False,
     )
+
+
+def get_notification_to_user_validated():
+    """Create notification message to users that have been validated
+
+    Returns:
+        str: Notification message.
+    """
+    template = get_template("notification_to_user_validated.txt")
+    return template.render({"url": settings.HOST_URLS["LOGIN_URL"]})
