@@ -19,8 +19,10 @@ import os
 from decouple import config
 from dj_database_url import parse as db_url
 
+os.environ.setdefault("HOST_URL", "http://localhost:3000")
+
 from dakara_server.settings.base import *  # noqa F403
-from dakara_server.settings.base import BASE_DIR
+from dakara_server.settings.base import BASE_DIR  # noqa E402
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/

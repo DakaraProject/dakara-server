@@ -118,7 +118,7 @@ REST_FRAMEWORK = {
 
 
 SENDER_EMAIL = config("SENDER_EMAIL", default="no-reply@example.com")
-HOST_URL = config("HOST_URL", default="https://frontend-host")
+HOST_URL = config("HOST_URL")
 EMAIL_ENABLED = config("EMAIL_ENABLED", default=True, cast=bool)
 
 
