@@ -14,33 +14,6 @@ class DakaraModelBackend(ModelBackend):
     account validated by a manager.
     """
 
-    def authenticate(self, request, username=None, email=None, password=None):
-        """Authenticate user either by username or by email
-        """
-        if email is not None:
-            # authenticate with email first
-            # code inspired from django.contrib.auth.backends.ModelBackend.authenticate
-            try:
-                user = UserModel.objects.get(email=email)
-
-            except UserModel.DoesNotExist:
-                # Run the default password hasher once to reduce the timing
-                # difference between an existing and a nonexistent user (#20760).
-                UserModel().set_password(password)
-                return None
-
-            else:
-                if not (
-                    user.check_password(password) and self.user_can_authenticate(user)
-                ):
-                    return None
-
-            return user
-
-        else:
-            # otherwise authenticate with default username
-            return super().authenticate(request, username, password)
-
     def user_can_authenticate(self, user):
         if not super().user_can_authenticate(user):
             return False
