@@ -76,14 +76,19 @@ class Command(BaseCommand):
             return
 
         try:
-            player = UserModel.objects.create_user(username, password=password)
+            UserModel.objects.create_user(
+                username,
+                password=password,
+                email="{}@player".format(username),
+                validated_by_email=True,
+                validated_by_manager=True,
+                playlist_permission_level=UserModel.PLAYER,
+            )
 
-        except (IntegrityError, ValueError):
-            self.stderr.write("Error: Account '{}' already exists.".format(username))
+        except (IntegrityError, ValueError) as e:
+            self.stderr.write("Error: {}".format(e))
             return
 
-        player.playlist_permission_level = UserModel.PLAYER
-        player.save()
         self.stdout.write("Player created successfully.")
 
     def handle(self, *args, **options):

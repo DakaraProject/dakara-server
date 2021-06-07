@@ -1,3 +1,5 @@
+from unittest.mock import ANY
+
 import pytest
 
 from users import models
@@ -5,19 +7,8 @@ from users import models
 
 @pytest.mark.django_db
 class TestDakaraUser:
-    """Test the DakaraUser closs
+    """Test the DakaraUser class
     """
-
-    def test_create_user_non_case_unique(self):
-        """Test to create to users with just a variation in case
-        """
-        models.DakaraUser.objects.create_user(username="TestUser", password="pass")
-
-        with pytest.raises(
-            models.UserExistsWithDifferentCaseError,
-            match="The username must be case insensitively unique",
-        ):
-            models.DakaraUser.objects.create_user(username="testuser", password="pass")
 
     def test_users_permission_levels(self):
         """Test the users app permission levels
@@ -78,6 +69,14 @@ class TestDakaraUser:
     def test_playlist_permission_levels(self):
         """Test the playlist app permission levels
         """
+        # create a default user
+        user = models.DakaraUser(username="user")
+
+        # assert their permissions
+        assert user.is_playlist_user
+        assert not user.is_playlist_manager
+        assert not user.is_player
+
         # create a playlist user
         user = models.DakaraUser(
             username="user", playlist_permission_level=models.DakaraUser.USER
@@ -112,7 +111,7 @@ class TestDakaraUser:
         superuser = models.DakaraUser(username="root", is_superuser=True)
 
         # assert their permissions
-        assert not superuser.is_playlist_user
+        assert superuser.is_playlist_user
         assert not superuser.is_playlist_manager
         assert not superuser.is_player
 
@@ -127,3 +126,47 @@ class TestStringification:
         user = models.DakaraUser(username="yamadatarou", password="pass")
 
         assert str(user) == "yamadatarou"
+
+
+@pytest.mark.django_db
+class TestSendValidationEmail:
+    """Test a validation email is sent when user is created
+    """
+
+    def test_send_validation_email_superuser(self, mocker):
+        """Test to send message on superuser creation
+        """
+        mocked_send_email = mocker.patch(
+            "users.signals.send_register_verification_email_notification"
+        )
+        superuser = models.DakaraUser.objects.create_user(
+            username="root", email="root@example", password="pass", is_superuser=True
+        )
+
+        mocked_send_email.assert_called_with(ANY, superuser)
+
+    def test_send_validation_email_superuser_email_disabled(
+        self, mocker, config_email_disabled
+    ):
+        """Test email not sent if email disabled
+        """
+        mocked_send_email = mocker.patch(
+            "users.signals.send_register_verification_email_notification"
+        )
+        models.DakaraUser.objects.create_user(
+            username="root", email="root@example", password="pass", is_superuser=True
+        )
+
+        mocked_send_email.assert_not_called()
+
+    def test_send_validation_email_normal_user(self, mocker):
+        """Test to not send message on normal user creation
+        """
+        mocked_send_email = mocker.patch(
+            "users.signals.send_register_verification_email_notification"
+        )
+        models.DakaraUser.objects.create_user(
+            username="user", email="user@example", password="pass"
+        )
+
+        mocked_send_email.assert_not_called()

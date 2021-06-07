@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
+from django.db import transaction
 from django.test import TestCase
 
 from playlist.management.commands.createplayer import Command
@@ -101,14 +102,15 @@ class CreatePlayerCommandTestCase(TestCase):
         self.assertEqual(UserModel.objects.all().count(), 1)
 
         # call command
-        Command(stderr=output, stdout=output).create_player("player", "pass")
+        with transaction.atomic():
+            Command(stderr=output, stdout=output).create_player("player", "pass")
 
         # assert there is one user of type player
         self.assertEqual(UserModel.objects.all().count(), 1)
 
         self.assertListEqual(
             output.getvalue().split("\n"),
-            ["Error: Account 'player' already exists.", ""],
+            ["Error: UNIQUE constraint failed: users_dakarauser.username", ""],
         )
 
     @patch.object(Command, "get_password")

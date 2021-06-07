@@ -34,10 +34,31 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Added
+
+- Authentication by email is now possible, in addition to authentication by user name.
+  This requires a working email server in production.
+  Creating a new account can be done from the login page.
+  In order to be functional, the account must have its email address validated (with a special link sent by email during account creation) and must be validated by an users manager (user managers are notified by email each time a new account is created).
+  For production, this feature is enabled by default and can be disabled with the environment variable `EMAIL_ENABLED` set to `false`.
+  This legacy configuration is designed for local servers, not exposed online.
+  In this case the email address is automatically validated during account creation, but still has to be validated by an user manager.
+  For development and testing, this feature is enabled, but a console email server and respectively a dummy email server are used instead.
+
 ### Changed
 
 - The `createplayer` command accepts now `--username` and `--password` to respectively pass username and password.
   It also accepts `--noinput` to not prompt any input when calling the command.
+- Authentication routes have been changed to `api/accounts/`:
+    * Login: `api/token-auth/` -> `api/accounts/login/`, fields are now `login` and `password`;
+    * Logout: `api/token-auth/logout/` -> `api/accounts/logout/`;
+    * Change password: `api/users/<pk>/password/` -> `api/accounts/change-password/`.
+- If emails are enabled, an user manager cannot change users password anymore.
+- Route to get server version was changed to be more generic and to return settings: `api/version/` -> `api/settings/`.
+
+### Removed
+
+- Dropped Python 3.5 support.
 
 ### Removed
 

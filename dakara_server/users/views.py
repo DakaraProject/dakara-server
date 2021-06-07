@@ -1,12 +1,17 @@
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import generics
-from rest_framework import views
-from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.db import transaction
+from rest_framework import generics, views
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_registration.settings import registration_settings
+from rest_registration.utils.verification_notifications import (
+    send_register_verification_email_notification,
+)
 
 from internal import permissions as internal_permissions
-from users import serializers
-from users import permissions
+from users import permissions, serializers
+from users import emails
 
 
 UserModel = get_user_model()
@@ -17,7 +22,7 @@ class CurrentUserView(views.APIView):
     """
 
     permission_classes = [IsAuthenticated]
-    serializer_class = serializers.UserSerializer
+    serializer_class = serializers.UserSerializerCurrent
 
     def get(self, request):
         """Retrieve the user
@@ -34,11 +39,25 @@ class UserListView(generics.ListCreateAPIView):
 
     model = UserModel
     queryset = UserModel.objects.all().order_by("username")
-    serializer_class = serializers.UserSerializer
     permission_classes = [
         IsAuthenticated,
         permissions.IsUsersManager | internal_permissions.IsReadOnly,
     ]
+
+    def get_serializer_class(self):
+        # serializer depends on permission level
+        if permissions.IsUsersManager().has_permission(self.request, self):
+            return serializers.UserCreationForManagerSerializer
+
+        return serializers.UserSerializer
+
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            user = serializer.save()
+
+            # send verification email if requested
+            if registration_settings.REGISTER_VERIFICATION_ENABLED:
+                send_register_verification_email_notification(self.request, user)
 
 
 class UserView(generics.RetrieveUpdateDestroyAPIView):
@@ -54,17 +73,20 @@ class UserView(generics.RetrieveUpdateDestroyAPIView):
     ]
 
     def get_serializer_class(self):
-        if self.request is not None and self.request.method in ("PUT", "PATCH"):
-            return serializers.UserForManagerSerializer
+        # serializer depends on permission level
+        if permissions.IsUsersManager().has_permission(self.request, self):
+            if settings.EMAIL_ENABLED:
+                return serializers.UserForManagerSerializer
+
+            return serializers.UserForManagerWithPasswordSerializer
 
         return serializers.UserSerializer
 
+    def perform_update(self, serializer):
+        validated_by_manager_old = serializer.instance.validated_by_manager
+        super().perform_update(serializer)
+        validated_by_manager_new = serializer.instance.validated_by_manager
 
-class PasswordView(generics.UpdateAPIView):
-    """Edition of a user password
-    """
-
-    model = UserModel
-    queryset = UserModel.objects.all()
-    serializer_class = serializers.PasswordSerializer
-    permission_classes = [IsAuthenticated, permissions.IsSelf]
+        if not validated_by_manager_old and validated_by_manager_new:
+            # user has been validated by manager, send notification
+            emails.send_notification_to_user_validated(serializer.instance)

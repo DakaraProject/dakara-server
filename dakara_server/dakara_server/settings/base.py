@@ -12,6 +12,8 @@ This file should not be modified if you are not a dev.
 
 import os
 
+from decouple import config
+
 from dakara_server.version import __version__ as VERSION, __date__ as DATE  # noqa F401
 
 
@@ -31,9 +33,10 @@ INSTALLED_APPS = (
     "rest_framework.authtoken",
     "channels",
     "ordered_model",
+    "rest_registration",
     "library",
     "playlist.apps.PlaylistConfig",
-    "users",
+    "users.apps.UsersConfig",
     "internal.apps.InternalConfig",
 )
 
@@ -62,7 +65,6 @@ ROOT_URLCONF = "dakara_server.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": ["templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -113,3 +115,36 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
+
+
+SENDER_EMAIL = config("SENDER_EMAIL", default="no-reply@example.com")
+HOST_URL = config("HOST_URL")
+EMAIL_ENABLED = config("EMAIL_ENABLED", default=True, cast=bool)
+
+
+# Django rest registration config
+REST_REGISTRATION = {
+    "LOGIN_AUTHENTICATE_SESSION": False,
+    "LOGIN_SERIALIZER_CLASS": "users.serializers.DakaraLoginSerializer",
+    "REGISTER_VERIFICATION_URL": HOST_URL + "/verify-registration/",
+    "RESET_PASSWORD_VERIFICATION_URL": HOST_URL + "/reset-password/",
+    "REGISTER_EMAIL_VERIFICATION_URL": HOST_URL + "/verify-email/",
+    "VERIFICATION_FROM_EMAIL": SENDER_EMAIL,
+    "USER_VERIFICATION_FLAG_FIELD": "validated_by_email",
+    "USER_LOGIN_FIELDS": ["username", "email"],
+    "REGISTER_VERIFICATION_ENABLED": EMAIL_ENABLED,
+    "REGISTER_EMAIL_VERIFICATION_ENABLED": EMAIL_ENABLED,
+    "RESET_PASSWORD_VERIFICATION_ENABLED": EMAIL_ENABLED,
+}
+
+AUTHENTICATION_BACKENDS = ["users.backends.DakaraModelBackend"]
+
+
+# Front URLs
+HOST_URLS = {
+    "USER_EDIT_URL": HOST_URL + "/settings/users/{id}",
+    "LOGIN_URL": HOST_URL + "/login",
+}
+
+# limit of the playlist size
+PLAYLIST_SIZE_LIMIT = config("PLAYLIST_SIZE_LIMIT", cast=int, default=100)

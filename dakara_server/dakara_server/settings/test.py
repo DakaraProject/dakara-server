@@ -12,6 +12,8 @@ This file should not be modified if you are not a dev.
 
 import os
 
+os.environ.setdefault("HOST_URL", "http://frontend-host")
+
 from dakara_server.settings.base import *  # noqa F403
 
 # use test config
@@ -73,3 +75,8 @@ LOGGING = {
 }
 
 PLAYLIST_SIZE_LIMIT = 100
+EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
+
+# values imported from base config
+# SENDER_EMAIL is get from the environment
+# HOST_URL is get from the environment

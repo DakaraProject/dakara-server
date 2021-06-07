@@ -33,23 +33,38 @@ class BaseProvider:
 
     @staticmethod
     def create_user(
-        username, playlist_level=None, library_level=None, users_level=None, **kwargs
+        username,
+        email=None,
+        password="password",
+        playlist_level=None,
+        library_level=None,
+        users_level=None,
+        **kwargs
     ):
         """Create a user with the given permissions
 
+        Extra arguments are passed to `UserModel.objects.create_user`.
+
         Args:
-            username (str): name of the user.
-            playlist_level (str): level of accreditation for playlist app.
-            library_level (str): level of accreditation for library app.
-            users_level (str): level of accreditation for users app.
+            username (str): Name of the user.
+            email (str): Email of the user.
+            password (str): Password of the user.
+            playlist_level (str): Level of accreditation for playlist app.
+            library_level (str): Level of accreditation for library app.
+            users_level (str): Level of accreditation for users app.
 
         Returns:
-            users.models.DakaraUser: created user.
+            users.models.DakaraUser: Created user.
         """
-        user = UserModel.objects.create_user(username, "", "password", **kwargs)
+        if email is None:
+            email = "{}@example.com".format(username)
+
+        user = UserModel.objects.create_user(username, email, password, **kwargs)
         user.playlist_permission_level = playlist_level
         user.library_permission_level = library_level
         user.users_permission_level = users_level
+        user.validated_by_email = True
+        user.validated_by_manager = True
         user.save()
         return user
 
