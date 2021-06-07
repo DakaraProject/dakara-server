@@ -7,8 +7,7 @@ class UsersConfig(DakaraConfig):
 
     name = "users"
 
-    def ready(self):
+    def ready_reload(self):
+        """Method called when app and reloader start
+        """
         import users.signals  # noqa F401
-
-    def ready_no_reload(self):
-        pass
