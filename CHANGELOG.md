@@ -54,6 +54,7 @@ Any important notes regarding the update.
     * Logout: `api/token-auth/logout/` -> `api/accounts/logout/`;
     * Change password: `api/users/<pk>/password/` -> `api/accounts/change-password/`.
 - If emails are enabled, an user manager cannot change users password anymore.
+- Route to get server version was changed to be more generic and to return settings: `api/version/` -> `api/settings/`.
 
 ### Removed
 

@@ -7,9 +7,7 @@ from rest_registration.utils.verification_notifications import (
     send_register_verification_email_notification,
 )
 
-
 from users import emails
-
 
 DakaraUser = get_user_model()
 
