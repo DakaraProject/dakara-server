@@ -27,6 +27,16 @@ class DakaraModelBackendTestCase(UsersAPITestCase):
             self.user,
         )
 
+    def test_authenticate_username_not_active(self):
+        """Test to authenticate an inactive user"""
+        self.user.is_active = False
+        self.user.save()
+
+        backend = DakaraModelBackend()
+        self.assertIsNone(
+            backend.authenticate(MagicMock(), username="TestUser", password="pass"),
+        )
+
     def test_authenticate_username_not_validated_by_email(self):
         """Test to authenticate when not validated by email"""
         self.user.validated_by_email = False
