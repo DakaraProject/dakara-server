@@ -19,6 +19,10 @@ class IsUsersManager(BasePermissionCustom):
     """
 
     def has_permission(self, request, view):
+        # if callod without a request
+        if request is None:
+            return False
+
         return request.user.is_superuser or request.user.is_users_manager
 
 
