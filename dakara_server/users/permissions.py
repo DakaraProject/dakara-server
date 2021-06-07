@@ -19,11 +19,7 @@ class IsUsersManager(BasePermissionCustom):
     """
 
     def has_permission(self, request, view):
-        # if called without request
-        if request is None:
-            return False
-
-        return request.user.is_superuser or request.user.is_users_manager
+        return request and request.user.is_superuser or request.user.is_users_manager
 
 
 class IsSelf(BasePermissionCustom):
@@ -31,7 +27,8 @@ class IsSelf(BasePermissionCustom):
     """
 
     def has_object_permission(self, request, view, obj):
-        return obj == request.user
+
+        return request and obj == request.user
 
 
 class IsNotSelf(IsSelf):
