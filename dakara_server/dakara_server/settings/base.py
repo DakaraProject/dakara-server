@@ -56,7 +56,7 @@ AUTH_USER_MODEL = "users.DakaraUser"
 
 # channels
 
-ASGI_APPLICATION = "dakara_server.routing.application"
+ASGI_APPLICATION = "dakara_server.asgi.application"
 
 # urls
 

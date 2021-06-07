@@ -17,7 +17,7 @@ class TokenAuthMiddleware:
     def __init__(self, inner):
         self.inner = inner
 
-    def __call__(self, scope):
+    def __call__(self, scope, receive, send):
         headers = dict(scope["headers"])
         if b"authorization" in headers:
             token_name, token_key = headers[b"authorization"].decode().split()
@@ -32,7 +32,7 @@ class TokenAuthMiddleware:
             if "token" in query_string:
                 self.authenticate_with_token(scope, query_string["token"][0])
 
-        return self.inner(scope)
+        return self.inner(scope, receive, send)
 
     def authenticate_with_token(self, scope, token_key):
         try:

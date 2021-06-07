@@ -20,7 +20,7 @@ class TestDispatchJsonWebsocketConsumer:
         """
         mocked_receive_dummy = mocker.patch.object(self.DummyConsumer, "receive_dummy")
 
-        consumer = self.DummyConsumer({})
+        consumer = self.DummyConsumer()
         consumer.receive_json({"type": "dummy", "data": "data"})
 
         mocked_receive_dummy.assert_called_with("data")
@@ -28,7 +28,7 @@ class TestDispatchJsonWebsocketConsumer:
     def test_receive_json_no_method(self, caplog):
         """Test to call a non existent method on receive
         """
-        consumer = self.DummyConsumer({})
+        consumer = self.DummyConsumer()
         consumer.receive_json({"type": "non_existent", "data": "data"})
 
         assert len(caplog.records) == 1
