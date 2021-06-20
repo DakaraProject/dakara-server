@@ -7,7 +7,7 @@ from channels.testing import WebsocketCommunicator
 from django.urls import reverse
 from rest_framework import status
 
-from dakara_server.routing import application
+from dakara_server.asgi import application
 from playlist import models
 
 

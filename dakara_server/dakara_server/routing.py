@@ -1,15 +1,8 @@
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.security.websocket import AllowedHostsOriginValidator
+from django.urls import re_path
 
-import playlist.routing
-from dakara_server.token_auth import TokenAuthMiddlewareStack
+from playlist import consumers
 
 
-application = ProtocolTypeRouter(
-    {
-        # HTTP is auto-detected
-        "websocket": AllowedHostsOriginValidator(
-            TokenAuthMiddlewareStack(URLRouter(playlist.routing.websocket_urlpatterns))
-        )
-    }
-)
+websocket_urlpatterns = [
+    re_path(r"^ws/playlist/device/$", consumers.PlaylistDeviceConsumer.as_asgi())
+]

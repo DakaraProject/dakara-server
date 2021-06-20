@@ -56,7 +56,7 @@ AUTH_USER_MODEL = "users.DakaraUser"
 
 # channels
 
-ASGI_APPLICATION = "dakara_server.routing.application"
+ASGI_APPLICATION = "dakara_server.asgi.application"
 
 # urls
 
@@ -114,6 +114,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "internal.pagination.PageNumberPaginationCustom",
     "PAGE_SIZE": 10,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
 }
 
 

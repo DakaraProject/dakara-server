@@ -1,15 +1,15 @@
 APScheduler<3.7.0,>=3.6.0
-channels<2.5.0,>=2.4.0
+channels<3.1.0,>=3.0.3
 coreapi<2.4.0,>=2.3.3
 dj-database-url<0.6.0,>=0.5.0
-django-filter<2.3.0,>=2.2.0
-django-ordered-model<3.4.0,>=3.3.0
+django-filter<2.5.0,>=2.4.0
+django-ordered-model<3.5.0,>=3.4.0
 django-rest-registration==0.6.3
 Django<2.3.0,>=2.2.0
-djangorestframework<3.12.0,>=3.11.0
-Markdown<3.3.0,>=3.2.0
-progressbar2==3.34.3
-Pygments<2.8.0,>=2.7.4
-python-decouple<3.4,>=3.3
-pywin32==227; sys_platform == 'win32'
-PyYAML==5.4
+djangorestframework<3.13.0,>=3.12.0
+Markdown<3.4.0,>=3.3.0
+progressbar2<3.35,>=3.34.3
+Pygments<2.9.0,>=2.8.0
+python-decouple<3.5,>=3.4
+pywin32==301; sys_platform == 'win32'
+PyYAML<5.5,>=5.4
