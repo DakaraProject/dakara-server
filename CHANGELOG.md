@@ -34,6 +34,8 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+## 1.7.0 - 2021-06-20
+
 ### Added
 
 - Authentication by email is now possible, in addition to authentication by user name.
