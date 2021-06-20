@@ -58,10 +58,6 @@ Any important notes regarding the update.
 
 ### Removed
 
-- Dropped Python 3.5 support.
-
-### Removed
-
 - Dropped support of Python 3.5.
 
 ## 1.6.0 - 2020-09-05
