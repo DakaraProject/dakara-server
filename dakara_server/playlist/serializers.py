@@ -232,6 +232,7 @@ class KaraokeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Karaoke
         fields = (
+            "id",
             "ongoing",
             "can_add_to_playlist",
             "player_play_next_song",
