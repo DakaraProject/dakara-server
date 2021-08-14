@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from playlist.models import PlaylistEntry, Karaoke, PlayerError, Player
+from playlist.models import PlaylistEntry, Karaoke, PlayerError, PlayerToken, Player
 from library.models import Song
 from library.serializers import (
     SongSerializer,
@@ -237,6 +237,15 @@ class KaraokeSerializer(serializers.ModelSerializer):
             "can_add_to_playlist",
             "player_play_next_song",
             "date_stop",
+        )
+
+
+class PlayerTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlayerToken
+        fields = (
+            "karaoke",
+            "token",
         )
 
 

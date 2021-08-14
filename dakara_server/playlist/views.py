@@ -343,6 +343,24 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
         return models.Karaoke.objects.get_object()
 
 
+class PlayerTokenListView(drf_generics.CreateAPIView):
+    queryset = models.PlayerToken.objects.all()
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlaylistManager,
+    ]
+    serializer_class = serializers.PlayerTokenSerializer
+
+
+class PlayerTokenView(drf_generics.RetrieveDestroyAPIView):
+    queryset = models.PlayerToken.objects.all()
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlaylistManager,
+    ]
+    serializer_class = serializers.PlayerTokenSerializer
+
+
 class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
     """View of the player
 
