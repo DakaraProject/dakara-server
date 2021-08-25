@@ -1,9 +1,14 @@
 from contextlib import contextmanager
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from datetime import datetime
 
-from django.db.models.fields import IntegerField, Field, NOT_PROVIDED
 from django.core.cache import cache
-from django_lock import lock
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.db.models import fields
+from django.utils import timezone
+
+from internal.lock import lock
+
+tz = timezone.get_default_timezone()
 
 
 class CacheManager:
@@ -106,7 +111,7 @@ class CacheManager:
             return self.get(**kwargs), False
 
         except self.model.DoesNotExist:
-            return self.model(**kwargs), True
+            return self.create(**kwargs), True
 
 
 class BaseCacheModel(type):
@@ -135,7 +140,7 @@ class BaseCacheModel(type):
 class CacheModel(metaclass=BaseCacheModel):
     """Model that instances only exist in cache"""
 
-    id = IntegerField(default=None)
+    id = fields.IntegerField(default=None)
 
     def __init__(self, *args, **kwargs):
         # create fields list
@@ -143,7 +148,16 @@ class CacheModel(metaclass=BaseCacheModel):
 
         # create attributes according to fields
         for name, field in self._fields:
-            if field.default == NOT_PROVIDED:
+            if isinstance(field, fields.DateTimeField) and field.auto_now_add:
+                setattr(self, name, datetime.now(tz))
+
+            elif isinstance(field, fields.DateField) and field.auto_now_add:
+                setattr(self, name, datetime.now(tz).date())
+
+            elif isinstance(field, fields.TimeField) and field.auto_now_add:
+                setattr(self, name, datetime.now(tz).time())
+
+            elif field.default == fields.NOT_PROVIDED:
                 setattr(self, name, None)
 
             else:
@@ -179,14 +193,26 @@ class CacheModel(metaclass=BaseCacheModel):
         return [
             (attr, getattr(cls, attr))
             for attr in dir(cls)
-            if isinstance(getattr(cls, attr), Field)
+            if isinstance(getattr(cls, attr), fields.Field)
         ]
 
     def save(self):
         """Save instance in cache"""
         with self.objects._access_store() as store:
             # manage ID
-            self.id = max(list(store.keys()) or [0]) + 1
+            if self.id is None:
+                self.id = max(list(store.keys()) or [0]) + 1
+
+            # manage automatic fields
+            for name, field in self._fields:
+                if isinstance(field, fields.DateTimeField) and field.auto_now:
+                    setattr(self, name, datetime.now(tz))
+
+                elif isinstance(field, fields.DateField) and field.auto_now:
+                    setattr(self, name, datetime.now(tz).date())
+
+                elif isinstance(field, fields.TimeField) and field.auto_now:
+                    setattr(self, name, datetime.now(tz).time())
 
             # set object in cache
             store[self.id] = self
