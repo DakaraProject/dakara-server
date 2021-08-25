@@ -411,6 +411,4 @@ class TestStringification:
         """
         player = models.Player(timing=timedelta(seconds=10))
 
-        assert str(player) == "Player"
-
-        assert repr(player) == "<Player: Player>"
+        assert repr(player) == "<Player: None>"

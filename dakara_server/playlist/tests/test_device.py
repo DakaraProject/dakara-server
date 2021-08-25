@@ -258,8 +258,10 @@ class TestDevice:
         assert event["data"]["id"] == playlist_provider.pe1.id
 
         # assert there are no side effects
-        player_new = await database_sync_to_async(
-            lambda: models.Player.get_or_create()
+        player_new, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
         )()
         assert player_new == player
 
@@ -291,8 +293,10 @@ class TestDevice:
             await communicator.wait()
 
         # assert there are no side effects
-        player_new = await database_sync_to_async(
-            lambda: models.Player.get_or_create()
+        player_new, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
         )()
         assert player_new == player
 
@@ -319,8 +323,10 @@ class TestDevice:
         assert event["type"] == "idle"
 
         # assert there are no side effects
-        player_new = await database_sync_to_async(
-            lambda: models.Player.get_or_create()
+        player_new, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
         )()
         assert player_new == player
 
@@ -351,8 +357,10 @@ class TestDevice:
         assert event["data"]["command"] == "pause"
 
         # assert there are no side effects
-        player_new = await database_sync_to_async(
-            lambda: models.Player.get_or_create()
+        player_new, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
         )()
         assert player_new == player
 
@@ -383,8 +391,10 @@ class TestDevice:
         assert event["data"]["command"] == "play"
 
         # assert there are no side effects
-        player_new = await database_sync_to_async(
-            lambda: models.Player.get_or_create()
+        player_new, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
         )()
         assert player_new == player
 
@@ -415,8 +425,10 @@ class TestDevice:
         assert event["data"]["command"] == "skip"
 
         # assert there are no side effects
-        player_new = await database_sync_to_async(
-            lambda: models.Player.get_or_create()
+        player_new, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
         )()
         assert player_new == player
 
@@ -444,8 +456,10 @@ class TestDevice:
             await communicator.wait()
 
         # assert there are no side effects
-        player_new = await database_sync_to_async(
-            lambda: models.Player.get_or_create()
+        player_new, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
         )()
         assert player_new == player
 
@@ -511,7 +525,11 @@ class TestDevice:
         assert response.status_code == status.HTTP_200_OK
 
         # assert the player has been updated
-        player = await database_sync_to_async(lambda: models.Player.get_or_create())()
+        player, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
+        )()
         assert player.playlist_entry == playlist_provider.pe1
 
         # # assert the front has been notified
@@ -528,7 +546,11 @@ class TestDevice:
         assert response.status_code == status.HTTP_200_OK
 
         # assert the player has been updated
-        player = await database_sync_to_async(lambda: models.Player.get_or_create())()
+        player, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
+        )()
         assert player.playlist_entry is None
 
         # play the second playlist entry
@@ -563,7 +585,11 @@ class TestDevice:
         assert response.status_code == status.HTTP_200_OK
 
         # assert the player has been updated
-        player = await database_sync_to_async(lambda: models.Player.get_or_create())()
+        player, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
+        )()
         assert player.playlist_entry == playlist_provider.pe2
 
         # notify the second playlist entry has finished
@@ -575,7 +601,11 @@ class TestDevice:
         assert response.status_code == status.HTTP_200_OK
 
         # assert the player has been updated
-        player = await database_sync_to_async(lambda: models.Player.get_or_create())()
+        player, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
+        )()
         assert player.playlist_entry is None
 
         # # assert the front has been notified
@@ -631,8 +661,10 @@ class TestDevice:
         assert event["type"] == "idle"
 
         # assert the player has not changed
-        player_new = await database_sync_to_async(
-            lambda: models.Player.get_or_create()
+        player_new, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
         )()
         assert player == player_new
 
@@ -670,8 +702,10 @@ class TestDevice:
         assert event["type"] == "idle"
 
         # assert the player has not changed
-        player_new = await database_sync_to_async(
-            lambda: models.Player.get_or_create()
+        player_new, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
         )()
         assert player == player_new
 
@@ -704,8 +738,10 @@ class TestDevice:
         connected, _ = await communicator_new.connect()
 
         # check that the player is idle
-        player_new = await database_sync_to_async(
-            lambda: models.Player.get_or_create()
+        player_new, _ = await database_sync_to_async(
+            lambda: models.Player.objects.get_or_create(
+                id=models.Karaoke.objects.get_object().id
+            )
         )()
         assert player_new.playlist_entry is None
 

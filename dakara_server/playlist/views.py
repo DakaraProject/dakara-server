@@ -81,7 +81,8 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         queryset = self.queryset.all()
-        player = models.Player.get_or_create()
+        karaoke = models.Karaoke.objects.get_object()
+        player, _ = models.Player.objects.get_or_create(id=karaoke.id)
         date = datetime.now(tz)
 
         # add player remaining time
@@ -135,7 +136,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         ):
             # compute playlist end date
             playlist = self.filter_queryset(self.get_queryset())
-            player = models.Player.get_or_create()
+            player, _ = models.Player.objects.get_or_create(id=karaoke.id)
             date = datetime.now(tz)
 
             # add player remaining time
@@ -166,7 +167,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         #   - player is set to play next song
         #   - the player is idle.
         next_playlist_entry = models.PlaylistEntry.objects.get_next()
-        player = models.Player.get_or_create()
+        player, _ = models.Player.objects.get_or_create(id=karaoke.id)
         if all(
             (
                 next_playlist_entry is not None,
@@ -212,7 +213,7 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
             )
 
         # check the player is not idle
-        player = models.Player.get_or_create()
+        player, _ = models.Player.objects.get_or_create(id=karaoke.id)
         if player.playlist_entry is None:
             raise PermissionDenied("The player cannot receive commands when " "idle")
 
@@ -237,20 +238,21 @@ class DigestView(APIView):
     def get(self, request, *args, **kwargs):
         """Send aggregated player data
         """
+        # Get kara status
+        karaoke = models.Karaoke.objects.get_object()
+
         # Get player
-        player = models.Player.get_or_create()
+        player, _ = models.Player.objects.get_or_create(id=karaoke.id)
 
         # manually update the player timing
         now = datetime.now(tz)
         if player.playlist_entry:
             if not player.paused:
-                player.update(timing=player.timing + (now - player.date), date=now)
+                player.timing += now - player.date
+                player.date = now
 
         # Get player errors
         player_errors_pool = models.PlayerError.objects.all()
-
-        # Get kara status
-        karaoke = models.Karaoke.objects.get_object()
 
         serializer = serializers.DigestSerializer(
             {
@@ -310,8 +312,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
             send_to_channel("playlist.device", "send_idle")
 
             # clear player
-            player = models.Player()
-            player.save()
+            player = models.Player.objects.create(id=karaoke.id)
 
             # empty the playlist
             models.PlaylistEntry.objects.all().delete()
@@ -326,7 +327,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
             and "player_play_next_song" in serializer.validated_data
             and karaoke.player_play_next_song
         ):
-            player = models.Player.get_or_create()
+            player, _ = models.Player.objects.get_or_create(id=karaoke.id)
 
             # request the player to play the next song if idle,
             # and there is a next song to play
@@ -373,8 +374,9 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 
         method = getattr(self, method_name)
 
-        # call the method
-        player.update(**serializer.validated_data)
+        super().perform_update(serializer)
+
+        # call the method and save player
         method(entry, player)
         player.save()
 
@@ -388,7 +390,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         playlist_entry.set_finished()
 
         # reset the player
-        player.reset()
+        player = models.Player.objects.create(id=player.id)
 
         # log the info
         logger.debug("The player has finished playing '%s'", playlist_entry)
@@ -403,6 +405,9 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         playlist_entry.set_playing()
         playlist_entry.set_finished()
 
+        # reset the player
+        player = models.Player.objects.create(id=player.id)
+
         # log the info
         logger.debug("The player could not play '%s'", playlist_entry)
 
@@ -416,7 +421,8 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         playlist_entry.set_playing()
 
         # update the player
-        player.update(in_transition=True, timing=timedelta(seconds=0))
+        player.in_transition = True
+        player.timing = timedelta(seconds=0)
 
         # log the info
         logger.debug("Playing transition of entry '%s'", playlist_entry)
@@ -425,7 +431,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         """The player started the song of a playlist entry
         """
         # update the player
-        player.update(in_transition=False)
+        player.in_transition = False
 
         # log the info
         logger.debug("Playing song of entry '%s'", playlist_entry)
@@ -434,7 +440,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         """The player switched to pause
         """
         # update the player
-        player.update(paused=True)
+        player.paused = True
 
         # log the info
         logger.debug("The player switched to pause")
@@ -443,13 +449,15 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         """The player resumed playing
         """
         # update the player
-        player.update(paused=False)
+        player.paused = False
 
         # log the info
         logger.debug("The player resumed playing")
 
     def get_object(self):
-        return models.Player.get_or_create()
+        karaoke = models.Karaoke.objects.get_object()
+        player, _ = models.Player.objects.get_or_create(id=karaoke.id)
+        return player
 
 
 class PlayerErrorView(drf_generics.ListCreateAPIView):

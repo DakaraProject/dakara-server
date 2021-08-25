@@ -24,8 +24,8 @@ def client_drf():
 
 @pytest.fixture
 def player():
-    from playlist.models import Player
+    from playlist.models import Karaoke, Player
 
-    player = Player()
-    player.save()
+    karaoke = Karaoke.objects.get_object()
+    player, _ = Player.objects.get_or_create(id=karaoke.id)
     return player

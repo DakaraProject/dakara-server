@@ -123,6 +123,14 @@ class PlayerStatusSerializer(serializers.Serializer):
     # Commons fields
     timing = SecondsDurationField(required=False)
 
+    def update(self, instance, validated_data):
+        if "timing" in validated_data:
+            instance.timing = validated_data["timing"]
+
+        instance.save()
+
+        return instance
+
     def validate(self, data):
         if "event" not in data:
             raise serializers.ValidationError("Event is mandatory")
@@ -140,7 +148,8 @@ class PlayerStatusSerializer(serializers.Serializer):
         return playlist_entry
 
     def validate_event(self, event):
-        player = Player.get_or_create()
+        karaoke = Karaoke.objects.get_object()
+        player, _ = Player.objects.get_or_create(id=karaoke.id)
 
         # Idle state
         if player.playlist_entry is None:
