@@ -128,7 +128,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
 
         # set player idle
         karaoke = models.Karaoke.objects.get_object()
-        models.Player.objects.create(id=karaoke.id)
+        models.Player.cache.create(id=karaoke.id)
 
         # unregister the channel in database
         karaoke = models.Karaoke.objects.get_object()

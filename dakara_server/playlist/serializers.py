@@ -149,7 +149,7 @@ class PlayerStatusSerializer(serializers.Serializer):
 
     def validate_event(self, event):
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.objects.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(id=karaoke.id)
 
         # Idle state
         if player.playlist_entry is None:

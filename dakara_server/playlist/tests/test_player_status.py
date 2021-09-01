@@ -24,7 +24,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # check the player is idle
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.objects.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(id=karaoke.id)
         self.assertIsNone(player.playlist_entry)
 
         # assert the status of the player
@@ -89,19 +89,14 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch("playlist.views.send_to_channel")
-    @patch(
-        "internal.cache_model.datetime",
-        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
-    )
-    def test_put_status_started_transition(
-        self, mocked_datetime, mocked_send_to_channel
-    ):
+    @patch("django.db.models.fields.timezone.now",)
+    def test_put_status_started_transition(self, mocked_now, mocked_send_to_channel):
         """Test player started transition"""
-        self.authenticate(self.player)
-
         # patch the now method
         now = datetime.now(tz)
-        mocked_datetime.now.return_value = now
+        mocked_now.return_value = now
+
+        self.authenticate(self.player)
 
         # perform the request
         response = self.client.put(
@@ -122,7 +117,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.objects.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(id=karaoke.id)
         self.assertEqual(player.playlist_entry, self.pe1)
         self.assertFalse(player.paused)
         self.assertEqual(player.timing, timedelta(0))
@@ -157,21 +152,18 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.objects.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(id=karaoke.id)
         self.assertEqual(player.timing, timedelta(0))
 
     @patch("playlist.views.send_to_channel")
-    @patch(
-        "internal.cache_model.datetime",
-        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
-    )
-    def test_put_status_started_song(self, mocked_datetime, mocked_send_to_channel):
+    @patch("django.db.models.fields.timezone.now",)
+    def test_put_status_started_song(self, mocked_now, mocked_send_to_channel):
         """Test player finished transition"""
-        self.authenticate(self.player)
-
         # patch the now method
         now = datetime.now(tz)
-        mocked_datetime.now.return_value = now
+        mocked_now.return_value = now
+
+        self.authenticate(self.player)
 
         # set the player already in transition
         self.player_play_next_song(in_transition=True)
@@ -195,7 +187,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.objects.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(id=karaoke.id)
         self.assertEqual(player.playlist_entry, self.pe1)
         self.assertFalse(player.paused)
         self.assertEqual(player.timing, timedelta(0))
@@ -208,17 +200,14 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         # )
 
     @patch("playlist.views.send_to_channel")
-    @patch(
-        "internal.cache_model.datetime",
-        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
-    )
-    def test_put_status_resumed(self, mocked_datetime, mocked_send_to_channel):
+    @patch("django.db.models.fields.timezone.now",)
+    def test_put_status_resumed(self, mocked_now, mocked_send_to_channel):
         """Test event played resumed"""
-        self.authenticate(self.player)
-
         # patch the now method
         now = datetime.now(tz)
-        mocked_datetime.now.return_value = now
+        mocked_now.return_value = now
+
+        self.authenticate(self.player)
 
         # set the player already in play
         self.player_play_next_song(timing=timedelta(seconds=1), paused=True)
@@ -238,7 +227,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.objects.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(id=karaoke.id)
         self.assertEqual(player.playlist_entry, self.pe1)
         self.assertFalse(player.paused)
         self.assertEqual(player.timing, timedelta(seconds=2))
@@ -251,17 +240,14 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         # )
 
     @patch("playlist.views.send_to_channel")
-    @patch(
-        "internal.cache_model.datetime",
-        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
-    )
-    def test_put_status_paused(self, mocked_datetime, mocked_send_to_channel):
+    @patch("django.db.models.fields.timezone.now",)
+    def test_put_status_paused(self, mocked_now, mocked_send_to_channel):
         """Test event paused player"""
-        self.authenticate(self.player)
-
         # patch the now method
         now = datetime.now(tz)
-        mocked_datetime.now.return_value = now
+        mocked_now.return_value = now
+
+        self.authenticate(self.player)
 
         # set the player in play
         self.player_play_next_song(timing=timedelta(seconds=1))
@@ -281,7 +267,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.objects.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(id=karaoke.id)
         self.assertEqual(player.playlist_entry, self.pe1)
         self.assertTrue(player.paused)
         self.assertEqual(player.timing, timedelta(seconds=2))
@@ -313,7 +299,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the player has not changed
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.objects.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(id=karaoke.id)
         self.assertIsNone(player.playlist_entry)
 
         # assert the response
@@ -330,17 +316,14 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         mocked_send_to_channel.assert_called_with(ANY, "handle_next")
 
     @patch("playlist.views.send_to_channel")
-    @patch(
-        "internal.cache_model.datetime",
-        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
-    )
-    def test_put_status_could_not_play(self, mocked_datetime, mocked_send_to_channel):
+    @patch("django.db.models.fields.timezone.now",)
+    def test_put_status_could_not_play(self, mocked_now, mocked_send_to_channel):
         """Test event could not play"""
-        self.authenticate(self.player)
-
         # patch the now method
         now = datetime.now(tz)
-        mocked_datetime.now.return_value = now
+        mocked_now.return_value = now
+
+        self.authenticate(self.player)
 
         # perform the request
         response = self.client.put(
@@ -356,7 +339,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.objects.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(id=karaoke.id)
         self.assertIsNone(player.playlist_entry)
         self.assertFalse(player.paused)
         self.assertEqual(player.timing, timedelta(0))
@@ -388,7 +371,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player_new, _ = Player.objects.get_or_create(id=karaoke.id)
+        player_new, _ = Player.cache.get_or_create(id=karaoke.id)
         self.assertEqual(player_old, player_new)
 
     def test_put_status_forbidden_not_authenticated(self):

@@ -161,7 +161,7 @@ class Karaoke(models.Model):
     channel_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return "Karaoke"
+        return str(self.pk)
 
 
 class PlayerError(models.Model):
@@ -189,7 +189,7 @@ class Player(CacheModel):
     timing = models.DurationField(default=timedelta())
     paused = models.BooleanField(default=False)
     in_transition = models.BooleanField(default=False)
-    date = models.DateTimeField(auto_now_add=True, auto_now=True)
+    date = models.DateTimeField(auto_now=True)
 
     STARTED_TRANSITION = "started_transition"
     STARTED_SONG = "started_song"
@@ -214,3 +214,6 @@ class Player(CacheModel):
     @property
     def playlist_entry(self):
         return PlaylistEntry.objects.get_playing()
+
+    def __str__(self):
+        return str(self.pk)

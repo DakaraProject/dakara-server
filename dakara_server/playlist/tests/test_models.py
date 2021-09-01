@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -377,12 +377,12 @@ class TestStringification:
 
         assert str(playlist_entry) == "Song1 (for TestUser)"
 
-    def test_karaoke_str(self):
+    def test_karaoke_repr(self):
         """Test the string representation of a karaoke object
         """
         karaoke = models.Karaoke(date_stop=datetime(year=1970, month=1, day=1))
 
-        assert str(karaoke) == "Karaoke"
+        assert repr(karaoke) == "<Karaoke: None>"
 
     @pytest.mark.django_db(transaction=True)
     def test_player_error_str(self, playlist_provider):
@@ -409,6 +409,6 @@ class TestStringification:
     def test_player_str(self):
         """Test the string representation of a player
         """
-        player = models.Player(timing=timedelta(seconds=10))
+        player = models.Player()
 
         assert repr(player) == "<Player: None>"

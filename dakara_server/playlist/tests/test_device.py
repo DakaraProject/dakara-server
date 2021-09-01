@@ -259,7 +259,7 @@ class TestDevice:
 
         # assert there are no side effects
         player_new, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -294,7 +294,7 @@ class TestDevice:
 
         # assert there are no side effects
         player_new, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -324,7 +324,7 @@ class TestDevice:
 
         # assert there are no side effects
         player_new, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -358,7 +358,7 @@ class TestDevice:
 
         # assert there are no side effects
         player_new, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -392,7 +392,7 @@ class TestDevice:
 
         # assert there are no side effects
         player_new, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -426,7 +426,7 @@ class TestDevice:
 
         # assert there are no side effects
         player_new, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -457,7 +457,7 @@ class TestDevice:
 
         # assert there are no side effects
         player_new, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -526,7 +526,7 @@ class TestDevice:
 
         # assert the player has been updated
         player, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -547,7 +547,7 @@ class TestDevice:
 
         # assert the player has been updated
         player, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -586,7 +586,7 @@ class TestDevice:
 
         # assert the player has been updated
         player, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -602,7 +602,7 @@ class TestDevice:
 
         # assert the player has been updated
         player, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -662,7 +662,7 @@ class TestDevice:
 
         # assert the player has not changed
         player_new, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -703,7 +703,7 @@ class TestDevice:
 
         # assert the player has not changed
         player_new, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
@@ -739,7 +739,7 @@ class TestDevice:
 
         # check that the player is idle
         player_new, _ = await database_sync_to_async(
-            lambda: models.Player.objects.get_or_create(
+            lambda: models.Player.cache.get_or_create(
                 id=models.Karaoke.objects.get_object().id
             )
         )()
