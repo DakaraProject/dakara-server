@@ -69,11 +69,6 @@ class TestCacheModel:
         assert dummy.integer_field == 2
         assert dummy.text_field == "text"
 
-    def test_setattr(self):
-        """Test to set attributes with setattr"""
-        dummy = Dummy()
-        setattr(dummy, "boolean_field", False)
-
     def test_save(self, clear_cache):
         """Test to save cache models"""
         dummy_cache = cache.get(Dummy.cache._store_name)
@@ -227,3 +222,19 @@ class TestCacheManager:
         assert dummy.pk == 1
         assert dummy.integer_field == 42
         assert not created
+
+    def test_save_extra(self, clear_cache):
+        """Test to save cache model with extra fields"""
+        dummy = Dummy()
+        dummy.not_a_field = True
+        dummy.save()
+
+        # assert extra field is present
+        assert hasattr(dummy, "not_a_field")
+
+        pk = dummy.pk
+        del dummy
+        dummy = Dummy.cache.get(pk=pk)
+
+        # assert extra field is absent
+        assert not hasattr(dummy, "not_a_field")

@@ -56,7 +56,7 @@ class CacheManager:
             list: List of instances.
         """
         with self._access_store() as store:
-            return list(store.values())
+            return [self._dict_to_instance(i) for i in store.values()]
 
     def filter(self, **kwargs):
         """Give instances of managed model matching provided criteria
@@ -115,6 +115,55 @@ class CacheManager:
 
             return self.create(**kwargs), True
 
+    def save(self, instance):
+        """Save an instance in cache
+
+        Args:
+            instance (any): Instance of CacheModel.
+        """
+        with self._access_store() as store:
+            # manage ID
+            if instance.pk is None:
+                instance.pk = max(list(store.keys()) or [0]) + 1
+
+            # set object in cache
+            store[instance.pk] = self._instance_to_dict(instance)
+
+    def delete(self, instance):
+        """Delete an instance in cache
+
+        Args:
+            instance (any): Instance of CacheModel.
+        """
+        with self._access_store() as store:
+            # delete object from cache
+            del store[instance.pk]
+
+    def _instance_to_dict(self, instance):
+        """Convert an instance in a dictionary of its fields
+
+        Args:
+            instance (any): Instance of CacheModel.
+
+        Returns:
+            dict: Dictionary of fields of the instance.
+        """
+        return {
+            field.name: getattr(instance, field.name)
+            for field in self.model._meta.concrete_fields
+        }
+
+    def _dict_to_instance(self, instance_dict):
+        """Convert a dictionary of fields in an instance
+
+        Args:
+            instance_dict (dict): Dictionary of fields of the instance.
+
+        Returns:
+            any: Instance of CacheModel.
+        """
+        return self.model(**instance_dict)
+
 
 class CacheModelBase(base.ModelBase):
     """Metaclass to connect cache manager to model"""
@@ -143,13 +192,7 @@ class CacheModel(base.Model, metaclass=CacheModelBase):
         for field in self._meta.concrete_fields:
             field.pre_save(self, None)
 
-        with self.cache._access_store() as store:
-            # manage ID
-            if self.pk is None:
-                self.pk = max(list(store.keys()) or [0]) + 1
-
-            # set object in cache
-            store[self.pk] = self
+        self.cache.save(self)
 
     def delete(self):
         """Delete instance from cache
@@ -157,10 +200,8 @@ class CacheModel(base.Model, metaclass=CacheModelBase):
         Raises:
             ObjectDoesNotExist: If called on an unsaved object.
         """
-        # raise exception if object not in cache
+        # raise exception if object has no PK (i.e. is not in cache yet)
         if self.pk is None:
             raise self.DoesNotExist(f"{self} does not exist in cache yet")
 
-        with self.cache._access_store() as store:
-            # delete object from cache
-            del store[self.pk]
+        self.cache.delete(self)
