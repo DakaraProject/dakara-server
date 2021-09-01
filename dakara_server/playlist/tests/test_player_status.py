@@ -155,6 +155,9 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         player, _ = Player.cache.get_or_create(id=karaoke.id)
         self.assertEqual(player.timing, timedelta(0))
 
+        # assert extra fields have not been saved
+        self.assertFalse(hasattr(player, "event"))
+
     @patch("playlist.views.send_to_channel")
     @patch("django.db.models.fields.timezone.now",)
     def test_put_status_started_song(self, mocked_now, mocked_send_to_channel):
