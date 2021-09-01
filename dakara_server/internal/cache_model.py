@@ -22,7 +22,7 @@ class CacheManager:
         """
         self.model = model
         self.name = model.__name__
-        self._store_name = f"{self.model.__name__}:CacheStore"
+        self._store_name = f"{self.name}:CacheStore"
 
     @contextmanager
     def _access_store(self):
@@ -86,12 +86,10 @@ class CacheManager:
             return objects[0]
 
         if len(objects) == 0:
-            raise self.model.DoesNotExist(
-                f"{self.model.__name__} matching query does not exist"
-            )
+            raise self.model.DoesNotExist(f"{self.name} matching query does not exist")
 
         raise self.model.MultipleObjectsReturned(
-            f"get() returned more than one {self.model.__name__} -- "
+            f"get() returned more than one {self.name} -- "
             f"it returned {len(objects)}!"
         )
 
@@ -121,6 +119,10 @@ class CacheManager:
         Args:
             instance (any): Instance of CacheModel.
         """
+        # prepare fields
+        for field in self.model._meta.concrete_fields:
+            field.pre_save(instance, None)
+
         with self._access_store() as store:
             # manage ID
             if instance.pk is None:
@@ -134,10 +136,19 @@ class CacheManager:
 
         Args:
             instance (any): Instance of CacheModel.
-        """
+
+        Raises:
+            ObjectDoesNotExist: If the instance is not in cache.
+            """
         with self._access_store() as store:
             # delete object from cache
-            del store[instance.pk]
+            try:
+                del store[instance.pk]
+
+            except KeyError as error:
+                raise self.model.DoesNotExist(
+                    f"This {self.name} does not exist in cache"
+                ) from error
 
     def _instance_to_dict(self, instance):
         """Convert an instance in a dictionary of its fields
@@ -188,20 +199,9 @@ class CacheModel(base.Model, metaclass=CacheModelBase):
 
     def save(self, *args, **kwargs):
         """Save instance in cache"""
-        # prepare fields
-        for field in self._meta.concrete_fields:
-            field.pre_save(self, None)
-
         self.cache.save(self)
 
-    def delete(self):
+    def delete(self, *args, **kwargs):
         """Delete instance from cache
-
-        Raises:
-            ObjectDoesNotExist: If called on an unsaved object.
         """
-        # raise exception if object has no PK (i.e. is not in cache yet)
-        if self.pk is None:
-            raise self.DoesNotExist(f"{self} does not exist in cache yet")
-
         self.cache.delete(self)

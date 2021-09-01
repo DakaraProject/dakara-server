@@ -104,14 +104,6 @@ class TestCacheModel:
         assert len(dummy_cache) == 1
         assert 2 in dummy_cache
 
-    def test_delete_not_saved(self, clear_cache):
-        """Test to delete a cache model not saved in cache"""
-        dummy = Dummy()
-        with pytest.raises(
-            ObjectDoesNotExist, match=r"Dummy object does not exist in cache yet"
-        ):
-            dummy.delete()
-
     def test_auto_model(self, clear_cache):
         """Test fields that can be automatically updated"""
         # create object and set fields
@@ -238,3 +230,11 @@ class TestCacheManager:
 
         # assert extra field is absent
         assert not hasattr(dummy, "not_a_field")
+
+    def test_delete_not_present(self, clear_cache):
+        """Test to delete a cache model not saved in cache"""
+        dummy = Dummy()
+        with pytest.raises(
+            ObjectDoesNotExist, match=r"This Dummy does not exist in cache"
+        ):
+            dummy.delete()
