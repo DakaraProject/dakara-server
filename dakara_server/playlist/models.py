@@ -161,7 +161,7 @@ class Karaoke(models.Model):
     channel_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return str(self.pk)
+        return f"karaoke {self.pk}"
 
 
 class PlayerError(models.Model):
@@ -216,4 +216,4 @@ class Player(CacheModel):
         return PlaylistEntry.objects.get_playing()
 
     def __str__(self):
-        return str(self.pk)
+        return f"player {self.pk}"

@@ -377,12 +377,12 @@ class TestStringification:
 
         assert str(playlist_entry) == "Song1 (for TestUser)"
 
-    def test_karaoke_repr(self):
+    def test_karaoke_str(self):
         """Test the string representation of a karaoke object
         """
         karaoke = models.Karaoke(date_stop=datetime(year=1970, month=1, day=1))
 
-        assert repr(karaoke) == "<Karaoke: None>"
+        assert str(karaoke) == "karaoke None"
 
     @pytest.mark.django_db(transaction=True)
     def test_player_error_str(self, playlist_provider):
@@ -411,4 +411,4 @@ class TestStringification:
         """
         player = models.Player()
 
-        assert repr(player) == "<Player: None>"
+        assert str(player) == "player None"
