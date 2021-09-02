@@ -58,6 +58,14 @@ class CacheManager:
         with self._access_store() as store:
             return [self._dict_to_instance(i) for i in store.values()]
 
+    def count(self):
+        """Count instances in cache
+
+        Returns:
+            int: Number of instances in cache.
+        """
+        return len(self.all())
+
     def filter(self, **kwargs):
         """Give instances of managed model matching provided criteria
 

@@ -71,8 +71,7 @@ class TestCacheModel:
 
     def test_save(self, clear_cache):
         """Test to save cache models"""
-        dummy_cache = cache.get(Dummy.cache._store_name)
-        assert dummy_cache is None
+        assert Dummy.cache.count() == 0
 
         dummy_1 = Dummy()
         dummy_1.save()
@@ -85,13 +84,11 @@ class TestCacheModel:
         assert dummy_2.id == 2
 
         # check object is in cache
-        dummy_cache = cache.get(Dummy.cache._store_name)
-        assert len(dummy_cache) == 2
+        assert Dummy.cache.count() == 2
 
     def test_delete(self, clear_cache):
         """Test to delete a cache model"""
-        dummy_cache = cache.get(Dummy.cache._store_name)
-        assert dummy_cache is None
+        assert Dummy.cache.count() == 0
 
         dummy_1 = Dummy()
         dummy_1.save()
@@ -100,9 +97,8 @@ class TestCacheModel:
         dummy_1.delete()
 
         # check object is not in cache
-        dummy_cache = cache.get(Dummy.cache._store_name)
-        assert len(dummy_cache) == 1
-        assert 2 in dummy_cache
+        assert Dummy.cache.count() == 1
+        assert Dummy.cache.get(pk=2)
 
     def test_auto_model(self, clear_cache):
         """Test fields that can be automatically updated"""
@@ -161,6 +157,15 @@ class TestCacheManager:
         assert objects[1].pk == 2
         assert isinstance(objects[2], Dummy)
         assert objects[2].pk == 3
+
+    def test_count(self, set_cache, clear_cache):
+        """Test to count instances in cache"""
+        # assert using store
+        dummy_cache = cache.get(Dummy.cache._store_name)
+        assert len(dummy_cache) == 3
+
+        # assert using method
+        assert Dummy.cache.count() == 3
 
     def test_filter(self, set_cache, clear_cache):
         """Test to query cache model instances"""
