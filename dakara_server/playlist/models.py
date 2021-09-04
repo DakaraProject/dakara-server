@@ -13,12 +13,10 @@ tz = timezone.get_default_timezone()
 
 
 class PlaylistManager(OrderedModelManager):
-    """Manager of playlist objects
-    """
+    """Manager of playlist objects."""
 
     def get_playing(self):
-        """Get the current playlist entry
-        """
+        """Get the current playlist entry."""
         playlist = self.filter(was_played=False, date_played__isnull=False)
 
         if not playlist:
@@ -35,8 +33,7 @@ class PlaylistManager(OrderedModelManager):
         return playlist.first()
 
     def get_playlist(self):
-        """Get the playlist of ongoing entries
-        """
+        """Get the playlist of ongoing entries."""
         queryset = self.exclude(
             models.Q(was_played=True) | models.Q(date_played__isnull=False)
         )
@@ -44,14 +41,13 @@ class PlaylistManager(OrderedModelManager):
         return queryset
 
     def get_playlist_played(self):
-        """Get the playlist of passed entries
-        """
+        """Get the playlist of passed entries."""
         playlist = self.filter(was_played=True)
 
         return playlist
 
     def get_next(self, entry_id=None):
-        """Get next playlist entry
+        """Get next playlist entry.
 
         Returns the next playlist entry in playlist excluding entry with
         specified id and alredy played songs.
@@ -77,8 +73,7 @@ class PlaylistManager(OrderedModelManager):
 
 
 class PlaylistEntry(OrderedModel):
-    """Song in playlist
-    """
+    """Song in playlist."""
 
     objects = PlaylistManager()
 
@@ -96,7 +91,7 @@ class PlaylistEntry(OrderedModel):
         return "{} (for {})".format(self.song, self.owner)
 
     def set_playing(self):
-        """The playlist entry has started to play
+        """The playlist entry has started to play.
 
         Returns:
             Player: the current player.
@@ -110,7 +105,7 @@ class PlaylistEntry(OrderedModel):
         self.save()
 
     def set_finished(self):
-        """The playlist entry has finished
+        """The playlist entry has finished.
 
         Returns:
             Player: the current player.
@@ -125,20 +120,18 @@ class PlaylistEntry(OrderedModel):
 
 
 class KaraokeManager(models.Manager):
-    """Manager of karaoke objects
+    """Manager of karaoke objects.
 
     Only one karaoke object can exist for now.
     """
 
     def get_object(self):
-        """Get the first instance of kara status
-        """
+        """Get the first instance of kara status."""
         karaoke, _ = self.get_or_create(pk=1)
         return karaoke
 
     def clean_channel_names(self):
-        """Remove all channel names
-        """
+        """Remove all channel names."""
         for karaoke in self.all():
             karaoke.channel_name = None
             karaoke.save()
@@ -155,8 +148,7 @@ def clean_channel_names():
 
 
 class Karaoke(models.Model):
-    """Current kara
-    """
+    """Current kara."""
 
     objects = KaraokeManager()
 
@@ -171,8 +163,7 @@ class Karaoke(models.Model):
 
 
 class PlayerError(models.Model):
-    """Entries that failed to play
-    """
+    """Entries that failed to play."""
 
     playlist_entry = models.ForeignKey(
         PlaylistEntry, null=False, on_delete=models.CASCADE
@@ -187,7 +178,7 @@ class PlayerError(models.Model):
 
 
 class Player:
-    """Player representation in the server
+    """Player representation in the server.
 
     This object is not stored in database, but lives within Django memory
     cache. Please use the `update` method to change its attributes.
@@ -238,7 +229,7 @@ class Player:
         return all(getattr(self, field) == getattr(other, field) for field in fields)
 
     def update(self, date=None, **kwargs):
-        """Update the player and set date"""
+        """Update the player and set date."""
         # set normal attributes
         for key, value in kwargs.items():
             if hasattr(self, key) and key != "playlist_entry":
@@ -253,8 +244,7 @@ class Player:
 
     @classmethod
     def get_or_create(cls):
-        """Retrieve the current player in cache or create one
-        """
+        """Retrieve the current player in cache or create one."""
         player = cache.get(cls.PLAYER_NAME)
 
         if player is None:
@@ -264,11 +254,9 @@ class Player:
         return player
 
     def save(self):
-        """Save player in cache
-        """
+        """Save player in cache."""
         cache.set(self.PLAYER_NAME, self)
 
     def reset(self):
-        """Reset the player to its initial state
-        """
+        """Reset the player to its initial state."""
         self.update(timing=timedelta(), paused=False, in_transition=False)

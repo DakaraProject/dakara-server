@@ -10,7 +10,7 @@ from playlist.tests.base_test import PlaylistAPITestCase
 
 
 class PlayerErrorViewTestCase(PlaylistAPITestCase):
-    """Test the view of the player errors"""
+    """Test the view of the player errors."""
 
     url = reverse("playlist-player-errors")
 
@@ -18,7 +18,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.create_test_data()
 
     def test_get_errors_empty(self):
-        """Test to get errors when there are none"""
+        """Test to get errors when there are none."""
         # pre assert
         self.assertEqual(PlayerError.objects.count(), 0)
 
@@ -33,7 +33,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.data["results"], [])
 
     def test_get_errors_something(self):
-        """Test to get errors when there is an error"""
+        """Test to get errors when there is an error."""
         # set an error
         PlayerError.objects.create(playlist_entry=self.pe1, error_message="dummy error")
 
@@ -51,13 +51,13 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.data["results"][0]["error_message"], "dummy error")
 
     def test_get_errors_forbidden(self):
-        """Test to get errors when not authenticated"""
+        """Test to get errors when not authenticated."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch("playlist.views.send_to_channel")
     def test_post_error_success(self, mocked_send_to_channel):
-        """Test to create an error"""
+        """Test to create an error."""
         # pre assert
         self.assertEqual(PlayerError.objects.count(), 0)
 
@@ -87,7 +87,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         # )
 
     def test_post_error_failed_wrong_playlist_entry(self):
-        """Test to create an error with another playlist entry"""
+        """Test to create an error with another playlist entry."""
         # pre assert
         self.assertEqual(PlayerError.objects.count(), 0)
 
@@ -109,7 +109,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
     def test_post_error_failed_no_current_playlist_entry(self):
-        """Test to create an error when no playlist entry is playing"""
+        """Test to create an error when no playlist entry is playing."""
         # pre assert
         self.assertEqual(PlayerError.objects.count(), 0)
 
@@ -127,7 +127,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
     def test_post_error_playlist_entry_pending(self):
-        """Test to create an error when playlist entry is pending to be played
+        """Test to create an error when playlist entry is pending to be played.
 
         This case corresponds to a file not found error being send before the
         transition screen started to play."""
@@ -153,7 +153,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 1)
 
     def test_post_error_forbidden_not_authenticated(self):
-        """Test to create an error when not loged in"""
+        """Test to create an error when not loged in."""
         # start playing
         self.pe1.date_played = datetime.now(tz)
         self.pe1.save()
@@ -166,7 +166,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_error_forbidden_not_player(self):
-        """Test to create an error when not loged in as player"""
+        """Test to create an error when not loged in as player."""
         # start playing
         self.pe1.date_played = datetime.now(tz)
         self.pe1.save()

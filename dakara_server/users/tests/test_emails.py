@@ -7,12 +7,10 @@ from users.tests.base_test import UsersAPITestCase, config_email_disabled
 
 @patch("users.emails.send_mail")
 class SendNotificationToManagersTestCase(UsersAPITestCase):
-    """Test the send_notification_to_managers function
-    """
+    """Test the send_notification_to_managers function."""
 
     def test_send(self, mocked_send_mail):
-        """Test send notification email to managers
-        """
+        """Test send notification email to managers."""
         self.create_user(
             "TestManger", email="test@manager.com", users_level=UserModel.MANAGER
         )
@@ -32,8 +30,7 @@ class SendNotificationToManagersTestCase(UsersAPITestCase):
 
     @config_email_disabled
     def test_send_email_disabled(self, mocked_send_mail):
-        """Test notification email to managers not sent when emails are disabled
-        """
+        """Test notification email to managers not sent when emails are disabled."""
         self.create_user(
             "TestManger", email="test@manager.com", users_level=UserModel.MANAGER
         )
@@ -45,8 +42,7 @@ class SendNotificationToManagersTestCase(UsersAPITestCase):
         mocked_send_mail.assert_not_called()
 
     def test_send_no_managers(self, mocked_send_mail):
-        """Test send notification email when there are no managers
-        """
+        """Test send notification email when there are no managers."""
         user = self.create_user("TestUser", email="test@user.com")
 
         with self.assertLogs("users.emails", "DEBUG") as logger:
@@ -64,12 +60,10 @@ class SendNotificationToManagersTestCase(UsersAPITestCase):
 
 
 class GetNotificationToManagersTestCase(UsersAPITestCase):
-    """Test the get_notification_to_managers function
-    """
+    """Test the get_notification_to_managers function."""
 
     def test_get(self):
-        """Test to get notification template for managers
-        """
+        """Test to get notification template for managers."""
         user = self.create_user("TestUser", email="test@user.com")
         content = emails.get_notification_to_managers(user)
 
@@ -79,24 +73,25 @@ class GetNotificationToManagersTestCase(UsersAPITestCase):
 
 @patch("users.emails.send_mail")
 class SendNotificationToUserValidatedTestCase(UsersAPITestCase):
-    """Test the send_notification_to_user_validated function
-    """
+    """Test the send_notification_to_user_validated function."""
 
     def test_send(self, mocked_send_mail):
-        """Test send notification to user
-        """
+        """Test send notification to user."""
         user = self.create_user("TestUser", email="test@user.com")
 
         emails.send_notification_to_user_validated(user)
 
         mocked_send_mail.assert_called_with(
-            "Account validated", ANY, ANY, [user.email], fail_silently=False,
+            "Account validated",
+            ANY,
+            ANY,
+            [user.email],
+            fail_silently=False,
         )
 
     @config_email_disabled
     def test_send_email_disabled(self, mocked_send_mail):
-        """Test notification to user not sent when email disabled
-        """
+        """Test notification to user not sent when email disabled."""
         user = self.create_user("TestUser", email="test@user.com")
 
         emails.send_notification_to_user_validated(user)
@@ -105,8 +100,7 @@ class SendNotificationToUserValidatedTestCase(UsersAPITestCase):
 
 
 class GetManagersEmailsTestCase(UsersAPITestCase):
-    """Test get_managers_emails function
-    """
+    """Test get_managers_emails function."""
 
     def test_get_managers_emails(self):
         # Create users in database
@@ -125,12 +119,10 @@ class GetManagersEmailsTestCase(UsersAPITestCase):
 
 
 class GetNotificationToUserValidatedTestCase(UsersAPITestCase):
-    """Test the get_notification_to_user_validated function
-    """
+    """Test the get_notification_to_user_validated function."""
 
     def test_get(self):
-        """Test to get notification template for validated users
-        """
+        """Test to get notification template for validated users."""
         content = emails.get_notification_to_user_validated()
 
         self.assertIn("http://frontend-host/login", content)

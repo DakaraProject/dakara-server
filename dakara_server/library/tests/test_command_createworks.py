@@ -16,8 +16,7 @@ class CommandsTestCase(TestCase):
         WorkType.objects.create(query_name="WorkType 1")
 
     def test_createworks_from_correct_work_file(self):
-        """Test create works command from a correctly structured work file
-        """
+        """Test create works command from a correctly structured work file."""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
@@ -85,7 +84,7 @@ class CommandsTestCase(TestCase):
         )
 
     def test_createworks_with_incorrect_work_title(self):
-        """Create works from a work where the title is incorrect"""
+        """Create works from a work where the title is incorrect."""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
@@ -101,7 +100,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_unused_field(self):
-        """Create works from a work file where there is unused fields"""
+        """Create works from a work file where there is unused fields."""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
@@ -141,7 +140,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_work_title_missing(self):
-        """Create works from a work where the title is missing"""
+        """Create works from a work where the title is missing."""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
@@ -157,7 +156,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_different_subtitle(self):
-        """Create two works with the same title but different subtitle"""
+        """Create two works with the same title but different subtitle."""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
@@ -181,7 +180,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[1].subtitle, "Subtitle 2")
 
     def test_createworks_with_different_work_types_same_works(self):
-        """Create identical works apart from their worktypes"""
+        """Create identical works apart from their worktypes."""
 
         # Create work type
         WorkType.objects.create(query_name="WorkType 2")
@@ -219,7 +218,7 @@ class CommandsTestCase(TestCase):
         )
 
     def test_createworks_with_work_type_without_work_list(self):
-        """Check there is no work created when work type value is not a list"""
+        """Check there is no work created when work type value is not a list."""
         # Create work type
         WorkType.objects.create(query_name="WorkType 2")
 
@@ -239,7 +238,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_nonexistent_file(self):
-        """Check the command raises an error with a nonexistent file"""
+        """Check the command raises an error with a nonexistent file."""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
@@ -255,7 +254,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(Work.objects.count(), 0)
 
     def test_createworks_with_incorrect_alternative_titles(self):
-        """Create works with incorrect alternative titles"""
+        """Create works with incorrect alternative titles."""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
@@ -278,7 +277,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(works[0].alternative_titles.count(), 0)
 
     def test_createworks_update_only_correct_use(self):
-        """Test the update only option for a correct use"""
+        """Test the update only option for a correct use."""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)
@@ -349,7 +348,7 @@ class CommandsTestCase(TestCase):
         )
 
     def test_createworks_case_sensitive_work_file(self):
-        """Test createworks with works which have case-sensitive difference"""
+        """Test createworks with works which have case-sensitive difference."""
         # Pre-assertions
         self.assertEqual(WorkType.objects.count(), 1)
         self.assertEqual(Work.objects.count(), 0)

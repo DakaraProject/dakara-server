@@ -21,8 +21,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
     )
     def test_get_playlist_entries_list(self, mocked_datetime):
-        """Test to verify playlist entries list
-        """
+        """Test to verify playlist entries list."""
         # patch the now method
         now = datetime.now(tz)
         mocked_datetime.now.return_value = now
@@ -57,7 +56,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
     )
     def test_get_playlist_entries_list_while_playing(self, mocked_datetime):
-        """Test to verify playlist entries play dates while playing
+        """Test to verify playlist entries play dates while playing.
 
         The player is currently in the middle of the song, play dates should
         take account of the remaining time of the player.
@@ -103,16 +102,14 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         )
 
     def test_get_playlist_entries_list_forbidden(self):
-        """Test to verify playlist entries list forbidden when not logged in
-        """
+        """Test to verify playlist entries list forbidden when not logged in."""
         # Get playlist entries list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch("playlist.views.send_to_channel")
     def test_post_create_playlist_entry(self, mocked_send_to_channel):
-        """Test to verify playlist entry creation
-        """
+        """Test to verify playlist entry creation."""
         # Login as playlist user
         self.authenticate(self.p_user)
 
@@ -139,8 +136,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_post_create_playlist_entry_not_instrument(self, mocked_send_to_channel):
-        """Test to verify can't create instrumental entry with not instrumental song
-        """
+        """Test to verify can't create instrumental entry with not instrumental song."""
         # Login as playlist user
         self.authenticate(self.p_user)
 
@@ -152,7 +148,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_post_create_playlist_entry_empty(self, mocked_send_to_channel):
-        """Test to create a playlist entry when the playlist is empty
+        """Test to create a playlist entry when the playlist is empty.
 
         The created song should be requested to play immediately.
         """
@@ -180,8 +176,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         )
 
     def test_post_create_playlist_entry_not_ongoing_forbidden(self):
-        """Test to verify playlist entry cannot be created when kara not ongoing
-        """
+        """Test to verify playlist entry cannot be created when kara not ongoing."""
         # Set karaoke not ongoing
         self.set_karaoke(ongoing=False)
 
@@ -194,8 +189,8 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertIn("Karaoke is not ongoing", str(response.content))
 
     def test_post_create_playlist_entry_cant_add_to_playlist_forbidden_user(self):
-        """Test to verify playlist entry cannot be created when can't add to playlist
-        """
+        """Test to verify playlist entry cannot be created when can't add to
+        playlist."""
         # Set can't add to playlist
         self.set_karaoke(can_add_to_playlist=False)
 
@@ -211,8 +206,8 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         )
 
     def test_post_create_playlist_entry_cant_add_to_playlist_allowed_manager(self):
-        """Test to verify playlist entry cannot be created when can't add to playlist
-        """
+        """Test to verify playlist entry cannot be created when can't add to
+        playlist."""
         # Set can't add to playlist
         self.set_karaoke(can_add_to_playlist=False)
 
@@ -225,8 +220,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.settings")
     def test_post_create_playlist_entry_playlist_full_forbidden(self, mock_settings):
-        """Test to verify playlist entry creation
-        """
+        """Test to verify playlist entry creation."""
         # mock the settings
         mock_settings.PLAYLIST_SIZE_LIMIT = 1
 
@@ -246,8 +240,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
     def test_post_create_playlist_entry_date_stop_success(self):
-        """Test user can add a song to playlist when before date stop
-        """
+        """Test user can add a song to playlist when before date stop."""
         # set kara stop
         date_stop = datetime.now(tz) + timedelta(hours=2)
         karaoke = Karaoke.objects.get_object()
@@ -268,8 +261,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 5)
 
     def test_post_create_playlist_entry_date_stop_forbidden(self):
-        """Test user cannot add song to playlist after its date stop
-        """
+        """Test user cannot add song to playlist after its date stop."""
         # set kara stop
         date_stop = datetime.now(tz)
         karaoke = Karaoke.objects.get_object()
@@ -291,8 +283,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 4)
 
     def test_post_create_playlist_entry_date_stop_success_manager(self):
-        """Test manager can add song to playlist after its date stop
-        """
+        """Test manager can add song to playlist after its date stop."""
         # set kara stop
         date_stop = datetime.now(tz)
         karaoke = Karaoke.objects.get_object()
@@ -313,8 +304,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 5)
 
     def test_post_create_playlist_entry_date_stop_success_admin(self):
-        """Test admin can add song to playlist after its date stop
-        """
+        """Test admin can add song to playlist after its date stop."""
         # set kara stop
         date_stop = datetime.now(tz)
         karaoke = Karaoke.objects.get_object()
@@ -341,7 +331,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
     def test_post_create_playlist_entry_date_stop_forbidden_playlist_playing(
         self, mocked_datetime
     ):
-        """Test user cannot add song to playlist after its date stop
+        """Test user cannot add song to playlist after its date stop.
 
         Test that only short enough songs can be added.
         Test when the player is playing.
@@ -380,8 +370,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 5)
 
     def test_post_create_user_forbidden(self):
-        """Test to verify simple user cannot create playlist entries
-        """
+        """Test to verify simple user cannot create playlist entries."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -390,15 +379,13 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_post_create_user_unauthenticated_forbidden(self):
-        """Test to verify unauthenticated user cannot create playlist entries
-        """
+        """Test to verify unauthenticated user cannot create playlist entries."""
         # Attempt to post new playlist entry
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_playlist_entries_list_playing_entry(self):
-        """Test to verify playlist entries list does not include playing song
-        """
+        """Test to verify playlist entries list does not include playing song."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -419,7 +406,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.check_playlist_entry_json(response.data["results"][0], self.pe2)
 
     def test_post_create_playlist_entry_disabled_tag(self):
-        """Test playlist entry creation for a song with a disabled tag
+        """Test playlist entry creation for a song with a disabled tag.
 
         The creation is forbidden.
         """
@@ -435,7 +422,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_post_create_playlist_entry_disabled_tag_manager(self):
-        """Test playlist entry for song with a disabled tag if manager
+        """Test playlist entry for song with a disabled tag if manager.
 
         The user is manager for playlist and library, the creation is allowed.
         """
@@ -464,8 +451,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.url_pe3 = reverse("playlist-entries", kwargs={"pk": self.pe3.id})
 
     def test_delete_playlist_entry_manager(self):
-        """Test to verify playlist entry deletion as playlist manager
-        """
+        """Test to verify playlist entry deletion as playlist manager."""
         # Login as playlist manager
         self.authenticate(self.manager)
 
@@ -489,8 +475,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlaylistEntry.objects.count(), 2)
 
     def test_delete_playlist_entry_playlist_user(self):
-        """Test to verify playlist entry deletion as playlist user
-        """
+        """Test to verify playlist entry deletion as playlist user."""
         # Login as playlist user
         self.authenticate(self.p_user)
 
@@ -511,8 +496,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_playlist_entry_playing(self):
-        """Test to verify playing entry can not be deleted
-        """
+        """Test to verify playing entry can not be deleted."""
         # Simulate a player playing next song
         self.player_play_next_song()
 
@@ -532,8 +516,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.assertEqual(len(entries), 1)
 
     def test_delete_playlist_entry_played(self):
-        """Test to verify already played entry can not be deleted
-        """
+        """Test to verify already played entry can not be deleted."""
         # Login as playlist manager
         self.authenticate(self.manager)
 
@@ -550,8 +533,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.assertEqual(len(entries), 1)
 
     def test_put_playlist_reorder_before(self):
-        """Test playlist reorder before another entry
-        """
+        """Test playlist reorder before another entry."""
         # Login as manager
         self.authenticate(self.manager)
 
@@ -569,8 +551,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.assertListEqual(playlist, [self.pe2, self.pe1])
 
     def test_put_playlist_reorder_after(self):
-        """Test playlist reorder after another entry
-        """
+        """Test playlist reorder after another entry."""
         # Login as manager
         self.authenticate(self.manager)
 
@@ -588,8 +569,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.assertListEqual(playlist, [self.pe2, self.pe1])
 
     def test_put_playlist_reorder_entry_played(self):
-        """Test cannot reorder before played entry
-        """
+        """Test cannot reorder before played entry."""
         # Login as manager
         self.authenticate(self.manager)
 
@@ -600,8 +580,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_put_playlist_reorder_entry_playing(self):
-        """Test cannot reorder before played entry
-        """
+        """Test cannot reorder before played entry."""
         # Simulate a player playing next song (pe1)
         self.player_play_next_song()
 
@@ -615,8 +594,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_put_playlist_reorder_forbidden(self):
-        """Test user cannot reorder playlist
-        """
+        """Test user cannot reorder playlist."""
         # Login as user
         self.authenticate(self.p_user)
 
@@ -627,8 +605,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_put_playlist_reorder_entry_after_and_before(self):
-        """Test cannot reorder with both before and after
-        """
+        """Test cannot reorder with both before and after."""
         # Login as manager
         self.authenticate(self.manager)
 
@@ -641,8 +618,7 @@ class PlaylistEntryViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_playlist_reorder_no_fields(self):
-        """Test cannot reorder with no fields
-        """
+        """Test cannot reorder with no fields."""
         # Login as manager
         self.authenticate(self.manager)
 

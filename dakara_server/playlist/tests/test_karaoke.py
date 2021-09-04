@@ -19,8 +19,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
         self.create_test_data()
 
     def test_get_karaoke(self):
-        """Test an authenticated user can access the karaoke
-        """
+        """Test an authenticated user can access the karaoke."""
         # set stop date
         karaoke = Karaoke.objects.get_object()
         date_stop = datetime.now(tz)
@@ -49,16 +48,14 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
         )
 
     def test_get_karaoke_forbidden(self):
-        """Test an unauthenticated user cannot access the karaoke
-        """
+        """Test an unauthenticated user cannot access the karaoke."""
         # get karaoke
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch("playlist.views.send_to_channel")
     def test_patch_karaoke_status_booleans(self, mocked_send_to_channel):
-        """Test a manager can modify the karaoke status booleans
-        """
+        """Test a manager can modify the karaoke status booleans."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -82,8 +79,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
         mocked_send_to_channel.assert_called_with(ANY, "send_idle")
 
     def test_patch_karaoke_forbidden(self):
-        """Test a simple user or an unauthenticated user cannot modify the karaoke
-        """
+        """Test a simple user or an unauthenticated user cannot modify the karaoke."""
         # login as user
         self.authenticate(self.user)
 
@@ -93,7 +89,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_patch_ongoing_false(self, mocked_send_to_channel):
-        """Test the playlist has been emptied when the kara is not ongoing
+        """Test the playlist has been emptied when the kara is not ongoing.
 
         And empty the player errors pool.
         """
@@ -140,8 +136,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
         self.assertFalse(response.data["playlist_entry"])
 
     def test_put_player_play_next_song_false(self):
-        """Test the playlist has not been emptied when can't add to playlist
-        """
+        """Test the playlist has not been emptied when can't add to playlist."""
         url_player_status = reverse("playlist-player-status")
 
         # the player is playing
@@ -183,7 +178,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_put_resume_kara_player_idle(self, mocked_send_to_channel):
-        """Test idle player is requested to play after play next song
+        """Test idle player is requested to play after play next song.
 
         Player play next song was false and the player idle.
         When player play next song switch to true,
@@ -214,7 +209,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_put_resume_kara_not_idle(self, mocked_send_to_channel):
-        """Test not idle player is not requested after play next song
+        """Test not idle player is not requested after play next song.
 
         Player play next song was false and the player not idle.
         When play next song is switched to true,
@@ -248,8 +243,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_patch_resume_kara_playlist_empty(self, mocked_send_to_channel):
-        """Test send_playlist_entry is not sent when there is nothing to play
-        """
+        """Test send_playlist_entry is not sent when there is nothing to play."""
         url_player_status = reverse("playlist-player-status")
 
         # login as manager
@@ -272,8 +266,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.scheduler")
     def test_patch_karaoke_date_stop(self, mocked_scheduler):
-        """Test a manager can modify the kara date stop and scheduler is called
-        """
+        """Test a manager can modify the kara date stop and scheduler is called."""
         # Mock return value of add_job
         mocked_scheduler.add_job.return_value.id = "job_id"
 
@@ -297,8 +290,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
     @patch("playlist.views.scheduler")
     @patch("playlist.views.cache")
     def test_patch_karaoke_clear_date_stop(self, mocked_cache, mocked_scheduler):
-        """Test a manager can clear the kara date stop and job is cancelled
-        """
+        """Test a manager can clear the kara date stop and job is cancelled."""
         # set karaoke date stop
         karaoke = Karaoke.objects.get_object()
         date_stop = datetime.now(tz)
@@ -325,8 +317,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
     def test_patch_karaoke_clear_date_stop_existing_job_id(
         self, mocked_cache, mocked_scheduler
     ):
-        """Test a manager can clear existing date stop
-        """
+        """Test a manager can clear existing date stop."""
         # create existing job in cache
         mocked_cache.get.return_value = "job_id"
 
@@ -347,8 +338,7 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
     def test_patch_karaoke_clear_date_stop_existing_job_id_no_job(
         self, mocked_cache, mocked_scheduler
     ):
-        """Test a manager can clear existing date stop without job
-        """
+        """Test a manager can clear existing date stop without job."""
         # create existing job in cache
         mocked_cache.get.return_value = "job_id"
         mocked_scheduler.get_job.return_value = None

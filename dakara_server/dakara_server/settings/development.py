@@ -2,10 +2,10 @@
 Django local settings for the Dakara server project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.11/topics/settings/
+https://docs.djangoproject.com/en/2.2/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.11/ref/settings/
+https://docs.djangoproject.com/en/2.2/ref/settings/
 
 You should not modify this file directly.
 To modify config values, set them as environment variables,
@@ -25,19 +25,19 @@ from dakara_server.settings.base import *  # noqa F403
 from dakara_server.settings.base import BASE_DIR  # noqa E402
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 SECRET_KEY = "YourSecretKey"
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 # Django password security policy
-# https://docs.djangoproject.com/en/1.11/topics/auth/passwords/#module-django.contrib.auth.password_validation
+# https://docs.djangoproject.com/en/2.2/topics/auth/passwords/#module-django.contrib.auth.password_validation
 
 AUTH_PASSWORD_VALIDATORS = []
 
 # Database
-# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 # `DATABASE_URL` is specified according to dj-databse-url plugin
 # https://github.com/kennethreitz/dj-database-url#url-schema
 
@@ -51,7 +51,7 @@ DATABASES = {
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.11/topics/i18n/
+# https://docs.djangoproject.com/en/2.2/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
 

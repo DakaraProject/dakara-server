@@ -6,14 +6,12 @@ from library.models import Artist, Work
 
 
 class Command(BaseCommand):
-    """Command for removing unused objects from database
-    """
+    """Command for removing unused objects from database."""
 
     help = "Remove unused objects from database."
 
     def add_arguments(self, parser):
-        """Extend arguments for the command
-        """
+        """Extend arguments for the command."""
 
         parser.add_argument(
             "--artists",
@@ -30,8 +28,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Prune database
-        """
+        """Prune database."""
 
         # quiet mode
         if options["quiet"]:

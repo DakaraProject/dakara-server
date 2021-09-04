@@ -12,8 +12,7 @@ class RegisterViewTestCase(UsersAPITestCase):
 
     @patch("users.emails.send_notification_to_managers")
     def test_create_user(self, mocked_send_notification_to_managers):
-        """Test to create a user
-        """
+        """Test to create a user."""
         self.manager = self.create_user(
             "TestManger", email="test@manager.com", users_level=UserModel.MANAGER
         )
@@ -33,8 +32,7 @@ class RegisterViewTestCase(UsersAPITestCase):
 
     @patch("users.emails.send_notification_to_managers")
     def test_create_user_name_not_unique(self, mocked_send_notification_to_managers):
-        """Test to create a user with same username as an existing one
-        """
+        """Test to create a user with same username as an existing one."""
         self.user = self.create_user("TestUser", email="test@user.com")
         response = self.client.post(
             self.url,
@@ -57,8 +55,7 @@ class RegisterViewTestCase(UsersAPITestCase):
     def test_create_user_name_not_case_insensitively_unique(
         self, mocked_send_notification_to_managers
     ):
-        """Test to create a user with a case different username from an existing one
-        """
+        """Test to create a user with a case different username from an existing one."""
         self.user = self.create_user("TestUser", email="test@user.com")
         response = self.client.post(
             self.url,
@@ -79,8 +76,7 @@ class RegisterViewTestCase(UsersAPITestCase):
 
     @patch("users.emails.send_notification_to_managers")
     def test_create_user_email_not_unique(self, mocked_send_notification_to_managers):
-        """Test to create a user with same email as an existing one
-        """
+        """Test to create a user with same email as an existing one."""
         self.user = self.create_user("TestUser", email="test@user.com")
         response = self.client.post(
             self.url,
@@ -103,8 +99,7 @@ class RegisterViewTestCase(UsersAPITestCase):
     def test_create_user_email_not_case_insensitively_unique(
         self, mocked_send_notification_to_managers
     ):
-        """Test to create a user with a case different email from an existing one
-        """
+        """Test to create a user with a case different email from an existing one."""
         self.user = self.create_user("TestUser", email="test@user.com")
         response = self.client.post(
             self.url,
@@ -132,13 +127,13 @@ class SendResetPasswordLinklViewTestCase(UsersAPITestCase):
         self.user = self.create_user("TestUser", email="test@user.com", password="pass")
 
     def test_username_insensitive(self):
-        """Check send reset password link with a username with different case"""
+        """Check send reset password link with a username with different case."""
         response = self.client.post(self.url, {"login": "testuser"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_not_found(self):
-        """Check send reset password link with a non existing username"""
+        """Check send reset password link with a non existing username."""
 
         response = self.client.post(self.url, {"login": "doesnotexists"})
 
@@ -153,8 +148,7 @@ class LoginViewTestCase(UsersAPITestCase):
         self.user = self.create_user("TestUser", email="test@user.com", password="pass")
 
     def test_login_with_username(self):
-        """Test login with username for an activated user
-        """
+        """Test login with username for an activated user."""
 
         # Login request
         response = self.client.post(self.url, {"login": "testuser", "password": "pass"})
@@ -164,8 +158,7 @@ class LoginViewTestCase(UsersAPITestCase):
         self.assertNotEqual(response.data["token"], "")
 
     def test_login_with_email(self):
-        """Test login with email for an activated user
-        """
+        """Test login with email for an activated user."""
 
         # Login request
         response = self.client.post(
@@ -174,8 +167,7 @@ class LoginViewTestCase(UsersAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_login_not_validated_by_email(self):
-        """Test login with for a user not validated by email
-        """
+        """Test login with for a user not validated by email."""
 
         # Set user not validated by email
         self.user.validated_by_email = False
@@ -192,8 +184,8 @@ class LoginViewTestCase(UsersAPITestCase):
 
     @config_email_disabled
     def test_login_not_validated_by_email_email_disabled(self):
-        """Test login with for a user not validated by email but email disabled config
-        """
+        """Test login with for a user not validated by email but email disabled
+        config."""
 
         # Set user not validated by email
         self.user.validated_by_email = False
@@ -204,8 +196,7 @@ class LoginViewTestCase(UsersAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_login_not_validated_by_manager(self):
-        """Test login with for a user not validated by manager
-        """
+        """Test login with for a user not validated by manager."""
 
         # Set user not validated by manager
         self.user.validated_by_manager = False
@@ -234,8 +225,7 @@ class UserListViewTestCase(UsersAPITestCase):
         )
 
     def test_get_users_list(self):
-        """Test to verify users list
-        """
+        """Test to verify users list."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -246,16 +236,14 @@ class UserListViewTestCase(UsersAPITestCase):
         self.assertEqual(len(response.data["results"]), 2)
 
     def test_get_users_list_unauthorized(self):
-        """Test to verify users list is not available when not logged in
-        """
+        """Test to verify users list is not available when not logged in."""
         # Get users list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user(self, mocked_send_email):
-        """Test to verify user creation
-        """
+        """Test to verify user creation."""
         # Pre assertions
         self.assertEqual(UserModel.objects.count(), 2)
 
@@ -284,8 +272,7 @@ class UserListViewTestCase(UsersAPITestCase):
 
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user_mail_send_fail(self, mocked_send_email):
-        """Test to verify user not created if mail send fail
-        """
+        """Test to verify user not created if mail send fail."""
         # Patch send email to raise exception
         class MailSendFailException(Exception):
             pass
@@ -316,8 +303,7 @@ class UserListViewTestCase(UsersAPITestCase):
     @config_email_disabled
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user_email_disabled(self, mocked_send_email):
-        """Test user creation does not send verification email with email disabled
-        """
+        """Test user creation does not send verification email with email disabled."""
         # Login as manager
         self.authenticate(self.manager)
 
@@ -338,8 +324,7 @@ class UserListViewTestCase(UsersAPITestCase):
 
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user_forbidden(self, mocked_send_email):
-        """Test to verify simple user cannot create users
-        """
+        """Test to verify simple user cannot create users."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -360,8 +345,7 @@ class UserListViewTestCase(UsersAPITestCase):
 
     @patch("users.views.send_register_verification_email_notification")
     def test_create_superuser(self, mocked_send_email):
-        """Test one cannot create a superuser
-        """
+        """Test one cannot create a superuser."""
         # Pre assertions
         self.assertEqual(UserModel.objects.count(), 2)
 
@@ -392,7 +376,7 @@ class UserListViewTestCase(UsersAPITestCase):
 
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user_name_already_exists(self, mocked_send_email):
-        """Test for duplicated users
+        """Test for duplicated users.
 
         Verify user cannot be created when the username is already taken. This
         test also ensure username check is case insensitive.
@@ -439,8 +423,7 @@ class UserViewTestCase(UsersAPITestCase):
         self.manager_url = reverse("users", kwargs={"pk": self.manager.id})
 
     def test_get_user(self):
-        """Test to verify user details
-        """
+        """Test to verify user details."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -475,8 +458,7 @@ class UserViewTestCase(UsersAPITestCase):
         )
 
     def test_get_user_as_manager(self):
-        """Test to verify user details
-        """
+        """Test to verify user details."""
         # Login as user manager
         self.authenticate(self.manager)
 
@@ -499,16 +481,14 @@ class UserViewTestCase(UsersAPITestCase):
         )
 
     def test_get_user_unauthorized(self):
-        """Test to verify user details not available when not logged in
-        """
+        """Test to verify user details not available when not logged in."""
         # Get simple user details
         response = self.client.get(self.user_url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch("users.emails.send_notification_to_user_validated")
     def test_patch_user(self, mocked_send_notification_to_user_validated):
-        """Test to verify user update
-        """
+        """Test to verify user update."""
         # Pre-assertion: user has no library rights
         user = UserModel.objects.get(id=self.user.id)
         self.assertEqual(user.library_permission_level, None)
@@ -530,8 +510,7 @@ class UserViewTestCase(UsersAPITestCase):
         mocked_send_notification_to_user_validated.assert_not_called()
 
     def test_patch_user_cant_edit_password(self):
-        """Test to verify manager can't edit password when mail enabled
-        """
+        """Test to verify manager can't edit password when mail enabled."""
         # Keep old user password
         old_user_password = UserModel.objects.get(id=self.user.id).password
 
@@ -548,8 +527,7 @@ class UserViewTestCase(UsersAPITestCase):
 
     @config_email_disabled
     def test_patch_user_edit_password(self):
-        """Test to verify manager can edit password when mail disabled
-        """
+        """Test to verify manager can edit password when mail disabled."""
         # Keep old user password
         old_user_password = UserModel.objects.get(id=self.user.id).password
 
@@ -568,8 +546,7 @@ class UserViewTestCase(UsersAPITestCase):
     def test_patch_user_validate_by_manager(
         self, mocked_send_notification_to_user_validated
     ):
-        """Test to verify user validation by a manager
-        """
+        """Test to verify user validation by a manager."""
         # Set user as not validated
         self.user.validated_by_manager = False
         self.user.save()
@@ -589,8 +566,7 @@ class UserViewTestCase(UsersAPITestCase):
         mocked_send_notification_to_user_validated.assert_called_once_with(user)
 
     def test_patch_self_forbidden(self):
-        """Test to verify user update can't update self
-        """
+        """Test to verify user update can't update self."""
         # Login as manager
         self.authenticate(self.manager)
 
@@ -601,8 +577,7 @@ class UserViewTestCase(UsersAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_patch_user_forbidden(self):
-        """Test to verify simple user can't update user
-        """
+        """Test to verify simple user can't update user."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -613,8 +588,7 @@ class UserViewTestCase(UsersAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_patch_superuser_not_possible(self):
-        """Test one cannot set a superuser
-        """
+        """Test one cannot set a superuser."""
         # Pre-assertion: user is not superuser
         user = UserModel.objects.get(id=self.user.id)
         self.assertFalse(user.is_superuser)
@@ -631,8 +605,7 @@ class UserViewTestCase(UsersAPITestCase):
         self.assertFalse(user.is_superuser)
 
     def test_delete_user(self):
-        """Test to verify user delete
-        """
+        """Test to verify user delete."""
         # Login as manager
         self.authenticate(self.manager)
 
@@ -645,8 +618,7 @@ class UserViewTestCase(UsersAPITestCase):
         self.assertEqual(len(users), 0)
 
     def test_delete_self_forbidden(self):
-        """Test to verify user update can't delete self
-        """
+        """Test to verify user update can't delete self."""
         # Login as manager
         self.authenticate(self.manager)
 
@@ -655,8 +627,7 @@ class UserViewTestCase(UsersAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_user_forbidden(self):
-        """Test to verify simple user can't delete user
-        """
+        """Test to verify simple user can't delete user."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -678,8 +649,7 @@ class CurrentUserViewTestCase(UsersAPITestCase):
         )
 
     def test_get_current_user(self):
-        """Test to verify get current user route
-        """
+        """Test to verify get current user route."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -721,7 +691,7 @@ class CurrentUserViewTestCase(UsersAPITestCase):
         )
 
     def test_get_current_user_unauthorized(self):
-        """Test to verify we can't get current user when not logged in
+        """Test to verify we can't get current user when not logged in.
 
         (Obviously.)
         """

@@ -5,8 +5,7 @@ from django.db import models
 
 
 class Song(models.Model):
-    """Song object
-    """
+    """Song object."""
 
     title = models.CharField(max_length=255)
     filename = models.CharField(max_length=255)
@@ -28,8 +27,7 @@ class Song(models.Model):
 
 
 class Artist(models.Model):
-    """Artist object
-    """
+    """Artist object."""
 
     name = models.CharField(max_length=255)
 
@@ -38,7 +36,7 @@ class Artist(models.Model):
 
 
 class Work(models.Model):
-    """Work object that uses a song
+    """Work object that uses a song.
 
     Example: an anime, a game and so on.
     """
@@ -52,8 +50,7 @@ class Work(models.Model):
 
 
 class WorkAlternativeTitle(models.Model):
-    """Alternative title of a work
-    """
+    """Alternative title of a work."""
 
     title = models.CharField(max_length=255)
     work = models.ForeignKey(
@@ -68,7 +65,7 @@ class WorkAlternativeTitle(models.Model):
 
 
 class WorkType(models.Model):
-    """Type of a work
+    """Type of a work.
 
     Example: anime, games and so on.
     """
@@ -84,7 +81,7 @@ class WorkType(models.Model):
 
 
 class SongWorkLink(models.Model):
-    """Relation between a song and a work
+    """Relation between a song and a work.
 
     It describes the use of a song within a work.
     """
@@ -120,8 +117,7 @@ class SongWorkLink(models.Model):
 
 
 class SongTag(models.Model):
-    """Song tag object
-    """
+    """Song tag object."""
 
     name = models.CharField(max_length=255)
     color_hue = models.IntegerField(

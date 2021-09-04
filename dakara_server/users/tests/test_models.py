@@ -7,12 +7,10 @@ from users import models
 
 @pytest.mark.django_db
 class TestDakaraUser:
-    """Test the DakaraUser class
-    """
+    """Test the DakaraUser class."""
 
     def test_users_permission_levels(self):
-        """Test the users app permission levels
-        """
+        """Test the users app permission levels."""
         # create a users user
         user = models.DakaraUser(
             username="user", users_permission_level=models.DakaraUser.USER
@@ -39,8 +37,7 @@ class TestDakaraUser:
         assert not superuser.is_users_manager
 
     def test_library_permission_levels(self):
-        """Test the library app permission levels
-        """
+        """Test the library app permission levels."""
         # create a library user
         user = models.DakaraUser(
             username="user", library_permission_level=models.DakaraUser.USER
@@ -67,8 +64,7 @@ class TestDakaraUser:
         assert not superuser.is_library_manager
 
     def test_playlist_permission_levels(self):
-        """Test the playlist app permission levels
-        """
+        """Test the playlist app permission levels."""
         # create a default user
         user = models.DakaraUser(username="user")
 
@@ -117,12 +113,10 @@ class TestDakaraUser:
 
 
 class TestStringification:
-    """Test the string methods
-    """
+    """Test the string methods."""
 
     def test_dakara_user_str(self):
-        """Test the string representation of a user
-        """
+        """Test the string representation of a user."""
         user = models.DakaraUser(username="yamadatarou", password="pass")
 
         assert str(user) == "yamadatarou"
@@ -130,12 +124,10 @@ class TestStringification:
 
 @pytest.mark.django_db
 class TestSendValidationEmail:
-    """Test a validation email is sent when user is created
-    """
+    """Test a validation email is sent when user is created."""
 
     def test_send_validation_email_superuser(self, mocker):
-        """Test to send message on superuser creation
-        """
+        """Test to send message on superuser creation."""
         mocked_send_email = mocker.patch(
             "users.signals.send_register_verification_email_notification"
         )
@@ -148,8 +140,7 @@ class TestSendValidationEmail:
     def test_send_validation_email_superuser_email_disabled(
         self, mocker, config_email_disabled
     ):
-        """Test email not sent if email disabled
-        """
+        """Test email not sent if email disabled."""
         mocked_send_email = mocker.patch(
             "users.signals.send_register_verification_email_notification"
         )
@@ -160,8 +151,7 @@ class TestSendValidationEmail:
         mocked_send_email.assert_not_called()
 
     def test_send_validation_email_normal_user(self, mocker):
-        """Test to not send message on normal user creation
-        """
+        """Test to not send message on normal user creation."""
         mocked_send_email = mocker.patch(
             "users.signals.send_register_verification_email_notification"
         )

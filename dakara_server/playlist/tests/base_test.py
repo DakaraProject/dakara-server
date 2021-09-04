@@ -9,12 +9,10 @@ from playlist.models import Karaoke, Player, PlaylistEntry
 
 
 class PlaylistProvider(BaseProvider):
-    """Provides helper functions for playlist tests
-    """
+    """Provides helper functions for playlist tests."""
 
     def create_test_data(self):
-        """Create test users songs, and playlist entries
-        """
+        """Create test users songs, and playlist entries."""
         # create an admin
         self.admin = self.create_user("Admin", is_superuser=True)
 
@@ -75,8 +73,7 @@ class PlaylistProvider(BaseProvider):
     def set_karaoke(
         self, ongoing=None, can_add_to_playlist=None, player_play_next_song=None
     ):
-        """Put the karaoke in stop state
-        """
+        """Put the karaoke in stop state."""
         self.karaoke = Karaoke.objects.get_object()
         if ongoing is not None:
             self.karaoke.ongoing = ongoing
@@ -90,8 +87,7 @@ class PlaylistProvider(BaseProvider):
         self.karaoke.save()
 
     def player_play_next_song(self, *args, **kwargs):
-        """Set the player playing the next song
-        """
+        """Set the player playing the next song."""
         # get current entry
         current_entry = PlaylistEntry.objects.get_playing()
 
@@ -107,8 +103,7 @@ class PlaylistProvider(BaseProvider):
     def player_play_song(
         self, playlist_entry, timing=timedelta(), paused=False, in_transition=False
     ):
-        """Set the player playing the provided song
-        """
+        """Set the player playing the provided song."""
         # request the entry to play
         playlist_entry.set_playing()
 
@@ -120,16 +115,14 @@ class PlaylistProvider(BaseProvider):
         return player
 
     def check_playlist_entry_json(self, json, expected_entry):
-        """Method to check a representation against expected playlist entry
-        """
+        """Method to check a representation against expected playlist entry."""
         self.assertEqual(json["id"], expected_entry.id)
         self.assertEqual(json["owner"]["id"], expected_entry.owner.id)
         self.assertEqual(json["song"]["id"], expected_entry.song.id)
         self.assertEqual(json["use_instrumental"], expected_entry.use_instrumental)
 
     def check_playlist_played_entry_json(self, json, expected_entry):
-        """Method to check a representation against expected playlist played entry
-        """
+        """Method to check a representation against expected playlist played entry."""
         self.check_playlist_entry_json(json, expected_entry)
         self.assertEqual(
             parse_datetime(json["date_played"]), expected_entry.date_played
@@ -137,8 +130,7 @@ class PlaylistProvider(BaseProvider):
 
 
 class PlaylistAPITestCase(BaseAPITestCase, PlaylistProvider):
-    """Base playlist test class for Unittest
-    """
+    """Base playlist test class for Unittest."""
 
     def tearDown(self):
         # Clear cache between tests, so that stored player state is re-init

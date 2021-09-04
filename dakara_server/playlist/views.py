@@ -26,15 +26,13 @@ UserModel = get_user_model()
 
 
 class PlaylistEntryPagination(PageNumberPaginationCustom):
-    """Pagination setup for playlist entries
-    """
+    """Pagination setup for playlist entries."""
 
     page_size = 100
 
 
 class PlaylistEntryView(drf_generics.DestroyAPIView):
-    """Edition or deletion of a playlist entry
-    """
+    """Edition or deletion of a playlist entry."""
 
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
@@ -65,8 +63,7 @@ class PlaylistEntryView(drf_generics.DestroyAPIView):
 
 
 class PlaylistEntryListView(drf_generics.ListCreateAPIView):
-    """List of entries or creation of a new entry in the playlist
-    """
+    """List of entries or creation of a new entry in the playlist."""
 
     serializer_class = serializers.PlaylistEntrySerializer
     permission_classes = [
@@ -181,8 +178,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
 
 
 class PlaylistPlayedEntryListView(drf_generics.ListAPIView):
-    """List of played entries
-    """
+    """List of played entries."""
 
     pagination_class = PlaylistEntryPagination
     serializer_class = serializers.PlaylistPlayedEntryWithDatePlayedSerializer
@@ -190,8 +186,7 @@ class PlaylistPlayedEntryListView(drf_generics.ListAPIView):
 
 
 class PlayerCommandView(drf_generics.UpdateAPIView):
-    """Handle player commands
-    """
+    """Handle player commands."""
 
     permission_classes = [
         IsAuthenticated,
@@ -222,7 +217,7 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
 
 
 class DigestView(APIView):
-    """Shorthand for the view of playlist data
+    """Shorthand for the view of playlist data.
 
     Includes:
         - player_status: current player;
@@ -233,8 +228,7 @@ class DigestView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        """Send aggregated player data
-        """
+        """Send aggregated player data."""
         # Get player
         player = models.Player.get_or_create()
 
@@ -262,8 +256,7 @@ class DigestView(APIView):
 
 
 class KaraokeView(drf_generics.RetrieveUpdateAPIView):
-    """Get or edit the kara status
-    """
+    """Get or edit the kara status."""
 
     queryset = models.Karaoke.objects.all()
     serializer_class = serializers.KaraokeSerializer
@@ -273,8 +266,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
     ]
 
     def perform_update(self, serializer):
-        """Update the karaoke
-        """
+        """Update the karaoke."""
         super().perform_update(serializer)
         karaoke = serializer.instance
 
@@ -342,7 +334,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
 
 
 class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
-    """View of the player
+    """View of the player.
 
     It allows to get and set the player status.
     """
@@ -354,8 +346,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
     serializer_class = serializers.PlayerStatusSerializer
 
     def perform_update(self, serializer):
-        """Handle the new status
-        """
+        """Handle the new status."""
         player = serializer.instance
         entry = serializer.validated_data["playlist_entry"]
         event = serializer.validated_data["event"]
@@ -380,8 +371,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         # send_to_channel("playlist.front", "send.player.status", {"player": player})
 
     def receive_finished(self, playlist_entry, player):
-        """The player finished a song
-        """
+        """The player finished a song."""
         # set the playlist entry as finished
         playlist_entry.set_finished()
 
@@ -395,8 +385,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         send_to_channel("playlist.device", "handle_next")
 
     def receive_could_not_play(self, playlist_entry, player):
-        """The player could not play a song
-        """
+        """The player could not play a song."""
         # set the playlist entry as started and already finished
         playlist_entry.set_playing()
         playlist_entry.set_finished()
@@ -408,8 +397,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         send_to_channel("playlist.device", "handle_next")
 
     def receive_started_transition(self, playlist_entry, player):
-        """The player started the transition of a playlist entry
-        """
+        """The player started the transition of a playlist entry."""
         # set the playlist entry as started
         playlist_entry.set_playing()
 
@@ -420,8 +408,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         logger.debug("Playing transition of entry '%s'", playlist_entry)
 
     def receive_started_song(self, playlist_entry, player):
-        """The player started the song of a playlist entry
-        """
+        """The player started the song of a playlist entry."""
         # update the player
         player.update(in_transition=False)
 
@@ -429,8 +416,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         logger.debug("Playing song of entry '%s'", playlist_entry)
 
     def receive_paused(self, playlist_entry, player):
-        """The player switched to pause
-        """
+        """The player switched to pause."""
         # update the player
         player.update(paused=True)
 
@@ -438,8 +424,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         logger.debug("The player switched to pause")
 
     def receive_resumed(self, playlist_entry, player):
-        """The player resumed playing
-        """
+        """The player resumed playing."""
         # update the player
         player.update(paused=False)
 
@@ -451,8 +436,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 
 
 class PlayerErrorView(drf_generics.ListCreateAPIView):
-    """View of the player errors
-    """
+    """View of the player errors."""
 
     permission_classes = [
         IsAuthenticated,
@@ -462,7 +446,7 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
     queryset = models.PlayerError.objects.order_by("date_created")
 
     def perform_create(self, serializer):
-        """Create an error and perform other actions
+        """Create an error and perform other actions.
 
         Log the error and broadcast it to the front. Then, continue the
         playlist.
@@ -487,5 +471,4 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
 
 
 class UnknownEventError(ValueError):
-    """Error raised if an unknown event is requested
-    """
+    """Error raised if an unknown event is requested."""

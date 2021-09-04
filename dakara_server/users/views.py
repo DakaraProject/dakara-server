@@ -16,15 +16,13 @@ UserModel = get_user_model()
 
 
 class CurrentUserView(views.APIView):
-    """View of the current user
-    """
+    """View of the current user."""
 
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.UserSerializerCurrent
 
     def get(self, request):
-        """Retrieve the user
-        """
+        """Retrieve the user."""
         user = request.user
         serializer = self.serializer_class(user)
 
@@ -32,8 +30,7 @@ class CurrentUserView(views.APIView):
 
 
 class UserListView(generics.ListCreateAPIView):
-    """List and creation of users
-    """
+    """List and creation of users."""
 
     model = UserModel
     queryset = UserModel.objects.all().order_by("username")
@@ -59,8 +56,7 @@ class UserListView(generics.ListCreateAPIView):
 
 
 class UserView(generics.RetrieveUpdateDestroyAPIView):
-    """Edition and view of a user
-    """
+    """Edition and view of a user."""
 
     model = UserModel
     queryset = UserModel.objects.all()

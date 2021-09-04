@@ -7,7 +7,7 @@ UserModel = get_user_model()
 
 
 class DakaraLoginSerializer(DefaultLoginSerializer):
-    """Login users
+    """Login users.
 
     Overriden to have validation errors if a user has either their account not
     validated by a manager, or their email not validated.
@@ -21,8 +21,7 @@ class DakaraLoginSerializer(DefaultLoginSerializer):
 
 
 class UserForPublicSerializer(serializers.ModelSerializer):
-    """Display public data only
-    """
+    """Display public data only."""
 
     class Meta:
         model = UserModel
@@ -31,8 +30,7 @@ class UserForPublicSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """View users for non managers
-    """
+    """View users for non managers."""
 
     class Meta:
         model = UserModel
@@ -47,8 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializerCurrent(serializers.ModelSerializer):
-    """View users for current user
-    """
+    """View users for current user."""
 
     class Meta:
         model = UserModel
@@ -65,8 +62,7 @@ class UserSerializerCurrent(serializers.ModelSerializer):
 
 
 class UserForManagerSerializer(serializers.ModelSerializer):
-    """Users edition for managers
-    """
+    """Users edition for managers."""
 
     class Meta:
         model = UserModel
@@ -91,8 +87,7 @@ class UserForManagerSerializer(serializers.ModelSerializer):
 
 
 class UserForManagerWithPasswordSerializer(serializers.ModelSerializer):
-    """Users edition for managers if emails are disabled
-    """
+    """Users edition for managers if emails are disabled."""
 
     class Meta:
         model = UserModel
@@ -118,8 +113,7 @@ class UserForManagerWithPasswordSerializer(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
 
     def update(self, instance, validated_data):
-        """Update the password
-        """
+        """Update the password."""
         password = None
         if "password" in validated_data:
             password = validated_data.pop("password")
@@ -134,8 +128,7 @@ class UserForManagerWithPasswordSerializer(serializers.ModelSerializer):
 
 
 class UserCreationForManagerSerializer(serializers.ModelSerializer):
-    """Users creation for managers
-    """
+    """Users creation for managers."""
 
     class Meta:
         model = UserModel
@@ -162,7 +155,7 @@ class UserCreationForManagerSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        """Create a user
+        """Create a user.
 
         We shouldn't use the parent class method, as it will bypass the
         UserManager's secured user creation methods.

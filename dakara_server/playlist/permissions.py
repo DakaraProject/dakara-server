@@ -10,16 +10,14 @@ UserModel = get_user_model()
 
 
 class IsPlaylistManager(BasePermissionCustom):
-    """Allow access if the user is super user or playlist manager
-    """
+    """Allow access if the user is super user or playlist manager."""
 
     def has_permission(self, request, view):
         return request.user.is_superuser or request.user.is_playlist_manager
 
 
 class IsPlaylistUser(BasePermissionCustom):
-    """Allow access if the user is super user or playlist manager/user
-    """
+    """Allow access if the user is super user or playlist manager/user."""
 
     def has_permission(self, request, view):
         user = request.user
@@ -27,24 +25,21 @@ class IsPlaylistUser(BasePermissionCustom):
 
 
 class IsPlayer(BasePermissionCustom):
-    """Allow access if the user is super user or player
-    """
+    """Allow access if the user is super user or player."""
 
     def has_permission(self, request, view):
         return request.user.is_superuser or request.user.is_player
 
 
 class IsOwner(permissions.BasePermission):
-    """Allow access if the user owns the object
-    """
+    """Allow access if the user owns the object."""
 
     def has_object_permission(self, request, view, obj):
         return obj.owner == request.user
 
 
 class IsPlayingEntryOwner(BasePermissionCustom):
-    """Allow access if the user owns the playing playlist entry
-    """
+    """Allow access if the user owns the playing playlist entry."""
 
     def has_permission(self, request, view):
         # get the playing song
@@ -58,8 +53,7 @@ class IsPlayingEntryOwner(BasePermissionCustom):
 
 
 class IsSongEnabled(BasePermissionCustom):
-    """Allow access if the song has no disabled tag
-    """
+    """Allow access if the song has no disabled tag."""
 
     def has_permission(self, request, view):
         # get song

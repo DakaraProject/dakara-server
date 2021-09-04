@@ -2,10 +2,10 @@
 Django base settings for the Dakara server project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.11/topics/settings/
+https://docs.djangoproject.com/en/2.2/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.11/ref/settings/
+https://docs.djangoproject.com/en/2.2/ref/settings/
 
 This file should not be modified if you are not a dev.
 """
@@ -88,7 +88,7 @@ WSGI_APPLICATION = "dakara_server.wsgi.application"
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.11/topics/i18n/
+# https://docs.djangoproject.com/en/2.2/topics/i18n/
 
 USE_I18N = True
 
@@ -98,7 +98,7 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.11/howto/static-files/
+# https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = "/static/"
 

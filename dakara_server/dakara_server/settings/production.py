@@ -2,10 +2,10 @@
 Django local settings for the Dakara server project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.11/topics/settings/
+https://docs.djangoproject.com/en/2.2/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.11/ref/settings/
+https://docs.djangoproject.com/en/2.2/ref/settings/
 
 You should not modify this file directly.
 To modify config values, set them as environment variables,
@@ -24,7 +24,7 @@ DEBUG = config("DEBUG", cast=bool, default=False)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
 # Database
-# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 # `DATABASE_URL` is specified according to dj-databse-url plugin
 # https://github.com/kennethreitz/dj-database-url#url-schema
 
@@ -40,7 +40,7 @@ CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
 STATIC_ROOT = config("STATIC_ROOT")
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.11/topics/i18n/
+# https://docs.djangoproject.com/en/2.2/topics/i18n/
 
 LANGUAGE_CODE = config("LANGUAGE_CODE", default="en-us")
 

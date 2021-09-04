@@ -3,7 +3,7 @@ from rest_framework.response import Response
 
 
 class PageNumberPaginationCustom(PageNumberPagination):
-    """Pagination
+    """Pagination.
 
     Gives current page number and last page number.
     """

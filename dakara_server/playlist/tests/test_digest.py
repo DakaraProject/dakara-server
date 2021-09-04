@@ -6,8 +6,7 @@ from playlist.tests.base_test import PlaylistAPITestCase
 
 
 class DigestViewTestCase(PlaylistAPITestCase):
-    """Test the playlist shorthand view
-    """
+    """Test the playlist shorthand view."""
 
     url = reverse("playlist-digest")
 
@@ -15,7 +14,7 @@ class DigestViewTestCase(PlaylistAPITestCase):
         self.create_test_data()
 
     def test_get_startup(self):
-        """Get the digest at startup
+        """Get the digest at startup.
 
         There should be no errors, the player should be idle and the karaoke
         should be running.
@@ -37,7 +36,7 @@ class DigestViewTestCase(PlaylistAPITestCase):
         self.assertTrue(response.data["karaoke"]["player_play_next_song"])
 
     def test_get_playing(self):
-        """Get the digest when the player is playing
+        """Get the digest when the player is playing.
 
         There should be no errors, the player should be playing and the karaoke
         should be running.
@@ -64,7 +63,7 @@ class DigestViewTestCase(PlaylistAPITestCase):
         self.assertTrue(response.data["karaoke"]["player_play_next_song"])
 
     def test_get_errors(self):
-        """Get the digest when there are errors
+        """Get the digest when there are errors.
 
         There should errors, the player should be idle and the karaoke
         should be running.
@@ -104,7 +103,7 @@ class DigestViewTestCase(PlaylistAPITestCase):
         self.assertTrue(response.data["karaoke"]["player_play_next_song"])
 
     def test_get_player_does_not_play_next_song(self):
-        """Get the digest when the player does not play next song
+        """Get the digest when the player does not play next song.
 
         There should be no errors, the player should be idle.
         """

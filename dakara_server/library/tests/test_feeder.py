@@ -21,8 +21,7 @@ class FeederListViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
     def test_get_feeder_song_list(self):
-        """Test to get feeder song list for manager
-        """
+        """Test to get feeder song list for manager."""
         # Login as manager
         self.authenticate(self.manager)
 
@@ -49,8 +48,7 @@ class FeederListViewTestCase(LibraryAPITestCase):
         )
 
     def test_get_song_list_forbidden(self):
-        """Test that normal user cannot have feeder song list
-        """
+        """Test that normal user cannot have feeder song list."""
         # Login as simple user
         self.authenticate(self.user)
 

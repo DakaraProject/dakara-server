@@ -8,18 +8,17 @@ tz = timezone.get_default_timezone()
 
 
 class BaseProvider:
-    """Provides helper functions for tests
-    """
+    """Provides helper functions for tests."""
 
     @staticmethod
     def authenticate(user, client=None, headers=None):
-        """Authenticate and set the token to the given client
+        """Authenticate and set the token to the given client.
 
         Args:
-            user (users.models.DakaraUser): user to authenticate.
+            user (users.models.DakaraUser): User to authenticate.
             client (rest_framework.test.APIClient): HTTP client. If given, the
                 token of the user authenticated is integrated to it.
-            headers (list): list of headers. If given, the token is added as a
+            headers (list): List of headers. If given, the token is added as a
                 tuple.
         """
         token, _ = Token.objects.get_or_create(user=user)
@@ -40,7 +39,7 @@ class BaseProvider:
         users_level=None,
         **kwargs
     ):
-        """Create a user with the given permissions
+        """Create a user with the given permissions.
 
         Extra arguments are passed to `UserModel.objects.create_user`.
 
@@ -69,13 +68,12 @@ class BaseProvider:
 
 
 class BaseAPITestCase(APITestCase, BaseProvider):
-    """Base test class for Unittest
-    """
+    """Base test class for Unittest."""
 
     def authenticate(self, user):
         """Authenticate using the embedded client
 
         Args:
-            user (users.models.DakaraUser): user to authenticate.
+            user (users.models.DakaraUser): User to authenticate.
         """
         super().authenticate(user, client=self.client)

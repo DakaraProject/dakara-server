@@ -14,16 +14,14 @@ DakaraUser = get_user_model()
 
 @receiver(user_registered, dispatch_uid="handle_user_registered")
 def handle_user_registered(sender, **kwargs):
-    """Manage to send notification to managers when a user is created
-    """
+    """Manage to send notification to managers when a user is created."""
     user = kwargs.get("user")
     emails.send_notification_to_managers(user)
 
 
 @receiver(post_save, sender=DakaraUser, dispatch_uid="handle_superuser_created")
 def handle_superuser_created(sender, **kwargs):
-    """Manage to send verification email to created superusers
-    """
+    """Manage to send verification email to created superusers."""
     user = kwargs.get("instance")
     created = kwargs.get("created")
 

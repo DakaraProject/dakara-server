@@ -4,15 +4,13 @@ from ._private import BaseCommandWithConfig
 
 
 class Command(BaseCommandWithConfig):
-    """Command to create tags
-    """
+    """Command to create tags."""
 
     help = "Setup tags."
     SECTION_NAME = "tags"
 
     def add_arguments_custom(self, parser):
-        """Extra arguments for the command
-        """
+        """Extra arguments for the command."""
         parser.add_argument(
             "--prune",
             help="Remove from database, tags not found in config file",
@@ -20,7 +18,7 @@ class Command(BaseCommandWithConfig):
         )
 
     def handle_custom(self, tags, *args, **options):
-        """Setup the tags
+        """Setup the tags.
 
         In the config file providing tags, the branch contains a list of
             dictionnaries with the keys `name` and `color_hue`. The `name` key

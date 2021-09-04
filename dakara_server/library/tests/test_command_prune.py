@@ -6,8 +6,7 @@ from library.models import Artist, Song, SongWorkLink, Work, WorkType
 
 class PruneCommandTestCase(TestCase):
     def test_prune_command_artists(self):
-        """Test prune command for artists
-        """
+        """Test prune command for artists."""
         # Create artists
         artist1 = Artist()
         artist1.name = "Artist1"
@@ -40,8 +39,7 @@ class PruneCommandTestCase(TestCase):
         self.assertEqual(artists[0].id, artist1.id)
 
     def test_prune_command_works(self):
-        """Test prune command for works
-        """
+        """Test prune command for works."""
 
         # Create worktype
         work_type = WorkType()

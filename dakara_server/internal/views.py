@@ -6,14 +6,12 @@ from rest_framework.views import APIView
 
 
 class SettingsView(APIView):
-    """Settings of the Dakara server
-    """
+    """Settings of the Dakara server."""
 
     permission_classes = (AllowAny,)
 
     def get(self, request):
-        """Get application settings, version and date
-        """
+        """Get application settings, version and date."""
         data = {
             "version": settings.VERSION,
             "date": settings.DATE,

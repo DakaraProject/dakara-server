@@ -1,4 +1,4 @@
-"""Token authorization middleware for Django Channels 2
+"""Token authorization middleware for Django Channels 2.
 
 From: https://gist.github.com/rluts/22e05ed8f53f97bdd02eafdf38f3d60a
 """
@@ -11,8 +11,7 @@ from rest_framework.authtoken.models import Token
 
 
 class TokenAuthMiddleware:
-    """Token authorization middleware for Django Channels 2
-    """
+    """Token authorization middleware for Django Channels 2."""
 
     def __init__(self, inner):
         self.inner = inner

@@ -5,8 +5,7 @@ from internal.version import check_version
 
 class CheckVersionTestCase(TestCase):
     def test_check_release(self):
-        """Test the version check for a release
-        """
+        """Test the version check for a release."""
         # check the version
         with self.assertLogs("django", "DEBUG") as logger:
             with self.settings(VERSION="0.0.0", DATE="1970-01-01"):
@@ -18,8 +17,7 @@ class CheckVersionTestCase(TestCase):
         )
 
     def test_check_non_release(self):
-        """Test the version check for a non release
-        """
+        """Test the version check for a non release."""
         # check the version
         with self.assertLogs("django", "DEBUG") as logger:
             with self.settings(VERSION="0.0.0-dev", DATE="1970-01-01"):

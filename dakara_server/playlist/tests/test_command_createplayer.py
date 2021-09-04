@@ -12,37 +12,32 @@ UserModel = get_user_model()
 
 
 class CreatePlayerCommandTestCase(TestCase):
-    """Test the create player command
-    """
+    """Test the create player command."""
 
     @patch("playlist.management.commands.createplayer.input")
     def test_get_username(self, mocked_input):
-        """Test to get username
-        """
+        """Test to get username."""
         mocked_input.return_value = "user_value"
         username = Command.get_username()
         self.assertEqual(username, "user_value")
 
     @patch("playlist.management.commands.createplayer.input")
     def test_get_username_default(self, mocked_input):
-        """Test to get default username
-        """
+        """Test to get default username."""
         mocked_input.return_value = ""
         username = Command.get_username()
         self.assertEqual(username, "player")
 
     @patch("playlist.management.commands.createplayer.getpass")
     def test_get_password(self, mocked_getpass):
-        """Test to get password
-        """
+        """Test to get password."""
         mocked_getpass.return_value = "password"
         password = Command().get_password()
         self.assertEqual(password, "password")
 
     @patch("playlist.management.commands.createplayer.getpass")
     def test_get_password_different(self, mocked_getpass):
-        """Test to get password with difference in inputs
-        """
+        """Test to get password with difference in inputs."""
         output = StringIO()
         mocked_getpass.side_effect = ["p", "a", "p", "p"]
         password = Command(stderr=output).get_password()
@@ -52,8 +47,7 @@ class CreatePlayerCommandTestCase(TestCase):
         )
 
     def test_create_player(self):
-        """Test to create a player user
-        """
+        """Test to create a player user."""
         output = StringIO()
 
         # pre assert there are no users
@@ -73,8 +67,7 @@ class CreatePlayerCommandTestCase(TestCase):
         )
 
     def test_create_player_password_blank(self):
-        """Test to create a player user with no password
-        """
+        """Test to create a player user with no password."""
         output = StringIO()
 
         # pre assert there are no users
@@ -92,8 +85,7 @@ class CreatePlayerCommandTestCase(TestCase):
         )
 
     def test_create_player_exist(self):
-        """Test to create a player user that already exists
-        """
+        """Test to create a player user that already exists."""
         output = StringIO()
 
         # create one user already
@@ -118,8 +110,7 @@ class CreatePlayerCommandTestCase(TestCase):
     def test_handle_non_interactive(
         self, mocked_create_player, mocked_get_username, mocked_get_password
     ):
-        """Test to handle command non interactively
-        """
+        """Test to handle command non interactively."""
         call_command("createplayer", noinput=True, password="pass")
         mocked_create_player.assert_called_with("player", "pass")
         mocked_get_username.assert_not_called()
@@ -131,8 +122,7 @@ class CreatePlayerCommandTestCase(TestCase):
     def test_handle_interactive(
         self, mocked_create_player, mocked_get_username, mocked_get_password
     ):
-        """Test to handle command interactively
-        """
+        """Test to handle command interactively."""
         mocked_get_username.return_value = "player"
         mocked_get_password.return_value = "pass"
 

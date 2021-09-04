@@ -11,12 +11,10 @@ from library.models import (
 
 
 class LibraryProvider(BaseProvider):
-    """Provides helper functions for library tests
-    """
+    """Provides helper functions for library tests."""
 
     def create_test_data(self):
-        """Populate the library with dummy data
-        """
+        """Populate the library with dummy data."""
         # Create work types
         self.wt1 = WorkType(
             name="WorkType1", name_plural="WorkTypes1", query_name="wt1"
@@ -74,8 +72,7 @@ class LibraryProvider(BaseProvider):
         ).save()
 
     def check_song_json(self, json, expected_song):
-        """Method to test a song representation against the expected song
-        """
+        """Method to test a song representation against the expected song."""
         self.assertEqual(json["id"], expected_song.id)
         self.assertEqual(json["title"], expected_song.title)
         self.assertEqual(json["filename"], expected_song.filename)
@@ -107,22 +104,19 @@ class LibraryProvider(BaseProvider):
             self.assertEqual(work["episodes"], expected_work.episodes)
 
     def check_tag_json(self, json, expected_tag):
-        """Method to test an representation against the expected tag
-        """
+        """Method to test an representation against the expected tag."""
         self.assertEqual(json["id"], expected_tag.id)
         self.assertEqual(json["name"], expected_tag.name)
         self.assertEqual(json["color_hue"], expected_tag.color_hue)
         self.assertEqual(json["disabled"], expected_tag.disabled)
 
     def check_artist_json(self, json, expected_artist):
-        """Method to test an representation against the expected artist
-        """
+        """Method to test an representation against the expected artist."""
         self.assertEqual(json["id"], expected_artist.id)
         self.assertEqual(json["name"], expected_artist.name)
 
     def check_work_json(self, json, expected_work):
-        """Method to test an representation against the expected work
-        """
+        """Method to test an representation against the expected work."""
         self.assertEqual(json["id"], expected_work.id)
         self.assertEqual(json["title"], expected_work.title)
         self.assertEqual(json["subtitle"], expected_work.subtitle)
@@ -136,8 +130,7 @@ class LibraryProvider(BaseProvider):
             self.assertEqual(alt_title["title"], expected_alt_title.title)
 
     def check_work_type_json(self, json, expected_work_type):
-        """Method to test an representation against the expected work type
-        """
+        """Method to test an representation against the expected work type."""
         self.assertEqual(json["name"], expected_work_type.name)
         self.assertEqual(json["name_plural"], expected_work_type.name_plural)
         self.assertEqual(json["query_name"], expected_work_type.query_name)
@@ -145,5 +138,4 @@ class LibraryProvider(BaseProvider):
 
 
 class LibraryAPITestCase(BaseAPITestCase, LibraryProvider):
-    """Base library test class for Unittest
-    """
+    """Base library test class for Unittest."""
