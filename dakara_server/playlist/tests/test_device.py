@@ -10,7 +10,6 @@ from rest_framework import status
 from dakara_server.asgi import application
 from playlist import models
 
-
 channel_layer = get_channel_layer()
 
 

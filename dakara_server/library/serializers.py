@@ -3,13 +3,13 @@ import os
 from rest_framework import serializers
 
 from library.models import (
-    Song,
     Artist,
-    Work,
-    SongWorkLink,
-    WorkType,
+    Song,
     SongTag,
+    SongWorkLink,
+    Work,
     WorkAlternativeTitle,
+    WorkType,
 )
 
 

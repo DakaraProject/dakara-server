@@ -5,9 +5,9 @@ From: https://gist.github.com/rluts/22e05ed8f53f97bdd02eafdf38f3d60a
 from urllib.parse import parse_qs
 
 from channels.auth import AuthMiddlewareStack
-from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import AnonymousUser
 from django.db import close_old_connections
+from rest_framework.authtoken.models import Token
 
 
 class TokenAuthMiddleware:

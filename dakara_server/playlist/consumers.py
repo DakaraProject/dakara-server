@@ -1,12 +1,11 @@
 import logging
 
-from django.contrib.auth import get_user_model
+from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+from django.contrib.auth import get_user_model
 
-from playlist import serializers, models
-
+from playlist import models, serializers
 
 UserModel = get_user_model()
 logger = logging.getLogger(__name__)

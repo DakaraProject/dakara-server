@@ -1,11 +1,11 @@
+import importlib
+import logging
 import os
 import sys
-import logging
-import importlib
 
 from django.core.management.base import BaseCommand, CommandError
 
-from library.models import WorkType, WorkAlternativeTitle, Work
+from library.models import Work, WorkAlternativeTitle, WorkType
 
 from .components import default_work_parser
 

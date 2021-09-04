@@ -1,11 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import permissions
-from django.contrib.auth import get_user_model
 
 from internal.permissions import BasePermissionCustom
 from library.models import Song
 from playlist.models import PlaylistEntry
-
 
 UserModel = get_user_model()
 

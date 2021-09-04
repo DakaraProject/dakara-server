@@ -48,6 +48,7 @@ for:
       - "python -m pytest -v --cov-report term"
 
       # run code formatting tests
+      - "python -m isort . --check"
       - "python -m black . --check"
       - "python -m flake8"
 
@@ -80,6 +81,7 @@ for:
       - "py -%PYTHON% -m pytest -v --cov-report term"
 
       # run code formatting tests
+      - "py -%PYTHON% -m isort . --check"
       - "py -%PYTHON% -m black . --check"
       - "py -%PYTHON% -m flake8"
 

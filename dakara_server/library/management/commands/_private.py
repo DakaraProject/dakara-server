@@ -5,7 +5,6 @@ from codecs import open
 import yaml
 from django.core.management.base import BaseCommand, CommandError
 
-
 file_encoding = sys.getfilesystemencoding()
 
 

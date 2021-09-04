@@ -3,9 +3,9 @@ from unittest.mock import patch
 
 from django.db.utils import OperationalError
 
-from playlist.date_stop import clear_date_stop, check_date_stop_on_app_ready
-from playlist.models import Karaoke
 from internal.tests.base_test import tz
+from playlist.date_stop import check_date_stop_on_app_ready, clear_date_stop
+from playlist.models import Karaoke
 from playlist.tests.base_test import PlaylistAPITestCase
 
 

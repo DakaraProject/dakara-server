@@ -1,8 +1,7 @@
 import logging
-from pkg_resources import parse_version
 
 from django.conf import settings
-
+from pkg_resources import parse_version
 
 logger = logging.getLogger("django")
 

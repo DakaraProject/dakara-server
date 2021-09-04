@@ -8,7 +8,6 @@ from django.test import TestCase
 
 from playlist.management.commands.createplayer import Command
 
-
 UserModel = get_user_model()
 
 

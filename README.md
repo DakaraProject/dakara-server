@@ -104,6 +104,14 @@ pytest
 Tests are written using either Unittest or Pytest.
 Coverage is checked automatically with [Pytest-cov](https://pypi.org/project/pytest-cov/).
 
+#### Imports
+
+Imports are sorted by [isort](https://pycqa.github.io/isort/) with the command:
+
+```sh
+isort .
+```
+
 #### Code style
 
 The code follows the [PEP8](https://www.python.org/dev/peps/pep-0008/) style guide (88 characters per line).

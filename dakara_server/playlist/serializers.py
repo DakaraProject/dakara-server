@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from playlist.models import PlaylistEntry, Karaoke, PlayerError, Player
 from library.models import Song
 from library.serializers import (
-    SongSerializer,
-    SongForPlayerSerializer,
     SecondsDurationField,
+    SongForPlayerSerializer,
+    SongSerializer,
 )
+from playlist.models import Karaoke, Player, PlayerError, PlaylistEntry
 from users.serializers import UserForPublicSerializer
 
 

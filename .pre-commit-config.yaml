@@ -13,6 +13,11 @@ repos:
         entry: pytest --no-cov
         language: system
         pass_filenames: false
+      - id: isort-check
+        name: Check imports
+        entry: isort . --check
+        language: system
+        pass_filenames: false
       - id: black-check
         name: Check code formatting
         entry: black . --check

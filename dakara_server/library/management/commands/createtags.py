@@ -1,4 +1,5 @@
 from library.models import SongTag
+
 from ._private import BaseCommandWithConfig
 
 

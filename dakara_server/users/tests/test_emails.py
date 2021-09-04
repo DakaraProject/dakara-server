@@ -1,9 +1,8 @@
 from unittest.mock import ANY, patch
 
-
 from internal.tests.base_test import UserModel
-from users.tests.base_test import config_email_disabled, UsersAPITestCase
 from users import emails
+from users.tests.base_test import UsersAPITestCase, config_email_disabled
 
 
 @patch("users.emails.send_mail")

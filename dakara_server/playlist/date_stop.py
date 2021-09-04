@@ -2,9 +2,9 @@ import logging
 from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from django.utils import timezone
 from django.core.cache import cache
 from django.db.utils import OperationalError
+from django.utils import timezone
 
 from playlist.models import Karaoke
 

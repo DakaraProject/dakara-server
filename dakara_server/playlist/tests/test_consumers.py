@@ -3,7 +3,6 @@ from channels.layers import get_channel_layer
 
 from playlist import consumers
 
-
 channel_layer = get_channel_layer()
 
 

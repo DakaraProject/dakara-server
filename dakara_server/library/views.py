@@ -1,21 +1,18 @@
-from django.db.models.functions import Lower
-from django.db.models import Q
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
+from django.db.models.functions import Lower
 from rest_framework.generics import (
+    ListAPIView,
+    ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
     UpdateAPIView,
-    ListCreateAPIView,
-    ListAPIView,
 )
+from rest_framework.permissions import IsAuthenticated
 
 from internal import permissions as internal_permissions
-from library import models
-from library import serializers
-from library import permissions
-from library.query_language import QueryLanguageParser
+from library import models, permissions, serializers
 from library import views_feeder as feeder  # noqa F401
-
+from library.query_language import QueryLanguageParser
 
 UserModel = get_user_model()
 

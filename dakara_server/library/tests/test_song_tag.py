@@ -2,8 +2,8 @@ from django.urls import reverse
 from rest_framework import status
 
 from internal.tests.base_test import UserModel
-from library.tests.base_test import LibraryAPITestCase
 from library.models import SongTag
+from library.tests.base_test import LibraryAPITestCase
 
 
 class SongTagListViewTestCase(LibraryAPITestCase):

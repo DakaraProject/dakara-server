@@ -3,7 +3,6 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-
 UserModel = get_user_model()
 tz = timezone.get_default_timezone()
 

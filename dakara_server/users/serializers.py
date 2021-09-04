@@ -1,7 +1,7 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_registration.api.serializers import DefaultLoginSerializer
 from rest_registration.settings import registration_settings
-from django.contrib.auth import get_user_model
 
 UserModel = get_user_model()
 

@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 from django.core.cache import cache
 from django.utils.dateparse import parse_datetime
 
-from internal.tests.base_test import BaseAPITestCase, BaseProvider, tz, UserModel
+from internal.tests.base_test import BaseAPITestCase, BaseProvider, UserModel, tz
 from library.models import Song, SongTag
-from playlist.models import PlaylistEntry, Karaoke, Player
+from playlist.models import Karaoke, Player, PlaylistEntry
 
 
 class PlaylistProvider(BaseProvider):

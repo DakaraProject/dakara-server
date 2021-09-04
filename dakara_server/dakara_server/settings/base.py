@@ -14,8 +14,8 @@ import os
 
 from decouple import config
 
-from dakara_server.version import __version__ as VERSION, __date__ as DATE  # noqa F401
-
+from dakara_server.version import __date__ as DATE  # noqa F401
+from dakara_server.version import __version__ as VERSION  # noqa F401
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

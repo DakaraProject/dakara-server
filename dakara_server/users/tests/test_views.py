@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from internal.tests.base_test import UserModel
-from users.tests.base_test import config_email_disabled, UsersAPITestCase
+from users.tests.base_test import UsersAPITestCase, config_email_disabled
 
 
 class RegisterViewTestCase(UsersAPITestCase):

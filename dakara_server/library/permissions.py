@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 
 from internal.permissions import BasePermissionCustom
 
-
 UserModel = get_user_model()
 
 

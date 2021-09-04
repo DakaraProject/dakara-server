@@ -14,7 +14,7 @@ either in a `.env` file
 or in a `settings.ini` with a single `[settings]` section.
 """
 
-from decouple import config, Csv
+from decouple import Csv, config
 from dj_database_url import parse as db_url
 
 from dakara_server.settings.base import *  # noqa F403

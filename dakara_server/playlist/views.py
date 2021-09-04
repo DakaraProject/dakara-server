@@ -1,26 +1,24 @@
 import logging
 from datetime import datetime, timedelta
 
-from django.utils import timezone
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import get_user_model
+from django.utils import timezone
+from rest_framework import generics as drf_generics
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import generics as drf_generics
 
 from internal import permissions as internal_permissions
 from internal.pagination import PageNumberPaginationCustom
 from library import permissions as library_permissions
-from playlist import models
-from playlist import serializers
-from playlist import permissions
+from playlist import models, permissions, serializers
 from playlist.consumers import send_to_channel
-from playlist.date_stop import KARAOKE_JOB_NAME, scheduler, clear_date_stop
+from playlist.date_stop import KARAOKE_JOB_NAME, clear_date_stop, scheduler
 
 tz = timezone.get_default_timezone()
 logger = logging.getLogger(__name__)

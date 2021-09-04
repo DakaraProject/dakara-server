@@ -1,12 +1,12 @@
-from internal.tests.base_test import BaseProvider, BaseAPITestCase
+from internal.tests.base_test import BaseAPITestCase, BaseProvider
 from library.models import (
-    WorkType,
-    Work,
     Artist,
-    SongTag,
     Song,
+    SongTag,
     SongWorkLink,
+    Work,
     WorkAlternativeTitle,
+    WorkType,
 )
 
 

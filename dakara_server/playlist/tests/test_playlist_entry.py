@@ -1,12 +1,12 @@
-from unittest.mock import ANY, patch
 from datetime import datetime, timedelta
+from unittest.mock import ANY, patch
 
 from django.urls import reverse
 from django.utils.dateparse import parse_datetime
 from rest_framework import status
 
-from internal.tests.base_test import tz, UserModel
-from playlist.models import PlaylistEntry, Player, Karaoke
+from internal.tests.base_test import UserModel, tz
+from playlist.models import Karaoke, Player, PlaylistEntry
 from playlist.tests.base_test import PlaylistAPITestCase
 
 

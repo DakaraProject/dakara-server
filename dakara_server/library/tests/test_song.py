@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from internal.tests.base_test import UserModel
-from library.models import Song, Artist, Work, SongWorkLink, SongTag
+from library.models import Artist, Song, SongTag, SongWorkLink, Work
 from library.tests.base_test import LibraryAPITestCase
 
 

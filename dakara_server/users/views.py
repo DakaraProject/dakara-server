@@ -1,18 +1,16 @@
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import generics, views
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_registration.settings import registration_settings
 from rest_registration.utils.verification_notifications import (
     send_register_verification_email_notification,
 )
 
 from internal import permissions as internal_permissions
-from users import permissions, serializers
-from users import emails
-
+from users import emails, permissions, serializers
 
 UserModel = get_user_model()
 
