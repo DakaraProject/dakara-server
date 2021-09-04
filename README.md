@@ -104,28 +104,30 @@ pytest
 Tests are written using either Unittest or Pytest.
 Coverage is checked automatically with [Pytest-cov](https://pypi.org/project/pytest-cov/).
 
-#### Hooks
-
-Git hooks are included in the `hooks` directory.
-
-Use the following command to use this hook folder for the project:
-
-```sh
-git config core.hooksPath hooks
-```
-
-If you're using git < 2.9 you can make a symlink instead:
-
-```sh
-ln -s -f ../../hooks/pre-commit .git/hooks/pre-commit
-ln -s -f ../../hooks/pre-commit.d .git/hooks/pre-commit.d
-```
-
 #### Code style
 
-The code follows the [PEP8](https://www.python.org/dev/peps/pep-0008/) style guide (88 chars per line).
-Quality of code is checked with [Flake8](https://pypi.org/project/flake8/).
-Style is enforced using [Black](https://github.com/ambv/black).
+The code follows the [PEP8](https://www.python.org/dev/peps/pep-0008/) style guide (88 characters per line).
+Quality of code is checked with [Flake8](https://pypi.org/project/flake8/):
+
+```sh
+flake8
+```
+
+Style is enforced using [Black](https://github.com/ambv/black):
+
+```sh
+black .
+```
+
 You need to call Black before committing changes.
 You may want to configure your editor to call it automatically.
 Additionnal checking can be manually performed with [Pylint](https://www.pylint.org/).
+
+#### Hooks
+
+Pre-commit hooks allow to perform checks before commiting changes.
+They are managed with [Pre-commit](https://pre-commit.com/), use the following command to install them:
+
+```sh
+pre-commit install
+```
