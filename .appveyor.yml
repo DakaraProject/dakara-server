@@ -45,20 +45,16 @@ for:
 
     test_script:
       # run tests
-      - "python -m coverage run -m pytest -v"
+      - "python -m pytest -v --cov-report term"
 
       # run code formatting tests
       - "python -m black . --check"
       - "python -m flake8"
 
     after_test:
-      # show coverage stats
-      - "python -m coverage report -m"
-
       # upload coverage stats to codecov.io
       # codecov token is stored in appveyor settings
-      - "python -m coverage xml"
-      - "python -m codecov -X gcov --file coverage.xml"
+      - "python -m codecov"
 
   - matrix:
       only:
@@ -81,17 +77,13 @@ for:
 
     test_script:
       # run tests
-      - "py -%PYTHON% -m coverage run -m pytest -v"
+      - "py -%PYTHON% -m pytest -v --cov-report term"
 
       # run code formatting tests
       - "py -%PYTHON% -m black . --check"
       - "py -%PYTHON% -m flake8"
 
     after_test:
-      # show coverage stats
-      - "py -%PYTHON% -m coverage report -m"
-
       # upload coverage stats to codecov.io
       # codecov token is stored in appveyor settings
-      - "py -%PYTHON% -m coverage xml"
-      - "py -%PYTHON% -m codecov -X gcov --file coverage.xml"
+      - "py -%PYTHON% -m codecov"

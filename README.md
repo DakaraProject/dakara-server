@@ -95,12 +95,14 @@ After all of this is setup, just grab some friends and have fun!
 
 #### Tests
 
-Tests are written using either Unittest or Pytest.
-Pytest is used to run all tests, regardless the test framework used:
+Tests are run by [Pytest](https://docs.pytest.org/en/stable/) with:
 
 ```sh
 pytest
 ```
+
+Tests are written using either Unittest or Pytest.
+Coverage is checked automatically with [Pytest-cov](https://pypi.org/project/pytest-cov/).
 
 #### Hooks
 
