@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from playlist.models import PlayerToken, Karaoke
+from playlist.models import Karaoke, PlayerToken
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
@@ -12,8 +12,7 @@ class PlayerTokenListViewTestCase(PlaylistAPITestCase):
         self.create_test_data()
 
     def test_create(self):
-        """Test to create a token
-        """
+        """Test to create a token"""
         # get karaoke
         karaoke = Karaoke.objects.get_object()
 
@@ -39,8 +38,7 @@ class PlayerTokenViewTestCase(PlaylistAPITestCase):
         self.create_test_data()
 
     def test_get(self):
-        """Test to get a token
-        """
+        """Test to get a token"""
         # get karaoke and token
         karaoke = Karaoke.objects.get_object()
         player_token = PlayerToken.objects.create(karaoke=karaoke)
@@ -61,8 +59,7 @@ class PlayerTokenViewTestCase(PlaylistAPITestCase):
         self.assertEqual(len(response.data["token"]), 40)
 
     def test_delete(self):
-        """Test to delete a token
-        """
+        """Test to delete a token"""
         # get karaoke and token
         karaoke = Karaoke.objects.get_object()
         PlayerToken.objects.create(karaoke=karaoke)

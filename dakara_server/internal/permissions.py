@@ -2,7 +2,7 @@ from rest_framework import permissions
 
 
 class BasePermissionCustom(permissions.BasePermission):
-    """Restrict object permission to access permission
+    """Restrict object permission to access permission.
 
     The main problem of `BasePermission` is that the default value for
     `has_permission_object` is True. This leads to problem when one permission
@@ -19,40 +19,35 @@ class BasePermissionCustom(permissions.BasePermission):
 
 
 class IsReadOnly(BasePermissionCustom):
-    """Allow access if request is GET, OPTION...
-    """
+    """Allow access if request does not alter data."""
 
     def has_permission(self, request, view):
         return request.method in permissions.SAFE_METHODS
 
 
 class IsPost(BasePermissionCustom):
-    """Allow access if request is POST
-    """
+    """Allow access if request is POST."""
 
     def has_permission(self, request, view):
         return request.method == "POST"
 
 
 class IsPut(BasePermissionCustom):
-    """Allow access if request is PUT
-    """
+    """Allow access if request is PUT."""
 
     def has_permission(self, request, view):
         return request.method == "PUT"
 
 
 class IsPatch(BasePermissionCustom):
-    """Allow access if request is PATCH
-    """
+    """Allow access if request is PATCH."""
 
     def has_permission(self, request, view):
         return request.method == "PATCH"
 
 
 class IsDelete(BasePermissionCustom):
-    """Allow access if request is DELETE
-    """
+    """Allow access if request is DELETE."""
 
     def has_permission(self, request, view):
         return request.method == "DELETE"

@@ -12,8 +12,7 @@ UserModel = get_user_model()
 
 
 def get_managers_emails():
-    """Get users managers and superusers email
-    """
+    """Get users managers and superusers email."""
     return [
         user.email
         for user in UserModel.objects.filter(
@@ -24,8 +23,7 @@ def get_managers_emails():
 
 
 def send_notification_to_managers(user):
-    """Send a notification email to user managers that a new user registered
-    """
+    """Send a notification email to user managers that a new user registered."""
     if not settings.EMAIL_ENABLED:
         return
 
@@ -50,7 +48,7 @@ def send_notification_to_managers(user):
 
 
 def get_notification_to_managers(user):
-    """Create notification message for managers
+    """Create notification message for managers.
 
     Args:
         user (DakaraUser): User in the message.
@@ -65,8 +63,7 @@ def get_notification_to_managers(user):
 
 
 def send_notification_to_user_validated(user):
-    """Send a notification email to validated user
-    """
+    """Send a notification email to validated user."""
     if not settings.EMAIL_ENABLED:
         return
 
@@ -81,7 +78,7 @@ def send_notification_to_user_validated(user):
 
 
 def get_notification_to_user_validated():
-    """Create notification message to users that have been validated
+    """Create notification message to users that have been validated.
 
     Returns:
         str: Notification message.

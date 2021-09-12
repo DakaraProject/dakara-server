@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from internal.tests.base_test import UserModel
-from library.models import Song, Artist, Work, SongWorkLink, SongTag
+from library.models import Artist, Song, SongTag, SongWorkLink, Work
 from library.tests.base_test import LibraryAPITestCase
 
 
@@ -22,8 +22,7 @@ class SongListViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
     def test_get_song_list(self):
-        """Test to verify song list with no query
-        """
+        """Test to verify song list with no query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -38,8 +37,7 @@ class SongListViewTestCase(LibraryAPITestCase):
         self.check_song_json(response.data["results"][1], self.song2)
 
     def test_get_song_long_lyrics(self):
-        """Test to get a song with few lyrics
-        """
+        """Test to get a song with few lyrics."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -72,15 +70,13 @@ And everywhere that Mary went""",
         )
 
     def test_get_song_list_forbidden(self):
-        """Test to verify unauthenticated user can't get songs list
-        """
+        """Test to verify unauthenticated user can't get songs list."""
         # Attempte to get songs list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_song_list_with_query(self):
-        """Test to verify song list with simple query
-        """
+        """Test to verify song list with simple query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -97,8 +93,7 @@ And everywhere that Mary went""",
         self.song_query_test("ork1", [self.song2])
 
     def test_get_song_list_with_query_empty(self):
-        """Test to verify song list with empty query
-        """
+        """Test to verify song list with empty query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -107,8 +102,7 @@ And everywhere that Mary went""",
         self.song_query_test("", [self.song1, self.song2])
 
     def test_get_song_list_with_query_detail(self):
-        """Test to verify song list with detail query
-        """
+        """Test to verify song list with detail query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -125,8 +119,7 @@ And everywhere that Mary went""",
         self.song_query_test("etail_Video2", [self.song2])
 
     def test_get_song_list_with_query_tag(self):
-        """Test to verify song list with tag query
-        """
+        """Test to verify song list with tag query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -139,8 +132,7 @@ And everywhere that Mary went""",
         self.song_query_test("#TAG2", [])
 
     def test_get_song_list_with_query_artist(self):
-        """Test to verify song list with artist query
-        """
+        """Test to verify song list with artist query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -161,8 +153,7 @@ And everywhere that Mary went""",
         self.song_query_test('artist:""tist1""', [])
 
     def test_get_song_list_with_query_work(self):
-        """Test to verify song list with work query
-        """
+        """Test to verify song list with work query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -179,8 +170,7 @@ And everywhere that Mary went""",
         self.song_query_test("wt2:Work1", [])
 
     def test_get_song_list_with_query_work_alternative_title(self):
-        """Test to verify song list with work alternative title query
-        """
+        """Test to verify song list with work alternative title query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -209,8 +199,7 @@ And everywhere that Mary went""",
         self.song_query_test("wt2:AltTitle1", [])
 
     def test_get_song_list_with_query_title(self):
-        """Test to verify song list with title query
-        """
+        """Test to verify song list with title query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -227,8 +216,7 @@ And everywhere that Mary went""",
         self.song_query_test("title:Artist", [])
 
     def test_get_song_list_with_query_multiple(self):
-        """Test to verify song list with title query
-        """
+        """Test to verify song list with title query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -237,8 +225,7 @@ And everywhere that Mary went""",
         self.song_query_test("artist:Artist1 title:1", [])
 
     def test_get_song_list_with_query_complex(self):
-        """Test to verify parsed query is returned
-        """
+        """Test to verify parsed query is returned."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -271,7 +258,7 @@ And everywhere that Mary went""",
         self.assertCountEqual(query["work_type"]["wt1"]["exact"], [])
 
     def song_query_test(self, query, expected_songs):
-        """Method to test a song request with a given query
+        """Method to test a song request with a given query.
 
         Returned songs should be the same as expected_songs,
         in the same order.
@@ -286,7 +273,7 @@ And everywhere that Mary went""",
             self.assertEqual(song["id"], expected_song.id)
 
     def test_get_song_list_disabled_tag(self):
-        """Test to verify songs with disabled for user
+        """Test to verify songs with disabled for user.
 
         For a simple user, song list does not include disabled songs with tags.
         """
@@ -308,7 +295,7 @@ And everywhere that Mary went""",
         self.check_song_json(response.data["results"][0], self.song1)
 
     def test_get_song_list_disabled_tag_manager(self):
-        """Test to verify songs with disabled tags for manager
+        """Test to verify songs with disabled tags for manager.
 
         For a manager, song list includes disabled songs with tags.
         """
@@ -331,8 +318,7 @@ And everywhere that Mary went""",
         self.check_song_json(response.data["results"][1], self.song2)
 
     def test_post_song_simple(self):
-        """Test to create a song without nested artists, tags nor works
-        """
+        """Test to create a song without nested artists, tags nor works."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -367,8 +353,7 @@ And everywhere that Mary went""",
         self.assertEqual(song.detail_video, "here")
 
     def test_post_song_embedded(self):
-        """Test to create a song with nested artists, tags and works
-        """
+        """Test to create a song with nested artists, tags and works."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -459,8 +444,7 @@ And everywhere that Mary went""",
         )
 
     def test_post_song_embedded_empty(self):
-        """Test to create a song with empty keys for artists, tags and works
-        """
+        """Test to create a song with empty keys for artists, tags and works."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -500,8 +484,7 @@ And everywhere that Mary went""",
         self.assertEqual(Work.objects.count(), 3)
 
     def test_post_song_simple_multi(self):
-        """Test to create two songs without nested artists, tags nor works
-        """
+        """Test to create two songs without nested artists, tags nor works."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -544,8 +527,7 @@ And everywhere that Mary went""",
         Song.objects.get(title="Song4")
 
     def test_post_song_embedded_work_subtitle(self):
-        """Test work is created even if similar exists with different subtitle
-        """
+        """Test work is created even if similar exists with different subtitle."""
         # Add a subtitle to work1
         self.work1.subtitle = "returns"
         self.work1.save()
@@ -615,8 +597,7 @@ class SongViewTestCase(LibraryAPITestCase):
         self.url_song2 = reverse("library-song", kwargs={"pk": self.song2.id})
 
     def test_put_song_simple(self):
-        """Test to update a song without nested artists, tags nor works
-        """
+        """Test to update a song without nested artists, tags nor works."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -650,8 +631,7 @@ class SongViewTestCase(LibraryAPITestCase):
         self.assertTrue(song.has_instrumental)
 
     def test_put_song_embedded(self):
-        """Test to update a song with nested artists, tags and works
-        """
+        """Test to update a song with nested artists, tags and works."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -741,8 +721,7 @@ class SongViewTestCase(LibraryAPITestCase):
         )
 
     def test_put_song_embedded_replace(self):
-        """Test to update a song with already defined nested artists, tags and works
-        """
+        """Test to update a song with already defined nested artists, tags and works."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -814,8 +793,7 @@ class SongViewTestCase(LibraryAPITestCase):
         self.assertCountEqual(song.songworklink_set.all(), [song_work_link_4])
 
     def test_put_song_embedded_identical(self):
-        """Test to update a song with same nested artists, tags and works
-        """
+        """Test to update a song with same nested artists, tags and works."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -875,8 +853,7 @@ class SongViewTestCase(LibraryAPITestCase):
         self.assertCountEqual(song.songworklink_set.all(), [song_work_link_1])
 
     def test_put_song_embedded_work_subtitle(self):
-        """Test work is created even if similar exists with different subtitle
-        """
+        """Test work is created even if similar exists with different subtitle."""
         # Add a subtitle to work1
         self.work1.subtitle = "returns"
         self.work1.save()

@@ -5,19 +5,16 @@ from codecs import open
 import yaml
 from django.core.management.base import BaseCommand, CommandError
 
-
 file_encoding = sys.getfilesystemencoding()
 
 
 class BaseCommandWithConfig(BaseCommand):
-    """Base command class for handling config file
-    """
+    """Base command class for handling config file."""
 
     SECTION_NAME = ""
 
     def add_arguments(self, parser):
-        """Extend arguments for the command
-        """
+        """Extend arguments for the command."""
         parser.add_argument("config-file", help="Config file.")
 
         parser.add_argument(
@@ -27,12 +24,10 @@ class BaseCommandWithConfig(BaseCommand):
         self.add_arguments_custom(parser)
 
     def add_arguments_custom(self, parser):
-        """Stub for extra arguments for the command
-        """
+        """Stub for extra arguments for the command."""
 
     def handle(self, *args, **options):
-        """Setup the tags
-        """
+        """Setup the tags."""
         # quiet mode
         if options["quiet"]:
             self.stdout = open(os.devnull, "w")
@@ -57,5 +52,4 @@ class BaseCommandWithConfig(BaseCommand):
         self.handle_custom(config[self.SECTION_NAME], *args, **options)
 
     def handle_custom(self, config, *args, **options):
-        """Stub for custom handle actions
-        """
+        """Stub for custom handle actions."""

@@ -15,8 +15,7 @@ class WorkTypeListViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
     def test_get_work_type_list(self):
-        """Test to verify work type list
-        """
+        """Test to verify work type list."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -31,8 +30,7 @@ class WorkTypeListViewTestCase(LibraryAPITestCase):
         self.check_work_type_json(response.data["results"][1], self.wt2)
 
     def test_get_work_type_list_forbidden(self):
-        """Test to verify unauthenticated user can't get work type list
-        """
+        """Test to verify unauthenticated user can't get work type list."""
         # Attempt to get work type list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

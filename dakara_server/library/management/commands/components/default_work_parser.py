@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 
 class JSONFileNotFound(Exception):
@@ -10,7 +10,7 @@ def parse_work(filepath):
     """Default parse module for work data file in JSON.
 
     Args:
-        filepath : path of the file to parse (must be JSON).
+        filepath : Path of the file to parse (must be JSON).
     """
 
     if not os.path.isfile(filepath):
