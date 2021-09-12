@@ -2,7 +2,7 @@ from django.db import models
 
 
 class CaseInsensitiveFieldMixin:
-    """Field mixin that uses case-insensitive lookup alternatives if they exist
+    """Field mixin that uses case-insensitive lookup alternatives if they exist.
 
     See: https://concisecoder.io/2018/10/27/case-insensitive-fields-in-django-models/
     """
@@ -21,8 +21,8 @@ class CaseInsensitiveFieldMixin:
 
 
 class CaseInsensitiveCharField(CaseInsensitiveFieldMixin, models.CharField):
-    """Case insensitive char field"""
+    """Case insensitive char field."""
 
 
 class CaseInsensitiveEmailField(CaseInsensitiveFieldMixin, models.EmailField):
-    """Case insensitive email field"""
+    """Case insensitive email field."""

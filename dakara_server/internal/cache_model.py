@@ -147,7 +147,7 @@ class CacheManager:
 
         Raises:
             ObjectDoesNotExist: If the instance is not in cache.
-            """
+        """
         with self._access_store() as store:
             # delete object from cache
             try:
@@ -210,6 +210,5 @@ class CacheModel(base.Model, metaclass=CacheModelBase):
         self.cache.save(self)
 
     def delete(self, *args, **kwargs):
-        """Delete instance from cache
-        """
+        """Delete instance from cache"""
         self.cache.delete(self)

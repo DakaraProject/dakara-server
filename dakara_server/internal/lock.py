@@ -1,12 +1,11 @@
 from django.core.cache import cache
 from django.core.cache.backends.db import BaseDatabaseCache
 from django.core.cache.backends.memcached import BaseMemcachedCache
-from django_lock import Lock, RedisLock, MemcachedLock, _backend_cls, redis_backends
+from django_lock import Lock, MemcachedLock, RedisLock, _backend_cls, redis_backends
 
 
 def get_lock_cls(client):
-    """Monkey patch the cache backend selector of django_lock
-    """
+    """Monkey patch the cache backend selector of django_lock"""
     backend_cls = _backend_cls(client)
     if issubclass(backend_cls, redis_backends):
         return RedisLock

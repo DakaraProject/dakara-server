@@ -1,21 +1,19 @@
 from django.conf import settings
 from django.test import override_settings
+
 from internal.tests.base_test import BaseAPITestCase, BaseProvider
 
 
 class UsersProvider(BaseProvider):
-    """Provides helper function for users tests
-    """
+    """Provides helper function for users tests."""
 
 
 class UsersAPITestCase(BaseAPITestCase, UsersProvider):
-    """Base users test class for Unittest
-    """
+    """Base users test class for Unittest."""
 
 
 def config_email_disabled(func):
-    """Modify config to simulate no email verification.
-    """
+    """Modify config to simulate no email verification."""
 
     def caller(*args, **kwargs):
         rest_registration = settings.REST_REGISTRATION.copy()

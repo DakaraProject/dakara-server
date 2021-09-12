@@ -1,25 +1,23 @@
 from library.models import WorkType
+
 from ._private import BaseCommandWithConfig
 
 
 class Command(BaseCommandWithConfig):
-    """Command to create work types
-    """
+    """Command to create work types."""
 
     help = "Setup work types."
     SECTION_NAME = "worktypes"
 
     @staticmethod
     def _get_subkeys():
-        """Extract the keys from the model and ignore the ones we don't need
-        """
+        """Extract the keys from the model and ignore the ones we don't need."""
         return (
             f.name for f in WorkType._meta.fields if f.name not in ("id", "query_name")
         )
 
     def add_arguments_custom(self, parser):
-        """Extra arguments for the command
-        """
+        """Extra arguments for the command."""
         parser.add_argument(
             "--prune",
             help="Remove from database, work types not found in config file",
@@ -33,7 +31,7 @@ class Command(BaseCommandWithConfig):
         )
 
     def handle_custom(self, work_types, *args, **options):
-        """Setup the tags
+        """Setup the tags.
 
         In the config file providing work types, the branch contains a list of
             dictionnaries with different keys. Among them, the `query_name` key

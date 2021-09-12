@@ -7,15 +7,14 @@ from users.tests.base_test import UsersAPITestCase, config_email_disabled
 
 
 class DakaraModelBackendTestCase(UsersAPITestCase):
-    """Test the authentication backend
-    """
+    """Test the authentication backend."""
 
     def setUp(self):
         # create a user without any rights
         self.user = self.create_user("TestUser", email="test@user.com", password="pass")
 
     def test_authenticate_username_superuser(self):
-        """Test to authenticate as superuser"""
+        """Test to authenticate as superuser."""
         self.user.is_superuser = True
         self.user.validated_by_email = False
         self.user.validated_by_manager = False
@@ -28,7 +27,7 @@ class DakaraModelBackendTestCase(UsersAPITestCase):
         )
 
     def test_authenticate_username_not_active(self):
-        """Test to authenticate an inactive user"""
+        """Test to authenticate an inactive user."""
         self.user.is_active = False
         self.user.save()
 
@@ -38,7 +37,7 @@ class DakaraModelBackendTestCase(UsersAPITestCase):
         )
 
     def test_authenticate_username_not_validated_by_email(self):
-        """Test to authenticate when not validated by email"""
+        """Test to authenticate when not validated by email."""
         self.user.validated_by_email = False
         self.user.validated_by_manager = True
         self.user.save()
@@ -51,7 +50,7 @@ class DakaraModelBackendTestCase(UsersAPITestCase):
 
     @config_email_disabled
     def test_authenticate_username_not_validated_by_email_no_email(self):
-        """Test to authenticate when not validated by email and emails disabled"""
+        """Test to authenticate when not validated by email and emails disabled."""
         self.user.validated_by_email = False
         self.user.validated_by_manager = True
         self.user.save()
@@ -63,7 +62,7 @@ class DakaraModelBackendTestCase(UsersAPITestCase):
         )
 
     def test_authenticate_username_not_validated_by_manager(self):
-        """Test to authenticate when not validated by manager"""
+        """Test to authenticate when not validated by manager."""
         self.user.validated_by_email = True
         self.user.validated_by_manager = False
         self.user.save()
@@ -75,7 +74,7 @@ class DakaraModelBackendTestCase(UsersAPITestCase):
             backend.authenticate(MagicMock(), username="TestUser", password="pass")
 
     def test_authenticate_username_ok(self):
-        """Test to authenticate"""
+        """Test to authenticate."""
         self.user.validated_by_email = True
         self.user.validated_by_manager = True
         self.user.save()

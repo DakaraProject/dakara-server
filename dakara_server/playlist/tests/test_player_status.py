@@ -1,5 +1,5 @@
-from unittest.mock import ANY, patch
 from datetime import datetime, timedelta
+from unittest.mock import ANY, patch
 
 from django.urls import reverse
 from django.utils.dateparse import parse_datetime
@@ -11,7 +11,7 @@ from playlist.tests.base_test import PlaylistAPITestCase
 
 
 class PlayerStatusViewTestCase(PlaylistAPITestCase):
-    """Test the view of the player"""
+    """Test the view of the player."""
 
     url = reverse("playlist-player-status")
 
@@ -19,7 +19,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.create_test_data()
 
     def test_get_status_idle(self):
-        """Test to access the player status when idle"""
+        """Test to access the player status when idle."""
         self.authenticate(self.user)
 
         # check the player is idle
@@ -36,7 +36,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(parse_datetime(response.data["date"]), player.date)
 
     def test_get_status_in_transition(self):
-        """Test to access the player status when in transition"""
+        """Test to access the player status when in transition."""
         self.authenticate(self.user)
 
         # set the player in transition
@@ -52,7 +52,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(parse_datetime(response.data["date"]), player.date)
 
     def test_get_status_in_play_with_timing(self):
-        """Test to access the player status when in play with timing"""
+        """Test to access the player status when in play with timing."""
         self.authenticate(self.user)
 
         # set the player in play
@@ -68,7 +68,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(parse_datetime(response.data["date"]), player.date)
 
     def test_get_status_in_pause_with_timing(self):
-        """Test to access the player status when in pause with timing"""
+        """Test to access the player status when in pause with timing."""
         self.authenticate(self.user)
 
         # set the player in play
@@ -84,14 +84,16 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(parse_datetime(response.data["date"]), player.date)
 
     def test_get_status_forbidden(self):
-        """Test to access the player status when not loged in"""
+        """Test to access the player status when not loged in."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch("playlist.views.send_to_channel")
-    @patch("django.db.models.fields.timezone.now",)
+    @patch(
+        "django.db.models.fields.timezone.now",
+    )
     def test_put_status_started_transition(self, mocked_now, mocked_send_to_channel):
-        """Test player started transition"""
+        """Test player started transition."""
         # patch the now method
         now = datetime.now(tz)
         mocked_now.return_value = now
@@ -130,7 +132,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         # )
 
     def test_put_status_started_transition_with_timing(self):
-        """Test timing is 0 during transition"""
+        """Test timing is 0 during transition."""
         self.authenticate(self.player)
 
         # perform the request
@@ -159,9 +161,11 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertFalse(hasattr(player, "event"))
 
     @patch("playlist.views.send_to_channel")
-    @patch("django.db.models.fields.timezone.now",)
+    @patch(
+        "django.db.models.fields.timezone.now",
+    )
     def test_put_status_started_song(self, mocked_now, mocked_send_to_channel):
-        """Test player finished transition"""
+        """Test player finished transition."""
         # patch the now method
         now = datetime.now(tz)
         mocked_now.return_value = now
@@ -203,9 +207,11 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         # )
 
     @patch("playlist.views.send_to_channel")
-    @patch("django.db.models.fields.timezone.now",)
+    @patch(
+        "django.db.models.fields.timezone.now",
+    )
     def test_put_status_resumed(self, mocked_now, mocked_send_to_channel):
-        """Test event played resumed"""
+        """Test event played resumed."""
         # patch the now method
         now = datetime.now(tz)
         mocked_now.return_value = now
@@ -243,9 +249,11 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         # )
 
     @patch("playlist.views.send_to_channel")
-    @patch("django.db.models.fields.timezone.now",)
+    @patch(
+        "django.db.models.fields.timezone.now",
+    )
     def test_put_status_paused(self, mocked_now, mocked_send_to_channel):
-        """Test event paused player"""
+        """Test event paused player."""
         # patch the now method
         now = datetime.now(tz)
         mocked_now.return_value = now
@@ -284,7 +292,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_put_status_finished(self, mocked_send_to_channel):
-        """Test event finished"""
+        """Test event finished."""
         self.authenticate(self.player)
 
         # set the player in play
@@ -319,9 +327,11 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         mocked_send_to_channel.assert_called_with(ANY, "handle_next")
 
     @patch("playlist.views.send_to_channel")
-    @patch("django.db.models.fields.timezone.now",)
+    @patch(
+        "django.db.models.fields.timezone.now",
+    )
     def test_put_status_could_not_play(self, mocked_now, mocked_send_to_channel):
-        """Test event could not play"""
+        """Test event could not play."""
         # patch the now method
         now = datetime.now(tz)
         mocked_now.return_value = now
@@ -359,7 +369,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         # )
 
     def test_put_status_failed_wrong_playlist_entry(self):
-        """Test to set the player status with another playlist entry"""
+        """Test to set the player status with another playlist entry."""
         self.authenticate(self.player)
 
         # set the player already in play
@@ -378,7 +388,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(player_old, player_new)
 
     def test_put_status_forbidden_not_authenticated(self):
-        """Test to set the player when not authenticated"""
+        """Test to set the player when not authenticated."""
         response = self.client.put(
             self.url,
             data={
@@ -390,7 +400,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_put_status_forbidden_not_player(self):
-        """Test to set the player when not a player user"""
+        """Test to set the player when not a player user."""
         self.authenticate(self.user)
         response = self.client.put(
             self.url,
@@ -403,8 +413,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_patch_status_invalid_missing_event(self):
-        """Test missing event is rejected
-        """
+        """Test missing event is rejected."""
         self.authenticate(self.player)
 
         # send a status without event
@@ -414,8 +423,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_status_invalid_wrong_event(self):
-        """Test invalid event is rejected
-        """
+        """Test invalid event is rejected."""
         self.authenticate(self.player)
 
         # send a status without event
@@ -426,8 +434,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_status_invalid_incoherent_event_idle(self):
-        """Test incoherent event is rejected when player is idle
-        """
+        """Test incoherent event is rejected when player is idle."""
         self.authenticate(self.player)
 
         # the player is idle
@@ -439,8 +446,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_status_invalid_incoherent_event_play(self):
-        """Test incoherent event is rejected when player is playing
-        """
+        """Test incoherent event is rejected when player is playing."""
         self.authenticate(self.player)
 
         # the player is playing

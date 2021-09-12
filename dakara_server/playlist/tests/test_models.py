@@ -10,12 +10,10 @@ from playlist import models
 
 @pytest.mark.django_db(transaction=True)
 class TestPlaylistEntry:
-    """Test the PlaylistEntry model
-    """
+    """Test the PlaylistEntry model."""
 
     def test_get_playing_success(self, playlist_provider):
-        """Test to get the currently playing entry
-        """
+        """Test to get the currently playing entry."""
         # pre assert no entry is playing
         assert models.PlaylistEntry.objects.get_playing() is None
 
@@ -34,8 +32,7 @@ class TestPlaylistEntry:
         assert models.PlaylistEntry.objects.get_playing() is None
 
     def test_get_playing_abnormal(self, playlist_provider):
-        """Test to get the currently playing entry in abnormal condition
-        """
+        """Test to get the currently playing entry in abnormal condition."""
         # pre assert no entry is playing
         assert models.PlaylistEntry.objects.get_playing() is None
 
@@ -54,8 +51,7 @@ class TestPlaylistEntry:
         assert models.PlaylistEntry.objects.get_playing() is None
 
     def test_get_playing_fail(self, playlist_provider):
-        """Test when several entries are supposed to play simultaneously
-        """
+        """Test when several entries are supposed to play simultaneously."""
         # pre assert no entry is playing
         assert models.PlaylistEntry.objects.get_playing() is None
 
@@ -75,8 +71,7 @@ class TestPlaylistEntry:
             models.PlaylistEntry.objects.get_playing()
 
     def test_get_playlist_normal(self, playlist_provider):
-        """Test to get the playlist
-        """
+        """Test to get the playlist."""
         # pre assert there are 2 entries in playlist
         playlist = models.PlaylistEntry.objects.get_playlist()
         assert len(playlist) == 2
@@ -102,8 +97,7 @@ class TestPlaylistEntry:
         assert playlist[0] == playlist_provider.pe2
 
     def test_get_playlist_abnormal(self, playlist_provider):
-        """Test to get the playlist in abnormal condition
-        """
+        """Test to get the playlist in abnormal condition."""
         # pre assert there are 2 entries in playlist
         playlist = models.PlaylistEntry.objects.get_playlist()
         assert len(playlist) == 2
@@ -129,8 +123,7 @@ class TestPlaylistEntry:
         assert playlist[0] == playlist_provider.pe2
 
     def test_get_playlist_played_normal(self, playlist_provider):
-        """Test to get the playlist of played entries
-        """
+        """Test to get the playlist of played entries."""
         # pre assert there are 2 entries played
         playlist_played = models.PlaylistEntry.objects.get_playlist_played()
         assert len(playlist_played) == 2
@@ -159,8 +152,7 @@ class TestPlaylistEntry:
         assert playlist_played[2] == playlist_provider.pe4
 
     def test_get_playlist_played_abnormal(self, playlist_provider):
-        """Test to get the playlist of played entries in abnormal condition
-        """
+        """Test to get the playlist of played entries in abnormal condition."""
         # pre assert there are 2 entries played
         playlist_played = models.PlaylistEntry.objects.get_playlist_played()
         assert len(playlist_played) == 2
@@ -190,8 +182,7 @@ class TestPlaylistEntry:
         assert playlist_played[2] == playlist_provider.pe4
 
     def test_get_next_normal(self, playlist_provider):
-        """Test to get the next entry to play
-        """
+        """Test to get the next entry to play."""
         # pre assert the next entry is playlist entry 1
         assert models.PlaylistEntry.objects.get_next() == playlist_provider.pe1
 
@@ -218,8 +209,7 @@ class TestPlaylistEntry:
         assert models.PlaylistEntry.objects.get_next() is None
 
     def test_get_next_abnormal(self, playlist_provider):
-        """Test to get the next entry to play in abnormal condition
-        """
+        """Test to get the next entry to play in abnormal condition."""
         # pre assert the next entry is playlist entry 1
         assert models.PlaylistEntry.objects.get_next() == playlist_provider.pe1
 
@@ -238,8 +228,7 @@ class TestPlaylistEntry:
         assert models.PlaylistEntry.objects.get_next() == playlist_provider.pe2
 
     def test_get_next_relative(self, playlist_provider):
-        """Test to get the next entry from a specific one
-        """
+        """Test to get the next entry from a specific one."""
         # pre assert the entry after playlist entry 1 is playlist entry 2
         assert (
             models.PlaylistEntry.objects.get_next(playlist_provider.pe1.id)
@@ -269,8 +258,7 @@ class TestPlaylistEntry:
         assert models.PlaylistEntry.objects.get_next(playlist_provider.pe2.id) is None
 
     def test_set_playing(self, playlist_provider):
-        """Test to set a playlist entry playing
-        """
+        """Test to set a playlist entry playing."""
         # pre assert no entry is playing
         assert models.PlaylistEntry.objects.get_playing() is None
 
@@ -282,8 +270,7 @@ class TestPlaylistEntry:
         assert models.PlaylistEntry.objects.get_playing() == playlist_entry
 
     def test_set_playing_already_playing(self, playlist_provider):
-        """Test to set a playlist entry playing when one is already playing
-        """
+        """Test to set a playlist entry playing when one is already playing."""
         # play next playlist entry
         playlist_entry_current = models.PlaylistEntry.objects.get_next()
         playlist_entry_current.set_playing()
@@ -296,8 +283,7 @@ class TestPlaylistEntry:
             playlist_entry_next.set_playing()
 
     def test_set_finished(self, playlist_provider):
-        """Test to finish a playlist entry
-        """
+        """Test to finish a playlist entry."""
         playlist_entry_current = models.PlaylistEntry.objects.get_next()
 
         # pre assert current playlist entry is not played
@@ -311,8 +297,7 @@ class TestPlaylistEntry:
         assert playlist_entry_current.was_played
 
     def test_set_finished_not_playing(self, playlist_provider):
-        """Test to finish a playlist entry when it was not playing
-        """
+        """Test to finish a playlist entry when it was not playing."""
         playlist_entry_current = models.PlaylistEntry.objects.get_next()
 
         # pre assert current playlist entry is not played
@@ -324,12 +309,10 @@ class TestPlaylistEntry:
 
 
 class TestKaraoke:
-    """Test the Karaoke class
-    """
+    """Test the Karaoke class."""
 
     def test_clean_channel_names(self, mocker):
-        """Test to clean all channel names
-        """
+        """Test to clean all channel names."""
         mocked_all = mocker.patch.object(models.Karaoke.objects, "all")
         karaoke1 = MagicMock()
         mocked_all.side_effect = [[karaoke1]]
@@ -341,12 +324,10 @@ class TestKaraoke:
 
 
 class TestCleanChannel:
-    """Test the clean_channel_names function
-    """
+    """Test the clean_channel_names function."""
 
     def test_clean_success(self, mocker):
-        """Test to request to clean channel names successfuly
-        """
+        """Test to request to clean channel names successfuly."""
         mocked_clean_channel_names = mocker.patch.object(
             models.Karaoke.objects, "clean_channel_names"
         )
@@ -354,8 +335,7 @@ class TestCleanChannel:
         mocked_clean_channel_names.assert_called_with()
 
     def test_clean_failure(self, mocker):
-        """Test to request to clean channels names unsuccessfuly
-        """
+        """Test to request to clean channels names unsuccessfuly."""
         mocked_clean_channel_names = mocker.patch.object(
             models.Karaoke.objects, "clean_channel_names"
         )
@@ -364,13 +344,11 @@ class TestCleanChannel:
 
 
 class TestStringification:
-    """Test the string methods
-    """
+    """Test the string methods."""
 
     @pytest.mark.django_db(transaction=True)
     def test_playlist_entry_str(self, playlist_provider):
-        """Test the string representation of a playlist entry
-        """
+        """Test the string representation of a playlist entry."""
         playlist_entry = models.PlaylistEntry(
             song=playlist_provider.song1, owner=playlist_provider.user
         )
@@ -378,16 +356,14 @@ class TestStringification:
         assert str(playlist_entry) == "Song1 (for TestUser)"
 
     def test_karaoke_str(self):
-        """Test the string representation of a karaoke object
-        """
+        """Test the string representation of a karaoke object."""
         karaoke = models.Karaoke(date_stop=datetime(year=1970, month=1, day=1))
 
         assert str(karaoke) == "karaoke None"
 
     @pytest.mark.django_db(transaction=True)
     def test_player_error_str(self, playlist_provider):
-        """Test the string representation of a player error
-        """
+        """Test the string representation of a player error."""
         player_error1 = models.PlayerError(
             playlist_entry=playlist_provider.pe1, error_message="Error message"
         )
@@ -407,8 +383,7 @@ class TestStringification:
         )
 
     def test_player_str(self):
-        """Test the string representation of a player
-        """
+        """Test the string representation of a player."""
         player = models.Player()
 
         assert str(player) == "player None"

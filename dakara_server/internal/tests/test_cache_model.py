@@ -1,9 +1,9 @@
 from re import escape
 
 import pytest
-from django.db import models
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.db import models
 
 from internal.cache_model import CacheModel
 
