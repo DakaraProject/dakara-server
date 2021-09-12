@@ -2,9 +2,9 @@ import logging
 from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from django.utils import timezone
 from django.core.cache import cache
 from django.db.utils import OperationalError
+from django.utils import timezone
 
 from playlist.models import Karaoke
 
@@ -17,8 +17,7 @@ scheduler.start()
 
 
 def clear_date_stop():
-    """Clear stop date and disable can add to playlist
-    """
+    """Clear stop date and disable can add to playlist."""
     karaoke = Karaoke.objects.get_object()
     if not karaoke.date_stop or karaoke.date_stop > datetime.now(tz):
         logger.error("Clear date stop was called when it should not")
@@ -31,8 +30,7 @@ def clear_date_stop():
 
 
 def check_date_stop_on_app_ready():
-    """Check if date stop has expired and clear or schedule job accordingly
-    """
+    """Check if date stop has expired and clear or schedule job accordingly."""
     try:
         karaoke = Karaoke.objects.get_object()
 

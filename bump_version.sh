@@ -19,10 +19,12 @@ fi
 version_number=$1
 dev_version_number=$2-dev
 version_date=$(date -I -u)
+version_year=$(date +%Y -u)
 
-# patch version file
+# patch version and date in version file
 version_file=dakara_server/dakara_server/version.py
 cat <<EOF >$version_file
+# this file is automatically updated by bump_version.sh, do not edit it!
 __version__ = "$version_number"
 __date__ = "$version_date"
 EOF
@@ -37,16 +39,21 @@ sed -i "/^## Unreleased$/a \\
 appveyor_file=.appveyor.yml
 sed -i "s/^version: .*-{build}$/version: $version_number-{build}/" $appveyor_file
 
+# change year in license file
+license_file=LICENSE
+sed -i -e "s/(c) [0-9]\{4\}/(c) $version_year/" $license_file
+
 # create commit and tag
-git add $version_file $changelog_file $appveyor_file
+git add $version_file $changelog_file $appveyor_file $license_file
 git commit -m "Version $version_number" --no-verify
 git tag "$version_number"
 
 # say something
 echo "Version bumped to $version_number"
 
-# patch version file for dev version
+# patch dev version and date in version file
 cat <<EOF >$version_file
+# this file is automatically updated by bump_version.sh, do not edit it!
 __version__ = "$dev_version_number"
 __date__ = "$version_date"
 EOF

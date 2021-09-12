@@ -7,8 +7,7 @@ from playlist.tests.base_test import PlaylistAPITestCase
 
 
 class PlayerCommandViewTestCase(PlaylistAPITestCase):
-    """Test the commands given to the player
-    """
+    """Test the commands given to the player."""
 
     url = reverse("playlist-player-command")
 
@@ -17,8 +16,7 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_put_command(self, mocked_send_to_channel):
-        """Test to send a command (pause)
-        """
+        """Test to send a command (pause)."""
         # start to play something
         self.player_play_next_song()
 
@@ -39,8 +37,7 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_put_command_user(self, mocked_send_to_channel):
-        """Test to test pausing player as user
-        """
+        """Test to test pausing player as user."""
         # play next song
         self.player_play_next_song()
 
@@ -71,8 +68,7 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_put_command_karaoke_not_ongoing_forbidden(self, mocked_send_to_channel):
-        """Test a user cannot pause a song if the kara is not ongoing
-        """
+        """Test a user cannot pause a song if the kara is not ongoing."""
         # play next song
         self.player_play_next_song()
 
@@ -91,8 +87,7 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_put_command_player_idle_forbidden(self, mocked_send_to_channel):
-        """Test a user cannot pause a song if the player is idle
-        """
+        """Test a user cannot pause a song if the player is idle."""
         # authenticate manager
         self.authenticate(self.manager)
 
@@ -105,8 +100,7 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_put_command_incorrect_forbidden(self, mocked_send_to_channel):
-        """Test to send an incorrect command
-        """
+        """Test to send an incorrect command."""
         # start to play something
         self.player_play_next_song()
 
@@ -122,8 +116,7 @@ class PlayerCommandViewTestCase(PlaylistAPITestCase):
 
     @patch("playlist.views.send_to_channel")
     def test_put_command_unauthenticated_forbidden(self, mocked_send_to_channel):
-        """Test to send a command when not authenticated
-        """
+        """Test to send a command when not authenticated."""
         # start to play something
         self.player_play_next_song()
 

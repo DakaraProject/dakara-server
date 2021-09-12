@@ -1,9 +1,8 @@
 from getpass import getpass
 
-from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
-
 
 UserModel = get_user_model()
 
@@ -11,13 +10,12 @@ USERNAME_DEFAULT = "player"
 
 
 class Command(BaseCommand):
-    """Create the player special user
-    """
+    """Create the player special user."""
 
     help = "Create player account."
 
     def add_arguments(self, parser):
-        """Add arguments for the command
+        """Add arguments for the command.
 
         Args:
             parser (argparse.ArgumentParser): Parser.
@@ -39,7 +37,7 @@ class Command(BaseCommand):
 
     @staticmethod
     def get_username():
-        """Get username from user
+        """Get username from user.
 
         Returns:
             str: Username.
@@ -48,7 +46,7 @@ class Command(BaseCommand):
         return username or USERNAME_DEFAULT
 
     def get_password(self):
-        """Get password from user
+        """Get password from user.
 
         Returns:
             str: Password.
@@ -64,7 +62,7 @@ class Command(BaseCommand):
             return password
 
     def create_player(self, username, password):
-        """Create player from provided credentials
+        """Create player from provided credentials.
 
         Args:
             username (str): Username for the player.
@@ -92,8 +90,7 @@ class Command(BaseCommand):
         self.stdout.write("Player created successfully.")
 
     def handle(self, *args, **options):
-        """Handle the command
-        """
+        """Handle the command."""
         # in non interactive mode
         if options["noinput"]:
             self.create_player(

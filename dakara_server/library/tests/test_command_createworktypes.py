@@ -11,8 +11,7 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class CommandsTestCase(TestCase):
     def test_createworktypes_command(self):
-        """Test create work types command
-        """
+        """Test create work types command."""
         # Pre-Assertions
         self.assertEqual(WorkType.objects.count(), 0)
 
@@ -38,7 +37,7 @@ class CommandsTestCase(TestCase):
         self.assertEqual(work_types[1].icon_name, "cat")
 
     def test_createworktypes_command_prune(self):
-        """Test create work types command with existing work types and prune
+        """Test create work types command with existing work types and prune.
         option
         """
         # Create existing work types

@@ -7,7 +7,7 @@ UserModel = get_user_model()
 
 
 class DakaraModelBackend(ModelBackend):
-    """Custom authentication backend for the project
+    """Custom authentication backend for the project.
 
     Authenticate user by username or by email. If authenticated, superuser can
     always log in, otherwise the user must have its email validated and its

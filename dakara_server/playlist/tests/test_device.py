@@ -10,14 +10,12 @@ from rest_framework import status
 from dakara_server.asgi import application
 from playlist import models
 
-
 channel_layer = get_channel_layer()
 
 
 @pytest.fixture
 async def communicator(playlist_provider):
-    """Gives a WebSockets communicator
-    """
+    """Gives a WebSockets communicator."""
     # create a communicator
     communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
 
@@ -33,8 +31,7 @@ async def communicator(playlist_provider):
 @pytest.mark.django_db(transaction=True)
 class TestDevice:
     async def test_authenticate_basic(self, playlist_provider):
-        """Test to authenticate as the communicator fixture
-        """
+        """Test to authenticate as the communicator fixture."""
         # create a communicator
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
 
@@ -61,7 +58,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_authenticate(self, playlist_provider):
-        """Test to authenticate with a token
+        """Test to authenticate with a token.
 
         This is the normal mechanism of real-life connection. In the tests, we
         assume the user is already in the scope.
@@ -96,7 +93,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_authenticate_player_twice_failed(self, playlist_provider):
-        """Test to authenticate two players successively
+        """Test to authenticate two players successively.
 
         The second connection should be rejected.
         """
@@ -119,8 +116,7 @@ class TestDevice:
         await communicator_second.disconnect()
 
     async def test_authenticate_user_failed(self, playlist_provider):
-        """Test to authenticate as a normal user
-        """
+        """Test to authenticate as a normal user."""
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
         communicator.scope["user"] = playlist_provider.user
         connected, _ = await communicator.connect()
@@ -131,8 +127,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_authenticate_anonymous_user_failed(self, playlist_provider):
-        """Test to authenticate as a anonymous user
-        """
+        """Test to authenticate as a anonymous user."""
         # create a communicator
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
 
@@ -156,8 +151,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_authenticate_playing_entry_playing(self, playlist_provider):
-        """Test to authenticate when a playlist entry is supposed to be playing
-        """
+        """Test to authenticate when a playlist entry is supposed to be playing."""
         # create a communicator
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
         communicator.scope["user"] = playlist_provider.player
@@ -185,7 +179,7 @@ class TestDevice:
     async def test_receive_ready_send_playlist_entry(
         self, playlist_provider, player, communicator
     ):
-        """Test that a new song is requested to play when the player is ready
+        """Test that a new song is requested to play when the player is ready.
 
         There are playlist entries awaiting to be played.
         """
@@ -209,7 +203,7 @@ class TestDevice:
     async def test_receive_ready_send_idle(
         self, playlist_provider, player, communicator
     ):
-        """Test that idle screen is requested to play when the player is ready
+        """Test that idle screen is requested to play when the player is ready.
 
         The playlist is empty.
         """
@@ -235,8 +229,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_playlist_entry(self, playlist_provider, player, communicator):
-        """Test to send a new playlist entry to the device
-        """
+        """Test to send a new playlist entry to the device."""
         # pre assert
         assert playlist_provider.pe1.date_played is None
 
@@ -271,8 +264,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_playlist_entry_failed_none(self, player, communicator):
-        """Test a null playlist entry cannot be sent to the device
-        """
+        """Test a null playlist entry cannot be sent to the device."""
         # pre assert
         assert player.playlist_entry is None
 
@@ -303,8 +295,7 @@ class TestDevice:
         # no need to close connection
 
     async def test_send_idle(self, playlist_provider, player, communicator):
-        """Test to send a new playlist entry to the device
-        """
+        """Test to send a new playlist entry to the device."""
         karaoke = await database_sync_to_async(
             lambda: models.Karaoke.objects.get_object()
         )()
@@ -332,8 +323,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_command_pause(self, playlist_provider, player, communicator):
-        """Test to send to the player a pause command
-        """
+        """Test to send to the player a pause command."""
         karaoke = await database_sync_to_async(
             lambda: models.Karaoke.objects.get_object()
         )()
@@ -364,8 +354,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_command_play(self, playlist_provider, player, communicator):
-        """Test to send to the player a play command
-        """
+        """Test to send to the player a play command."""
         karaoke = await database_sync_to_async(
             lambda: models.Karaoke.objects.get_object()
         )()
@@ -396,8 +385,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_command_skip(self, playlist_provider, player, communicator):
-        """Test to send to the player a skip command
-        """
+        """Test to send to the player a skip command."""
         karaoke = await database_sync_to_async(
             lambda: models.Karaoke.objects.get_object()
         )()
@@ -428,8 +416,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_command_failed(self, player, communicator):
-        """Test an invalid command cannot be sent to the player
-        """
+        """Test an invalid command cannot be sent to the player."""
         karaoke = await database_sync_to_async(
             lambda: models.Karaoke.objects.get_object()
         )()
@@ -458,8 +445,7 @@ class TestDevice:
     async def test_send_handle_next(
         self, playlist_provider, player, communicator, client_drf, mocker
     ):
-        """Test to handle next playlist entries untill the end of the playlist
-        """
+        """Test to handle next playlist entries untill the end of the playlist."""
         # configure HTTP client
         url = reverse("playlist-player-status")
         playlist_provider.authenticate(playlist_provider.player, client=client_drf)
@@ -602,8 +588,7 @@ class TestDevice:
     async def test_send_handle_next_karaoke_not_ongoing(
         self, playlist_provider, player, communicator
     ):
-        """Test to handle next playlist entries when the karaoke is not ongoing
-        """
+        """Test to handle next playlist entries when the karaoke is not ongoing."""
         # set the karaoke not ongoing
         await database_sync_to_async(
             lambda: playlist_provider.set_karaoke(ongoing=False)
@@ -646,8 +631,8 @@ class TestDevice:
     async def test_send_handle_next_karaoke_not_play_next_song(
         self, playlist_provider, player, communicator
     ):
-        """Test to handle next playlist entries when the player does not play next song
-        """
+        """Test to handle next playlist entries when the player does not play
+        next song."""
         # set player does not play next song
         await database_sync_to_async(
             lambda: playlist_provider.set_karaoke(player_play_next_song=False)
@@ -685,8 +670,7 @@ class TestDevice:
     async def test_connect_reset_playing_playlist_entry(
         self, playlist_provider, player
     ):
-        """Test to reset playing playlist entry
-        """
+        """Test to reset playing playlist entry."""
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
         communicator.scope["user"] = playlist_provider.player
         connected, _ = await communicator.connect()
@@ -714,8 +698,7 @@ class TestDevice:
     async def test_disconnect_player_while_playing(
         self, playlist_provider, player, communicator
     ):
-        """Test that current playlist entry is reseted when player is disconnected
-        """
+        """Test that current playlist entry is reseted when player is disconnected."""
         # start playing a song
         await database_sync_to_async(
             lambda: playlist_provider.player_play_next_song(timing=timedelta(seconds=1))

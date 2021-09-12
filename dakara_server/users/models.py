@@ -6,8 +6,7 @@ from users.fields import CaseInsensitiveCharField, CaseInsensitiveEmailField
 
 
 class DakaraUser(AbstractUser):
-    """Custom user
-    """
+    """Custom user."""
 
     username = CaseInsensitiveCharField(
         _("username"),
