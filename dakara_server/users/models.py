@@ -1,53 +1,23 @@
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.core.exceptions import ObjectDoesNotExist
+from django.utils.translation import gettext_lazy as _
 
-
-class DakaraUserManager(UserManager):
-    """Custom user manager to handle case insensitive usernames
-    """
-
-    def get_by_natural_key(self, username):
-        """Search a username case insensitively
-        """
-        return self.get(username__iexact=username)
-
-    def _create_user(self, username, *args, **kwargs):
-        """Generic method to create new users
-
-        Check if the username is free, otherwise raise a
-        `UserExistsWithDifferentCaseError`.
-        """
-        # check if username is free before creating user with this username
-        if self.is_username_taken(username):
-            # normally the serializer prevents to be in this case
-            raise UserExistsWithDifferentCaseError(
-                "The username must be case insensitively unique"
-            )
-
-        return super()._create_user(username, *args, **kwargs)
-
-    def is_username_taken(self, username):
-        """Check if a similar username exists with the natural method
-
-        Since we've set the search to be case insensitive, it will find it case
-        insensitively.
-        """
-        try:
-            if self.get_by_natural_key(username):
-                return True
-
-        except ObjectDoesNotExist:
-            pass
-
-        return False
+from users.fields import CaseInsensitiveCharField, CaseInsensitiveEmailField
 
 
 class DakaraUser(AbstractUser):
-    """Custom user
-    """
+    """Custom user."""
 
-    objects = DakaraUserManager()
+    username = CaseInsensitiveCharField(
+        _("username"),
+        max_length=150,
+        unique=True,
+        help_text=_(
+            "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
+        ),
+    )
+
+    email = CaseInsensitiveEmailField(_("email address"), unique=True)
 
     # permission levels per application
     USER = "u"
@@ -71,8 +41,12 @@ class DakaraUser(AbstractUser):
     LEVELS_PLAYLIST = [(PLAYER, "Player"), (USER, "User"), (MANAGER, "Manager")]
 
     playlist_permission_level = models.CharField(
-        max_length=1, choices=LEVELS_PLAYLIST, null=True
+        max_length=1, choices=LEVELS_PLAYLIST, null=True, default=USER
     )
+
+    validated_by_email = models.BooleanField(default=False)
+
+    validated_by_manager = models.BooleanField(default=False)
 
     def __str__(self):
         return self.username
@@ -104,8 +78,3 @@ class DakaraUser(AbstractUser):
     @property
     def is_player(self):
         return self.playlist_permission_level == self.PLAYER
-
-
-class UserExistsWithDifferentCaseError(ValueError):
-    """Error raised when creating a user with just a different of case
-    """

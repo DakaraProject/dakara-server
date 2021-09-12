@@ -1,4 +1,4 @@
-"""dakara_server URL Configuration
+"""Dakara server URL Configuration.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.8/topics/http/urls/
@@ -13,36 +13,29 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
+from django.conf import settings
 from django.conf.urls import url
 from django.contrib import admin
-from django.conf import settings
 from django.contrib.staticfiles.views import serve
 from django.urls import include, path
-from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.documentation import include_docs_urls
 
+from internal import views as internal_views
 from library import views as library_views
 from playlist import views as playlist_views
 from users import views as users_views
-from internal import views as internal_views
-
 
 urlpatterns = [
     # Admin route
     path("admin/", admin.site.urls),
     # Authentication routes
+    path("api/accounts/", include("rest_registration.api.urls")),
     path("api/auth/", include("rest_framework.urls", namespace="rest_framework")),
-    path("api/token-auth/", obtain_auth_token),
     # API routes for internal
-    path("api/version/", internal_views.VersionView.as_view(), name="version"),
+    path("api/settings/", internal_views.SettingsView.as_view(), name="settings"),
     # API routes for the users
     path("api/users/", users_views.UserListView.as_view(), name="users-list"),
     path("api/users/<int:pk>/", users_views.UserView.as_view(), name="users"),
-    path(
-        "api/users/<int:pk>/password/",
-        users_views.PasswordView.as_view(),
-        name="users-password",
-    ),
     path(
         "api/users/current/",
         users_views.CurrentUserView.as_view(),

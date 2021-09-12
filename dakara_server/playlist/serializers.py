@@ -1,18 +1,17 @@
 from rest_framework import serializers
 
-from playlist.models import PlaylistEntry, Karaoke, PlayerError, Player
 from library.models import Song
 from library.serializers import (
-    SongSerializer,
-    SongForPlayerSerializer,
     SecondsDurationField,
+    SongForPlayerSerializer,
+    SongSerializer,
 )
+from playlist.models import Karaoke, Player, PlayerError, PlaylistEntry
 from users.serializers import UserForPublicSerializer
 
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
-    """Playlist entry serializer
-    """
+    """Playlist entry serializer."""
 
     # get related owner field
     # auto-set related owner field
@@ -39,8 +38,7 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
 
 
 class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
-    """Song serializer in playlist
-    """
+    """Song serializer in playlist."""
 
     song = SongForPlayerSerializer(many=False, read_only=True)
     owner = UserForPublicSerializer(read_only=True)
@@ -52,7 +50,7 @@ class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
 
 
 class PlaylistEntryWithDatePlaySerializer(PlaylistEntrySerializer):
-    """Playlist entry serializer
+    """Playlist entry serializer.
 
     Reserved for song that will be played.
     """
@@ -72,7 +70,7 @@ class PlaylistEntryWithDatePlaySerializer(PlaylistEntrySerializer):
 
 
 class PlaylistPlayedEntryWithDatePlayedSerializer(PlaylistEntrySerializer):
-    """Playlist entry serializer
+    """Playlist entry serializer.
 
     Reserved for song that were played.
     """
@@ -90,16 +88,14 @@ class PlaylistPlayedEntryWithDatePlayedSerializer(PlaylistEntrySerializer):
 
 
 class PlaylistEntriesWithDateEndSerializer(serializers.Serializer):
-    """Playlist entries with playlist end date
-    """
+    """Playlist entries with playlist end date."""
 
     results = PlaylistEntryWithDatePlaySerializer(many=True, read_only=True)
     date_end = serializers.DateTimeField(read_only=True)
 
 
 class PlayerStatusSerializer(serializers.Serializer):
-    """Player status serializer
-    """
+    """Player status serializer."""
 
     # Read only fields for front
     playlist_entry = PlaylistPlayedEntryWithDatePlayedSerializer(
@@ -170,8 +166,7 @@ class PlayerStatusSerializer(serializers.Serializer):
 
 
 class PlayerEntryFinishedSerializer(serializers.Serializer):
-    """Player finished entry serializer
-    """
+    """Player finished entry serializer."""
 
     # get related entry field
     entry = PlaylistEntrySerializer(many=False, read_only=True)
@@ -183,8 +178,7 @@ class PlayerEntryFinishedSerializer(serializers.Serializer):
 
 
 class PlayerErrorSerializer(serializers.ModelSerializer):
-    """Player errors
-    """
+    """Player errors."""
 
     # get related entry field
     playlist_entry = PlaylistPlayedEntryWithDatePlayedSerializer(
@@ -219,15 +213,13 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
 
 
 class PlayerCommandSerializer(serializers.Serializer):
-    """Player command serializer
-    """
+    """Player command serializer."""
 
     command = serializers.ChoiceField(choices=Player.COMMANDS)
 
 
 class KaraokeSerializer(serializers.ModelSerializer):
-    """Current status of the kara
-    """
+    """Current status of the kara."""
 
     class Meta:
         model = Karaoke
@@ -240,8 +232,7 @@ class KaraokeSerializer(serializers.ModelSerializer):
 
 
 class DigestSerializer(serializers.Serializer):
-    """Combine player info and kara status
-    """
+    """Combine player info and kara status."""
 
     player_status = PlayerStatusSerializer()  # TODO test this
     player_errors = PlayerErrorSerializer(many=True)
@@ -249,15 +240,13 @@ class DigestSerializer(serializers.Serializer):
 
 
 class PlaylistReorderSerializer(serializers.Serializer):
-    """Requested position of playlist entry
-    """
+    """Requested position of playlist entry."""
 
     before_id = serializers.IntegerField(required=False)
     after_id = serializers.IntegerField(required=False)
 
     def validate(self, data):
-        """Check only one field is specified
-        """
+        """Check only one field is specified."""
         if "before_id" in data and "after_id" in data:
             raise serializers.ValidationError("Only one field should be specified")
 

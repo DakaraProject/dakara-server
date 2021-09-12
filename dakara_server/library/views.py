@@ -1,23 +1,18 @@
 import logging
-from django.db.models.functions import Lower
-from django.db.models import Q
+
 from django.contrib.auth import get_user_model
-from rest_framework.generics import (
-    RetrieveUpdateDestroyAPIView,
-    ListCreateAPIView,
-)
+from django.db.models import Q
+from django.db.models.functions import Lower
+from rest_framework import status
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.views import APIView
 
 from internal import permissions as internal_permissions
-from library import models
-from library import serializers
-from library import permissions
-from library.query_language import QueryLanguageParser
+from library import models, permissions, serializers
 from library import views_feeder as feeder  # noqa F401
-
+from library.query_language import QueryLanguageParser
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +20,7 @@ UserModel = get_user_model()
 
 
 class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
-    """API View with a parsed query attribute
-    """
+    """API View with a parsed query attribute."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -34,8 +28,7 @@ class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
         self.query_parsed = None
 
     def list(self, request, *args, **kwargs):
-        """Add the parsed query to the serialized response
-        """
+        """Add the parsed query to the serialized response."""
         response = super().list(request, *args, **kwargs)
 
         # pass the query words to highlight to the response
@@ -49,8 +42,7 @@ class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
 
 
 class SongListView(ListCreateAPIViewWithQueryParsed):
-    """List of songs
-    """
+    """List of songs."""
 
     permission_classes = [
         IsAuthenticated,
@@ -59,8 +51,7 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
     serializer_class = serializers.SongSerializer
 
     def get_queryset(self):
-        """Search and filter the songs
-        """
+        """Search and filter the songs."""
         query_set = models.Song.objects.all()
 
         # hide all songs with disabled tags for non-managers or non-superusers
@@ -168,7 +159,7 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
         return query_set.distinct().order_by(Lower("title"))
 
     def get_serializer(self, *args, **kwargs):
-        """Return the serializer instance that should be used for validating and
+        """Return the serializer instance that should be used for validating and.
         deserializing input, and for serializing output.
         """
         data = kwargs.get("data")
@@ -184,8 +175,7 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
 
 
 class SongView(RetrieveUpdateDestroyAPIView):
-    """Edition and display of a song
-    """
+    """Edition and display of a song."""
 
     permission_classes = [
         IsAuthenticated,
@@ -196,8 +186,7 @@ class SongView(RetrieveUpdateDestroyAPIView):
 
 
 class ArtistListView(ListCreateAPIViewWithQueryParsed):
-    """List of artists
-    """
+    """List of artists."""
 
     permission_classes = [
         IsAuthenticated,
@@ -206,8 +195,7 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
     serializer_class = serializers.ArtistWithCountSerializer
 
     def get_queryset(self):
-        """Search and filter the artists
-        """
+        """Search and filter the artists."""
         query_set = models.Artist.objects.all()
 
         # if 'query' is in the query string then perform search return results
@@ -238,8 +226,7 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
 
 
 class ArtistPruneView(APIView):
-    """Views for artists to delete
-    """
+    """Views for artists to delete"""
 
     permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
     queryset = models.Artist.objects.filter(song=None)
@@ -260,8 +247,7 @@ class ArtistPruneView(APIView):
 
 
 class WorkListView(ListCreateAPIViewWithQueryParsed):
-    """List of works
-    """
+    """List of works."""
 
     permission_classes = [
         IsAuthenticated,
@@ -270,8 +256,7 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
     serializer_class = serializers.WorkSerializer
 
     def get_queryset(self):
-        """Search and filter the works
-        """
+        """Search and filter the works."""
         query_set = models.Work.objects.all()
 
         # if 'type' is in the query string
@@ -313,8 +298,7 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
 
 
 class WorkPruneView(APIView):
-    """Views for works to delete
-    """
+    """Views for works to delete"""
 
     permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
     queryset = models.Work.objects.filter(song=None)
@@ -334,8 +318,7 @@ class WorkPruneView(APIView):
 
 
 class WorkTypeListView(ListCreateAPIView):
-    """List of work types
-    """
+    """List of work types."""
 
     permission_classes = [
         IsAuthenticated,
@@ -346,8 +329,7 @@ class WorkTypeListView(ListCreateAPIView):
 
 
 class WorkTypeView(RetrieveUpdateDestroyAPIView):
-    """View for a work type
-    """
+    """View for a work type."""
 
     permission_classes = [
         IsAuthenticated,
@@ -358,8 +340,7 @@ class WorkTypeView(RetrieveUpdateDestroyAPIView):
 
 
 class SongTagListView(ListCreateAPIView):
-    """List of song tags
-    """
+    """List of song tags."""
 
     permission_classes = [
         IsAuthenticated,
@@ -370,8 +351,7 @@ class SongTagListView(ListCreateAPIView):
 
 
 class SongTagView(RetrieveUpdateDestroyAPIView):
-    """View for a song tag
-    """
+    """Update a song tag."""
 
     permission_classes = [
         IsAuthenticated,

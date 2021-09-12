@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import migrations, models
-import django.utils.timezone
 import django.core.validators
-import users.models
+import django.utils.timezone
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -172,6 +171,5 @@ class Migration(migrations.Migration):
                 "verbose_name": "user",
                 "abstract": False,
             },
-            managers=[("objects", users.models.DakaraUserManager())],
         )
     ]

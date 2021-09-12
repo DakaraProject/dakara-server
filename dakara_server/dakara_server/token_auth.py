@@ -1,23 +1,22 @@
-"""Token authorization middleware for Django Channels 2
+"""Token authorization middleware for Django Channels 2.
 
 From: https://gist.github.com/rluts/22e05ed8f53f97bdd02eafdf38f3d60a
 """
 from urllib.parse import parse_qs
 
 from channels.auth import AuthMiddlewareStack
-from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import AnonymousUser
 from django.db import close_old_connections
+from rest_framework.authtoken.models import Token
 
 
 class TokenAuthMiddleware:
-    """Token authorization middleware for Django Channels 2
-    """
+    """Token authorization middleware for Django Channels 2."""
 
     def __init__(self, inner):
         self.inner = inner
 
-    def __call__(self, scope):
+    def __call__(self, scope, receive, send):
         headers = dict(scope["headers"])
         if b"authorization" in headers:
             token_name, token_key = headers[b"authorization"].decode().split()
@@ -32,7 +31,7 @@ class TokenAuthMiddleware:
             if "token" in query_string:
                 self.authenticate_with_token(scope, query_string["token"][0])
 
-        return self.inner(scope)
+        return self.inner(scope, receive, send)
 
     def authenticate_with_token(self, scope, token_key):
         try:

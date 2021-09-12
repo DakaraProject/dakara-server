@@ -16,8 +16,7 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
     def test_get_artist_list(self):
-        """Test to verify artist list with no query
-        """
+        """Test to verify artist list with no query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -36,15 +35,13 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         self.assertEqual(response.data["results"][1]["song_count"], 0)
 
     def test_get_artist_list_forbidden(self):
-        """Test to verify unauthenticated user can't get artist list
-        """
+        """Test to verify unauthenticated user can't get artist list."""
         # Attempt to get artists list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_artist_list_with_query(self):
-        """Test to verify artist list with query
-        """
+        """Test to verify artist list with query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -57,8 +54,7 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         self.artist_query_test("ork1", [])
 
     def test_get_artist_list_with_query_empty(self):
-        """Test to verify artist list with empty query
-        """
+        """Test to verify artist list with empty query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -67,8 +63,7 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         self.artist_query_test("", [self.artist1, self.artist2])
 
     def test_get_artist_list_with_query_no_keywords(self):
-        """Test to verify artist query do not parse keywords
-        """
+        """Test to verify artist query do not parse keywords."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -77,8 +72,7 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         self.artist_query_test("title:Artist1", [], ["title:Artist1"])
 
     def test_get_artists_list_with_query__multi_words(self):
-        """Test query parse with multi words remaining
-        """
+        """Test query parse with multi words remaining."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -99,7 +93,7 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         )
 
     def artist_query_test(self, query, expected_artists, remaining=None):
-        """Method to test a artist request with a given query
+        """Method to test a artist request with a given query.
 
         Returned artist should be the same as expected_artists,
         in the same order.
@@ -128,8 +122,7 @@ class ArtistPruneViewAPIViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
     def test_delete(self):
-        """Test to prune artists without songs
-        """
+        """Test to prune artists without songs"""
         # login as library manager
         self.authenticate(self.user)
 

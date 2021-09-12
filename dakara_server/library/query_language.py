@@ -6,8 +6,7 @@ KEYWORDS = ["artist", "work", "title"]
 
 
 class QueryLanguageParser:
-    """Parser for search query mini language used to search song
-    """
+    """Parser for search query mini language used to search song."""
 
     def __init__(self):
         self.keywords_work_type = [
@@ -37,16 +36,16 @@ class QueryLanguageParser:
 
     @staticmethod
     def split_remaining(string):
-        """Process the splitting of remaining parts of the query
+        """Process the splitting of remaining parts of the query.
 
         Split string by whitespace character not escaped with backslash and
         preserve double quoted strings.
 
         Args:
-            string (str): words or expressions separated with spaces.
+            string (str): Words or expressions separated with spaces.
 
         Returns:
-            list: list of splitted words or expressions.
+            list: List of splitted words or expressions.
         """
         result = []
         current_expression = ""
@@ -82,29 +81,29 @@ class QueryLanguageParser:
         return result
 
     def parse(self, query):
-        """Parse query mini language
+        """Parse query mini language.
 
         Args:
-            query (str): words or commands of the query language separated
+            query (str): Words or commands of the query language separated
                 with spaces.
 
         Returns:
-            dict: query terms arranged among the following keys:
+            dict: Query terms arranged among the following keys:
                 `artist`:
-                    `contains`: list of list of artists names to match
+                    `contains`: List of list of artists names to match
                         partially.
-                    `exact`: list of list of artists names to match exactly.
+                    `exact`: List of list of artists names to match exactly.
                 `work`:
-                    `contains`: list of works names to match partially.
-                    `exact`: list of works names to match exactly.
+                    `contains`: List of works names to match partially.
+                    `exact`: List of works names to match exactly.
                 `title:
-                    `contains`: titles to match partially
-                    `exact`: titles to match exactly.
-                `tag`: list of tags to match in uppercase.
-                `work_type`: dict with queryname as key and a dict as value
+                    `contains`: Titles to match partially
+                    `exact`: Titles to match exactly.
+                `tag`: List of tags to match in uppercase.
+                `work_type`: Dict with queryname as key and a dict as value
                     with the keys `contains` and `exact`.
 
-                `remaining`: unparsed text.
+                `remaining`: Unparsed text.
         """
         # create results structure
         # work_type will be filled only if necessary

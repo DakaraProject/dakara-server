@@ -1,15 +1,13 @@
 import logging
-from pkg_resources import parse_version
 
 from django.conf import settings
-
+from pkg_resources import parse_version
 
 logger = logging.getLogger("django")
 
 
 def check_version():
-    """Check the version of the server and display a warning if on non-release
-    """
+    """Check the version of the server and display a warning if on non-release."""
     # log server version
     logger.info("Dakara server %s (%s)", settings.VERSION, settings.DATE)
 

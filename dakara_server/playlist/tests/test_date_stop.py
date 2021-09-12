@@ -3,16 +3,15 @@ from unittest.mock import patch
 
 from django.db.utils import OperationalError
 
-from playlist.date_stop import clear_date_stop, check_date_stop_on_app_ready
-from playlist.models import Karaoke
 from internal.tests.base_test import tz
+from playlist.date_stop import check_date_stop_on_app_ready, clear_date_stop
+from playlist.models import Karaoke
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
 class ClearDateStopTestCase(PlaylistAPITestCase):
     def test_date_stop_cleared(self):
-        """Check karaoke was modified when date stop has expired
-        """
+        """Check karaoke was modified when date stop has expired."""
 
         # Set up karaoke with date stop and can add to playlist enabled
         karaoke = Karaoke.objects.get_object()
@@ -38,8 +37,7 @@ class ClearDateStopTestCase(PlaylistAPITestCase):
         )
 
     def test_date_stop_not_cleared(self):
-        """Check karaoke was not modified when date stop has not expired
-        """
+        """Check karaoke was not modified when date stop has not expired."""
 
         # Set up karaoke with date stop and can add to playlist enabled
         karaoke = Karaoke.objects.get_object()
@@ -66,8 +64,7 @@ class CheckDateStopOnAppReadyTestCase(PlaylistAPITestCase):
     @patch("playlist.date_stop.clear_date_stop")
     @patch("playlist.date_stop.scheduler")
     def test_check_date_expired(self, mocked_scheduler, mocked_clear_date_stop):
-        """Check clear date stop is called when date has expired
-        """
+        """Check clear date stop is called when date has expired."""
 
         # Set stop date in the past
         karaoke = Karaoke.objects.get_object()
@@ -86,8 +83,7 @@ class CheckDateStopOnAppReadyTestCase(PlaylistAPITestCase):
     @patch("playlist.date_stop.clear_date_stop")
     @patch("playlist.date_stop.scheduler")
     def test_date_not_expired(self, mocked_scheduler, mocked_clear_date_stop):
-        """Check job is scheduled when date not expired
-        """
+        """Check job is scheduled when date not expired."""
         # Mock return value of add_job
         mocked_scheduler.add_job.return_value.id = "job_id"
 
@@ -111,8 +107,7 @@ class CheckDateStopOnAppReadyTestCase(PlaylistAPITestCase):
     @patch("playlist.date_stop.clear_date_stop")
     @patch("playlist.date_stop.scheduler")
     def test_no_date(self, mocked_scheduler, mocked_clear_date_stop):
-        """Check nothing happen when date stop is not set
-        """
+        """Check nothing happen when date stop is not set."""
         # Assert stop date is not set
         karaoke = Karaoke.objects.get_object()
         self.assertIsNone(karaoke.date_stop)
@@ -128,8 +123,7 @@ class CheckDateStopOnAppReadyTestCase(PlaylistAPITestCase):
 
     @patch("playlist.date_stop.scheduler")
     def test_date_not_expired_called_twice(self, mocked_scheduler):
-        """Check job is scheduled only once when date not expired
-        """
+        """Check job is scheduled only once when date not expired."""
         # Mock return value of add_job
         mocked_scheduler.add_job.return_value.id = "job_id"
 
@@ -161,7 +155,7 @@ class CheckDateStopOnAppReadyTestCase(PlaylistAPITestCase):
     def test_database_unavailable(
         self, mocked_scheduler, mocked_clear_date_stop, MockedKaraoke
     ):
-        """Check there is no crash if the database does not exist
+        """Check there is no crash if the database does not exist.
 
         We simulate a crash by raising a `django.db.utils.OperationalError`
         when accessing to `Karaoke.objects.get_object`.

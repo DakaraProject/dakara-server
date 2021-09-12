@@ -1,31 +1,11 @@
-from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APITestCase
+from django.test import TestCase
 
 from internal.version import check_version
 
 
-class VersionViewAPITestCase(APITestCase):
-    url = reverse("version")
-
-    def test_get_version(self):
-        """Test to verify get version
-        """
-        # get version
-        with self.settings(VERSION="0.0.0", DATE="1970-01-01"):
-            response = self.client.get(self.url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # check the version matches
-        self.assertEqual(response.data["version"], "0.0.0")
-        self.assertEqual(response.data["date"], "1970-01-01")
-
-
-class CheckVersionTestCase(APITestCase):
+class CheckVersionTestCase(TestCase):
     def test_check_release(self):
-        """Test the version check for a release
-        """
+        """Test the version check for a release."""
         # check the version
         with self.assertLogs("django", "DEBUG") as logger:
             with self.settings(VERSION="0.0.0", DATE="1970-01-01"):
@@ -37,8 +17,7 @@ class CheckVersionTestCase(APITestCase):
         )
 
     def test_check_non_release(self):
-        """Test the version check for a non release
-        """
+        """Test the version check for a non release."""
         # check the version
         with self.assertLogs("django", "DEBUG") as logger:
             with self.settings(VERSION="0.0.0-dev", DATE="1970-01-01"):

@@ -2,8 +2,8 @@ from django.urls import reverse
 from rest_framework import status
 
 from internal.tests.base_test import UserModel
-from library.tests.base_test import LibraryAPITestCase
 from library.models import SongTag
+from library.tests.base_test import LibraryAPITestCase
 
 
 class SongTagListViewTestCase(LibraryAPITestCase):
@@ -22,8 +22,7 @@ class SongTagListViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
     def test_get_tag_list(self):
-        """Test to verify tag list
-        """
+        """Test to verify tag list."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -38,15 +37,13 @@ class SongTagListViewTestCase(LibraryAPITestCase):
         self.check_tag_json(response.data["results"][1], self.tag2)
 
     def test_get_tag_list_forbidden(self):
-        """Test to verify unauthenticated user can't get tag list
-        """
+        """Test to verify unauthenticated user can't get tag list."""
         # Attempt to get work type list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_tag_already_exists(self):
-        """Test to create a tag when it already exists
-        """
+        """Test to create a tag when it already exists"""
         # Login as simple user
         self.authenticate(self.manager)
 
@@ -72,8 +69,7 @@ class SongTagViewTestCase(LibraryAPITestCase):
         self.url_sg2 = reverse("library-songtag", kwargs={"pk": self.tag2.id})
 
     def test_update_song_tag_manager(self):
-        """Test manager can update tag
-        """
+        """Test manager can update tag."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -90,8 +86,7 @@ class SongTagViewTestCase(LibraryAPITestCase):
         self.assertTrue(tag.disabled)
 
     def test_update_song_tag_user(self):
-        """Test simple user can not update tags
-        """
+        """Test simple user can not update tags."""
         # login as user
         self.authenticate(self.user)
 

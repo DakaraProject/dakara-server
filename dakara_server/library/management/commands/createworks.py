@@ -1,11 +1,11 @@
+import importlib
+import logging
 import os
 import sys
-import logging
-import importlib
 
 from django.core.management.base import BaseCommand, CommandError
 
-from library.models import WorkType, WorkAlternativeTitle, Work
+from library.models import Work, WorkAlternativeTitle, WorkType
 
 from .components import default_work_parser
 
@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 class WorkAlternativeTitleCreator:
-    """Work alternative title creator"""
+    """Work alternative title creator."""
 
     def remove_incorrect_alt_titles(self, work_alternative_titles):
-        """Remove the alternative titles having an incorrect structure
+        """Remove the alternative titles having an incorrect structure.
 
         Args:
             work_alternative_titles (list): The list of alt titles to filter
@@ -44,7 +44,7 @@ class WorkAlternativeTitleCreator:
         ]
 
     def create_alternative_title(self, work_type_entry, work_entry, alt_title):
-        """Create work alternative title in the database if necessary
+        """Create work alternative title in the database if necessary.
 
         Args:
             work_type_entry (obj): The work type entry for the alt title
@@ -66,7 +66,7 @@ class WorkAlternativeTitleCreator:
     def create_alternative_titles(
         self, work_type_entry, work_entry, work_alternative_titles
     ):
-        """Create work alternative titles of a work
+        """Create work alternative titles of a work.
 
         Args:
             work_type_entry (obj): The work type entry for these alt titles
@@ -85,7 +85,7 @@ class WorkAlternativeTitleCreator:
 
 
 class WorkCreator:
-    """Work creator and updater
+    """Work creator and updater.
 
     Create and update works in the database provided a work file and a parser.
 
@@ -125,7 +125,7 @@ class WorkCreator:
         self.work_alt_title_creator = WorkAlternativeTitleCreator()
 
     def remove_incorrect_works(self, work_listing):
-        """Remove works having an incorrect structure in a list of works
+        """Remove works having an incorrect structure in a list of works.
 
         Args:
             work_listing (list): The list of works to filter
@@ -163,7 +163,7 @@ class WorkCreator:
         return [work for work in work_listing if work not in work_to_remove]
 
     def creatework(self, work_type_entry, dict_work):
-        """Create or update a work in database
+        """Create or update a work in database.
 
         Args:
             work_type_entry (obj): The work type entry object of the work
@@ -228,7 +228,7 @@ class WorkCreator:
         work_entry.save()
 
     def createworks(self):
-        """Create or update works provided
+        """Create or update works provided.
 
         Note:
             Raise a CommandError exception if the work file cannot be read
@@ -281,12 +281,12 @@ class WorkCreator:
 
 
 class Command(BaseCommand):
-    """Command available for `manage.py` for creating works or add info"""
+    """Command available for `manage.py` for creating works or add info."""
 
     help = "Create works or add extra information to works."
 
     def add_arguments(self, parser):
-        """Extend arguments for the command"""
+        """Extend arguments for the command."""
         parser.add_argument(
             "work-file", help="Path of the file storing the works data."
         )
@@ -310,7 +310,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Process the feeding"""
+        """Process the feeding."""
         # work file data
         work_file = os.path.normpath(options["work-file"])
 

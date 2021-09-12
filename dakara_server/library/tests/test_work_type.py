@@ -2,8 +2,8 @@ from django.urls import reverse
 from rest_framework import status
 
 from internal.tests.base_test import UserModel
-from library.tests.base_test import LibraryAPITestCase
 from library.models import WorkType
+from library.tests.base_test import LibraryAPITestCase
 
 
 class WorkTypeListViewTestCase(LibraryAPITestCase):
@@ -22,8 +22,7 @@ class WorkTypeListViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
     def test_get_work_type_list(self):
-        """Test to verify work type list
-        """
+        """Test to verify work type list."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -38,15 +37,13 @@ class WorkTypeListViewTestCase(LibraryAPITestCase):
         self.check_work_type_json(response.data["results"][1], self.wt2)
 
     def test_get_work_type_list_forbidden(self):
-        """Test to verify unauthenticated user can't get work type list
-        """
+        """Test to verify unauthenticated user can't get work type list."""
         # Attempt to get work type list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_work_type(self):
-        """To to create a work type
-        """
+        """To to create a work type"""
         # pre-assert there are 2 work types
         self.assertEqual(WorkType.objects.all().count(), 2)
 
@@ -79,8 +76,7 @@ class WorkTypeViewAPIViewTestCase(LibraryAPITestCase):
         self.url_wt1 = reverse("library-worktype", kwargs={"pk": self.wt1.id})
 
     def test_update_work_type_name(self):
-        """Test manager can update work type name
-        """
+        """Test manager can update work type name"""
         # login as manager
         self.authenticate(self.manager)
 
@@ -95,8 +91,7 @@ class WorkTypeViewAPIViewTestCase(LibraryAPITestCase):
         self.assertEqual(WorkType.objects.get(id=self.wt1.id).name, "NewName")
 
     def test_update_work_type_name_user(self):
-        """Test simple user cannot update work type name
-        """
+        """Test simple user cannot update work type name"""
         # login as manager
         self.authenticate(self.user)
 

@@ -1,12 +1,11 @@
 import logging
 
-from django.contrib.auth import get_user_model
+from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+from django.contrib.auth import get_user_model
 
-from playlist import serializers, models
-
+from playlist import models, serializers
 
 UserModel = get_user_model()
 logger = logging.getLogger(__name__)
@@ -14,15 +13,14 @@ channel_layer = get_channel_layer()
 
 
 class DispatchJsonWebsocketConsumer(JsonWebsocketConsumer):
-    """Consumer that dispatch received JSON messages to methods
+    """Consumer that dispatch received JSON messages to methods.
 
     On receive event, it will call the corresponding method based the event
     "type" key using the following pattern: "receive_{type}".
     """
 
     def receive_json(self, event):
-        """Receive all incoming events and call the corresponding method
-        """
+        """Receive all incoming events and call the corresponding method."""
         # get the method name associated with the type
         method_name = "receive_{}".format(event["type"])
         if not hasattr(self, method_name):
@@ -36,7 +34,7 @@ class DispatchJsonWebsocketConsumer(JsonWebsocketConsumer):
 
 
 def send_to_channel(name, event_type, data=None):
-    """Send an event to a channel
+    """Send an event to a channel.
 
     Args:
         name (str): name of the channel.
@@ -64,21 +62,18 @@ def send_to_channel(name, event_type, data=None):
 
 
 class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
-    """Consumer to handle device events
-    """
+    """Consumer to handle device events."""
 
     name = "playlist.device"
 
     @staticmethod
     def get_channel_name():
-        """Retreive the channel name
-        """
+        """Retreive the channel name."""
         karaoke = models.Karaoke.objects.get_object()
         return karaoke.channel_name
 
     def is_connected(self):
-        """Tells if the consumer is connected
-        """
+        """Tells if the consumer is connected."""
         return self.get_channel_name() is not None
 
     def connect(self):
@@ -140,15 +135,13 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         # send_to_channel("playlist.front", "send_player_idle")
 
     def receive_ready(self, event=None):
-        """Start to play when the player is ready
-        """
+        """Start to play when the player is ready."""
         # request to start playing if possible
         logger.info("The player is ready")
         self.handle_next()
 
     def send_playlist_entry(self, event):
-        """Send next playlist entry
-        """
+        """Send next playlist entry."""
         playlist_entry = event["playlist_entry"]
 
         if playlist_entry is None:
@@ -162,8 +155,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         self.send_json({"type": "playlist_entry", "data": serializer.data})
 
     def send_idle(self, event=None):
-        """Request the player to be idle
-        """
+        """Request the player to be idle."""
         # log the event
         logger.info("The player will play idle screen")
 
@@ -171,8 +163,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         self.send_json({"type": "idle"})
 
     def send_command(self, event):
-        """Send a given command to the player
-        """
+        """Send a given command to the player."""
         command = event["command"]
 
         if command not in dict(models.Player.COMMANDS).keys():
@@ -183,7 +174,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         self.send_json({"type": "command", "data": {"command": command}})
 
     def handle_next(self, event=None):
-        """Prepare the submission of a new playlist entry depending on the context
+        """Prepare the submission of a new playlist entry depending on the context.
 
         A new playlist entry will be sent to the player if:
             - the karaoke is ongoing and set for player to play next song
@@ -207,5 +198,4 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
 
 
 class UnknownConsumerError(Exception):
-    """Error raised when trying to access a consumer whose name in unknown
-    """
+    """Error raised when trying to access a consumer whose name in unknown."""
