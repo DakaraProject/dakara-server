@@ -367,7 +367,6 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 
         # call the method and save player
         method(entry, player)
-        player.save()
 
         # broadcast to the front
         # send_to_channel("playlist.front", "send.player.status", {"player": player})
@@ -409,6 +408,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         # update the player
         player.in_transition = True
         player.timing = timedelta(seconds=0)
+        player.save()
 
         # log the info
         logger.debug("Playing transition of entry '%s'", playlist_entry)
@@ -417,6 +417,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         """The player started the song of a playlist entry."""
         # update the player
         player.in_transition = False
+        player.save()
 
         # log the info
         logger.debug("Playing song of entry '%s'", playlist_entry)
@@ -425,6 +426,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         """The player switched to pause."""
         # update the player
         player.paused = True
+        player.save()
 
         # log the info
         logger.debug("The player switched to pause")
@@ -433,6 +435,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         """The player resumed playing."""
         # update the player
         player.paused = False
+        player.save()
 
         # log the info
         logger.debug("The player resumed playing")

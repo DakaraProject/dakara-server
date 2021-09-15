@@ -593,6 +593,130 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
+    async def test_send_handle_next_pause_skip(
+        self,
+        playlist_provider,
+        player,
+        communicator,
+        client_drf,
+        mocker,
+        get_karaoke,
+        get_player,
+    ):
+        """Test to handle next playlist entries then pause then skip."""
+        # configure HTTP client
+        url = reverse("playlist-player-status")
+        playlist_provider.authenticate(playlist_provider.player, client=client_drf)
+
+        # mock the broadcaster
+        # we cannot call it within an asynchronous test
+        mocker.patch("playlist.views.send_to_channel")
+
+        # assert player is currently idle
+        assert player.playlist_entry is None
+
+        # play the first playlist entry
+        karaoke = await get_karaoke()
+        await channel_layer.send(karaoke.channel_name, {"type": "handle_next"})
+
+        # wait for the event of the first playlist entry to play
+        event = await communicator.receive_json_from()
+
+        # assert the event
+        assert event["type"] == "playlist_entry"
+        assert event["data"]["id"] == playlist_provider.pe1.id
+
+        # notify the first playlist entry is being played
+        response = client_drf.put(
+            url,
+            data={
+                "event": "started_transition",
+                "playlist_entry_id": playlist_provider.pe1.id,
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        response = client_drf.put(
+            url,
+            data={
+                "event": "started_song",
+                "playlist_entry_id": playlist_provider.pe1.id,
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        # assert the player has been updated
+        player = await get_player()
+        assert player.playlist_entry == playlist_provider.pe1
+
+        # pause the player
+        await channel_layer.send(
+            karaoke.channel_name, {"type": "send_command", "command": "pause"}
+        )
+
+        # wait the outcoming event
+        event = await communicator.receive_json_from()
+
+        # assert the event
+        assert event["type"] == "command"
+        assert event["data"]["command"] == "pause"
+
+        # notify the player is paused
+        response = client_drf.put(
+            url,
+            data={
+                "event": "paused",
+                "playlist_entry_id": playlist_provider.pe1.id,
+                "timing": 2,
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        # assert the player has been updated
+        player = await get_player()
+        assert player.paused
+
+        # skip the current playlist entry
+        await channel_layer.send(
+            karaoke.channel_name, {"type": "send_command", "command": "skip"}
+        )
+
+        # wait the outcoming event
+        event = await communicator.receive_json_from()
+
+        # assert the event
+        assert event["type"] == "command"
+        assert event["data"]["command"] == "skip"
+
+        # notify the first playlist entry has finished
+        response = client_drf.put(
+            url,
+            data={"event": "finished", "playlist_entry_id": playlist_provider.pe1.id},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        # assert the player has been updated
+        player2 = await get_player()
+        assert player2.playlist_entry is None
+        assert not player2.paused
+
+        # play the second playlist entry
+        await channel_layer.send(karaoke.channel_name, {"type": "handle_next"})
+
+        # wait for the event of the second playlist entry to play
+        event = await communicator.receive_json_from()
+
+        # assert the event
+        assert event["type"] == "playlist_entry"
+        assert event["data"]["id"] == playlist_provider.pe2.id
+
+        # close connection
+        await communicator.disconnect()
+
     async def test_send_handle_next_karaoke_not_ongoing(
         self, playlist_provider, player, communicator, get_karaoke, get_player
     ):
