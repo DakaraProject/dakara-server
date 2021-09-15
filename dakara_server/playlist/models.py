@@ -6,7 +6,7 @@ from django.db.utils import OperationalError
 from django.utils import timezone
 from ordered_model.models import OrderedModel, OrderedModelManager
 
-from internal.cache_model import CacheModel
+from internal import cache_model
 from users.models import DakaraUser
 
 tz = timezone.get_default_timezone()
@@ -169,12 +169,15 @@ class PlayerError(models.Model):
         )
 
 
-class Player(CacheModel):
+class Player(cache_model.CacheModel):
     """Player representation in the server.
 
     This object is not stored in database, but lives within Django cache.
     """
 
+    karaoke = cache_model.OneToOneField(
+        Karaoke, on_delete=cache_model.CASCADE, primary_key=True
+    )
     timing = models.DurationField(default=timedelta())
     paused = models.BooleanField(default=False)
     in_transition = models.BooleanField(default=False)

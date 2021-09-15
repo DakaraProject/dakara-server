@@ -109,7 +109,7 @@ class PlaylistProvider(BaseProvider):
 
         # set the player to an arbitrary state
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.cache.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
         player.timing = timing
         player.paused = paused
         player.in_transition = in_transition

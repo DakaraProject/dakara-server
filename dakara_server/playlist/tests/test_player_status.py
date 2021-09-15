@@ -24,7 +24,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # check the player is idle
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.cache.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
         self.assertIsNone(player.playlist_entry)
 
         # assert the status of the player
@@ -119,7 +119,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.cache.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
         self.assertEqual(player.playlist_entry, self.pe1)
         self.assertFalse(player.paused)
         self.assertEqual(player.timing, timedelta(0))
@@ -154,7 +154,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.cache.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
         self.assertEqual(player.timing, timedelta(0))
 
         # assert extra fields have not been saved
@@ -194,7 +194,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.cache.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
         self.assertEqual(player.playlist_entry, self.pe1)
         self.assertFalse(player.paused)
         self.assertEqual(player.timing, timedelta(0))
@@ -236,7 +236,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.cache.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
         self.assertEqual(player.playlist_entry, self.pe1)
         self.assertFalse(player.paused)
         self.assertEqual(player.timing, timedelta(seconds=2))
@@ -278,7 +278,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.cache.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
         self.assertEqual(player.playlist_entry, self.pe1)
         self.assertTrue(player.paused)
         self.assertEqual(player.timing, timedelta(seconds=2))
@@ -310,7 +310,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the player has not changed
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.cache.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
         self.assertIsNone(player.playlist_entry)
 
         # assert the response
@@ -352,7 +352,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player, _ = Player.cache.get_or_create(id=karaoke.id)
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
         self.assertIsNone(player.playlist_entry)
         self.assertFalse(player.paused)
         self.assertEqual(player.timing, timedelta(0))
@@ -384,7 +384,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # assert the result
         karaoke = Karaoke.objects.get_object()
-        player_new, _ = Player.cache.get_or_create(id=karaoke.id)
+        player_new, _ = Player.cache.get_or_create(karaoke=karaoke)
         self.assertEqual(player_old, player_new)
 
     def test_put_status_forbidden_not_authenticated(self):

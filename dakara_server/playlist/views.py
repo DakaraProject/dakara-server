@@ -77,7 +77,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         queryset = self.queryset.all()
         karaoke = models.Karaoke.objects.get_object()
-        player, _ = models.Player.cache.get_or_create(id=karaoke.id)
+        player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
         date = datetime.now(tz)
 
         # add player remaining time
@@ -131,7 +131,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         ):
             # compute playlist end date
             playlist = self.filter_queryset(self.get_queryset())
-            player, _ = models.Player.cache.get_or_create(id=karaoke.id)
+            player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
             date = datetime.now(tz)
 
             # add player remaining time
@@ -162,7 +162,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         #   - player is set to play next song
         #   - the player is idle.
         next_playlist_entry = models.PlaylistEntry.objects.get_next()
-        player, _ = models.Player.cache.get_or_create(id=karaoke.id)
+        player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
         if all(
             (
                 next_playlist_entry is not None,
@@ -206,7 +206,7 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
             )
 
         # check the player is not idle
-        player, _ = models.Player.cache.get_or_create(id=karaoke.id)
+        player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
         if player.playlist_entry is None:
             raise PermissionDenied("The player cannot receive commands when " "idle")
 
@@ -234,7 +234,7 @@ class DigestView(APIView):
         karaoke = models.Karaoke.objects.get_object()
 
         # Get player
-        player, _ = models.Player.cache.get_or_create(id=karaoke.id)
+        player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
 
         # manually update the player timing
         now = datetime.now(tz)
@@ -302,7 +302,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
             send_to_channel("playlist.device", "send_idle")
 
             # clear player
-            player = models.Player.cache.create(id=karaoke.id)
+            player = models.Player.cache.create(karaoke=karaoke)
 
             # empty the playlist
             models.PlaylistEntry.objects.all().delete()
@@ -317,7 +317,7 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
             and "player_play_next_song" in serializer.validated_data
             and karaoke.player_play_next_song
         ):
-            player, _ = models.Player.cache.get_or_create(id=karaoke.id)
+            player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
 
             # request the player to play the next song if idle,
             # and there is a next song to play
@@ -378,7 +378,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         playlist_entry.set_finished()
 
         # reset the player
-        player = models.Player.cache.create(id=player.id)
+        player = models.Player.cache.create(pk=player.pk)
 
         # log the info
         logger.debug("The player has finished playing '%s'", playlist_entry)
@@ -393,7 +393,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         playlist_entry.set_finished()
 
         # reset the player
-        player = models.Player.cache.create(id=player.id)
+        player = models.Player.cache.create(pk=player.pk)
 
         # log the info
         logger.debug("The player could not play '%s'", playlist_entry)
@@ -439,7 +439,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         karaoke = models.Karaoke.objects.get_object()
-        player, _ = models.Player.cache.get_or_create(id=karaoke.id)
+        player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
         return player
 
 

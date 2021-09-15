@@ -27,5 +27,5 @@ def player():
     from playlist.models import Karaoke, Player
 
     karaoke = Karaoke.objects.get_object()
-    player, _ = Player.cache.get_or_create(id=karaoke.id)
+    player, _ = Player.cache.get_or_create(karaoke=karaoke)
     return player

@@ -46,7 +46,7 @@ async def get_player(get_karaoke):
     async def func():
         karaoke = await get_karaoke()
         player, _ = await database_sync_to_async(
-            lambda: models.Player.cache.get_or_create(id=karaoke.id)
+            lambda: models.Player.cache.get_or_create(karaoke=karaoke)
         )()
 
         return player
