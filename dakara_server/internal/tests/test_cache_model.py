@@ -5,7 +5,8 @@ from django.core.cache import cache
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db import models
 
-from internal.cache_model import CacheModel
+from internal import cache_model
+from internal.tests.models import Reference
 
 
 @pytest.fixture
@@ -21,7 +22,7 @@ def set_cache():
     Dummy.cache.create(boolean_field=True, integer_field=39, text_field="baz")
 
 
-class Dummy(CacheModel):
+class Dummy(cache_model.CacheModel):
     """Dummy model used for tests"""
 
     boolean_field = models.BooleanField(default=False)
@@ -32,7 +33,7 @@ class Dummy(CacheModel):
         return "Dummy object"
 
 
-class DummyAuto(CacheModel):
+class DummyAuto(cache_model.CacheModel):
     """Dummy model with auto updated fields used for tests"""
 
     datetime_field = models.DateTimeField(auto_now=True)
@@ -41,6 +42,22 @@ class DummyAuto(CacheModel):
 
     def __str__(self):
         return "Dummy auto object"
+
+
+class DummyOneToOneCascade(cache_model.CacheModel):
+    """Dummy model with related field with cascade on-delete action used for tests"""
+
+    reference = cache_model.OneToOneField(
+        Reference, on_delete=cache_model.CASCADE, primary_key=True
+    )
+
+
+class DummyOneToOneDoNothing(cache_model.CacheModel):
+    """Dummy model with related field with do-nothing on-delete action used for tests"""
+
+    reference = cache_model.OneToOneField(
+        Reference, on_delete=cache_model.DO_NOTHING, primary_key=True
+    )
 
 
 class TestCacheModel:
@@ -243,3 +260,59 @@ class TestCacheManager:
             ObjectDoesNotExist, match=r"This Dummy does not exist in cache"
         ):
             dummy.delete()
+
+
+@pytest.mark.django_db(transaction=True)
+class TestCacheModelWithRelation:
+    def test_one_to_one_cascade_delete(self, clear_cache):
+        """Test to delete a related field with a cascade on-delete action"""
+        assert DummyOneToOneCascade.cache.count() == 0
+
+        reference = Reference.objects.create()
+        dummy = DummyOneToOneCascade.cache.create(reference=reference)
+
+        assert DummyOneToOneCascade.cache.count() == 1
+        assert dummy.pk == dummy.reference.pk
+
+        reference.delete()
+
+        assert DummyOneToOneCascade.cache.count() == 0
+
+    def test_one_to_one_cascade_delete_no_instance(self, clear_cache):
+        """Test to delete a related field with a cascade on-delete action when
+        there are no instance
+        """
+        assert DummyOneToOneCascade.cache.count() == 0
+
+        reference = Reference.objects.create()
+
+        assert DummyOneToOneCascade.cache.count() == 0
+
+        reference.delete()
+
+        assert DummyOneToOneCascade.cache.count() == 0
+
+    def test_one_to_one_do_nothing_delete(self, clear_cache):
+        """Test to delete a related field with a do-nothing on-delete action"""
+        assert DummyOneToOneDoNothing.cache.count() == 0
+
+        reference = Reference.objects.create()
+        dummy = DummyOneToOneDoNothing.cache.create(reference=reference)
+
+        assert DummyOneToOneDoNothing.cache.count() == 1
+        assert dummy.pk == dummy.reference.pk
+
+        reference.delete()
+
+        assert DummyOneToOneDoNothing.cache.count() == 1
+
+    def test_on_delete_not_callable(self, clear_cache):
+        """Test to add related field with no callable on-delete action"""
+        with pytest.raises(TypeError):
+
+            class DummyInvalid(cache_model.CacheModel):
+                """Dummy model with related field used for tests"""
+
+                reference = cache_model.OneToOneField(
+                    Reference, on_delete=None, primary_key=True
+                )

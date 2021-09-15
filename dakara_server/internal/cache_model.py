@@ -1,7 +1,9 @@
 from contextlib import contextmanager
 
 from django.core.cache import cache
-from django.db.models import base
+from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 from internal.lock import lock
 
@@ -13,6 +15,7 @@ class CacheManager:
         self.model = None
         self.name = None
         self._store_name = None
+        self._on_delete_funcs = {}
 
     def _connect(self, model):
         """Associate a model with the manager
@@ -23,6 +26,43 @@ class CacheManager:
         self.model = model
         self.name = model.__name__
         self._store_name = f"{self.name}:CacheStore"
+
+        self._manage_on_delete_fields()
+
+    def _manage_on_delete_fields(self):
+        """Manage related fields on-delete related action
+
+        We cannot use the fields native `on_delete` attribute, as the
+        implementation is low level and requires an existing database for the
+        cache model. Instead, we execute the on-delete action with the
+        `pre_delete` signal of the related field.
+        """
+        for field in self.model._meta.concrete_fields:
+            # only consider foreign key fields with the callable attribute
+            # "cache_on_delete"
+            if not isinstance(field, models.ForeignKey):
+                continue
+
+            on_delete = getattr(field, "cache_on_delete", None)
+
+            if not callable(on_delete):
+                raise TypeError("cache_on_delete must be callable")
+
+            # register the handle to the pre_delete signal
+            @receiver(
+                pre_delete,
+                sender=field.remote_field.model,
+                dispatch_uid=(
+                    f"{self.name}:{field.name}:"
+                    f"{field.remote_field.model.__name__}:Handle"
+                ),
+            )
+            def handle(sender, **kwargs):
+                instance = kwargs.get("instance")
+                on_delete(instance, self)
+
+            # store the handle
+            self._on_delete_funcs[field.name] = handle
 
     @contextmanager
     def _access_store(self):
@@ -184,7 +224,7 @@ class CacheManager:
         return self.model(**instance_dict)
 
 
-class CacheModelBase(base.ModelBase):
+class CacheModelBase(models.base.ModelBase):
     """Metaclass to connect cache manager to model"""
 
     def __new__(cls, name, bases, attrs):
@@ -198,7 +238,7 @@ class CacheModelBase(base.ModelBase):
         return new_class
 
 
-class CacheModel(base.Model, metaclass=CacheModelBase):
+class CacheModel(models.base.Model, metaclass=CacheModelBase):
     """Model which instances only exist in cache"""
 
     class Meta:
@@ -212,3 +252,40 @@ class CacheModel(base.Model, metaclass=CacheModelBase):
     def delete(self, *args, **kwargs):
         """Delete instance from cache"""
         self.cache.delete(self)
+
+
+def DO_NOTHING(instance_to_delete, manager):
+    """On suppression of the related instance, do nothing"""
+    pass
+
+
+def CASCADE(instance_to_delete, manager):
+    """On suppression of the related instance, delete the associated cache object"""
+    if not instance_to_delete:
+        return
+
+    try:
+        manager.get(pk=instance_to_delete.pk).delete()
+
+    except manager.model.DoesNotExist:
+        pass
+
+
+class CacheOnDeleteMixin:
+    """Mixin that substitutes on-delete action
+
+    `DO_NOTHING` is passed to the parent constructor, and the provided
+    `on_delete` argument is saved in the instance as `cache_on_delete`.
+    """
+
+    def __init__(self, to, on_delete, *args, **kwargs):
+        super().__init__(to, on_delete=models.DO_NOTHING, *args, **kwargs)
+        self.cache_on_delete = on_delete
+
+
+class ForeignKey(CacheOnDeleteMixin, models.ForeignKey):
+    pass
+
+
+class OneToOneField(CacheOnDeleteMixin, models.OneToOneField):
+    pass
