@@ -163,7 +163,7 @@ class WorkPruneViewAPIViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
     def test_delete(self):
-        """Test to prune works without songs"""
+        """Test to prune works without songs."""
         # login as library manager
         self.authenticate(self.user)
 

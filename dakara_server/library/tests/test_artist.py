@@ -122,7 +122,7 @@ class ArtistPruneViewAPIViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
     def test_delete(self):
-        """Test to prune artists without songs"""
+        """Test to prune artists without songs."""
         # login as library manager
         self.authenticate(self.user)
 

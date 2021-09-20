@@ -43,7 +43,7 @@ class WorkTypeListViewTestCase(LibraryAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_work_type(self):
-        """To to create a work type"""
+        """To to create a work type."""
         # pre-assert there are 2 work types
         self.assertEqual(WorkType.objects.all().count(), 2)
 
@@ -76,7 +76,7 @@ class WorkTypeViewAPIViewTestCase(LibraryAPITestCase):
         self.url_wt1 = reverse("library-worktype", kwargs={"pk": self.wt1.id})
 
     def test_update_work_type_name(self):
-        """Test manager can update work type name"""
+        """Test manager can update work type name."""
         # login as manager
         self.authenticate(self.manager)
 
@@ -91,7 +91,7 @@ class WorkTypeViewAPIViewTestCase(LibraryAPITestCase):
         self.assertEqual(WorkType.objects.get(id=self.wt1.id).name, "NewName")
 
     def test_update_work_type_name_user(self):
-        """Test simple user cannot update work type name"""
+        """Test simple user cannot update work type name."""
         # login as manager
         self.authenticate(self.user)
 

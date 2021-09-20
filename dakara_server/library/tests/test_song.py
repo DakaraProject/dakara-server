@@ -353,7 +353,7 @@ And everywhere that Mary went""",
         self.assertEqual(song.detail_video, "here")
 
     def test_post_song_with_tag(self):
-        """Test to create a song with nested tags"""
+        """Test to create a song with nested tags."""
         # login as manager
         self.authenticate(self.manager)
 

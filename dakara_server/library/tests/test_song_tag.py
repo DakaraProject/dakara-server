@@ -43,7 +43,7 @@ class SongTagListViewTestCase(LibraryAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_tag_already_exists(self):
-        """Test to create a tag when it already exists"""
+        """Test to create a tag when it already exists."""
         # Login as simple user
         self.authenticate(self.manager)
 

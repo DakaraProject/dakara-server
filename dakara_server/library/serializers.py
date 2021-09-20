@@ -68,7 +68,7 @@ class WorkTypeSerializer(serializers.ModelSerializer):
 
 
 class WorkTypeForWorkSerializer(serializers.ModelSerializer):
-    """Work type serializer for song"""
+    """Work type serializer for song."""
 
     class Meta:
         model = WorkType
@@ -134,7 +134,7 @@ class SongTagSerializer(serializers.ModelSerializer):
 
 
 class SongTagForSongSerializer(serializers.ModelSerializer):
-    """Song tags for song serializer"""
+    """Song tags for song serializer."""
 
     class Meta:
         model = SongTag
@@ -220,7 +220,11 @@ class SongSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def set_artists(song, artists_data):
-        """Create artists and add them."""
+        """Create artists and add them.
+
+        Args:
+            artists_data (list): List of new artists data.
+        """
         artists = [
             Artist.objects.get_or_create(**artist_data)[0]
             for artist_data in artists_data
@@ -232,6 +236,9 @@ class SongSerializer(serializers.ModelSerializer):
         """Create tags and add them.
 
         Get the tag with its name only, or create it with all its attributes.
+
+        Args:
+            tags_data (list): List of new song tags data.
         """
         tags = [
             SongTag.objects.get_or_create(name=tag_data["name"], defaults=tag_data)[0]
@@ -241,7 +248,12 @@ class SongSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def set_songworklinks(song, songworklinks_data, songworklinks_old=[]):
-        """Create works and add them."""
+        """Create works and add them.
+
+        Args:
+            songworklinks_data (list): List of new work links data.
+            songworklinks_old (list): List of current work lings.
+        """
         for songworklink_data in songworklinks_data:
             work_data = songworklink_data.pop("work")
             work_type_data = work_data.pop("work_type")
