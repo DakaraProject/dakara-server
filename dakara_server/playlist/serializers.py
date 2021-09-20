@@ -94,17 +94,13 @@ class PlaylistEntriesWithDateEndSerializer(serializers.Serializer):
     date_end = serializers.DateTimeField(read_only=True)
 
 
-class PlayerStatusSerializer(serializers.Serializer):
+class PlayerStatusSerializer(serializers.ModelSerializer):
     """Player status serializer."""
 
     # Read only fields for front
     playlist_entry = PlaylistPlayedEntryWithDatePlayedSerializer(
         many=False, read_only=True, allow_null=True
     )
-
-    paused = serializers.BooleanField(read_only=True)
-    in_transition = serializers.BooleanField(read_only=True)
-    date = serializers.DateTimeField(read_only=True)
 
     # Write only for the player
     playlist_entry_id = serializers.PrimaryKeyRelatedField(
@@ -116,8 +112,29 @@ class PlayerStatusSerializer(serializers.Serializer):
 
     event = serializers.ChoiceField(choices=Player.EVENTS, write_only=True)
 
-    # Commons fields
+    # Common fields
     timing = SecondsDurationField(required=False)
+
+    class Meta:
+        model = Player
+        fields = (
+            "date",
+            "event",
+            "in_transition",
+            "paused",
+            "playlist_entry",
+            "playlist_entry_id",
+            "timing",
+        )
+        read_only_fields = ("paused", "in_transition", "date", "playlist_entry")
+        to_update_fields = ("timing",)
+
+    def update(self, instance, validated_data):
+        # filter out read only values
+        curated_data = {
+            k: v for k, v in validated_data.items() if k in self.Meta.to_update_fields
+        }
+        return super().update(instance, curated_data)
 
     def validate(self, data):
         if "event" not in data:
@@ -130,13 +147,14 @@ class PlayerStatusSerializer(serializers.Serializer):
 
         if next_playlist_entry != playlist_entry:
             raise serializers.ValidationError(
-                "This playlist entry is not" " supposed to play"
+                "This playlist entry is not supposed to play"
             )
 
         return playlist_entry
 
     def validate_event(self, event):
-        player = Player.get_or_create()
+        karaoke = Karaoke.objects.get_object()
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
 
         # Idle state
         if player.playlist_entry is None:
