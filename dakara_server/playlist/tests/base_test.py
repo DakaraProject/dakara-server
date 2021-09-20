@@ -108,8 +108,11 @@ class PlaylistProvider(BaseProvider):
         playlist_entry.set_playing()
 
         # set the player to an arbitrary state
-        player = Player.get_or_create()
-        player.update(timing=timing, paused=paused, in_transition=in_transition)
+        karaoke = Karaoke.objects.get_object()
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
+        player.timing = timing
+        player.paused = paused
+        player.in_transition = in_transition
         player.save()
 
         return player

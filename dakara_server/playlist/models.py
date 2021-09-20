@@ -1,12 +1,12 @@
 import textwrap
 from datetime import datetime, timedelta
 
-from django.core.cache import cache
 from django.db import models
 from django.db.utils import OperationalError
 from django.utils import timezone
 from ordered_model.models import OrderedModel, OrderedModelManager
 
+from internal import cache_model
 from users.models import DakaraUser
 
 tz = timezone.get_default_timezone()
@@ -91,11 +91,7 @@ class PlaylistEntry(OrderedModel):
         return "{} (for {})".format(self.song, self.owner)
 
     def set_playing(self):
-        """The playlist entry has started to play.
-
-        Returns:
-            Player: the current player.
-        """
+        """The playlist entry has started to play."""
         # check that no other playlist entry is playing
         if PlaylistEntry.objects.get_playing() is not None:
             raise RuntimeError("A playlist entry is currently in play")
@@ -105,11 +101,7 @@ class PlaylistEntry(OrderedModel):
         self.save()
 
     def set_finished(self):
-        """The playlist entry has finished.
-
-        Returns:
-            Player: the current player.
-        """
+        """The playlist entry has finished."""
         # check the current playlist entry is in play
         if self != PlaylistEntry.objects.get_playing():
             raise RuntimeError("This playlist entry is not playing")
@@ -159,7 +151,7 @@ class Karaoke(models.Model):
     channel_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return "Karaoke"
+        return f"karaoke {self.pk}"
 
 
 class PlayerError(models.Model):
@@ -177,14 +169,19 @@ class PlayerError(models.Model):
         )
 
 
-class Player:
+class Player(cache_model.CacheModel):
     """Player representation in the server.
 
-    This object is not stored in database, but lives within Django memory
-    cache. Please use the `update` method to change its attributes.
+    This object is not stored in database, but lives within Django cache.
     """
 
-    PLAYER_NAME = "player"
+    karaoke = cache_model.OneToOneField(
+        Karaoke, on_delete=cache_model.CASCADE, primary_key=True
+    )
+    timing = models.DurationField(default=timedelta())
+    paused = models.BooleanField(default=False)
+    in_transition = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now=True)
 
     STARTED_TRANSITION = "started_transition"
     STARTED_SONG = "started_song"
@@ -206,57 +203,9 @@ class Player:
     SKIP = "skip"
     COMMANDS = ((PLAY, "Play"), (PAUSE, "Pause"), (SKIP, "Skip"))
 
-    def __init__(
-        self, timing=timedelta(), paused=False, in_transition=False, date=None
-    ):
-        self.timing = timing
-        self.paused = paused
-        self.in_transition = in_transition
-        self.date = None
-
-        # at least set the date
-        self.update(date=date)
-
-    def __repr__(self):
-        return "<{}: {}>".format(self.__class__.__name__, self)
-
-    def __str__(self):
-        return "Player"
-
-    def __eq__(self, other):
-        fields = ("timing", "paused", "in_transition", "date")
-
-        return all(getattr(self, field) == getattr(other, field) for field in fields)
-
-    def update(self, date=None, **kwargs):
-        """Update the player and set date."""
-        # set normal attributes
-        for key, value in kwargs.items():
-            if hasattr(self, key) and key != "playlist_entry":
-                setattr(self, key, value)
-
-        # set specific attributes
-        self.date = date or datetime.now(tz)
-
     @property
     def playlist_entry(self):
         return PlaylistEntry.objects.get_playing()
 
-    @classmethod
-    def get_or_create(cls):
-        """Retrieve the current player in cache or create one."""
-        player = cache.get(cls.PLAYER_NAME)
-
-        if player is None:
-            # create a new player object
-            player = cls()
-
-        return player
-
-    def save(self):
-        """Save player in cache."""
-        cache.set(self.PLAYER_NAME, self)
-
-    def reset(self):
-        """Reset the player to its initial state."""
-        self.update(timing=timedelta(), paused=False, in_transition=False)
+    def __str__(self):
+        return f"player {self.pk}"
