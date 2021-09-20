@@ -4,14 +4,17 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.db.models.functions import Lower
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import (
+    ListAPIView,
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from internal import permissions as internal_permissions
 from library import models, permissions, serializers
-from library import views_feeder as feeder  # noqa F401
 from library.query_language import QueryLanguageParser
 
 logger = logging.getLogger(__name__)
@@ -185,6 +188,17 @@ class SongView(RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.SongSerializer
 
 
+class SongRetrieveListView(ListAPIView):
+    """List of all songs.
+
+    For the feeder."""
+
+    permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
+    queryset = models.Song.objects.all()
+    serializer_class = serializers.SongOnlyFilePathSerializer
+    pagination_class = None
+
+
 class ArtistListView(ListCreateAPIViewWithQueryParsed):
     """List of artists."""
 
@@ -226,7 +240,9 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
 
 
 class ArtistPruneView(APIView):
-    """Views for artists to delete"""
+    """Views for artists to delete.
+
+    For the feeder."""
 
     permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
     queryset = models.Artist.objects.filter(song=None)
@@ -292,7 +308,9 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
 
 
 class WorkPruneView(APIView):
-    """Views for works to delete"""
+    """Views for works to delete.
+
+    For the feeder."""
 
     permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
     queryset = models.Work.objects.filter(song=None)
