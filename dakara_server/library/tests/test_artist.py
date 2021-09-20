@@ -143,3 +143,20 @@ class ArtistPruneViewAPIViewTestCase(LibraryAPITestCase):
 
         # check artists with songs remains
         self.assertEqual(Artist.objects.filter(pk=self.artist2.pk).count(), 0)
+
+    def test_delete_no_targets(self):
+        """Test to prune artists when there are none to prune."""
+        # login as library manager
+        self.authenticate(self.user)
+
+        # remove all artists
+        Artist.objects.all().delete()
+
+        # prune artists
+        response = self.client.delete(self.url)
+
+        # check http status
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # check the response
+        self.assertDictEqual(response.data, {"deleted_count": 0})

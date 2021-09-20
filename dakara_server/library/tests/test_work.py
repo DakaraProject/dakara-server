@@ -187,3 +187,20 @@ class WorkPruneViewAPIViewTestCase(LibraryAPITestCase):
         # check artists with songs remains
         self.assertEqual(Work.objects.filter(pk=self.work2.pk).count(), 0)
         self.assertEqual(Work.objects.filter(pk=self.work3.pk).count(), 0)
+
+    def test_delete_no_target(self):
+        """Test to prune works when there are none to prune."""
+        # login as library manager
+        self.authenticate(self.user)
+
+        # remove all works
+        Work.objects.all().delete()
+
+        # prune works
+        response = self.client.delete(self.url)
+
+        # check http status
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # check the response
+        self.assertDictEqual(response.data, {"deleted_count": 0})

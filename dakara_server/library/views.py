@@ -234,14 +234,8 @@ class ArtistPruneView(APIView):
     def delete(self, request, *args, **kwargs):
         _, deleted_count = self.queryset.delete()
 
-        logger.info(
-            "Removed: {}".format(
-                ", ".join("{} ({})".format(k, v) for k, v in deleted_count.items())
-            )
-        )
-
         return Response(
-            {"deleted_count": deleted_count["library.Artist"]},
+            {"deleted_count": deleted_count.get("library.Artist", 0)},
             status=status.HTTP_200_OK,
         )
 
@@ -306,14 +300,9 @@ class WorkPruneView(APIView):
     def delete(self, request, *args, **kwargs):
         _, deleted_count = self.queryset.delete()
 
-        logger.info(
-            "Removed: {}".format(
-                ", ".join("{} ({})".format(k, v) for k, v in deleted_count.items())
-            )
-        )
-
         return Response(
-            {"deleted_count": deleted_count["library.Work"]}, status=status.HTTP_200_OK
+            {"deleted_count": deleted_count.get("library.Work", 0)},
+            status=status.HTTP_200_OK,
         )
 
 
