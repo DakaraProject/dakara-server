@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from library.models import Work
 from library.tests.base_test import LibraryAPITestCase
 
 
@@ -149,3 +150,57 @@ class WorkListViewTestCase(LibraryAPITestCase):
 
         if remaining is not None:
             self.assertEqual(response.data["query"]["remaining"], remaining)
+
+
+class WorkPruneViewAPIViewTestCase(LibraryAPITestCase):
+    url = reverse("library-work-prune")
+
+    def setUp(self):
+        # create a user without any rights
+        self.user = self.create_user("TestUser", library_level="m")
+
+        # create test data
+        self.create_test_data()
+
+    def test_delete(self):
+        """Test to prune works without songs."""
+        # login as library manager
+        self.authenticate(self.user)
+
+        # check there are 3 works
+        self.assertEqual(Work.objects.count(), 3)
+
+        self.assertNotEqual(self.work1.song_set.count(), 0)
+
+        # prune works
+        response = self.client.delete(self.url)
+
+        # check http status
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # check the response
+        self.assertDictEqual(response.data, {"deleted_count": 2})
+
+        # check there are only 1 work remaining
+        self.assertEqual(Work.objects.count(), 1)
+
+        # check artists with songs remains
+        self.assertEqual(Work.objects.filter(pk=self.work2.pk).count(), 0)
+        self.assertEqual(Work.objects.filter(pk=self.work3.pk).count(), 0)
+
+    def test_delete_no_target(self):
+        """Test to prune works when there are none to prune."""
+        # login as library manager
+        self.authenticate(self.user)
+
+        # remove all works
+        Work.objects.all().delete()
+
+        # prune works
+        response = self.client.delete(self.url)
+
+        # check http status
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # check the response
+        self.assertDictEqual(response.data, {"deleted_count": 0})

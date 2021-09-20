@@ -10,6 +10,11 @@ class SongTagListViewTestCase(LibraryAPITestCase):
     url = reverse("library-songtag-list")
 
     def setUp(self):
+        # create a manager
+        self.manager = self.create_user(
+            "TestUserManager", library_level=UserModel.MANAGER
+        )
+
         # create a user without any rights
         self.user = self.create_user("TestUser")
 
@@ -37,10 +42,19 @@ class SongTagListViewTestCase(LibraryAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_post_tag_already_exists(self):
+        """Test to create a tag when it already exists."""
+        # Login as simple user
+        self.authenticate(self.manager)
+
+        # create an existing tag
+        response = self.client.post(self.url, {"name": "TAG1"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 class SongTagViewTestCase(LibraryAPITestCase):
     def setUp(self):
-        # create a user without any rights
+        # create a manager
         self.manager = self.create_user(
             "TestUserManager", library_level=UserModel.MANAGER
         )
