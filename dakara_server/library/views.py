@@ -1,18 +1,23 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.db.models.functions import Lower
+from rest_framework import status
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
-    UpdateAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from internal import permissions as internal_permissions
 from library import models, permissions, serializers
-from library import views_feeder as feeder  # noqa F401
 from library.query_language import QueryLanguageParser
+
+logger = logging.getLogger(__name__)
 
 UserModel = get_user_model()
 
@@ -183,6 +188,17 @@ class SongView(RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.SongSerializer
 
 
+class SongRetrieveListView(ListAPIView):
+    """List of all songs.
+
+    For the feeder."""
+
+    permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
+    queryset = models.Song.objects.all()
+    serializer_class = serializers.SongOnlyFilePathSerializer
+    pagination_class = None
+
+
 class ArtistListView(ListCreateAPIViewWithQueryParsed):
     """List of artists."""
 
@@ -221,6 +237,23 @@ class ArtistListView(ListCreateAPIViewWithQueryParsed):
             self.query_parsed = {"remaining": res}
 
         return query_set.order_by(Lower("name"))
+
+
+class ArtistPruneView(APIView):
+    """Views for artists to delete.
+
+    For the feeder."""
+
+    permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
+    queryset = models.Artist.objects.filter(song=None)
+
+    def delete(self, request, *args, **kwargs):
+        _, deleted_count = self.queryset.delete()
+
+        return Response(
+            {"deleted_count": deleted_count.get("library.Artist", 0)},
+            status=status.HTTP_200_OK,
+        )
 
 
 class WorkListView(ListCreateAPIViewWithQueryParsed):
@@ -274,6 +307,23 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
         return query_set.distinct().order_by(Lower("title"), Lower("subtitle"))
 
 
+class WorkPruneView(APIView):
+    """Views for works to delete.
+
+    For the feeder."""
+
+    permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
+    queryset = models.Work.objects.filter(song=None)
+
+    def delete(self, request, *args, **kwargs):
+        _, deleted_count = self.queryset.delete()
+
+        return Response(
+            {"deleted_count": deleted_count.get("library.Work", 0)},
+            status=status.HTTP_200_OK,
+        )
+
+
 class WorkTypeListView(ListCreateAPIView):
     """List of work types."""
 
@@ -285,7 +335,18 @@ class WorkTypeListView(ListCreateAPIView):
     serializer_class = serializers.WorkTypeSerializer
 
 
-class SongTagListView(ListAPIView):
+class WorkTypeView(RetrieveUpdateDestroyAPIView):
+    """View for a work type."""
+
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
+    queryset = models.WorkType.objects.all()
+    serializer_class = serializers.WorkTypeSerializer
+
+
+class SongTagListView(ListCreateAPIView):
     """List of song tags."""
 
     permission_classes = [
@@ -296,7 +357,7 @@ class SongTagListView(ListAPIView):
     serializer_class = serializers.SongTagSerializer
 
 
-class SongTagView(UpdateAPIView):
+class SongTagView(RetrieveUpdateDestroyAPIView):
     """Update a song tag."""
 
     permission_classes = [

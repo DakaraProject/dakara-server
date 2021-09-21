@@ -48,7 +48,9 @@ Let's create the server database, after loading the virtual environment, do:
 dakara_server/manage.py migrate
 ```
 
-You should be asked to create a super user. Do it. Otherwise:
+You should be asked to create a super user.
+Do it.
+Otherwise:
 
 ```sh
 dakara_server/manage.py createsuperuser
@@ -60,15 +62,6 @@ You should also create a player user, whose credentials will be used for the [pl
 dakara_server/manage.py createplayer
 ```
 
-Now, duplicate `config.yaml.example` to `config.yaml`.
-You'll set up here the different tags and type of works (anime, games…) of your kara library.
-When you're done, tell the server:
-
-```sh
-dakara_server/manage.py createtags ./config.yaml # for tags
-dakara_server/manage.py createworktypes ./config.yaml # for work types
-```
-
 ### Start the server
 
 You're almost done! To start the server app, in the right virtual environment, do:
@@ -77,7 +70,7 @@ You're almost done! To start the server app, in the right virtual environment, d
 dakara_server/manage.py runserver
 ```
 
-The server part is now setup correctly.
+The server part is now set up correctly.
 
 ### Web client, Feeder and player
 

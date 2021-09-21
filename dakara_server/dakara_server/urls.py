@@ -99,9 +99,24 @@ urlpatterns = [
         name="library-song-list",
     ),
     path(
+        "api/library/songs/<int:pk>/",
+        library_views.SongView.as_view(),
+        name="library-song",
+    ),
+    path(
+        "api/library/songs/retrieve/",
+        library_views.SongRetrieveListView.as_view(),
+        name="library-song-retrieve-list",
+    ),
+    path(
         "api/library/artists/",
         library_views.ArtistListView.as_view(),
         name="library-artist-list",
+    ),
+    path(
+        "api/library/artists/prune/",
+        library_views.ArtistPruneView.as_view(),
+        name="library-artist-prune",
     ),
     path(
         "api/library/works/",
@@ -109,9 +124,19 @@ urlpatterns = [
         name="library-work-list",
     ),
     path(
+        "api/library/works/prune/",
+        library_views.WorkPruneView.as_view(),
+        name="library-work-prune",
+    ),
+    path(
         "api/library/work-types/",
         library_views.WorkTypeListView.as_view(),
         name="library-worktype-list",
+    ),
+    path(
+        "api/library/work-types/<int:pk>/",
+        library_views.WorkTypeView.as_view(),
+        name="library-worktype",
     ),
     path(
         "api/library/song-tags/",
@@ -119,20 +144,9 @@ urlpatterns = [
         name="library-songtag-list",
     ),
     path(
-        "api/library/songs/<int:pk>/",
-        library_views.SongView.as_view(),
-        name="library-song",
-    ),
-    path(
         "api/library/song-tags/<int:pk>/",
         library_views.SongTagView.as_view(),
         name="library-songtag",
-    ),
-    # API route for the feeder
-    path(
-        "api/library/feeder/retrieve/",
-        library_views.feeder.FeederListView.as_view(),
-        name="library-feeder-list",
     ),
     # API documentation routes
     path("api-docs/", include_docs_urls(title="Dakara server API")),

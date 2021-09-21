@@ -66,7 +66,8 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         mocked_datetime.now.return_value = now
 
         # set the player
-        player = Player.get_or_create()
+        karaoke = Karaoke.objects.get_object()
+        player, _ = Player.cache.get_or_create(karaoke=karaoke)
         player.playlist_entry_id = self.pe1.id
         play_duration = timedelta(seconds=2)
         player.timing = play_duration

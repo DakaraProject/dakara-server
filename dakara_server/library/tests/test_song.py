@@ -352,6 +352,43 @@ And everywhere that Mary went""",
         self.assertEqual(song.detail, "test")
         self.assertEqual(song.detail_video, "here")
 
+    def test_post_song_with_tag(self):
+        """Test to create a song with nested tags."""
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert the amount of songs
+        self.assertEqual(Song.objects.count(), 2)
+        self.assertEqual(SongTag.objects.count(), 2)
+        # pre assert
+        self.assertNotEqual(self.tag1.color_hue, 256)
+
+        # create a new song
+        song = {
+            "title": "Song3",
+            "filename": "song3",
+            "directory": "directory",
+            "duration": 0,
+            "tags": [
+                {"name": "TAG3", "color_hue": 134},
+                {"name": self.tag1.name, "color_hue": 256},
+            ],
+        }
+        response = self.client.post(self.url, song)
+
+        # assert the response
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert tag3 was created with the given color hue
+        self.assertEqual(SongTag.objects.count(), 3)
+        tag3 = SongTag.objects.get(name="TAG3")
+        self.assertIsNotNone(tag3)
+        self.assertEqual(tag3.color_hue, 134)
+
+        # assert tag1 color was not updated
+        tag1 = SongTag.objects.get(pk=self.tag1.id)
+        self.assertNotEqual(tag1.color_hue, 256)
+
     def test_post_song_embedded(self):
         """Test to create a song with nested artists, tags and works."""
         # login as manager

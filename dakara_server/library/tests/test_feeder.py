@@ -8,7 +8,7 @@ UserModel = get_user_model()
 
 
 class FeederListViewTestCase(LibraryAPITestCase):
-    url = reverse("library-feeder-list")
+    url = reverse("library-song-retrieve-list")
 
     def setUp(self):
         # create a user without any rights

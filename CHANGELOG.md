@@ -34,6 +34,18 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Added
+
+- Route for prune artists is `/api/library/artists/prune/` and route for prune works is `/api/library/works/prune/`.
+- Tags and work types are now created with the feeder, using the routes `api/library/song-tags/` and `api/library/work-types/` respectively.
+
+### Removed
+
+- `prune` command.
+  Prune for artists and works can be done through the API now.
+- `createtags` and `createworktypes` commands.
+  Creating tags and work types can be done through the API now.
+
 ## 1.7.0 - 2021-06-20
 
 ### Added

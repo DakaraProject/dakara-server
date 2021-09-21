@@ -70,9 +70,9 @@ class WorkType(models.Model):
     Example: anime, games and so on.
     """
 
+    query_name = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     name_plural = models.CharField(max_length=255)
-    query_name = models.CharField(max_length=255, unique=True)
     # icon_name refers to a fontawesome icon name
     icon_name = models.CharField(max_length=255, null=True)
 
@@ -119,7 +119,7 @@ class SongWorkLink(models.Model):
 class SongTag(models.Model):
     """Song tag object."""
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     color_hue = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(360)]
     )
