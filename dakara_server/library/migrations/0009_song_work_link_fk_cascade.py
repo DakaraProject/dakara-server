@@ -7,8 +7,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("library", "0008_auto_20190609_0705"),
+        ("library", "0008_song_directory"),
     ]
+    replaces = [("library", "0009_auto_20200329_1303")]
 
     operations = [
         migrations.AlterField(
