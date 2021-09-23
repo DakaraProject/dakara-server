@@ -8,7 +8,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("playlist", "0009_auto_20190106_0734"),
+        ("playlist", "0009_karaoke_boolean_fields"),
+    ]
+    replaces = [
+        ("playlist", "0010_auto_20200329_1303"),
     ]
 
     operations = [

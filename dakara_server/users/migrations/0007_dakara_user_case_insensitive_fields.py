@@ -9,7 +9,10 @@ import users.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("users", "0006_auto_20201128_0833"),
+        ("users", "0006_dakara_user_playlist_permission_level"),
+    ]
+    replaces = [
+        ("users", "0007_auto_20210523_1700"),
     ]
 
     operations = [

@@ -6,7 +6,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("users", "0003_auto_20181125_0834"),
+        ("users", "0003_dakara_user_username"),
+    ]
+    replaces = [
+        ("users", "0004_auto_20200329_1303"),
     ]
 
     operations = [

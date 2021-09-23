@@ -8,6 +8,9 @@ class Migration(migrations.Migration):
     dependencies = [
         ("playlist", "0011_karaoke_channel_name"),
     ]
+    replaces = [
+        ("playlist", "0012_playlistentry_use_instrumental"),
+    ]
 
     operations = [
         migrations.AddField(

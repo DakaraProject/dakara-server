@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("library", "0009_auto_20200329_1303"),
+        ("library", "0009_song_work_link_fk_cascade"),
     ]
 
     operations = [
