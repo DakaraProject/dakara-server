@@ -307,6 +307,17 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
         return query_set.distinct().order_by(Lower("title"), Lower("subtitle"))
 
 
+class WorkView(RetrieveUpdateDestroyAPIView):
+    """Edition and display of a song."""
+
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
+    queryset = models.Work.objects.all()
+    serializer_class = serializers.WorkSerializer
+
+
 class WorkPruneView(APIView):
     """Views for works to delete.
 

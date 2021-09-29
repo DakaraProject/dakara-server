@@ -94,8 +94,8 @@ class WorkNoCountSerializer(serializers.ModelSerializer):
 class WorkSerializer(serializers.ModelSerializer):
     """Work serializer."""
 
-    alternative_titles = WorkAlternativeTitleSerializer(many=True, read_only=True)
-    work_type = WorkTypeForWorkSerializer(many=False, read_only=True)
+    alternative_titles = WorkAlternativeTitleSerializer(many=True)
+    work_type = WorkTypeForWorkSerializer(many=False)
     song_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -108,11 +108,63 @@ class WorkSerializer(serializers.ModelSerializer):
             "work_type",
             "song_count",
         )
+        read_only_fiels = ("id", "song_count")
 
     @staticmethod
     def get_song_count(work):
         """Count the amount of songs associated to the work."""
         return Song.objects.filter(works=work).count()
+
+    def create(self, validated_data):
+        """Create the Work instance."""
+        alternative_titles_data = validated_data.pop("alternative_titles", [])
+        work_type_data = validated_data.pop("work_type")
+
+        work_type = self.set_work_type(work_type_data)
+        work = super().create({**validated_data, "work_type": work_type})
+
+        self.set_alternative_titles(work, alternative_titles_data)
+
+        return work
+
+    def update(self, work, validated_data):
+        """Create the Work instance."""
+        alternative_titles_data = validated_data.pop("alternative_titles", [])
+        work_type_data = validated_data.pop("work_type")
+
+        work_type = self.set_work_type(work_type_data)
+        work = super().update(work, {**validated_data, "work_type": work_type})
+
+        self.set_alternative_titles(work, alternative_titles_data)
+
+        return work
+
+    @staticmethod
+    def set_alternative_titles(work, alternative_titles_data):
+        alternative_titles = [
+            WorkAlternativeTitle.objects.get_or_create(
+                **alternative_title_data, work=work
+            )[0]
+            for alternative_title_data in alternative_titles_data
+        ]
+        work.alternative_titles.set(alternative_titles)
+
+    @staticmethod
+    def set_work_type(work_type_data):
+        # create work type
+        # if only query name is provided and work type does not exist,
+        # populate other name fields with query name
+        query_name = work_type_data["query_name"]
+        work_type, _ = WorkType.objects.get_or_create(
+            query_name=query_name,
+            defaults={
+                "query_name": query_name,
+                "name": work_type_data.get("name", query_name),
+                "name_plural": work_type_data.get("name_plural", query_name),
+            },
+        )
+
+        return work_type
 
 
 class SongWorkLinkSerializer(serializers.ModelSerializer):
@@ -195,7 +247,7 @@ class SongSerializer(serializers.ModelSerializer):
         artists_data = validated_data.pop("artists", [])
         tags_data = validated_data.pop("tags", [])
         songworklinks_data = validated_data.pop("songworklink_set", [])
-        song = Song.objects.create(**validated_data)
+        song = super().create(validated_data)
 
         self.set_artists(song, artists_data)
         self.set_tags(song, tags_data)

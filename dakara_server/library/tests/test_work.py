@@ -1,8 +1,11 @@
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 
 from library.models import Work
 from library.tests.base_test import LibraryAPITestCase
+
+UserModel = get_user_model()
 
 
 class WorkListViewTestCase(LibraryAPITestCase):
@@ -12,8 +15,14 @@ class WorkListViewTestCase(LibraryAPITestCase):
         # create a user without any rights
         self.user = self.create_user("TestUser")
 
+        # create a manager
+        self.manager = self.create_user("ManagerUser", library_level=UserModel.MANAGER)
+
         # create test data
         self.create_test_data()
+
+        # create urls
+        self.url_work1 = reverse("library-work", kwargs={"pk": self.work1.id})
 
     def test_get_work_list(self):
         """Test to verify work list with no query."""
@@ -150,6 +159,53 @@ class WorkListViewTestCase(LibraryAPITestCase):
 
         if remaining is not None:
             self.assertEqual(response.data["query"]["remaining"], remaining)
+
+    def test_post_work(self):
+        """Test to create a work."""
+        # pre-assert there are 3 works
+        self.assertEqual(Work.objects.all().count(), 3)
+
+        # authenticate as manager
+        self.authenticate(self.manager)
+
+        # create work
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Girls und Panzer",
+                "subtitle": "",
+                "alternative_titles": [{"title": "Galupan"}, {"title": "Garupan"}],
+                "work_type": {"query_name": "anime"},
+            },
+        )
+        print(response.content)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert there are now 4 works
+        self.assertEqual(Work.objects.all().count(), 4)
+
+    def test_put_work(self):
+        """Test to create a work."""
+        # pre-assert there are 3 works
+        self.assertEqual(Work.objects.all().count(), 3)
+
+        # authenticate as manager
+        self.authenticate(self.manager)
+
+        # create work
+        response = self.client.put(
+            self.url_work1,
+            {
+                "title": "Girls und Panzer",
+                "subtitle": "",
+                "alternative_titles": [{"title": "Galupan"}, {"title": "Garupan"}],
+                "work_type": {"query_name": "anime"},
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert there are now 4 works
+        self.assertEqual(Work.objects.all().count(), 3)
 
 
 class WorkPruneViewAPIViewTestCase(LibraryAPITestCase):
