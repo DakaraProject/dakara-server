@@ -160,8 +160,32 @@ class WorkListViewTestCase(LibraryAPITestCase):
         if remaining is not None:
             self.assertEqual(response.data["query"]["remaining"], remaining)
 
-    def test_post_work(self):
-        """Test to create a work."""
+    def test_post_work_simple(self):
+        """Test to create a work without embedded data."""
+        # pre-assert there are 3 works
+        self.assertEqual(Work.objects.all().count(), 3)
+
+        # authenticate as manager
+        self.authenticate(self.manager)
+
+        # create work
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Girls und Panzer",
+                "subtitle": "",
+                "alternative_titles": [],
+                "work_type": {"query_name": "anime"},
+            },
+        )
+        print(response.content)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert there are now 4 works
+        self.assertEqual(Work.objects.all().count(), 4)
+
+    def test_post_work_embedded(self):
+        """Test to create a work with embedded data."""
         # pre-assert there are 3 works
         self.assertEqual(Work.objects.all().count(), 3)
 
@@ -184,8 +208,31 @@ class WorkListViewTestCase(LibraryAPITestCase):
         # assert there are now 4 works
         self.assertEqual(Work.objects.all().count(), 4)
 
-    def test_put_work(self):
-        """Test to create a work."""
+    def test_put_work_simple(self):
+        """Test to create a work without embedded data."""
+        # pre-assert there are 3 works
+        self.assertEqual(Work.objects.all().count(), 3)
+
+        # authenticate as manager
+        self.authenticate(self.manager)
+
+        # create work
+        response = self.client.put(
+            self.url_work1,
+            {
+                "title": "Girls und Panzer",
+                "subtitle": "",
+                "alternative_titles": [],
+                "work_type": {"query_name": "anime"},
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert there are now 4 works
+        self.assertEqual(Work.objects.all().count(), 3)
+
+    def test_put_work_embedded(self):
+        """Test to create a work with embedded data."""
         # pre-assert there are 3 works
         self.assertEqual(Work.objects.all().count(), 3)
 
