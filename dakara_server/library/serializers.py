@@ -142,6 +142,14 @@ class WorkTypeForWorkSerializer(serializers.ModelSerializer):
         }
 
 
+class WorkTypeOnlyQueryNameSerializer(serializers.ModelSerializer):
+    """Work type serializer containing the query name only."""
+
+    class Meta:
+        model = WorkType
+        fields = ("query_name",)
+
+
 class WorkNoCountSerializer(serializers.ModelSerializer):
     """Work serializer."""
 
@@ -402,9 +410,21 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
         return os.path.join(song.directory, song.filename)
 
 
-class SongOnlyFilePathSerializer(serializers.ModelSerializer):
+class SongForFeederSerializer(serializers.ModelSerializer):
     """Song serializer for the feeder."""
 
     class Meta:
         model = Song
         fields = ("id", "filename", "directory")
+        read_only_fields = ("id", "filename", "directory")
+
+
+class WorkForFeederSerializer(serializers.ModelSerializer):
+    """Work serializer for the feeder."""
+
+    work_type = WorkTypeOnlyQueryNameSerializer(many=False)
+
+    class Meta:
+        model = Work
+        fields = ("id", "title", "subtitle", "work_type")
+        read_only_fields = ("id", "title", "subtitle", "work_type")

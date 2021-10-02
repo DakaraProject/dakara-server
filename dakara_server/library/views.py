@@ -201,7 +201,7 @@ class SongRetrieveListView(ListAPIView):
 
     permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
     queryset = models.Song.objects.all()
-    serializer_class = serializers.SongOnlyFilePathSerializer
+    serializer_class = serializers.SongForFeederSerializer
     pagination_class = None
 
 
@@ -322,6 +322,17 @@ class WorkView(RetrieveUpdateDestroyAPIView):
     ]
     queryset = models.Work.objects.all()
     serializer_class = serializers.WorkSerializer
+
+
+class WorkRetrieveListView(ListAPIView):
+    """List of all works.
+
+    For the feeder."""
+
+    permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
+    queryset = models.Work.objects.all()
+    serializer_class = serializers.WorkForFeederSerializer
+    pagination_class = None
 
 
 class WorkPruneView(APIView):

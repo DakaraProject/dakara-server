@@ -119,6 +119,11 @@ urlpatterns = [
         name="library-work",
     ),
     path(
+        "api/library/works/retrieve/",
+        library_views.WorkRetrieveListView.as_view(),
+        name="library-work-retrieve-list",
+    ),
+    path(
         "api/library/works/prune/",
         library_views.WorkPruneView.as_view(),
         name="library-work-prune",
