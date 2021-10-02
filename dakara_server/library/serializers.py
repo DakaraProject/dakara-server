@@ -164,7 +164,7 @@ class WorkNoCountSerializer(serializers.ModelSerializer):
 class WorkSerializer(serializers.ModelSerializer):
     """Work serializer."""
 
-    alternative_titles = WorkAlternativeTitleSerializer(many=True)
+    alternative_titles = WorkAlternativeTitleSerializer(many=True, required=False)
     work_type = WorkTypeForWorkSerializer(many=False)
     song_count = serializers.SerializerMethodField()
 

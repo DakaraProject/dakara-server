@@ -174,7 +174,6 @@ class WorkListViewTestCase(LibraryAPITestCase):
             {
                 "title": "Girls und Panzer",
                 "subtitle": "",
-                "alternative_titles": [],
                 "work_type": {"query_name": "anime"},
             },
         )
@@ -222,7 +221,6 @@ class WorkListViewTestCase(LibraryAPITestCase):
             {
                 "title": "Girls und Panzer",
                 "subtitle": "",
-                "alternative_titles": [],
                 "work_type": {"query_name": "anime"},
             },
         )
