@@ -24,6 +24,24 @@ class WorkListViewTestCase(LibraryAPITestCase):
         # create urls
         self.url_work1 = reverse("library-work", kwargs={"pk": self.work1.id})
 
+    def work_query_test(self, query, expected_works, remaining=None):
+        """Method to test a work request with a given query and worktype.
+
+        Returned work should be the same as expected_works,
+        in the same order.
+        """
+        # TODO This only works when there is only one page of works
+        response = self.client.get(self.url, {"query": query})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], len(expected_works))
+        results = response.data["results"]
+        self.assertEqual(len(results), len(expected_works))
+        for work, expected_work in zip(results, expected_works):
+            self.assertEqual(work["id"], expected_work.id)
+
+        if remaining is not None:
+            self.assertEqual(response.data["query"]["remaining"], remaining)
+
     def test_get_work_list(self):
         """Test to verify work list with no query."""
         # Login as simple user
@@ -142,24 +160,6 @@ class WorkListViewTestCase(LibraryAPITestCase):
             ["word", "words words words", "remain"],
         )
 
-    def work_query_test(self, query, expected_works, remaining=None):
-        """Method to test a work request with a given query and worktype.
-
-        Returned work should be the same as expected_works,
-        in the same order.
-        """
-        # TODO This only works when there is only one page of works
-        response = self.client.get(self.url, {"query": query})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], len(expected_works))
-        results = response.data["results"]
-        self.assertEqual(len(results), len(expected_works))
-        for work, expected_work in zip(results, expected_works):
-            self.assertEqual(work["id"], expected_work.id)
-
-        if remaining is not None:
-            self.assertEqual(response.data["query"]["remaining"], remaining)
-
     def test_post_work_simple(self):
         """Test to create a work without embedded data."""
         # pre-assert there are 3 works
@@ -177,7 +177,6 @@ class WorkListViewTestCase(LibraryAPITestCase):
                 "work_type": {"query_name": "anime"},
             },
         )
-        print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # assert there are now 4 works
@@ -201,7 +200,6 @@ class WorkListViewTestCase(LibraryAPITestCase):
                 "work_type": {"query_name": "anime"},
             },
         )
-        print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # assert there are now 4 works

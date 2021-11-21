@@ -81,7 +81,6 @@ class WorkFeederListViewTestCase(LibraryAPITestCase):
         self.assertEqual(len(response.data), 3)
 
         # Songs are not sorted
-        self.maxDiff = None
         self.assertCountEqual(
             response.data,
             [
