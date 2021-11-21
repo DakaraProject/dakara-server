@@ -35,6 +35,8 @@ class ArtistSerializer(serializers.ModelSerializer):
     def set(song, artists_data):
         """Create artists for a song.
 
+        Existing associated artists will be cleaned, but not deleted.
+
         Args:
             song (models.Song): Song to associate artists to.
             artists_data (list): List of new artists data.
@@ -81,6 +83,9 @@ class WorkAlternativeTitleSerializer(serializers.ModelSerializer):
     def set(work, alternative_titles_data):
         """Create alternative titles for a work.
 
+        Existing associated alternative titles will be deleted if they are not
+        to set again.
+
         Args:
             work (models.WorkAlternativeTitle): Work to associate alternative
                 titles to.
@@ -89,12 +94,19 @@ class WorkAlternativeTitleSerializer(serializers.ModelSerializer):
         Returns:
             list of models.WorkAlternativeTitle: List of alternative titles.
         """
+        alternative_titles_old = work.alternative_titles.all()
         alternative_titles = [
             WorkAlternativeTitle.objects.get_or_create(
                 **alternative_title_data, work=work
             )[0]
             for alternative_title_data in alternative_titles_data
         ]
+
+        # clean previous alternative titles that are no longer associated
+        for alternative_title_old in alternative_titles_old:
+            if alternative_title_old not in alternative_titles:
+                alternative_title_old.delete()
+
         work.alternative_titles.set(alternative_titles)
 
         return alternative_titles
@@ -250,6 +262,8 @@ class SongWorkLinkSerializer(serializers.ModelSerializer):
     def set(song, songworklinks_data):
         """Create work links for a song.
 
+        Existing associated song work links will be deleted inconditionnaly.
+
         Args:
             song (models.Song): Song to associate artists to.
             songworklinks_data (list): List of new work links data.
@@ -288,6 +302,7 @@ class SongTagSerializer(serializers.ModelSerializer):
         """Create tags for a song.
 
         Get the tag with its name only, or create it with all its attributes.
+        Existing associated song tags will be cleaned, but not deleted.
 
         Args:
             song (models.Song): Song to associate artists to.

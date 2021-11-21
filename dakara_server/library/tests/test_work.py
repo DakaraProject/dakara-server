@@ -205,6 +205,12 @@ class WorkListViewTestCase(LibraryAPITestCase):
         # assert there are now 4 works
         self.assertEqual(Work.objects.all().count(), 4)
 
+        # assert embedded data
+        work = Work.objects.get(title="Girls und Panzer")
+        self.assertEqual(work.alternative_titles.count(), 2)
+        self.assertEqual(work.alternative_titles.all()[0].title, "Galupan")
+        self.assertEqual(work.alternative_titles.all()[1].title, "Garupan")
+
     def test_put_work_simple(self):
         """Test to create a work without embedded data."""
         # pre-assert there are 3 works
@@ -249,6 +255,12 @@ class WorkListViewTestCase(LibraryAPITestCase):
 
         # assert there are now 4 works
         self.assertEqual(Work.objects.all().count(), 3)
+
+        # assert embedded data
+        work = Work.objects.get(title="Girls und Panzer")
+        self.assertEqual(work.alternative_titles.count(), 2)
+        self.assertEqual(work.alternative_titles.all()[0].title, "Galupan")
+        self.assertEqual(work.alternative_titles.all()[1].title, "Garupan")
 
 
 class WorkPruneViewAPIViewTestCase(LibraryAPITestCase):
