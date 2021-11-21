@@ -262,7 +262,7 @@ class ArtistPruneView(APIView):
         )
 
 
-class WorkListView(QueryParsedListMixin, ListCreateAPIView):
+class WorkListView(QueryParsedListMixin, MultiSerializerMixin, ListCreateAPIView):
     """List of works."""
 
     permission_classes = [
