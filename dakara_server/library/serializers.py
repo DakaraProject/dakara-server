@@ -84,7 +84,7 @@ class WorkAlternativeTitleSerializer(serializers.ModelSerializer):
         """Create alternative titles for a work.
 
         Existing associated alternative titles will be deleted if they are not
-        to set again.
+        set again.
 
         Args:
             work (models.WorkAlternativeTitle): Work to associate alternative
@@ -106,8 +106,6 @@ class WorkAlternativeTitleSerializer(serializers.ModelSerializer):
         for alternative_title_old in alternative_titles_old:
             if alternative_title_old not in alternative_titles:
                 alternative_title_old.delete()
-
-        work.alternative_titles.set(alternative_titles)
 
         return alternative_titles
 
