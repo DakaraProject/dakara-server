@@ -1,8 +1,11 @@
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 
 from library.models import Work
 from library.tests.base_test import LibraryAPITestCase
+
+UserModel = get_user_model()
 
 
 class WorkListViewTestCase(LibraryAPITestCase):
@@ -12,8 +15,32 @@ class WorkListViewTestCase(LibraryAPITestCase):
         # create a user without any rights
         self.user = self.create_user("TestUser")
 
+        # create a manager
+        self.manager = self.create_user("ManagerUser", library_level=UserModel.MANAGER)
+
         # create test data
         self.create_test_data()
+
+        # create urls
+        self.url_work1 = reverse("library-work", kwargs={"pk": self.work1.id})
+
+    def work_query_test(self, query, expected_works, remaining=None):
+        """Method to test a work request with a given query and worktype.
+
+        Returned work should be the same as expected_works,
+        in the same order.
+        """
+        # TODO This only works when there is only one page of works
+        response = self.client.get(self.url, {"query": query})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], len(expected_works))
+        results = response.data["results"]
+        self.assertEqual(len(results), len(expected_works))
+        for work, expected_work in zip(results, expected_works):
+            self.assertEqual(work["id"], expected_work.id)
+
+        if remaining is not None:
+            self.assertEqual(response.data["query"]["remaining"], remaining)
 
     def test_get_work_list(self):
         """Test to verify work list with no query."""
@@ -133,23 +160,107 @@ class WorkListViewTestCase(LibraryAPITestCase):
             ["word", "words words words", "remain"],
         )
 
-    def work_query_test(self, query, expected_works, remaining=None):
-        """Method to test a work request with a given query and worktype.
+    def test_post_work_simple(self):
+        """Test to create a work without embedded data."""
+        # pre-assert there are 3 works
+        self.assertEqual(Work.objects.all().count(), 3)
 
-        Returned work should be the same as expected_works,
-        in the same order.
-        """
-        # TODO This only works when there is only one page of works
-        response = self.client.get(self.url, {"query": query})
+        # authenticate as manager
+        self.authenticate(self.manager)
+
+        # create work
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Girls und Panzer",
+                "subtitle": "",
+                "work_type": {"query_name": "anime"},
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert there are now 4 works
+        self.assertEqual(Work.objects.all().count(), 4)
+
+    def test_post_work_embedded(self):
+        """Test to create a work with embedded data."""
+        # pre-assert there are 3 works
+        self.assertEqual(Work.objects.all().count(), 3)
+
+        # authenticate as manager
+        self.authenticate(self.manager)
+
+        # create work
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Girls und Panzer",
+                "subtitle": "",
+                "alternative_titles": [{"title": "Galupan"}, {"title": "Garupan"}],
+                "work_type": {"query_name": "anime"},
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert there are now 4 works
+        self.assertEqual(Work.objects.all().count(), 4)
+
+        # assert embedded data
+        work = Work.objects.get(title="Girls und Panzer")
+        self.assertEqual(work.alternative_titles.count(), 2)
+        self.assertEqual(work.alternative_titles.all()[0].title, "Galupan")
+        self.assertEqual(work.alternative_titles.all()[1].title, "Garupan")
+
+    def test_put_work_simple(self):
+        """Test to create a work without embedded data."""
+        # pre-assert there are 3 works
+        self.assertEqual(Work.objects.all().count(), 3)
+
+        # authenticate as manager
+        self.authenticate(self.manager)
+
+        # create work
+        response = self.client.put(
+            self.url_work1,
+            {
+                "title": "Girls und Panzer",
+                "subtitle": "",
+                "work_type": {"query_name": "anime"},
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], len(expected_works))
-        results = response.data["results"]
-        self.assertEqual(len(results), len(expected_works))
-        for work, expected_work in zip(results, expected_works):
-            self.assertEqual(work["id"], expected_work.id)
 
-        if remaining is not None:
-            self.assertEqual(response.data["query"]["remaining"], remaining)
+        # assert there are now 4 works
+        self.assertEqual(Work.objects.all().count(), 3)
+
+    def test_put_work_embedded(self):
+        """Test to create a work with embedded data."""
+        # pre-assert there are 3 works
+        self.assertEqual(Work.objects.all().count(), 3)
+
+        # authenticate as manager
+        self.authenticate(self.manager)
+
+        # create work
+        response = self.client.put(
+            self.url_work1,
+            {
+                "title": "Girls und Panzer",
+                "subtitle": "",
+                "alternative_titles": [{"title": "Galupan"}, {"title": "Garupan"}],
+                "work_type": {"query_name": "anime"},
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert there are now 4 works
+        self.assertEqual(Work.objects.all().count(), 3)
+
+        # assert embedded data
+        work = Work.objects.get(title="Girls und Panzer")
+        self.assertEqual(work.alternative_titles.count(), 2)
+        self.assertEqual(work.alternative_titles.all()[0].title, "Galupan")
+        self.assertEqual(work.alternative_titles.all()[1].title, "Garupan")
 
 
 class WorkPruneViewAPIViewTestCase(LibraryAPITestCase):

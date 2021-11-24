@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 UserModel = get_user_model()
 
 
-class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
-    """API View with a parsed query attribute."""
+class QueryParsedListMixin:
+    """Mixin that adds parsed query to list response."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,7 +44,28 @@ class ListCreateAPIViewWithQueryParsed(ListCreateAPIView):
         return response
 
 
-class SongListView(ListCreateAPIViewWithQueryParsed):
+class MultiSerializerMixin:
+    """Mixin that adapts serializer if a list of data is provided."""
+
+    def get_serializer(self, *args, **kwargs):
+        """Select accurate serializer to handle list of songs.
+
+        Return the serializer instance that should be used for validating and
+        deserializing input, and for serializing output.
+        """
+        data = kwargs.get("data")
+        many = kwargs.get("many")
+
+        # check if the serializer is used to deserialize data
+        # and check if the data is a list
+        if data and isinstance(data, list) and many is None:
+            return super().get_serializer(*args, many=True, **kwargs)
+
+        # otherwise
+        return super().get_serializer(*args, **kwargs)
+
+
+class SongListView(QueryParsedListMixin, MultiSerializerMixin, ListCreateAPIView):
     """List of songs."""
 
     permission_classes = [
@@ -161,21 +182,6 @@ class SongListView(ListCreateAPIViewWithQueryParsed):
 
         return query_set.distinct().order_by(Lower("title"))
 
-    def get_serializer(self, *args, **kwargs):
-        """Return the serializer instance that should be used for validating and.
-        deserializing input, and for serializing output.
-        """
-        data = kwargs.get("data")
-        many = kwargs.get("many")
-
-        # check if the serializer is used to deserialize data
-        # and check if the data is a list
-        if data and isinstance(data, list) and many is None:
-            return super().get_serializer(*args, many=True, **kwargs)
-
-        # otherwise
-        return super().get_serializer(*args, **kwargs)
-
 
 class SongView(RetrieveUpdateDestroyAPIView):
     """Edition and display of a song."""
@@ -195,11 +201,11 @@ class SongRetrieveListView(ListAPIView):
 
     permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
     queryset = models.Song.objects.all()
-    serializer_class = serializers.SongOnlyFilePathSerializer
+    serializer_class = serializers.SongForFeederSerializer
     pagination_class = None
 
 
-class ArtistListView(ListCreateAPIViewWithQueryParsed):
+class ArtistListView(QueryParsedListMixin, ListCreateAPIView):
     """List of artists."""
 
     permission_classes = [
@@ -256,7 +262,7 @@ class ArtistPruneView(APIView):
         )
 
 
-class WorkListView(ListCreateAPIViewWithQueryParsed):
+class WorkListView(QueryParsedListMixin, MultiSerializerMixin, ListCreateAPIView):
     """List of works."""
 
     permission_classes = [
@@ -305,6 +311,28 @@ class WorkListView(ListCreateAPIViewWithQueryParsed):
             self.query_parsed = {"remaining": res}
 
         return query_set.distinct().order_by(Lower("title"), Lower("subtitle"))
+
+
+class WorkView(RetrieveUpdateDestroyAPIView):
+    """Edition and display of a song."""
+
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
+    queryset = models.Work.objects.all()
+    serializer_class = serializers.WorkSerializer
+
+
+class WorkRetrieveListView(ListAPIView):
+    """List of all works.
+
+    For the feeder."""
+
+    permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
+    queryset = models.Work.objects.all()
+    serializer_class = serializers.WorkForFeederSerializer
+    pagination_class = None
 
 
 class WorkPruneView(APIView):

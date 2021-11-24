@@ -802,6 +802,7 @@ class SongViewTestCase(LibraryAPITestCase):
 
         # assert the created artists
         self.assertEqual(Artist.objects.count(), 3)
+        self.assertEqual(song.artists.count(), 1)
         artist3 = Artist.objects.get(name="Artist3")
         self.assertIsNotNone(artist3)
 

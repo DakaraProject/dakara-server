@@ -43,7 +43,7 @@ class WorkTypeListViewTestCase(LibraryAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_work_type(self):
-        """To to create a work type."""
+        """Test to create a work type."""
         # pre-assert there are 2 work types
         self.assertEqual(WorkType.objects.all().count(), 2)
 
