@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("playlist", "0012_playlistentry_use_instrumental"),
+        ("playlist", "0013_player"),
     ]
 
     operations = [
