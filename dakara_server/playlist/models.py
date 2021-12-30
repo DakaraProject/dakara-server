@@ -201,7 +201,17 @@ class Player(cache_model.CacheModel):
     PLAY = "play"
     PAUSE = "pause"
     SKIP = "skip"
-    COMMANDS = ((PLAY, "Play"), (PAUSE, "Pause"), (SKIP, "Skip"))
+    RESTART = "restart"
+    BACK = "back"
+    FORWARD = "forward"
+    COMMANDS = (
+        (PLAY, "Play"),
+        (PAUSE, "Pause"),
+        (SKIP, "Skip"),
+        (RESTART, "Restart"),
+        (BACK, "Back"),
+        (FORWARD, "Forward"),
+    )
 
     @property
     def playlist_entry(self):
