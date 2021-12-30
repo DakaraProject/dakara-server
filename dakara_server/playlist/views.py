@@ -440,6 +440,14 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         # log the info
         logger.debug("The player resumed playing")
 
+    def receive_updated_timing(self, playlist_entry, player):
+        """The player updated its timing."""
+        # update the player
+        player.save()
+
+        # log the info
+        logger.debug("The player updated its timing")
+
     def get_object(self):
         karaoke = models.Karaoke.objects.get_object()
         player, _ = models.Player.cache.get_or_create(karaoke=karaoke)

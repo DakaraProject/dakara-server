@@ -189,6 +189,7 @@ class Player(cache_model.CacheModel):
     COULD_NOT_PLAY = "could_not_play"
     PAUSED = "paused"
     RESUMED = "resumed"
+    UPDATED_TIMING = "updated_timing"
     EVENTS = (
         (STARTED_TRANSITION, "Started transition"),
         (STARTED_SONG, "Started song"),
@@ -196,19 +197,20 @@ class Player(cache_model.CacheModel):
         (COULD_NOT_PLAY, "Could not play"),
         (PAUSED, "Paused"),
         (RESUMED, "Resumed"),
+        (UPDATED_TIMING, "Updated timing"),
     )
 
     PLAY = "play"
     PAUSE = "pause"
-    SKIP = "skip"
     RESTART = "restart"
+    SKIP = "skip"
     BACK = "back"
     FORWARD = "forward"
     COMMANDS = (
         (PLAY, "Play"),
         (PAUSE, "Pause"),
-        (SKIP, "Skip"),
         (RESTART, "Restart"),
+        (SKIP, "Skip"),
         (BACK, "Back"),
         (FORWARD, "Forward"),
     )

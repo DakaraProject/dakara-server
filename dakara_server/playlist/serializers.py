@@ -170,7 +170,12 @@ class PlayerStatusSerializer(serializers.ModelSerializer):
         # Non idle state
 
         # These events can occur in any non idle state
-        if event in [player.FINISHED, player.PAUSED, player.RESUMED]:
+        if event in [
+            player.FINISHED,
+            player.PAUSED,
+            player.RESUMED,
+            player.UPDATED_TIMING,
+        ]:
             return event
 
         # This event should only occur during transition

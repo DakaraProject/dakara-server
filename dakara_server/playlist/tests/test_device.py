@@ -391,35 +391,6 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
-    async def test_send_command_skip(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
-    ):
-        """Test to send to the player a skip command."""
-        karaoke = await get_karaoke()
-
-        # call the method
-        await channel_layer.send(
-            karaoke.channel_name, {"type": "send_command", "command": "skip"}
-        )
-
-        # wait the outcoming event
-        event = await communicator.receive_json_from()
-
-        # assert the event
-        assert event["type"] == "command"
-        assert event["data"]["command"] == "skip"
-
-        # assert there are no side effects
-        player_new = await get_player()
-        assert player_new == player
-
-        # check there are no other messages
-        done = await communicator.receive_nothing()
-        assert done
-
-        # close connection
-        await communicator.disconnect()
-
     async def test_send_command_restart(
         self, playlist_provider, player, communicator, get_karaoke, get_player
     ):
@@ -437,6 +408,35 @@ class TestDevice:
         # assert the event
         assert event["type"] == "command"
         assert event["data"]["command"] == "restart"
+
+        # assert there are no side effects
+        player_new = await get_player()
+        assert player_new == player
+
+        # check there are no other messages
+        done = await communicator.receive_nothing()
+        assert done
+
+        # close connection
+        await communicator.disconnect()
+
+    async def test_send_command_skip(
+        self, playlist_provider, player, communicator, get_karaoke, get_player
+    ):
+        """Test to send to the player a skip command."""
+        karaoke = await get_karaoke()
+
+        # call the method
+        await channel_layer.send(
+            karaoke.channel_name, {"type": "send_command", "command": "skip"}
+        )
+
+        # wait the outcoming event
+        event = await communicator.receive_json_from()
+
+        # assert the event
+        assert event["type"] == "command"
+        assert event["data"]["command"] == "skip"
 
         # assert there are no side effects
         player_new = await get_player()
