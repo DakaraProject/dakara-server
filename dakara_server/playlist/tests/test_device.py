@@ -362,15 +362,15 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
-    async def test_send_command_play(
+    async def test_send_command_resume(
         self, playlist_provider, player, communicator, get_karaoke, get_player
     ):
-        """Test to send to the player a play command."""
+        """Test to send to the player a resume command."""
         karaoke = await get_karaoke()
 
         # call the method
         await channel_layer.send(
-            karaoke.channel_name, {"type": "send_command", "command": "play"}
+            karaoke.channel_name, {"type": "send_command", "command": "resume"}
         )
 
         # wait the outcoming event
@@ -378,7 +378,7 @@ class TestDevice:
 
         # assert the event
         assert event["type"] == "command"
-        assert event["data"]["command"] == "play"
+        assert event["data"]["command"] == "resume"
 
         # assert there are no side effects
         player_new = await get_player()

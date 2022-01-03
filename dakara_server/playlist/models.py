@@ -200,14 +200,14 @@ class Player(cache_model.CacheModel):
         (UPDATED_TIMING, "Updated timing"),
     )
 
-    PLAY = "play"
+    RESUME = "resume"
     PAUSE = "pause"
     RESTART = "restart"
     SKIP = "skip"
     BACK = "back"
     FORWARD = "forward"
     COMMANDS = (
-        (PLAY, "Play"),
+        (RESUME, "Resume"),
         (PAUSE, "Pause"),
         (RESTART, "Restart"),
         (SKIP, "Skip"),
