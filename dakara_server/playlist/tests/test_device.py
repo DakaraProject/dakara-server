@@ -449,15 +449,15 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
-    async def test_send_command_back(
+    async def test_send_command_rewind(
         self, playlist_provider, player, communicator, get_karaoke, get_player
     ):
-        """Test to send to the player a back command."""
+        """Test to send to the player a rewind command."""
         karaoke = await get_karaoke()
 
         # call the method
         await channel_layer.send(
-            karaoke.channel_name, {"type": "send_command", "command": "back"}
+            karaoke.channel_name, {"type": "send_command", "command": "rewind"}
         )
 
         # wait the outcoming event
@@ -465,7 +465,7 @@ class TestDevice:
 
         # assert the event
         assert event["type"] == "command"
-        assert event["data"]["command"] == "back"
+        assert event["data"]["command"] == "rewind"
 
         # assert there are no side effects
         player_new = await get_player()
@@ -478,15 +478,15 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
-    async def test_send_command_forward(
+    async def test_send_command_fast_forward(
         self, playlist_provider, player, communicator, get_karaoke, get_player
     ):
-        """Test to send to the player a forward command."""
+        """Test to send to the player a fast forward command."""
         karaoke = await get_karaoke()
 
         # call the method
         await channel_layer.send(
-            karaoke.channel_name, {"type": "send_command", "command": "forward"}
+            karaoke.channel_name, {"type": "send_command", "command": "fast_forward"}
         )
 
         # wait the outcoming event
@@ -494,7 +494,7 @@ class TestDevice:
 
         # assert the event
         assert event["type"] == "command"
-        assert event["data"]["command"] == "forward"
+        assert event["data"]["command"] == "fast_forward"
 
         # assert there are no side effects
         player_new = await get_player()

@@ -204,15 +204,15 @@ class Player(cache_model.CacheModel):
     PAUSE = "pause"
     RESTART = "restart"
     SKIP = "skip"
-    BACK = "back"
-    FORWARD = "forward"
+    REWIND = "rewind"
+    FAST_FORWARD = "fast_forward"
     COMMANDS = (
         (PLAY, "Play"),
         (PAUSE, "Pause"),
         (RESTART, "Restart"),
         (SKIP, "Skip"),
-        (BACK, "Back"),
-        (FORWARD, "Forward"),
+        (REWIND, "Rewind"),
+        (FAST_FORWARD, "Fast forward"),
     )
 
     @property

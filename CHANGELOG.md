@@ -38,7 +38,7 @@ Any important notes regarding the update.
 
 - Route for prune artists is `/api/library/artists/prune/` and route for prune works is `/api/library/works/prune/`.
 - Tags, work types and works are now created with the feeder, using the routes `api/library/song-tags/`, `api/library/work-types/` and `api/library/works/` respectively.
-- Songs can be restarted, rewinded, or advanced during playback.
+- Songs can be restarted, rewound, or fast forwarded during playback.
 
 ### Removed
 
