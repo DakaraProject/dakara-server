@@ -359,8 +359,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
     """
 
     permission_classes = [
-        IsAuthenticated,
-        permissions.IsPlayer | internal_permissions.IsReadOnly,
+        IsAuthenticated & internal_permissions.IsReadOnly | permissions.IsPlayer
     ]
     serializer_class = serializers.PlayerStatusSerializer
 
@@ -468,8 +467,7 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
     """View of the player errors."""
 
     permission_classes = [
-        IsAuthenticated,
-        permissions.IsPlayer | internal_permissions.IsReadOnly,
+        IsAuthenticated & internal_permissions.IsReadOnly | permissions.IsPlayer
     ]
     serializer_class = serializers.PlayerErrorSerializer
     queryset = models.PlayerError.objects.order_by("date_created")

@@ -5,7 +5,7 @@ from django.utils.dateparse import parse_datetime
 
 from internal.tests.base_test import BaseAPITestCase, BaseProvider, UserModel, tz
 from library.models import Song, SongTag
-from playlist.models import Karaoke, Player, PlaylistEntry
+from playlist.models import Karaoke, Player, PlayerToken, PlaylistEntry
 
 
 class PlaylistProvider(BaseProvider):
@@ -130,6 +130,11 @@ class PlaylistProvider(BaseProvider):
         self.assertEqual(
             parse_datetime(json["date_played"]), expected_entry.date_played
         )
+
+    def get_player_token(self):
+        """Create and give player token."""
+        karaoke = Karaoke.objects.get_object()
+        return PlayerToken.objects.create(karaoke=karaoke).token
 
 
 class PlaylistAPITestCase(BaseAPITestCase, PlaylistProvider):

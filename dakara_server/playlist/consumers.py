@@ -77,17 +77,24 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         return self.get_channel_name() is not None
 
     def connect(self):
-        # ensure user is connected
-        if not isinstance(self.scope["user"], UserModel):
-            logger.error(
-                "Unauthenticated user tries to connect to playlist device consumer"
-            )
+        # get connection token
+        try:
+            _, token = dict(self.scope["headers"])[b"authorization"].decode().split()
+
+        except (KeyError, ValueError):
+            logger.error("Unable to get token from connection")
             self.close()
             return
 
-        # ensure user is player
-        if not self.scope["user"].is_player:
-            logger.error("Invalid user tries to connect to playlist device consumer")
+        # ensure a player token exists
+        karaoke = models.Karaoke.objects.get_object()
+        if not hasattr(karaoke, "player_token"):
+            logger.error("No player token generated")
+            self.close()
+
+        # ensure connection is from a player
+        if not token == karaoke.player_token.token:
+            logger.error("Invalid connection")
             self.close()
             return
 

@@ -54,7 +54,6 @@ class PlayerTokenViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # check the token
-        print(response.data)
         self.assertIsNotNone(response.data["token"])
         self.assertEqual(len(response.data["token"]), 40)
 
