@@ -134,7 +134,7 @@ class PlaylistProvider(BaseProvider):
     def get_player_token(self):
         """Create and give player token."""
         karaoke = Karaoke.objects.get_object()
-        return PlayerToken.objects.create(karaoke=karaoke).token
+        return PlayerToken.objects.create(karaoke=karaoke).key
 
 
 class PlaylistAPITestCase(BaseAPITestCase, PlaylistProvider):

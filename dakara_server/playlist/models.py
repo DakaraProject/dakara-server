@@ -161,15 +161,15 @@ class PlayerToken(models.Model):
     karaoke = models.OneToOneField(
         Karaoke, on_delete=models.CASCADE, primary_key=True, related_name="player_token"
     )
-    token = models.CharField(max_length=40, unique=True, editable=False)
+    key = models.CharField(max_length=40, unique=True, editable=False)
 
     def __str__(self):
         return "Player token"
 
     def save(self, *args, **kwargs):
         # create the token automatically using DRF method
-        if not self.token:
-            self.token = Token.generate_key()
+        if not self.key:
+            self.key = Token.generate_key()
 
         super().save(*args, **kwargs)
 

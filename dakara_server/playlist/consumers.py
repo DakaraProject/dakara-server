@@ -4,6 +4,7 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 
 from playlist import models, serializers
 
@@ -88,12 +89,15 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
 
         # ensure a player token exists
         karaoke = models.Karaoke.objects.get_object()
-        if not hasattr(karaoke, "player_token"):
+        try:
+            key = karaoke.player_token.key
+
+        except ObjectDoesNotExist:
             logger.error("No player token generated")
             self.close()
 
         # ensure connection is from a player
-        if not token == karaoke.player_token.token:
+        if not token == key:
             logger.error("Invalid connection")
             self.close()
             return

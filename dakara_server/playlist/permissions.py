@@ -39,14 +39,14 @@ class IsPlayer(BasePermissionCustom):
         except (KeyError, ValueError):
             return False
 
-        # try to get permission if player token is present
         karaoke = Karaoke.objects.get_object()
 
-        # exit early if no player token has been generated
-        if not hasattr(karaoke, "player_token"):
-            return False
+        # try to get permission if player token is present
+        try:
+            return token == karaoke.player_token.key
 
-        return token == karaoke.player_token.token
+        except ObjectDoesNotExist:
+            return False
 
 
 class IsOwner(permissions.BasePermission):

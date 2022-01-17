@@ -251,11 +251,13 @@ class KaraokeSerializer(serializers.ModelSerializer):
 
 
 class PlayerTokenSerializer(serializers.ModelSerializer):
+    karaoke_id = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = PlayerToken
         fields = (
-            "karaoke",
-            "token",
+            "karaoke_id",
+            "key",
         )
 
 

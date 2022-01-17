@@ -29,8 +29,8 @@ class PlayerTokenListViewTestCase(PlaylistAPITestCase):
         # check the token exists
         self.assertEqual(PlayerToken.objects.count(), 1)
         player_token = PlayerToken.objects.get(pk=karaoke.id)
-        self.assertIsNotNone(player_token.token)
-        self.assertEqual(len(player_token.token), 40)
+        self.assertIsNotNone(player_token.key)
+        self.assertEqual(len(player_token.key), 40)
 
 
 class PlayerTokenViewTestCase(PlaylistAPITestCase):
@@ -42,8 +42,7 @@ class PlayerTokenViewTestCase(PlaylistAPITestCase):
         # get karaoke and token
         karaoke = Karaoke.objects.get_object()
         player_token = PlayerToken.objects.create(karaoke=karaoke)
-        self.assertIsNotNone(player_token.token)
-        self.assertEqual(len(player_token.token), 40)
+        self.assertEqual(len(player_token.key), 40)
 
         # login
         self.authenticate(self.manager)
@@ -54,8 +53,10 @@ class PlayerTokenViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # check the token
-        self.assertIsNotNone(response.data["token"])
-        self.assertEqual(len(response.data["token"]), 40)
+        self.assertEqual(len(response.data["key"]), 40)
+        self.assertEqual(response.data["key"], player_token.key)
+
+        self.assertEqual(response.data["karaoke_id"], player_token.karaoke.id)
 
     def test_delete(self):
         """Test to delete a token"""

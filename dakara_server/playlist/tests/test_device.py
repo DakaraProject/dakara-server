@@ -67,7 +67,7 @@ async def get_player_token(get_karaoke):
             lambda: models.PlayerToken.objects.get_or_create(karaoke=karaoke)
         )()
 
-        return token.token
+        return token.key
 
     return func
 
