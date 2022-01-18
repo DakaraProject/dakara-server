@@ -106,7 +106,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
                 "playlist_entry_id": self.pe1.id,
                 "timing": 0,
             },
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -140,7 +140,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
                 "playlist_entry_id": self.pe1.id,
                 "timing": 2,
             },
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -179,7 +179,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
                 "playlist_entry_id": self.pe1.id,
                 "timing": 0,
             },
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -220,7 +220,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "resumed", "playlist_entry_id": self.pe1.id, "timing": 2},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -261,7 +261,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "paused", "playlist_entry_id": self.pe1.id, "timing": 2},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -299,7 +299,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "finished", "playlist_entry_id": self.pe1.id},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -335,7 +335,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "could_not_play", "playlist_entry_id": self.pe1.id},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -372,7 +372,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "finished", "playlist_entry_id": self.pe2.id, "timing": 2},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -437,7 +437,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.patch(
             self.url,
             data={"playlist_entry_id": self.pe1.id, "timing": 2},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -447,7 +447,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "invalid", "playlist_entry_id": self.pe1.id, "timing": 2},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -459,7 +459,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "finished", "playlist_entry_id": self.pe1.id},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -472,6 +472,6 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "started_transition", "playlist_entry_id": self.pe1.id},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

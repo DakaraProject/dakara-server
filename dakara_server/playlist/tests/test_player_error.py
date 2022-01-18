@@ -69,7 +69,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         response = self.client.post(
             self.url,
             data={"playlist_entry_id": self.pe1.id, "error_message": "dummy error"},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -97,7 +97,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         response = self.client.post(
             self.url,
             data={"playlist_entry_id": self.pe2.id, "error_message": "dummy error"},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -113,7 +113,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         response = self.client.post(
             self.url,
             data={"playlist_entry_id": self.pe2.id, "error_message": "dummy error"},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -137,7 +137,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         response = self.client.post(
             self.url,
             data={"playlist_entry_id": self.pe2.id, "error_message": "file not found"},
-            headers={"Authorization": "Token " + self.get_player_token()},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 

@@ -4,7 +4,7 @@ from rest_framework import permissions
 
 from internal.permissions import BasePermissionCustom
 from library.models import Song
-from playlist.models import Karaoke, PlaylistEntry
+from playlist.models import Karaoke, PlayerToken, PlaylistEntry
 
 UserModel = get_user_model()
 
@@ -32,21 +32,14 @@ class IsPlayer(BasePermissionCustom):
         if request.user.is_superuser:
             return True
 
-        # get token manually
-        try:
-            _, token = request.META["headers"]["Authorization"].split()
-
-        except (KeyError, ValueError):
+        # authentication must be made with a player token
+        if not isinstance(request.auth, PlayerToken):
             return False
 
         karaoke = Karaoke.objects.get_object()
 
-        # try to get permission if player token is present
-        try:
-            return token == karaoke.player_token.key
-
-        except ObjectDoesNotExist:
-            return False
+        # this verification is overkill as for now only one karaoke can exist
+        return karaoke == request.auth.karaoke
 
 
 class IsOwner(permissions.BasePermission):

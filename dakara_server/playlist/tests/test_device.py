@@ -466,7 +466,6 @@ class TestDevice:
         """Test to handle next playlist entries untill the end of the playlist."""
         # configure HTTP client
         url = reverse("playlist-player-status")
-        playlist_provider.authenticate(playlist_provider.player, client=client_drf)
 
         # mock the broadcaster
         # we cannot call it within an asynchronous test
@@ -502,7 +501,7 @@ class TestDevice:
                 "event": "started_transition",
                 "playlist_entry_id": playlist_provider.pe1.id,
             },
-            headers={"Authorization": "Token " + token},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -513,7 +512,7 @@ class TestDevice:
                 "event": "started_song",
                 "playlist_entry_id": playlist_provider.pe1.id,
             },
-            headers={"Authorization": "Token " + token},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -531,7 +530,7 @@ class TestDevice:
         response = client_drf.put(
             url,
             data={"event": "finished", "playlist_entry_id": playlist_provider.pe1.id},
-            headers={"Authorization": "Token " + token},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -557,7 +556,7 @@ class TestDevice:
                 "event": "started_transition",
                 "playlist_entry_id": playlist_provider.pe2.id,
             },
-            headers={"Authorization": "Token " + token},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -568,7 +567,7 @@ class TestDevice:
                 "event": "started_song",
                 "playlist_entry_id": playlist_provider.pe2.id,
             },
-            headers={"Authorization": "Token " + token},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -581,7 +580,7 @@ class TestDevice:
         response = client_drf.put(
             url,
             data={"event": "finished", "playlist_entry_id": playlist_provider.pe2.id},
-            headers={"Authorization": "Token " + token},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -624,7 +623,6 @@ class TestDevice:
         """Test to handle next playlist entries then pause then skip."""
         # configure HTTP client
         url = reverse("playlist-player-status")
-        playlist_provider.authenticate(playlist_provider.player, client=client_drf)
 
         # mock the broadcaster
         # we cannot call it within an asynchronous test
@@ -655,7 +653,7 @@ class TestDevice:
                 "event": "started_transition",
                 "playlist_entry_id": playlist_provider.pe1.id,
             },
-            headers={"Authorization": "Token " + token},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -666,7 +664,7 @@ class TestDevice:
                 "event": "started_song",
                 "playlist_entry_id": playlist_provider.pe1.id,
             },
-            headers={"Authorization": "Token " + token},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -695,7 +693,7 @@ class TestDevice:
                 "playlist_entry_id": playlist_provider.pe1.id,
                 "timing": 2,
             },
-            headers={"Authorization": "Token " + token},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -720,7 +718,7 @@ class TestDevice:
         response = client_drf.put(
             url,
             data={"event": "finished", "playlist_entry_id": playlist_provider.pe1.id},
-            headers={"Authorization": "Token " + token},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
