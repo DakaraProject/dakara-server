@@ -101,6 +101,55 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
+    async def test_authenticate_no_token_generated_failed(self, get_karaoke):
+        """Test to authenticate when no player token exists."""
+        # create a communicator
+        communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
+
+        # give it an invalid token
+        communicator.scope["headers"].append((b"authorization", b"Token 1234abcd"))
+
+        # check there is no communicator registered
+        karaoke = await get_karaoke()
+        assert karaoke.channel_name is None
+
+        # connect and check connection is established
+        connected, _ = await communicator.connect()
+        assert not connected
+
+        # check there are communicator registered
+        karaoke = await get_karaoke()
+        assert karaoke.channel_name is None
+
+        # close connection
+        await communicator.disconnect()
+
+    async def test_authenticate_invalid_token_failed(
+        self, get_karaoke, get_player_token
+    ):
+        """Test to authenticate with an invalid token."""
+        # create a communicator
+        communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
+
+        # give it an invalid token
+        await get_player_token()
+        communicator.scope["headers"].append((b"authorization", b"Token 1234abcd"))
+
+        # check there is no communicator registered
+        karaoke = await get_karaoke()
+        assert karaoke.channel_name is None
+
+        # connect and check connection is established
+        connected, _ = await communicator.connect()
+        assert not connected
+
+        # check there are communicator registered
+        karaoke = await get_karaoke()
+        assert karaoke.channel_name is None
+
+        # close connection
+        await communicator.disconnect()
+
     async def test_authenticate_twice_failed(self, get_player_token):
         """Test to authenticate two players successively.
 

@@ -95,6 +95,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         except ObjectDoesNotExist:
             logger.error("No player token generated")
             self.close()
+            return
 
         # ensure connection is from a player
         if not token == key:
