@@ -56,12 +56,6 @@ Otherwise:
 dakara_server/manage.py createsuperuser
 ```
 
-You should also create a player user, whose credentials will be used for the [player](https://github.com/DakaraProject/dakara-player-vlc):
-
-```sh
-dakara_server/manage.py createplayer
-```
-
 ### Start the server
 
 You're almost done! To start the server app, in the right virtual environment, do:
@@ -75,6 +69,9 @@ The server part is now set up correctly.
 ### Web client, Feeder and player
 
 Now setup the [web client](https://github.com/DakaraProject/dakara-client-web), [feeder](https://github.com/DakaraProject/dakara-feeder) and [player](https://github.com/DakaraProject/dakara-player-vlc) according to their respective documentations.
+The feeder can authenticate to the server using a token, or a couple login/password, of a playlist manager account.
+The player can authenticate using a special token that only a playlist manager can generate.
+Both token can be obtained from the web interface.
 
 After all of this is setup, just grab some friends and have fun!
 

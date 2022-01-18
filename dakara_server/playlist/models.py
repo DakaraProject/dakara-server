@@ -164,7 +164,7 @@ class PlayerToken(models.Model):
     key = models.CharField(max_length=40, unique=True, editable=False)
 
     def __str__(self):
-        return "Player token"
+        return f"player token {self.key} for {self.karaoke}"
 
     def save(self, *args, **kwargs):
         # create the token automatically using DRF method

@@ -29,9 +29,6 @@ class PlaylistProvider(BaseProvider):
             "testPlaylistManager", playlist_level=UserModel.MANAGER
         )
 
-        # create a player
-        self.player = self.create_user("testPlayer", playlist_level=UserModel.PLAYER)
-
         # Create tags
         self.tag1 = SongTag(name="TAG1")
         self.tag1.save()
