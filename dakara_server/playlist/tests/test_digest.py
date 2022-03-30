@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from playlist.models import PlayerError
+from playlist.models import Karaoke, PlayerError
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
@@ -31,6 +31,9 @@ class DigestViewTestCase(PlaylistAPITestCase):
         self.assertIn("player_errors", response.data)
         self.assertFalse(response.data["player_errors"])
         self.assertIn("karaoke", response.data)
+        self.assertEqual(
+            response.data["karaoke"]["id"], Karaoke.objects.get_object().id
+        )
         self.assertTrue(response.data["karaoke"]["ongoing"])
         self.assertTrue(response.data["karaoke"]["can_add_to_playlist"])
         self.assertTrue(response.data["karaoke"]["player_play_next_song"])

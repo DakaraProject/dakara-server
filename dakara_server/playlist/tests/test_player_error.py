@@ -65,13 +65,11 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.pe1.date_played = datetime.now(tz)
         self.pe1.save()
 
-        # log as player
-        self.authenticate(self.player)
-
         # request to create an error
         response = self.client.post(
             self.url,
             data={"playlist_entry_id": self.pe1.id, "error_message": "dummy error"},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -95,13 +93,11 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.pe1.date_played = datetime.now(tz)
         self.pe1.save()
 
-        # log as player
-        self.authenticate(self.player)
-
         # request to create an error
         response = self.client.post(
             self.url,
             data={"playlist_entry_id": self.pe2.id, "error_message": "dummy error"},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -113,13 +109,11 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         # pre assert
         self.assertEqual(PlayerError.objects.count(), 0)
 
-        # log as player
-        self.authenticate(self.player)
-
         # request to create an error
         response = self.client.post(
             self.url,
             data={"playlist_entry_id": self.pe2.id, "error_message": "dummy error"},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -139,13 +133,11 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.pe1.was_played = True
         self.pe1.save()
 
-        # log as player
-        self.authenticate(self.player)
-
         # request to create an error
         response = self.client.post(
             self.url,
             data={"playlist_entry_id": self.pe2.id, "error_message": "file not found"},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 

@@ -71,7 +71,6 @@ class TestDakaraUser:
         # assert their permissions
         assert user.is_playlist_user
         assert not user.is_playlist_manager
-        assert not user.is_player
 
         # create a playlist user
         user = models.DakaraUser(
@@ -81,7 +80,6 @@ class TestDakaraUser:
         # assert their permissions
         assert user.is_playlist_user
         assert not user.is_playlist_manager
-        assert not user.is_player
 
         # create a playlist manager
         manager = models.DakaraUser(
@@ -91,17 +89,6 @@ class TestDakaraUser:
         # assert their permissions
         assert not manager.is_playlist_user
         assert manager.is_playlist_manager
-        assert not manager.is_player
-
-        # create a player
-        player = models.DakaraUser(
-            username="player", playlist_permission_level=models.DakaraUser.PLAYER
-        )
-
-        # assert their permissions
-        assert not player.is_playlist_user
-        assert not player.is_playlist_manager
-        assert player.is_player
 
         # create a superuser
         superuser = models.DakaraUser(username="root", is_superuser=True)
@@ -109,7 +96,6 @@ class TestDakaraUser:
         # assert their permissions
         assert superuser.is_playlist_user
         assert not superuser.is_playlist_manager
-        assert not superuser.is_player
 
 
 class TestStringification:

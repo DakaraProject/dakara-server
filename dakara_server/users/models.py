@@ -22,7 +22,6 @@ class DakaraUser(AbstractUser):
     # permission levels per application
     USER = "u"
     MANAGER = "m"
-    PLAYER = "p"
 
     # role for Users app
     LEVELS_USERS = [(USER, "User"), (MANAGER, "Manager")]
@@ -38,14 +37,13 @@ class DakaraUser(AbstractUser):
     )
 
     # role for Playlist app
-    LEVELS_PLAYLIST = [(PLAYER, "Player"), (USER, "User"), (MANAGER, "Manager")]
+    LEVELS_PLAYLIST = [(USER, "User"), (MANAGER, "Manager")]
 
     playlist_permission_level = models.CharField(
         max_length=1, choices=LEVELS_PLAYLIST, null=True, default=USER
     )
 
     validated_by_email = models.BooleanField(default=False)
-
     validated_by_manager = models.BooleanField(default=False)
 
     def __str__(self):
@@ -74,7 +72,3 @@ class DakaraUser(AbstractUser):
     @property
     def is_playlist_manager(self):
         return self.playlist_permission_level == self.MANAGER
-
-    @property
-    def is_player(self):
-        return self.playlist_permission_level == self.PLAYER

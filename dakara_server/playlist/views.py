@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics as drf_generics
 from rest_framework import status
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,7 +17,7 @@ from rest_framework.views import APIView
 from internal import permissions as internal_permissions
 from internal.pagination import PageNumberPaginationCustom
 from library import permissions as library_permissions
-from playlist import models, permissions, serializers
+from playlist import authentications, models, permissions, serializers
 from playlist.consumers import send_to_channel
 from playlist.date_stop import KARAOKE_JOB_NAME, clear_date_stop, scheduler
 
@@ -334,15 +335,37 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
         return models.Karaoke.objects.get_object()
 
 
+class PlayerTokenListView(drf_generics.CreateAPIView):
+    queryset = models.PlayerToken.objects.all()
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlaylistManager,
+    ]
+    serializer_class = serializers.PlayerTokenSerializer
+
+
+class PlayerTokenView(drf_generics.RetrieveDestroyAPIView):
+    queryset = models.PlayerToken.objects.all()
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsPlaylistManager,
+    ]
+    serializer_class = serializers.PlayerTokenSerializer
+
+
 class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
     """View of the player.
 
     It allows to get and set the player status.
     """
 
+    authentication_classes = [
+        authentications.PlayerTokenAuthentication,
+        TokenAuthentication,
+        SessionAuthentication,
+    ]
     permission_classes = [
-        IsAuthenticated,
-        permissions.IsPlayer | internal_permissions.IsReadOnly,
+        IsAuthenticated & internal_permissions.IsReadOnly | permissions.IsPlayer
     ]
     serializer_class = serializers.PlayerStatusSerializer
 
@@ -449,9 +472,13 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 class PlayerErrorView(drf_generics.ListCreateAPIView):
     """View of the player errors."""
 
+    authentication_classes = [
+        authentications.PlayerTokenAuthentication,
+        TokenAuthentication,
+        SessionAuthentication,
+    ]
     permission_classes = [
-        IsAuthenticated,
-        permissions.IsPlayer | internal_permissions.IsReadOnly,
+        IsAuthenticated & internal_permissions.IsReadOnly | permissions.IsPlayer
     ]
     serializer_class = serializers.PlayerErrorSerializer
     queryset = models.PlayerError.objects.order_by("date_created")
