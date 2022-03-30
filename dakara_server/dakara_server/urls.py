@@ -58,6 +58,16 @@ urlpatterns = [
         name="playlist-player-command",
     ),
     path(
+        "api/playlist/player-token/",
+        playlist_views.PlayerTokenListView.as_view(),
+        name="playlist-player-token-list",
+    ),
+    path(
+        "api/playlist/player-token/<int:pk>/",
+        playlist_views.PlayerTokenView.as_view(),
+        name="playlist-player-token",
+    ),
+    path(
         "api/playlist/digest/",
         playlist_views.DigestView.as_view(),
         name="playlist-digest",

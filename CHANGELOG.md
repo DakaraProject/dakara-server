@@ -34,11 +34,26 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Update notes
+
+The player does not need a special user any more to communicate with the server.
+It is recommanded to delete this obsolete user from the database:
+
+```python
+python dakara_server/manage.py shell -c "from users.models import DakaraUser; DakaraUser.objects.filter(playlist_permission_level='p').delete()"
+```
+
 ### Added
 
 - Route for prune artists is `/api/library/artists/prune/` and route for prune works is `/api/library/works/prune/`.
 - Tags, work types and works are now created with the feeder, using the routes `api/library/song-tags/`, `api/library/work-types/` and `api/library/works/` respectively.
+- Player tokens are generated using the route `/api/playlist/player-token/`.
 - Songs can be restarted, rewound, or fast forwarded during playback.
+
+### Changed
+
+- The player is no longer treated as a special user.
+  It can connect using a special player token that only a playlist manager can generate.
 
 ### Removed
 
@@ -46,6 +61,7 @@ Any important notes regarding the update.
   Prune for artists and works can be done through the API now.
 - `createtags`, `createworktypes` and `createworks` commands.
   Creating tags, work types and works can be done through the API now.
+- `createplayer` command and "player" as playlist permission level.
 
 ## 1.7.0 - 2021-06-20
 

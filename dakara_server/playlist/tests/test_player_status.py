@@ -98,8 +98,6 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         now = datetime.now(tz)
         mocked_now.return_value = now
 
-        self.authenticate(self.player)
-
         # perform the request
         response = self.client.put(
             self.url,
@@ -108,6 +106,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
                 "playlist_entry_id": self.pe1.id,
                 "timing": 0,
             },
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -133,8 +132,6 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
     def test_put_status_started_transition_with_timing(self):
         """Test timing is 0 during transition."""
-        self.authenticate(self.player)
-
         # perform the request
         response = self.client.put(
             self.url,
@@ -143,6 +140,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
                 "playlist_entry_id": self.pe1.id,
                 "timing": 2,
             },
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -170,8 +168,6 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         now = datetime.now(tz)
         mocked_now.return_value = now
 
-        self.authenticate(self.player)
-
         # set the player already in transition
         self.player_play_next_song(in_transition=True)
 
@@ -183,6 +179,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
                 "playlist_entry_id": self.pe1.id,
                 "timing": 0,
             },
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -216,8 +213,6 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         now = datetime.now(tz)
         mocked_now.return_value = now
 
-        self.authenticate(self.player)
-
         # set the player already in play
         self.player_play_next_song(timing=timedelta(seconds=1), paused=True)
 
@@ -225,6 +220,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "resumed", "playlist_entry_id": self.pe1.id, "timing": 2},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -258,8 +254,6 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         now = datetime.now(tz)
         mocked_now.return_value = now
 
-        self.authenticate(self.player)
-
         # set the player already in play
         self.player_play_next_song(timing=timedelta(seconds=1))
 
@@ -271,6 +265,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
                 "playlist_entry_id": self.pe1.id,
                 "timing": 0,
             },
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -302,8 +297,6 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         now = datetime.now(tz)
         mocked_now.return_value = now
 
-        self.authenticate(self.player)
-
         # set the player in play
         self.player_play_next_song(timing=timedelta(seconds=1))
 
@@ -311,6 +304,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "paused", "playlist_entry_id": self.pe1.id, "timing": 2},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -337,8 +331,6 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
     @patch("playlist.views.send_to_channel")
     def test_put_status_finished(self, mocked_send_to_channel):
         """Test event finished."""
-        self.authenticate(self.player)
-
         # set the player in play
         self.player_play_next_song()
 
@@ -348,7 +340,9 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
         # perform the request
         response = self.client.put(
-            self.url, data={"event": "finished", "playlist_entry_id": self.pe1.id}
+            self.url,
+            data={"event": "finished", "playlist_entry_id": self.pe1.id},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -380,11 +374,11 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         now = datetime.now(tz)
         mocked_now.return_value = now
 
-        self.authenticate(self.player)
-
         # perform the request
         response = self.client.put(
-            self.url, data={"event": "could_not_play", "playlist_entry_id": self.pe1.id}
+            self.url,
+            data={"event": "could_not_play", "playlist_entry_id": self.pe1.id},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -414,8 +408,6 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
     def test_put_status_failed_wrong_playlist_entry(self):
         """Test to set the player status with another playlist entry."""
-        self.authenticate(self.player)
-
         # set the player already in play
         player_old = self.player_play_next_song(timing=timedelta(seconds=1))
 
@@ -423,6 +415,7 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "finished", "playlist_entry_id": self.pe2.id, "timing": 2},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -433,6 +426,9 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
 
     def test_put_status_forbidden_not_authenticated(self):
         """Test to set the player when not authenticated."""
+        # set the player in play
+        self.player_play_next_song(in_transition=True)
+
         response = self.client.put(
             self.url,
             data={
@@ -446,6 +442,10 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
     def test_put_status_forbidden_not_player(self):
         """Test to set the player when not a player user."""
         self.authenticate(self.user)
+
+        # set the player in play
+        self.player_play_next_song(in_transition=True)
+
         response = self.client.put(
             self.url,
             data={
@@ -456,43 +456,58 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_put_status_root(self):
+        """Test to set the player when root user."""
+        # set the player in play
+        self.player_play_next_song(in_transition=True)
+
+        self.user.is_superuser = True
+        self.user.save()
+        self.authenticate(self.user)
+        response = self.client.put(
+            self.url,
+            data={
+                "event": "started_song",
+                "playlist_entry_id": self.pe1.id,
+                "timing": 2,
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_patch_status_invalid_missing_event(self):
         """Test missing event is rejected."""
-        self.authenticate(self.player)
-
         # send a status without event
         response = self.client.patch(
-            self.url, data={"playlist_entry_id": self.pe1.id, "timing": 2}
+            self.url,
+            data={"playlist_entry_id": self.pe1.id, "timing": 2},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_status_invalid_wrong_event(self):
         """Test invalid event is rejected."""
-        self.authenticate(self.player)
-
         # send a status without event
         response = self.client.put(
             self.url,
             data={"event": "invalid", "playlist_entry_id": self.pe1.id, "timing": 2},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_status_invalid_incoherent_event_idle(self):
         """Test incoherent event is rejected when player is idle."""
-        self.authenticate(self.player)
-
         # the player is idle
 
         # send a status for finished song
         response = self.client.put(
-            self.url, data={"event": "finished", "playlist_entry_id": self.pe1.id}
+            self.url,
+            data={"event": "finished", "playlist_entry_id": self.pe1.id},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_status_invalid_incoherent_event_play(self):
         """Test incoherent event is rejected when player is playing."""
-        self.authenticate(self.player)
-
         # the player is playing
         self.player_play_next_song()
 
@@ -500,5 +515,6 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         response = self.client.put(
             self.url,
             data={"event": "started_transition", "playlist_entry_id": self.pe1.id},
+            HTTP_AUTHORIZATION="Token " + self.get_player_token(),
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

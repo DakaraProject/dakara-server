@@ -6,7 +6,7 @@ from library.serializers import (
     SongForPlayerSerializer,
     SongSerializer,
 )
-from playlist.models import Karaoke, Player, PlayerError, PlaylistEntry
+from playlist.models import Karaoke, Player, PlayerError, PlayerToken, PlaylistEntry
 from users.serializers import UserForPublicSerializer
 
 
@@ -247,10 +247,22 @@ class KaraokeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Karaoke
         fields = (
+            "id",
             "ongoing",
             "can_add_to_playlist",
             "player_play_next_song",
             "date_stop",
+        )
+
+
+class PlayerTokenSerializer(serializers.ModelSerializer):
+    karaoke_id = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = PlayerToken
+        fields = (
+            "karaoke_id",
+            "key",
         )
 
 

@@ -5,6 +5,7 @@ from django.db import models
 from django.db.utils import OperationalError
 from django.utils import timezone
 from ordered_model.models import OrderedModel, OrderedModelManager
+from rest_framework.authtoken.models import Token
 
 from internal import cache_model
 from users.models import DakaraUser
@@ -152,6 +153,25 @@ class Karaoke(models.Model):
 
     def __str__(self):
         return f"karaoke {self.pk}"
+
+
+class PlayerToken(models.Model):
+    """Token to access the player"""
+
+    karaoke = models.OneToOneField(
+        Karaoke, on_delete=models.CASCADE, primary_key=True, related_name="player_token"
+    )
+    key = models.CharField(max_length=40, unique=True, editable=False)
+
+    def __str__(self):
+        return f"player token {self.key} for {self.karaoke}"
+
+    def save(self, *args, **kwargs):
+        # create the token automatically using DRF method
+        if not self.key:
+            self.key = Token.generate_key()
+
+        super().save(*args, **kwargs)
 
 
 class PlayerError(models.Model):

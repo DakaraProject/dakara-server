@@ -14,13 +14,16 @@ channel_layer = get_channel_layer()
 
 
 @pytest.fixture
-async def communicator(playlist_provider):
+async def communicator(get_player_token):
     """Gives a WebSockets communicator."""
     # create a communicator
     communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
 
-    # artificially give it a user
-    communicator.scope["user"] = playlist_provider.player
+    # artificially set player token
+    token = await get_player_token()
+    communicator.scope["headers"].append(
+        (b"authorization", ("Token " + token).encode())
+    )
 
     await communicator.connect()
 
@@ -54,45 +57,33 @@ async def get_player(get_karaoke):
     return func
 
 
+@pytest.fixture
+async def get_player_token(get_karaoke):
+    """Gives a player token"""
+
+    async def func():
+        karaoke = await get_karaoke()
+        token, _ = await database_sync_to_async(
+            lambda: models.PlayerToken.objects.get_or_create(karaoke=karaoke)
+        )()
+
+        return token.key
+
+    return func
+
+
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 class TestDevice:
-    async def test_authenticate_basic(self, playlist_provider, get_karaoke):
+    async def test_authenticate(self, get_karaoke, get_player_token):
         """Test to authenticate as the communicator fixture."""
         # create a communicator
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
 
-        # artificially give it a user
-        communicator.scope["user"] = playlist_provider.player
-
-        # check there is no communicator registered
-        karaoke = await get_karaoke()
-        assert karaoke.channel_name is None
-
-        # connect and check connection is established
-        connected, _ = await communicator.connect()
-        assert connected
-
-        # check communicator is registered
-        karaoke = await get_karaoke()
-        assert karaoke.channel_name is not None
-
-        # close connection
-        await communicator.disconnect()
-
-    async def test_authenticate(self, playlist_provider, get_karaoke):
-        """Test to authenticate with a token.
-
-        This is the normal mechanism of real-life connection. In the tests, we
-        assume the user is already in the scope.
-        """
-        # create a token
-        headers = []
-        playlist_provider.authenticate(playlist_provider.player, headers=headers)
-
-        # create a communicator
-        communicator = WebsocketCommunicator(
-            application, "/ws/playlist/device/", headers=headers
+        # give it a valid token
+        token = await get_player_token()
+        communicator.scope["headers"].append(
+            (b"authorization", ("Token " + token).encode())
         )
 
         # check there is no communicator registered
@@ -102,7 +93,6 @@ class TestDevice:
         # connect and check connection is established
         connected, _ = await communicator.connect()
         assert connected
-        assert communicator.scope["user"] == playlist_provider.player
 
         # check communicator is registered
         karaoke = await get_karaoke()
@@ -111,21 +101,76 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
-    async def test_authenticate_player_twice_failed(self, playlist_provider):
+    async def test_authenticate_no_token_generated_failed(self, get_karaoke):
+        """Test to authenticate when no player token exists."""
+        # create a communicator
+        communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
+
+        # give it an invalid token
+        communicator.scope["headers"].append((b"authorization", b"Token 1234abcd"))
+
+        # check there is no communicator registered
+        karaoke = await get_karaoke()
+        assert karaoke.channel_name is None
+
+        # connect and check connection is established
+        connected, _ = await communicator.connect()
+        assert not connected
+
+        # check there are communicator registered
+        karaoke = await get_karaoke()
+        assert karaoke.channel_name is None
+
+        # close connection
+        await communicator.disconnect()
+
+    async def test_authenticate_invalid_token_failed(
+        self, get_karaoke, get_player_token
+    ):
+        """Test to authenticate with an invalid token."""
+        # create a communicator
+        communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
+
+        # give it an invalid token
+        await get_player_token()
+        communicator.scope["headers"].append((b"authorization", b"Token 1234abcd"))
+
+        # check there is no communicator registered
+        karaoke = await get_karaoke()
+        assert karaoke.channel_name is None
+
+        # connect and check connection is established
+        connected, _ = await communicator.connect()
+        assert not connected
+
+        # check there are communicator registered
+        karaoke = await get_karaoke()
+        assert karaoke.channel_name is None
+
+        # close connection
+        await communicator.disconnect()
+
+    async def test_authenticate_twice_failed(self, get_player_token):
         """Test to authenticate two players successively.
 
         The second connection should be rejected.
         """
+        token = await get_player_token()
+
         # authenticate first player
         communicator_first = WebsocketCommunicator(application, "/ws/playlist/device/")
-        communicator_first.scope["user"] = playlist_provider.player
+        communicator_first.scope["headers"].append(
+            (b"authorization", ("Token " + token).encode())
+        )
         connected, _ = await communicator_first.connect()
 
         assert connected
 
         # authenticate second player
         communicator_second = WebsocketCommunicator(application, "/ws/playlist/device/")
-        communicator_second.scope["user"] = playlist_provider.player
+        communicator_second.scope["headers"].append(
+            (b"authorization", ("Token " + token).encode())
+        )
         connected, _ = await communicator_second.connect()
 
         assert not connected
@@ -134,7 +179,7 @@ class TestDevice:
         await communicator_first.disconnect()
         await communicator_second.disconnect()
 
-    async def test_authenticate_user_failed(self, playlist_provider):
+    async def test_authenticate_normal_user_failed(self, playlist_provider):
         """Test to authenticate as a normal user."""
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
         communicator.scope["user"] = playlist_provider.user
@@ -145,9 +190,7 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
-    async def test_authenticate_anonymous_user_failed(
-        self, playlist_provider, get_karaoke
-    ):
+    async def test_authenticate_anonymous_user_failed(self, get_karaoke):
         """Test to authenticate as a anonymous user."""
         # create a communicator
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
@@ -167,13 +210,16 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
-    async def test_authenticate_playing_entry_playing(
-        self, playlist_provider, get_player
+    async def test_authenticate_playlist_entry_playing(
+        self, playlist_provider, get_player, get_player_token
     ):
         """Test to authenticate when a playlist entry is supposed to be playing."""
         # create a communicator
+        token = await get_player_token()
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
-        communicator.scope["user"] = playlist_provider.player
+        communicator.scope["headers"].append(
+            (b"authorization", ("Token " + token).encode())
+        )
 
         # set a playlist entry playing
         playlist_provider.player_play_next_song(timing=timedelta(seconds=10))
@@ -194,12 +240,13 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_receive_ready_send_playlist_entry(
-        self, playlist_provider, player, communicator
+        self, playlist_provider, get_player, communicator
     ):
         """Test that a new song is requested to play when the player is ready.
 
         There are playlist entries awaiting to be played.
         """
+        player = await get_player()
         assert player.playlist_entry is None
 
         # send the event
@@ -218,7 +265,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_receive_ready_send_idle(
-        self, playlist_provider, player, communicator
+        self, playlist_provider, get_player, communicator
     ):
         """Test that idle screen is requested to play when the player is ready.
 
@@ -229,6 +276,7 @@ class TestDevice:
             lambda: models.PlaylistEntry.objects.all().delete()
         )()
 
+        player = await get_player()
         assert player.playlist_entry is None
 
         # send the event
@@ -246,9 +294,11 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_playlist_entry(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
+        self, playlist_provider, communicator, get_karaoke, get_player
     ):
         """Test to send a new playlist entry to the device."""
+        player = await get_player()
+
         # pre assert
         assert playlist_provider.pe1.date_played is None
 
@@ -279,9 +329,11 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_playlist_entry_failed_none(
-        self, player, communicator, get_karaoke, get_player
+        self, communicator, get_karaoke, get_player
     ):
         """Test a null playlist entry cannot be sent to the device."""
+        player = await get_player()
+
         # pre assert
         assert player.playlist_entry is None
 
@@ -308,10 +360,11 @@ class TestDevice:
         # no need to close connection
 
     async def test_send_idle(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
+        self, playlist_provider, communicator, get_karaoke, get_player
     ):
         """Test to send a new playlist entry to the device."""
         karaoke = await get_karaoke()
+        player = await get_player()
 
         # call the method
         await channel_layer.send(karaoke.channel_name, {"type": "send_idle"})
@@ -334,10 +387,11 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_command_pause(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
+        self, playlist_provider, communicator, get_karaoke, get_player
     ):
         """Test to send to the player a pause command."""
         karaoke = await get_karaoke()
+        player = await get_player()
 
         # call the method
         await channel_layer.send(
@@ -362,11 +416,12 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
-    async def test_send_command_resume(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
+    async def test_send_command_play(
+        self, playlist_provider, communicator, get_karaoke, get_player
     ):
         """Test to send to the player a resume command."""
         karaoke = await get_karaoke()
+        player = await get_player()
 
         # call the method
         await channel_layer.send(
@@ -392,10 +447,11 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_command_restart(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
+        self, playlist_provider, communicator, get_karaoke, get_player
     ):
         """Test to send to the player a restart command."""
         karaoke = await get_karaoke()
+        player = await get_player()
 
         # call the method
         await channel_layer.send(
@@ -421,10 +477,11 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_command_skip(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
+        self, playlist_provider, communicator, get_karaoke, get_player
     ):
         """Test to send to the player a skip command."""
         karaoke = await get_karaoke()
+        player = await get_player()
 
         # call the method
         await channel_layer.send(
@@ -450,10 +507,11 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_command_rewind(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
+        self, playlist_provider, communicator, get_karaoke, get_player
     ):
         """Test to send to the player a rewind command."""
         karaoke = await get_karaoke()
+        player = await get_player()
 
         # call the method
         await channel_layer.send(
@@ -479,10 +537,11 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_command_fast_forward(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
+        self, playlist_provider, communicator, get_karaoke, get_player
     ):
         """Test to send to the player a fast forward command."""
         karaoke = await get_karaoke()
+        player = await get_player()
 
         # call the method
         await channel_layer.send(
@@ -507,11 +566,12 @@ class TestDevice:
         # close connection
         await communicator.disconnect()
 
-    async def test_send_command_failed(
-        self, player, communicator, get_karaoke, get_player
+    async def test_send_command_unknown_failed(
+        self, communicator, get_karaoke, get_player
     ):
         """Test an invalid command cannot be sent to the player."""
         karaoke = await get_karaoke()
+        player = await get_player()
 
         # call the method
         await channel_layer.send(
@@ -535,22 +595,25 @@ class TestDevice:
     async def test_send_handle_next(
         self,
         playlist_provider,
-        player,
         communicator,
         client_drf,
         mocker,
         get_karaoke,
         get_player,
+        get_player_token,
     ):
         """Test to handle next playlist entries untill the end of the playlist."""
         # configure HTTP client
         url = reverse("playlist-player-status")
-        playlist_provider.authenticate(playlist_provider.player, client=client_drf)
 
         # mock the broadcaster
         # we cannot call it within an asynchronous test
         mocker.patch("playlist.views.send_to_channel")
         # mocked_send_to_channel = mocker.patch("playlist.views.send_to_channel")
+
+        # create player and token
+        player = await get_player()
+        token = await get_player_token()
 
         # assert kara is ongoing and player play next song
         karaoke = await get_karaoke()
@@ -577,6 +640,7 @@ class TestDevice:
                 "event": "started_transition",
                 "playlist_entry_id": playlist_provider.pe1.id,
             },
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -587,6 +651,7 @@ class TestDevice:
                 "event": "started_song",
                 "playlist_entry_id": playlist_provider.pe1.id,
             },
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -604,6 +669,7 @@ class TestDevice:
         response = client_drf.put(
             url,
             data={"event": "finished", "playlist_entry_id": playlist_provider.pe1.id},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -629,6 +695,7 @@ class TestDevice:
                 "event": "started_transition",
                 "playlist_entry_id": playlist_provider.pe2.id,
             },
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -639,6 +706,7 @@ class TestDevice:
                 "event": "started_song",
                 "playlist_entry_id": playlist_provider.pe2.id,
             },
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -651,6 +719,7 @@ class TestDevice:
         response = client_drf.put(
             url,
             data={"event": "finished", "playlist_entry_id": playlist_provider.pe2.id},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -683,21 +752,24 @@ class TestDevice:
     async def test_send_handle_next_pause_skip(
         self,
         playlist_provider,
-        player,
         communicator,
         client_drf,
         mocker,
         get_karaoke,
         get_player,
+        get_player_token,
     ):
         """Test to handle next playlist entries then pause then skip."""
         # configure HTTP client
         url = reverse("playlist-player-status")
-        playlist_provider.authenticate(playlist_provider.player, client=client_drf)
 
         # mock the broadcaster
         # we cannot call it within an asynchronous test
         mocker.patch("playlist.views.send_to_channel")
+
+        # get player and token
+        player = await get_player()
+        token = await get_player_token()
 
         # assert player is currently idle
         assert player.playlist_entry is None
@@ -720,6 +792,7 @@ class TestDevice:
                 "event": "started_transition",
                 "playlist_entry_id": playlist_provider.pe1.id,
             },
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -730,6 +803,7 @@ class TestDevice:
                 "event": "started_song",
                 "playlist_entry_id": playlist_provider.pe1.id,
             },
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -758,6 +832,7 @@ class TestDevice:
                 "playlist_entry_id": playlist_provider.pe1.id,
                 "timing": 2,
             },
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -782,6 +857,7 @@ class TestDevice:
         response = client_drf.put(
             url,
             data={"event": "finished", "playlist_entry_id": playlist_provider.pe1.id},
+            HTTP_AUTHORIZATION="Token " + token,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -805,7 +881,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_handle_next_karaoke_not_ongoing(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
+        self, playlist_provider, communicator, get_karaoke, get_player
     ):
         """Test to handle next playlist entries when the karaoke is not ongoing."""
         # set the karaoke not ongoing
@@ -813,7 +889,9 @@ class TestDevice:
             lambda: playlist_provider.set_karaoke(ongoing=False)
         )()
 
+        # create karaoke and player
         karaoke = await get_karaoke()
+        player = await get_player()
 
         # empty the playlist
         await database_sync_to_async(
@@ -844,7 +922,7 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_send_handle_next_karaoke_not_play_next_song(
-        self, playlist_provider, player, communicator, get_karaoke, get_player
+        self, playlist_provider, communicator, get_karaoke, get_player, get_player_token
     ):
         """Test to handle next playlist entries when the player does not play
         next song."""
@@ -853,7 +931,9 @@ class TestDevice:
             lambda: playlist_provider.set_karaoke(player_play_next_song=False)
         )()
 
+        # create karaoke and player
         karaoke = await get_karaoke()
+        player = await get_player()
 
         # assert player is currently idle
         assert player.playlist_entry is None
@@ -879,23 +959,29 @@ class TestDevice:
         await communicator.disconnect()
 
     async def test_connect_reset_playing_playlist_entry(
-        self, playlist_provider, player, get_player
+        self, playlist_provider, get_player, get_player_token
     ):
-        """Test to reset playing playlist entry."""
+        """Test to reset playing playlist entry when connecting."""
+        token = await get_player_token()
         communicator = WebsocketCommunicator(application, "/ws/playlist/device/")
-        communicator.scope["user"] = playlist_provider.player
+        communicator.scope["headers"].append(
+            (b"authorization", ("Token " + token).encode())
+        )
         connected, _ = await communicator.connect()
 
         # set player playing
         await database_sync_to_async(
             lambda: playlist_provider.player_play_next_song()
         )()
+        player = await get_player()
         assert player.playlist_entry is not None
 
         # disconnect and reconnect the player
         await communicator.disconnect()
         communicator_new = WebsocketCommunicator(application, "/ws/playlist/device/")
-        communicator_new.scope["user"] = playlist_provider.player
+        communicator_new.scope["headers"].append(
+            (b"authorization", ("Token " + token).encode())
+        )
         connected, _ = await communicator_new.connect()
 
         # check that the player is idle
@@ -905,19 +991,21 @@ class TestDevice:
         await communicator_new.disconnect()
 
     async def test_disconnect_player_while_playing(
-        self, playlist_provider, player, communicator
+        self, playlist_provider, communicator, get_player
     ):
         """Test that current playlist entry is reseted when player is disconnected."""
         # start playing a song
         await database_sync_to_async(
             lambda: playlist_provider.player_play_next_song(timing=timedelta(seconds=1))
         )()
+        player = await get_player()
         assert player.playlist_entry == playlist_provider.pe1
 
         # stop the player connection
         await communicator.disconnect()
 
         # assert the play is stopped
+        player = await get_player()
         assert player.playlist_entry is None
         assert player.timing == timedelta()
 

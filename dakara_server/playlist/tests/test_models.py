@@ -387,3 +387,13 @@ class TestStringification:
         player = models.Player()
 
         assert str(player) == "player None"
+
+    @pytest.mark.django_db(transaction=True)
+    def test_player_token_str(self):
+        """Test the string representation of a player token."""
+        karaoke = models.Karaoke.objects.get_object()
+        player_token = models.PlayerToken.objects.create(
+            karaoke=karaoke, key="abdc1234"
+        )
+
+        assert str(player_token) == "player token abdc1234 for karaoke 1"
