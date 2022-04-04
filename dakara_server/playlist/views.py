@@ -240,7 +240,7 @@ class DigestView(APIView):
         # manually update the player timing
         now = datetime.now(tz)
         if player.playlist_entry:
-            if not player.paused:
+            if not player.paused and not player.in_transition:
                 player.timing += now - player.date
                 player.date = now
 
