@@ -48,6 +48,7 @@ python dakara_server/manage.py shell -c "from users.models import DakaraUser; Da
 - Route for prune artists is `/api/library/artists/prune/` and route for prune works is `/api/library/works/prune/`.
 - Tags, work types and works are now created with the feeder, using the routes `api/library/song-tags/`, `api/library/work-types/` and `api/library/works/` respectively.
 - Player tokens are generated using the route `/api/playlist/player-token/`.
+- Songs can be restarted, rewound, or fast forwarded during playback.
 
 ### Changed
 

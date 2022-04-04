@@ -209,6 +209,7 @@ class Player(cache_model.CacheModel):
     COULD_NOT_PLAY = "could_not_play"
     PAUSED = "paused"
     RESUMED = "resumed"
+    UPDATED_TIMING = "updated_timing"
     EVENTS = (
         (STARTED_TRANSITION, "Started transition"),
         (STARTED_SONG, "Started song"),
@@ -216,12 +217,23 @@ class Player(cache_model.CacheModel):
         (COULD_NOT_PLAY, "Could not play"),
         (PAUSED, "Paused"),
         (RESUMED, "Resumed"),
+        (UPDATED_TIMING, "Updated timing"),
     )
 
-    PLAY = "play"
+    RESUME = "resume"
     PAUSE = "pause"
+    RESTART = "restart"
     SKIP = "skip"
-    COMMANDS = ((PLAY, "Play"), (PAUSE, "Pause"), (SKIP, "Skip"))
+    REWIND = "rewind"
+    FAST_FORWARD = "fast_forward"
+    COMMANDS = (
+        (RESUME, "Resume"),
+        (PAUSE, "Pause"),
+        (RESTART, "Restart"),
+        (SKIP, "Skip"),
+        (REWIND, "Rewind"),
+        (FAST_FORWARD, "Fast forward"),
+    )
 
     @property
     def playlist_entry(self):

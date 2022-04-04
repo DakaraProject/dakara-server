@@ -240,7 +240,7 @@ class DigestView(APIView):
         # manually update the player timing
         now = datetime.now(tz)
         if player.playlist_entry:
-            if not player.paused:
+            if not player.paused and not player.in_transition:
                 player.timing += now - player.date
                 player.date = now
 
@@ -462,6 +462,14 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
 
         # log the info
         logger.debug("The player resumed playing")
+
+    def receive_updated_timing(self, playlist_entry, player):
+        """The player updated its timing."""
+        # update the player
+        player.save()
+
+        # log the info
+        logger.debug("The player updated its timing")
 
     def get_object(self):
         karaoke = models.Karaoke.objects.get_object()

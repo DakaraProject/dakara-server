@@ -419,13 +419,13 @@ class TestDevice:
     async def test_send_command_play(
         self, playlist_provider, communicator, get_karaoke, get_player
     ):
-        """Test to send to the player a play command."""
+        """Test to send to the player a resume command."""
         karaoke = await get_karaoke()
         player = await get_player()
 
         # call the method
         await channel_layer.send(
-            karaoke.channel_name, {"type": "send_command", "command": "play"}
+            karaoke.channel_name, {"type": "send_command", "command": "resume"}
         )
 
         # wait the outcoming event
@@ -433,7 +433,37 @@ class TestDevice:
 
         # assert the event
         assert event["type"] == "command"
-        assert event["data"]["command"] == "play"
+        assert event["data"]["command"] == "resume"
+
+        # assert there are no side effects
+        player_new = await get_player()
+        assert player_new == player
+
+        # check there are no other messages
+        done = await communicator.receive_nothing()
+        assert done
+
+        # close connection
+        await communicator.disconnect()
+
+    async def test_send_command_restart(
+        self, playlist_provider, communicator, get_karaoke, get_player
+    ):
+        """Test to send to the player a restart command."""
+        karaoke = await get_karaoke()
+        player = await get_player()
+
+        # call the method
+        await channel_layer.send(
+            karaoke.channel_name, {"type": "send_command", "command": "restart"}
+        )
+
+        # wait the outcoming event
+        event = await communicator.receive_json_from()
+
+        # assert the event
+        assert event["type"] == "command"
+        assert event["data"]["command"] == "restart"
 
         # assert there are no side effects
         player_new = await get_player()
@@ -464,6 +494,66 @@ class TestDevice:
         # assert the event
         assert event["type"] == "command"
         assert event["data"]["command"] == "skip"
+
+        # assert there are no side effects
+        player_new = await get_player()
+        assert player_new == player
+
+        # check there are no other messages
+        done = await communicator.receive_nothing()
+        assert done
+
+        # close connection
+        await communicator.disconnect()
+
+    async def test_send_command_rewind(
+        self, playlist_provider, communicator, get_karaoke, get_player
+    ):
+        """Test to send to the player a rewind command."""
+        karaoke = await get_karaoke()
+        player = await get_player()
+
+        # call the method
+        await channel_layer.send(
+            karaoke.channel_name, {"type": "send_command", "command": "rewind"}
+        )
+
+        # wait the outcoming event
+        event = await communicator.receive_json_from()
+
+        # assert the event
+        assert event["type"] == "command"
+        assert event["data"]["command"] == "rewind"
+
+        # assert there are no side effects
+        player_new = await get_player()
+        assert player_new == player
+
+        # check there are no other messages
+        done = await communicator.receive_nothing()
+        assert done
+
+        # close connection
+        await communicator.disconnect()
+
+    async def test_send_command_fast_forward(
+        self, playlist_provider, communicator, get_karaoke, get_player
+    ):
+        """Test to send to the player a fast forward command."""
+        karaoke = await get_karaoke()
+        player = await get_player()
+
+        # call the method
+        await channel_layer.send(
+            karaoke.channel_name, {"type": "send_command", "command": "fast_forward"}
+        )
+
+        # wait the outcoming event
+        event = await communicator.receive_json_from()
+
+        # assert the event
+        assert event["type"] == "command"
+        assert event["data"]["command"] == "fast_forward"
 
         # assert there are no side effects
         player_new = await get_player()
