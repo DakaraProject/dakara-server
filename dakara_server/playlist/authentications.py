@@ -10,6 +10,13 @@ class PlayerTokenAuthentication(BaseAuthentication):
     def authenticate(self, request):
         # check the request has a token
         try:
+            # NOTE: The normal authentication mechanism tries to get a user
+            # from the token provided in the HTTP headers, but does not
+            # recognizes player tokens, as this is not related to a normal
+            # user. Consequently, we have to re-process the token again. For
+            # the device, we chose to take into consideration the HTTP headers
+            # only.
+
             # just as Django Request, DRF Request object stores the
             # Authorization HTTP header this way
             _, token = request.META["HTTP_AUTHORIZATION"].split()
