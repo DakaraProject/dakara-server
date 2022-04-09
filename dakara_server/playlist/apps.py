@@ -7,9 +7,13 @@ class PlaylistConfig(DakaraConfig):
     name = "playlist"
 
     def ready_no_reload(self):
-        """Method called when app start."""
+        """Method called when app starts."""
         from playlist.date_stop import check_date_stop_on_app_ready
-        from playlist.models import clean_channel_names
 
         check_date_stop_on_app_ready()
+
+    def ready_reload(self):
+        """Method called when app starts or restarts."""
+        from playlist.models import clean_channel_names
+
         clean_channel_names()
