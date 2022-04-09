@@ -18,7 +18,7 @@ Installation guidelines are provided over here:
 
 ### System requirements
 
-* Python3, to make everything up and running (supported versions: 3.6, 3.7, 3.8 and 3.9).
+* Python3, to make everything up and running (supported versions: 3.7, 3.8, 3.9 and 3.10).
 
 Linux and Windows are supported.
 
