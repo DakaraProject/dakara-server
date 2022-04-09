@@ -1,9 +1,12 @@
+import sys
+
 import pytest
 
 from dakara_server import token_auth
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(sys.version_info < (3, 8), reason="Requires Python 3.8 or higher")
 class TestTokenAuthMiddleware:
     async def test_auth_header(self, mocker):
         """Test to authenticate through WebSocket with a token in the headers."""
