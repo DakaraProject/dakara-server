@@ -5,23 +5,21 @@ defined in the ASGI_APPLICATION setting.
 
 import os
 
-import django
-from channels.http import AsgiHandler
+from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
+from django.core.asgi import get_asgi_application
 
 from dakara_server.routing import websocket_urlpatterns
-from dakara_server.token_auth import TokenAuthMiddlewareStack
+from dakara_server.token_auth import TokenAuthMiddleware
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dakara_server.settings.development")
 
-django.setup()
-
 application = ProtocolTypeRouter(
     {
-        "http": AsgiHandler(),
+        "http": get_asgi_application(),
         "websocket": AllowedHostsOriginValidator(
-            TokenAuthMiddlewareStack(URLRouter(websocket_urlpatterns))
+            AuthMiddlewareStack(TokenAuthMiddleware(URLRouter(websocket_urlpatterns)))
         ),
     }
 )

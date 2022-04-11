@@ -62,6 +62,7 @@ python dakara_server/manage.py shell -c "from users.models import DakaraUser; Da
 - `createtags`, `createworktypes` and `createworks` commands.
   Creating tags, work types and works can be done through the API now.
 - `createplayer` command and "player" as playlist permission level.
+- Dropped support of Python 3.6.
 
 ## 1.7.0 - 2021-06-20
 

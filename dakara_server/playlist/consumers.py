@@ -80,6 +80,12 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
     def connect(self):
         # get connection token
         try:
+            # NOTE: The middleware already tries to get a user from the token
+            # provided in the URL query string or the HTTP headers, but does
+            # not recognizes player tokens, as this is not related to a normal
+            # user. Consequently, we have to re-process the token again. For
+            # the device, we chose to take into consideration the HTTP headers
+            # only.
             _, token = dict(self.scope["headers"])[b"authorization"].decode().split()
 
         except (KeyError, ValueError):

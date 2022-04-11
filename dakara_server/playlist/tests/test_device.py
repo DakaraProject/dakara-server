@@ -1,6 +1,8 @@
 from datetime import timedelta
 
 import pytest
+import pytest_asyncio
+from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from channels.testing import WebsocketCommunicator
@@ -13,7 +15,7 @@ from playlist import models
 channel_layer = get_channel_layer()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def communicator(get_player_token):
     """Gives a WebSockets communicator."""
     # create a communicator
@@ -30,7 +32,7 @@ async def communicator(get_player_token):
     return communicator
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def get_karaoke():
     """Allows to retrieve a karaoke"""
 
@@ -42,7 +44,7 @@ async def get_karaoke():
     return func
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def get_player(get_karaoke):
     """Allows to retrieve a player"""
 
@@ -57,7 +59,7 @@ async def get_player(get_karaoke):
     return func
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def get_player_token(get_karaoke):
     """Gives a player token"""
 
@@ -222,8 +224,11 @@ class TestDevice:
         )
 
         # set a playlist entry playing
-        playlist_provider.player_play_next_song(timing=timedelta(seconds=10))
-        playlist_entry = (await get_player()).playlist_entry
+        await sync_to_async(playlist_provider.player_play_next_song)(
+            timing=timedelta(seconds=10)
+        )
+        player = await get_player()
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
         assert playlist_entry is not None
 
         # connect and check connection is established
@@ -247,7 +252,8 @@ class TestDevice:
         There are playlist entries awaiting to be played.
         """
         player = await get_player()
-        assert player.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is None
 
         # send the event
         await communicator.send_json_to({"type": "ready"})
@@ -277,7 +283,8 @@ class TestDevice:
         )()
 
         player = await get_player()
-        assert player.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is None
 
         # send the event
         await communicator.send_json_to({"type": "ready"})
@@ -335,7 +342,8 @@ class TestDevice:
         player = await get_player()
 
         # pre assert
-        assert player.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is None
 
         karaoke = await get_karaoke()
 
@@ -621,7 +629,8 @@ class TestDevice:
         assert karaoke.player_play_next_song
 
         # assert player is currently idle
-        assert player.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is None
 
         # play the first playlist entry
         await channel_layer.send(karaoke.channel_name, {"type": "handle_next"})
@@ -634,7 +643,7 @@ class TestDevice:
         assert event["data"]["id"] == playlist_provider.pe1.id
 
         # notify the first playlist entry is being played
-        response = client_drf.put(
+        response = await sync_to_async(client_drf.put)(
             url,
             data={
                 "event": "started_transition",
@@ -645,7 +654,7 @@ class TestDevice:
 
         assert response.status_code == status.HTTP_200_OK
 
-        response = client_drf.put(
+        response = await sync_to_async(client_drf.put)(
             url,
             data={
                 "event": "started_song",
@@ -658,7 +667,8 @@ class TestDevice:
 
         # assert the player has been updated
         player = await get_player()
-        assert player.playlist_entry == playlist_provider.pe1
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry == playlist_provider.pe1
 
         # # assert the front has been notified
         # mocked_send_to_channel.assert_called_with(
@@ -666,7 +676,7 @@ class TestDevice:
         # )
 
         # notify the first playlist entry has finished
-        response = client_drf.put(
+        response = await sync_to_async(client_drf.put)(
             url,
             data={"event": "finished", "playlist_entry_id": playlist_provider.pe1.id},
             HTTP_AUTHORIZATION="Token " + token,
@@ -676,7 +686,8 @@ class TestDevice:
 
         # assert the player has been updated
         player = await get_player()
-        assert player.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is None
 
         # play the second playlist entry
         await channel_layer.send(karaoke.channel_name, {"type": "handle_next"})
@@ -689,7 +700,7 @@ class TestDevice:
         assert event["data"]["id"] == playlist_provider.pe2.id
 
         # notify the second playlist entry is being played
-        response = client_drf.put(
+        response = await sync_to_async(client_drf.put)(
             url,
             data={
                 "event": "started_transition",
@@ -700,7 +711,7 @@ class TestDevice:
 
         assert response.status_code == status.HTTP_200_OK
 
-        response = client_drf.put(
+        response = await sync_to_async(client_drf.put)(
             url,
             data={
                 "event": "started_song",
@@ -713,10 +724,11 @@ class TestDevice:
 
         # assert the player has been updated
         player = await get_player()
-        assert player.playlist_entry == playlist_provider.pe2
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry == playlist_provider.pe2
 
         # notify the second playlist entry has finished
-        response = client_drf.put(
+        response = await sync_to_async(client_drf.put)(
             url,
             data={"event": "finished", "playlist_entry_id": playlist_provider.pe2.id},
             HTTP_AUTHORIZATION="Token " + token,
@@ -726,7 +738,8 @@ class TestDevice:
 
         # assert the player has been updated
         player = await get_player()
-        assert player.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is None
 
         # # assert the front has been notified
         # mocked_send_to_channel.assert_called_with(
@@ -772,7 +785,8 @@ class TestDevice:
         token = await get_player_token()
 
         # assert player is currently idle
-        assert player.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is None
 
         # play the first playlist entry
         karaoke = await get_karaoke()
@@ -786,7 +800,7 @@ class TestDevice:
         assert event["data"]["id"] == playlist_provider.pe1.id
 
         # notify the first playlist entry is being played
-        response = client_drf.put(
+        response = await sync_to_async(client_drf.put)(
             url,
             data={
                 "event": "started_transition",
@@ -797,7 +811,7 @@ class TestDevice:
 
         assert response.status_code == status.HTTP_200_OK
 
-        response = client_drf.put(
+        response = await sync_to_async(client_drf.put)(
             url,
             data={
                 "event": "started_song",
@@ -810,7 +824,8 @@ class TestDevice:
 
         # assert the player has been updated
         player = await get_player()
-        assert player.playlist_entry == playlist_provider.pe1
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry == playlist_provider.pe1
 
         # pause the player
         await channel_layer.send(
@@ -825,7 +840,7 @@ class TestDevice:
         assert event["data"]["command"] == "pause"
 
         # notify the player is paused
-        response = client_drf.put(
+        response = await sync_to_async(client_drf.put)(
             url,
             data={
                 "event": "paused",
@@ -854,7 +869,7 @@ class TestDevice:
         assert event["data"]["command"] == "skip"
 
         # notify the first playlist entry has finished
-        response = client_drf.put(
+        response = await sync_to_async(client_drf.put)(
             url,
             data={"event": "finished", "playlist_entry_id": playlist_provider.pe1.id},
             HTTP_AUTHORIZATION="Token " + token,
@@ -864,7 +879,8 @@ class TestDevice:
 
         # assert the player has been updated
         player2 = await get_player()
-        assert player2.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player2.playlist_entry)()
+        assert playlist_entry is None
         assert not player2.paused
 
         # play the second playlist entry
@@ -899,7 +915,8 @@ class TestDevice:
         )()
 
         # assert player is currently idle
-        assert player.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is None
 
         # the playlist should be empty
         await channel_layer.send(karaoke.channel_name, {"type": "handle_next"})
@@ -936,7 +953,8 @@ class TestDevice:
         player = await get_player()
 
         # assert player is currently idle
-        assert player.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is None
 
         # there should not be anything to play for now
         await channel_layer.send(karaoke.channel_name, {"type": "handle_next"})
@@ -974,7 +992,8 @@ class TestDevice:
             lambda: playlist_provider.player_play_next_song()
         )()
         player = await get_player()
-        assert player.playlist_entry is not None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is not None
 
         # disconnect and reconnect the player
         await communicator.disconnect()
@@ -986,7 +1005,8 @@ class TestDevice:
 
         # check that the player is idle
         player_new = await get_player()
-        assert player_new.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player_new.playlist_entry)()
+        assert playlist_entry is None
 
         await communicator_new.disconnect()
 
@@ -999,14 +1019,16 @@ class TestDevice:
             lambda: playlist_provider.player_play_next_song(timing=timedelta(seconds=1))
         )()
         player = await get_player()
-        assert player.playlist_entry == playlist_provider.pe1
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry == playlist_provider.pe1
 
         # stop the player connection
         await communicator.disconnect()
 
         # assert the play is stopped
         player = await get_player()
-        assert player.playlist_entry is None
+        playlist_entry = await sync_to_async(lambda: player.playlist_entry)()
+        assert playlist_entry is None
         assert player.timing == timedelta()
 
         # check there are no other messages

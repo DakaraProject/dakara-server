@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf import settings
-from django.conf.urls import url
+from django.conf.urls import re_path
 from django.contrib import admin
 from django.contrib.staticfiles.views import serve
 from django.urls import include, path
@@ -166,7 +166,7 @@ if settings.DEBUG:
     urlpatterns.extend(
         [
             # Default to main page
-            url(
+            re_path(
                 r"^(?!api/|api-docs/?)",  # serve everything but the API routes
                 # API documentation routes
                 serve,

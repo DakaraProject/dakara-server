@@ -58,6 +58,10 @@ AUTH_USER_MODEL = "users.DakaraUser"
 
 ASGI_APPLICATION = "dakara_server.asgi.application"
 
+# fields
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 # urls
 
 ROOT_URLCONF = "dakara_server.urls"

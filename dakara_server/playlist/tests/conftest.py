@@ -1,4 +1,4 @@
-import pytest
+import pytest_asyncio
 from channels.db import database_sync_to_async
 from rest_framework.test import APIClient
 
@@ -12,11 +12,11 @@ def get_playlist_provider():
     return provider
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def playlist_provider():
     return await get_playlist_provider()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def client_drf():
     return APIClient()
