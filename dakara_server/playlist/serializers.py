@@ -15,12 +15,6 @@ from users.serializers import UserForPublicSerializer
 tz = timezone.get_default_timezone()
 
 
-class SerializerMethodSecondsDurationField(
-    serializers.SerializerMethodField, SecondsDurationField
-):
-    """Read value with a method, write with a provided field."""
-
-
 class PlaylistEntrySerializer(serializers.ModelSerializer):
     """Playlist entry serializer."""
 
@@ -302,7 +296,7 @@ class PlayerTokenSerializer(serializers.ModelSerializer):
 class DigestSerializer(serializers.Serializer):
     """Combine player info and kara status."""
 
-    player_status = PlayerStatusSerializer()  # TODO test this
+    player_status = PlayerStatusSerializer()
     player_errors = PlayerErrorSerializer(many=True)
     karaoke = KaraokeSerializer()
 

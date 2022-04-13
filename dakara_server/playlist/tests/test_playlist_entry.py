@@ -3,6 +3,7 @@ from unittest.mock import ANY, patch
 
 from django.urls import reverse
 from django.utils.dateparse import parse_datetime
+from freezegun import freeze_time
 from rest_framework import status
 
 from internal.tests.base_test import UserModel, tz
@@ -16,16 +17,9 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
     def setUp(self):
         self.create_test_data()
 
-    @patch(
-        "playlist.views.datetime",
-        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
-    )
-    def test_get_playlist_entries_list(self, mocked_datetime):
+    @freeze_time("1970-01-01 00:01:00")
+    def test_get_playlist_entries_list(self):
         """Test to verify playlist entries list."""
-        # patch the now method
-        now = datetime.now(tz)
-        mocked_datetime.now.return_value = now
-
         # Login as simple user
         self.authenticate(self.user)
 
@@ -42,6 +36,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.check_playlist_entry_json(pe2, self.pe2)
 
         # check the date of the end of the playlist
+        now = datetime.now(tz)
         self.assertEqual(
             parse_datetime(response.data["date_end"]),
             now + self.pe1.song.duration + self.pe2.song.duration,
@@ -51,20 +46,13 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(parse_datetime(pe1["date_play"]), now)
         self.assertEqual(parse_datetime(pe2["date_play"]), now + self.pe1.song.duration)
 
-    @patch(
-        "playlist.views.datetime",
-        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
-    )
-    def test_get_playlist_entries_list_while_playing(self, mocked_datetime):
+    @freeze_time("1970-01-01 00:01:00")
+    def test_get_playlist_entries_list_while_playing(self):
         """Test to verify playlist entries play dates while playing.
 
         The player is currently in the middle of the song, play dates should
         take account of the remaining time of the player.
         """
-        # patch the now method
-        now = datetime.now(tz)
-        mocked_datetime.now.return_value = now
-
         # set the player
         karaoke = Karaoke.objects.get_object()
         player, _ = Player.cache.get_or_create(karaoke=karaoke)
@@ -74,6 +62,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         player.save()
 
         # set the entry
+        now = datetime.now(tz)
         self.pe1.date_played = now - play_duration
         self.pe1.save()
 
@@ -325,26 +314,18 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(PlaylistEntry.objects.count(), 5)
 
-    @patch(
-        "playlist.views.datetime",
-        side_effect=lambda *args, **kwargs: datetime(*args, **kwargs),
-    )
-    def test_post_create_playlist_entry_date_stop_forbidden_playlist_playing(
-        self, mocked_datetime
-    ):
+    @freeze_time("1970-01-01 00:01:00")
+    def test_post_create_playlist_entry_date_stop_forbidden_playlist_playing(self):
         """Test user cannot add song to playlist after its date stop.
 
         Test that only short enough songs can be added.
         Test when the player is playing.
         """
-        # patch the now method
-        now = datetime.now(tz)
-        mocked_datetime.now.return_value = now
-
         # set the player
         self.player_play_next_song(timing=timedelta(seconds=2))
 
         # set kara stop such as to allow song1 to be added and not song2
+        now = datetime.now(tz)
         date_stop = now + timedelta(seconds=20)
         karaoke = Karaoke.objects.get_object()
         karaoke.date_stop = date_stop
