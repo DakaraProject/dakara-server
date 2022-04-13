@@ -117,6 +117,13 @@ class DigestViewTestCase(PlaylistAPITestCase):
             errors[0].playlist_entry.id,
         )
         self.assertEqual(
+            response.data["player_errors"][0]["playlist_entry"]["song"]["id"],
+            errors[0].playlist_entry.song.id,
+        )
+        self.assertNotIn(
+            "artists", response.data["player_errors"][0]["playlist_entry"]["song"]
+        )
+        self.assertEqual(
             response.data["player_errors"][1]["playlist_entry"]["id"],
             errors[1].playlist_entry.id,
         )

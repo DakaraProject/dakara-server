@@ -188,7 +188,7 @@ class WorkSerializer(serializers.ModelSerializer):
             "work_type",
             "song_count",
         )
-        read_only_fiels = ("id", "song_count")
+        read_only_fields = ("id", "song_count")
 
     @staticmethod
     def get_song_count(work):
@@ -430,6 +430,15 @@ class SongForFeederSerializer(serializers.ModelSerializer):
         model = Song
         fields = ("id", "filename", "directory")
         read_only_fields = ("id", "filename", "directory")
+
+
+class SongForDigestSerializer(serializers.ModelSerializer):
+    """Song serializer for playlist digest info."""
+
+    class Meta:
+        model = Song
+        fields = ("id", "title")
+        read_only_fields = ("id", "title")
 
 
 class WorkForFeederSerializer(serializers.ModelSerializer):

@@ -6,6 +6,7 @@ from rest_framework import serializers
 from library.models import Song
 from library.serializers import (
     SecondsDurationField,
+    SongForDigestSerializer,
     SongForPlayerSerializer,
     SongSerializer,
 )
@@ -74,6 +75,13 @@ class PlaylistEntryWithDatePlaySerializer(PlaylistEntrySerializer):
         )
 
 
+class PlaylistEntriesWithDateEndSerializer(serializers.Serializer):
+    """Playlist entries with playlist end date."""
+
+    results = PlaylistEntryWithDatePlaySerializer(many=True, read_only=True)
+    date_end = serializers.DateTimeField(read_only=True)
+
+
 class PlaylistPlayedEntryWithDatePlayedSerializer(PlaylistEntrySerializer):
     """Playlist entry serializer.
 
@@ -92,11 +100,15 @@ class PlaylistPlayedEntryWithDatePlayedSerializer(PlaylistEntrySerializer):
         read_only_fields = ("date_created", "date_played")
 
 
-class PlaylistEntriesWithDateEndSerializer(serializers.Serializer):
-    """Playlist entries with playlist end date."""
+class PlaylistPlayedEntryForDigestSerializer(serializers.ModelSerializer):
+    """Played playlist entry serializer for playlist digest info."""
 
-    results = PlaylistEntryWithDatePlaySerializer(many=True, read_only=True)
-    date_end = serializers.DateTimeField(read_only=True)
+    song = SongForDigestSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = PlaylistEntry
+        fields = ("id", "song")
+        read_only_fields = ("id", "song")
 
 
 class PlayerStatusSerializer(serializers.ModelSerializer):
@@ -262,6 +274,22 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
         return playlist_entry
 
 
+class PlayerErrorForDigestSerializer(serializers.ModelSerializer):
+    """Player error serializers for playlist digest info."""
+
+    playlist_entry = PlaylistPlayedEntryForDigestSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = PlayerError
+        fields = (
+            "id",
+            "playlist_entry",
+            "error_message",
+            "date_created",
+        )
+        read_only_fields = ("id", "playlist_entry", "error_message", "date_created")
+
+
 class PlayerCommandSerializer(serializers.Serializer):
     """Player command serializer."""
 
@@ -297,7 +325,7 @@ class DigestSerializer(serializers.Serializer):
     """Combine player info and kara status."""
 
     player_status = PlayerStatusSerializer()
-    player_errors = PlayerErrorSerializer(many=True)
+    player_errors = PlayerErrorForDigestSerializer(many=True)
     karaoke = KaraokeSerializer()
 
 
