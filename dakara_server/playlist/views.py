@@ -183,7 +183,7 @@ class PlaylistPlayedEntryListView(drf_generics.ListAPIView):
     """List of played entries."""
 
     pagination_class = PlaylistEntryPagination
-    serializer_class = serializers.PlaylistPlayedEntryWithDatePlayedSerializer
+    serializer_class = serializers.PlaylistEntrySerializer
     queryset = models.PlaylistEntry.objects.get_playlist_played()
 
 

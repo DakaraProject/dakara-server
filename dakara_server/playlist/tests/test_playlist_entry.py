@@ -63,7 +63,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
 
         # set the entry
         now = datetime.now(tz)
-        self.pe1.date_played = now - play_duration
+        self.pe1.date_play = now - play_duration
         self.pe1.save()
 
         # Login as simple user

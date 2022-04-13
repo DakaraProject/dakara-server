@@ -63,7 +63,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # request to create an error
@@ -91,7 +91,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # request to create an error
@@ -130,7 +130,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
         # set first playlit entry played
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.was_played = True
         self.pe1.save()
 
@@ -148,7 +148,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
     def test_post_error_forbidden_not_authenticated(self):
         """Test to create an error when not loged in."""
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # request to create an error
@@ -161,7 +161,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
     def test_post_error_forbidden_not_player(self):
         """Test to create an error when not loged in as player."""
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # log in as user

@@ -18,7 +18,7 @@ class PlaylistManager(OrderedModelManager):
 
     def get_playing(self):
         """Get the current playlist entry."""
-        playlist = self.filter(was_played=False, date_played__isnull=False)
+        playlist = self.filter(was_played=False, date_play__isnull=False)
 
         if not playlist:
             return None
@@ -36,7 +36,7 @@ class PlaylistManager(OrderedModelManager):
     def get_playlist(self):
         """Get the playlist of ongoing entries."""
         queryset = self.exclude(
-            models.Q(was_played=True) | models.Q(date_played__isnull=False)
+            models.Q(was_played=True) | models.Q(date_play__isnull=False)
         )
 
         return queryset
@@ -83,7 +83,7 @@ class PlaylistEntry(OrderedModel):
     date_created = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(DakaraUser, null=False, on_delete=models.CASCADE)
     was_played = models.BooleanField(default=False, null=False)
-    date_played = models.DateTimeField(null=True)
+    date_play = models.DateTimeField(null=True)
 
     class Meta(OrderedModel.Meta):
         pass
@@ -98,7 +98,7 @@ class PlaylistEntry(OrderedModel):
             raise RuntimeError("A playlist entry is currently in play")
 
         # set the playlist entry
-        self.date_played = datetime.now(tz)
+        self.date_play = datetime.now(tz)
         self.save()
 
     def set_finished(self):
