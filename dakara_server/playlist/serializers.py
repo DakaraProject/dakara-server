@@ -215,7 +215,12 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlayerError
-        fields = ("playlist_entry", "playlist_entry_id", "error_message")
+        fields = (
+            "playlist_entry",
+            "playlist_entry_id",
+            "error_message",
+            "date_created",
+        )
         read_only_fields = ("date_created",)
 
     def validate_playlist_entry_id(self, playlist_entry):

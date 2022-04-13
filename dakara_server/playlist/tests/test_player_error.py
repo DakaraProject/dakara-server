@@ -49,6 +49,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
             response.data["results"][0]["playlist_entry"]["id"], self.pe1.id
         )
         self.assertEqual(response.data["results"][0]["error_message"], "dummy error")
+        self.assertIsNotNone(response.data["results"][0]["date_created"])
 
     def test_get_errors_forbidden(self):
         """Test to get errors when not authenticated."""
