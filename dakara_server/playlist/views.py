@@ -237,13 +237,6 @@ class DigestView(APIView):
         # Get player
         player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
 
-        # manually update the player timing
-        now = datetime.now(tz)
-        if player.playlist_entry:
-            if not player.paused and not player.in_transition:
-                player.timing += now - player.date
-                player.date = now
-
         # Get player errors
         player_errors_pool = models.PlayerError.objects.all()
 

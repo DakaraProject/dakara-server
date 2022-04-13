@@ -1,3 +1,6 @@
+from datetime import datetime
+
+from django.utils import timezone
 from rest_framework import serializers
 
 from library.models import Song
@@ -8,6 +11,14 @@ from library.serializers import (
 )
 from playlist.models import Karaoke, Player, PlayerError, PlayerToken, PlaylistEntry
 from users.serializers import UserForPublicSerializer
+
+tz = timezone.get_default_timezone()
+
+
+class SerializerMethodSecondsDurationField(
+    serializers.SerializerMethodField, SecondsDurationField
+):
+    """Read value with a method, write with a provided field."""
 
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
@@ -128,6 +139,23 @@ class PlayerStatusSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("paused", "in_transition", "date", "playlist_entry")
         to_update_fields = ("timing",)
+
+    @property
+    def data(self):
+        self.recalculate_timing()
+        return super().data
+
+    def recalculate_timing(self):
+        """Manually update the player timing."""
+        player = self.instance
+        if player is None:
+            return
+
+        now = datetime.now(tz)
+        if player.playlist_entry:
+            if not player.paused and not player.in_transition:
+                player.timing += now - player.date
+                player.date = now
 
     def update(self, instance, validated_data):
         # filter out read only values

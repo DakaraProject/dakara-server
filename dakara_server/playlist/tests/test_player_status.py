@@ -3,6 +3,7 @@ from unittest.mock import ANY, patch
 
 from django.urls import reverse
 from django.utils.dateparse import parse_datetime
+from freezegun import freeze_time
 from rest_framework import status
 
 from internal.tests.base_test import tz
@@ -65,7 +66,26 @@ class PlayerStatusViewTestCase(PlaylistAPITestCase):
         self.assertFalse(response.data["in_transition"])
         self.assertEqual(response.data["timing"], 2)
         self.assertFalse(response.data["paused"])
-        self.assertEqual(parse_datetime(response.data["date"]), player.date)
+        self.assertGreaterEqual(parse_datetime(response.data["date"]), player.date)
+
+    def test_get_status_in_play_with_timing_delayed(self):
+        """Test to access the player status when in play with timing with delay."""
+        # set the player in play
+        with freeze_time("1970-01-01 00:01:00"):
+            self.player_play_next_song(timing=timedelta(seconds=2))
+
+        with freeze_time("1970-01-01 00:01:02"):
+            now = datetime.now(tz)
+            self.authenticate(self.user)
+
+            # assert the status of the player
+            response = self.client.get(self.url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.data["playlist_entry"]["id"], self.pe1.id)
+            self.assertFalse(response.data["in_transition"])
+            self.assertEqual(response.data["timing"], 4)
+            self.assertFalse(response.data["paused"])
+            self.assertEqual(parse_datetime(response.data["date"]), now)
 
     def test_get_status_in_pause_with_timing(self):
         """Test to access the player status when in pause with timing."""
