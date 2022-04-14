@@ -59,12 +59,39 @@ class DigestViewTestCase(PlaylistAPITestCase):
         self.assertEqual(
             response.data["player_status"]["playlist_entry"]["id"], self.pe1.id
         )
+        self.assertEqual(response.data["player_status"]["timing"], 0)
         self.assertIn("player_errors", response.data)
         self.assertFalse(response.data["player_errors"])
         self.assertIn("karaoke", response.data)
         self.assertTrue(response.data["karaoke"]["ongoing"])
         self.assertTrue(response.data["karaoke"]["can_add_to_playlist"])
         self.assertTrue(response.data["karaoke"]["player_play_next_song"])
+
+    @freeze_time("1970-01-01 00:01:00")
+    def test_get_playing_delayed(self):
+        """Get the digest when the player is playing with delay.
+
+        There should be no errors, the player should be playing and the karaoke
+        should be running.
+        """
+        self.authenticate(self.user)
+
+        # start playing
+        self.player_play_next_song()
+
+        with freeze_time("1970-01-01 00:01:02"):
+            # get the digest
+            response = self.client.get(self.url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+            # assert the response
+            self.assertIn("player_status", response.data)
+            self.assertEqual(
+                response.data["player_status"]["playlist_entry"]["id"], self.pe1.id
+            )
+            self.assertEqual(response.data["player_status"]["timing"], 2)
+            self.assertIn("player_errors", response.data)
+            self.assertIn("karaoke", response.data)
 
     @freeze_time("1970-01-01 00:01:00")
     def test_get_playing_transition(self):

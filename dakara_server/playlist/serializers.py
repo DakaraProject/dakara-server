@@ -116,15 +116,19 @@ class PlayerStatusSerializer(serializers.ModelSerializer):
         read_only_fields = ("paused", "in_transition", "date", "playlist_entry")
         to_update_fields = ("timing",)
 
-    @property
-    def data(self):
-        self.recalculate_timing()
-        return super().data
+    def to_representation(self, instance, *args, **kwargs):
+        # override the representation method to force recalculation of player
+        # timing
+        self.recalculate_timing(instance)
+        return super().to_representation(instance, *args, **kwargs)
 
-    def recalculate_timing(self):
-        """Manually update the player timing."""
-        player = self.instance
-        if player is None:
+    def recalculate_timing(self, player):
+        """Manually update the player timing.
+
+        Args:
+            player (playlist.models.Player): Instance of the current player.
+        """
+        if player is None or not isinstance(player, Player):
             return
 
         now = datetime.now(tz)
