@@ -435,10 +435,12 @@ class SongForFeederSerializer(serializers.ModelSerializer):
 class SongForDigestSerializer(serializers.ModelSerializer):
     """Song serializer for playlist digest info."""
 
+    duration = SecondsDurationField()
+
     class Meta:
         model = Song
-        fields = ("id", "title")
-        read_only_fields = ("id", "title")
+        fields = ("id", "title", "duration")
+        read_only_fields = ("id", "title", "duration")
 
 
 class WorkForFeederSerializer(serializers.ModelSerializer):

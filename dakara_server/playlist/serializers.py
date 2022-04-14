@@ -67,6 +67,7 @@ class PlaylistEntryForDigestSerializer(serializers.ModelSerializer):
     """Played playlist entry serializer for playlist digest info."""
 
     song = SongForDigestSerializer(many=False, read_only=True)
+    owner = UserForPublicSerializer(read_only=True)
 
     class Meta:
         model = PlaylistEntry
