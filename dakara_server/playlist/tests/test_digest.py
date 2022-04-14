@@ -38,6 +38,7 @@ class DigestViewTestCase(PlaylistAPITestCase):
         self.assertTrue(response.data["karaoke"]["ongoing"])
         self.assertTrue(response.data["karaoke"]["can_add_to_playlist"])
         self.assertTrue(response.data["karaoke"]["player_play_next_song"])
+        self.assertIn("playlist_entries", response.data)
 
     def test_get_playing(self):
         """Get the digest when the player is playing.
@@ -66,6 +67,7 @@ class DigestViewTestCase(PlaylistAPITestCase):
         self.assertTrue(response.data["karaoke"]["ongoing"])
         self.assertTrue(response.data["karaoke"]["can_add_to_playlist"])
         self.assertTrue(response.data["karaoke"]["player_play_next_song"])
+        self.assertIn("playlist_entries", response.data)
 
     @freeze_time("1970-01-01 00:01:00")
     def test_get_playing_delayed(self):
@@ -111,6 +113,7 @@ class DigestViewTestCase(PlaylistAPITestCase):
 
             # assert the response
             self.assertEqual(response.data["player_status"]["timing"], 0)
+            self.assertIn("playlist_entries", response.data)
 
     def test_get_errors(self):
         """Get the digest when there are errors.
@@ -158,6 +161,7 @@ class DigestViewTestCase(PlaylistAPITestCase):
         self.assertTrue(response.data["karaoke"]["ongoing"])
         self.assertTrue(response.data["karaoke"]["can_add_to_playlist"])
         self.assertTrue(response.data["karaoke"]["player_play_next_song"])
+        self.assertIn("playlist_entries", response.data)
 
     def test_get_player_does_not_play_next_song(self):
         """Get the digest when the player does not play next song.
@@ -177,6 +181,49 @@ class DigestViewTestCase(PlaylistAPITestCase):
         self.assertIn("player_status", response.data)
         self.assertIsNone(response.data["player_status"]["playlist_entry"])
         self.assertIn("player_errors", response.data)
-        self.assertFalse(response.data["player_errors"])
         self.assertIn("karaoke", response.data)
-        self.assertFalse(response.data["karaoke"]["player_play_next_song"])
+        self.assertIn("playlist_entries", response.data)
+
+    def test_get_entries(self):
+        """Get the digest when there are errors.
+
+        There should errors, the player should be idle and the karaoke
+        should be running.
+        """
+        self.authenticate(self.user)
+
+        # get the digest
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert the response
+        self.assertIn("player_status", response.data)
+        self.assertIn("karaoke", response.data)
+        self.assertIn("player_errors", response.data)
+        self.assertIn("playlist_entries", response.data)
+        self.assertEqual(len(response.data["playlist_entries"]), 4)
+        pe1 = response.data["playlist_entries"][0]
+        self.assertEqual(pe1["id"], self.pe1.id)
+        self.assertEqual(pe1["song"]["id"], self.pe1.song.id)
+        self.assertNotIn("artists", pe1["song"])
+        self.assertFalse(pe1["use_instrumental"])
+        self.assertFalse(pe1["was_played"])
+        self.assertIsNone(pe1["date_play"])
+        pe2 = response.data["playlist_entries"][1]
+        self.assertEqual(pe2["id"], self.pe2.id)
+        self.assertEqual(pe2["song"]["id"], self.pe2.song.id)
+        self.assertTrue(pe2["use_instrumental"])
+        self.assertFalse(pe2["was_played"])
+        self.assertIsNone(pe2["date_play"])
+        pe3 = response.data["playlist_entries"][2]
+        self.assertEqual(pe3["id"], self.pe3.id)
+        self.assertEqual(pe3["song"]["id"], self.pe3.song.id)
+        self.assertFalse(pe3["use_instrumental"])
+        self.assertTrue(pe3["was_played"])
+        self.assertIsNotNone(pe3["date_play"])
+        pe4 = response.data["playlist_entries"][3]
+        self.assertEqual(pe4["id"], self.pe4.id)
+        self.assertEqual(pe4["song"]["id"], self.pe4.song.id)
+        self.assertFalse(pe4["use_instrumental"])
+        self.assertTrue(pe4["was_played"])
+        self.assertIsNotNone(pe4["date_play"])

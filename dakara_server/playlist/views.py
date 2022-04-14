@@ -223,8 +223,11 @@ class DigestView(APIView):
 
     Includes:
         - player_status: current player;
+        - karaoke: current karaoke session;
         - player_errors: errors from the player;
-        - karaoke: current karaoke session.
+        - playlist_entries: content of the playlist.
+
+    The page is cached 1 second.
     """
 
     permission_classes = [IsAuthenticated]
@@ -240,11 +243,15 @@ class DigestView(APIView):
         # Get player errors
         player_errors_pool = models.PlayerError.objects.all()
 
+        # Get playlist entries
+        playlist_entries_pool = models.PlaylistEntry.objects.all()
+
         serializer = serializers.DigestSerializer(
             {
                 "player_status": player,
-                "player_errors": player_errors_pool,
                 "karaoke": karaoke,
+                "player_errors": player_errors_pool,
+                "playlist_entries": playlist_entries_pool,
             }
         )
 

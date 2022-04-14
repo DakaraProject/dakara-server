@@ -70,8 +70,22 @@ class PlaylistEntryForDigestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlaylistEntry
-        fields = ("id", "song")
-        read_only_fields = ("id", "song")
+        fields = (
+            "id",
+            "song",
+            "use_instrumental",
+            "date_play",
+            "was_played",
+            "owner",
+        )
+        read_only_fields = (
+            "id",
+            "song",
+            "use_instrumental",
+            "date_play",
+            "was_played",
+            "owner",
+        )
 
 
 class PlaylistEntriesWithDateEndSerializer(serializers.Serializer):
@@ -299,7 +313,7 @@ class DigestSerializer(serializers.Serializer):
     player_status = PlayerStatusSerializer()
     karaoke = KaraokeSerializer()
     player_errors = PlayerErrorForDigestSerializer(many=True)
-    # playlist_entries =
+    playlist_entries = PlaylistEntryForDigestSerializer(many=True)
 
 
 class PlaylistReorderSerializer(serializers.Serializer):
