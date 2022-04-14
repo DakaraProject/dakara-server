@@ -6,6 +6,9 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 from rest_framework import generics as drf_generics
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
@@ -227,11 +230,14 @@ class DigestView(APIView):
         - player_errors: errors from the player;
         - playlist_entries: content of the playlist.
 
-    The page is cached 1 second.
+    The page is cached 0.5 seconds.
     """
 
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(cache_page(0.5))
+    @method_decorator(vary_on_headers("Authorization"))
+    @method_decorator(vary_on_cookie)
     def get(self, request, *args, **kwargs):
         """Send aggregated player data."""
         # Get kara status
