@@ -2,24 +2,22 @@ from datetime import datetime, timedelta
 from unittest.mock import ANY, patch
 
 from django.urls import reverse
-from django.utils.dateparse import parse_datetime
 from freezegun import freeze_time
 from rest_framework import status
 
 from internal.tests.base_test import UserModel, tz
-from playlist.models import Karaoke, Player, PlaylistEntry
+from playlist.models import Karaoke, PlaylistEntry
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
-    url = reverse("playlist-entries-list")
+class PlaylistQueuingListViewTestCase(PlaylistAPITestCase):
+    url = reverse("playlist-queuing-list")
 
     def setUp(self):
         self.create_test_data()
 
-    @freeze_time("1970-01-01 00:01:00")
-    def test_get_playlist_entries_list(self):
-        """Test to verify playlist entries list."""
+    def test_get_playlist_queuing_list(self):
+        """Test to verify playlist entries queuing list."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -27,6 +25,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         # Should only return entries with `was_played`=False
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 2)
         self.assertEqual(len(response.data["results"]), 2)
 
         # Playlist entries are in order of creation
@@ -35,64 +34,12 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.check_playlist_entry_json(pe1, self.pe1)
         self.check_playlist_entry_json(pe2, self.pe2)
 
-        # check the date of the end of the playlist
-        now = datetime.now(tz)
-        self.assertEqual(
-            parse_datetime(response.data["date_end"]),
-            now + self.pe1.song.duration + self.pe2.song.duration,
-        )
+        # check the date of play is null
+        self.assertIsNone(pe1["date_play"])
+        self.assertIsNone(pe2["date_play"])
 
-        # check the date of play of each entries
-        self.assertEqual(parse_datetime(pe1["date_play"]), now)
-        self.assertEqual(parse_datetime(pe2["date_play"]), now + self.pe1.song.duration)
-
-    @freeze_time("1970-01-01 00:01:00")
-    def test_get_playlist_entries_list_while_playing(self):
-        """Test to verify playlist entries play dates while playing.
-
-        The player is currently in the middle of the song, play dates should
-        take account of the remaining time of the player.
-        """
-        # set the player
-        karaoke = Karaoke.objects.get_object()
-        player, _ = Player.cache.get_or_create(karaoke=karaoke)
-        player.playlist_entry_id = self.pe1.id
-        play_duration = timedelta(seconds=2)
-        player.timing = play_duration
-        player.save()
-
-        # set the entry
-        now = datetime.now(tz)
-        self.pe1.date_play = now - play_duration
-        self.pe1.save()
-
-        # Login as simple user
-        self.authenticate(self.user)
-
-        # Get playlist entries list
-        # Should only return entries with `was_played`=False
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 1)
-
-        # Playlist entries are in order of creation
-        pe2 = response.data["results"][0]
-        self.check_playlist_entry_json(pe2, self.pe2)
-
-        # check the date of play
-        self.assertEqual(
-            parse_datetime(response.data["date_end"]),
-            now + self.pe1.song.duration - play_duration + self.pe2.song.duration,
-        )
-
-        # check the date of play of each entries
-        self.assertEqual(
-            parse_datetime(pe2["date_play"]),
-            now + self.pe1.song.duration - play_duration,
-        )
-
-    def test_get_playlist_entries_list_forbidden(self):
-        """Test to verify playlist entries list forbidden when not logged in."""
+    def test_get_playlist_queuing_list_forbidden(self):
+        """Test to verify playlist entries queuing list forbidden when not logged in."""
         # Get playlist entries list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -366,7 +313,7 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         response = self.client.post(self.url, {"song_id": self.song1.id})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_get_playlist_entries_list_playing_entry(self):
+    def test_get_playlist_queuing_list_playing_entry(self):
         """Test to verify playlist entries list does not include playing song."""
         # Login as simple user
         self.authenticate(self.user)
@@ -423,14 +370,16 @@ class PlaylistEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
-class PlaylistEntryViewTestCase(PlaylistAPITestCase):
+class PlaylistQueuingViewTestCase(PlaylistAPITestCase):
+    url_name = "playlist-queuing"
+
     def setUp(self):
         self.create_test_data()
 
         # Create urls to access these playlist entries
-        self.url_pe1 = reverse("playlist-entries", kwargs={"pk": self.pe1.id})
-        self.url_pe2 = reverse("playlist-entries", kwargs={"pk": self.pe2.id})
-        self.url_pe3 = reverse("playlist-entries", kwargs={"pk": self.pe3.id})
+        self.url_pe1 = reverse(self.url_name, kwargs={"pk": self.pe1.id})
+        self.url_pe2 = reverse(self.url_name, kwargs={"pk": self.pe2.id})
+        self.url_pe3 = reverse(self.url_name, kwargs={"pk": self.pe3.id})
 
     def test_delete_playlist_entry_manager(self):
         """Test to verify playlist entry deletion as playlist manager."""

@@ -73,7 +73,7 @@ class TestPlaylistEntry:
     def test_get_playlist_normal(self, playlist_provider):
         """Test to get the playlist."""
         # pre assert there are 2 entries in playlist
-        playlist = models.PlaylistEntry.objects.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_queuing()
         assert len(playlist) == 2
         assert playlist[0] == playlist_provider.pe1
         assert playlist[1] == playlist_provider.pe2
@@ -83,7 +83,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there is one entry in playlist
-        playlist = models.PlaylistEntry.objects.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_queuing()
         assert len(playlist) == 1
         assert playlist[0] == playlist_provider.pe2
 
@@ -92,14 +92,14 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there is still one entry in playlist
-        playlist = models.PlaylistEntry.objects.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_queuing()
         assert len(playlist) == 1
         assert playlist[0] == playlist_provider.pe2
 
     def test_get_playlist_abnormal(self, playlist_provider):
         """Test to get the playlist in abnormal condition."""
         # pre assert there are 2 entries in playlist
-        playlist = models.PlaylistEntry.objects.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_queuing()
         assert len(playlist) == 2
         assert playlist[0] == playlist_provider.pe1
         assert playlist[1] == playlist_provider.pe2
@@ -109,7 +109,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there is one entry in playlist
-        playlist = models.PlaylistEntry.objects.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_queuing()
         assert len(playlist) == 1
         assert playlist[0] == playlist_provider.pe2
 
@@ -118,14 +118,14 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there is still one entry in playlist
-        playlist = models.PlaylistEntry.objects.get_playlist()
+        playlist = models.PlaylistEntry.objects.get_queuing()
         assert len(playlist) == 1
         assert playlist[0] == playlist_provider.pe2
 
-    def test_get_playlist_played_normal(self, playlist_provider):
+    def test_get_played_normal(self, playlist_provider):
         """Test to get the playlist of played entries."""
         # pre assert there are 2 entries played
-        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_played()
         assert len(playlist_played) == 2
         assert playlist_played[0] == playlist_provider.pe3
         assert playlist_played[1] == playlist_provider.pe4
@@ -135,7 +135,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there are still 2 entries played
-        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_played()
         assert len(playlist_played) == 2
         assert playlist_played[0] == playlist_provider.pe3
         assert playlist_played[1] == playlist_provider.pe4
@@ -145,16 +145,16 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there are now 3 entries played
-        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_played()
         assert len(playlist_played) == 3
         assert playlist_played[0] == playlist_provider.pe1
         assert playlist_played[1] == playlist_provider.pe3
         assert playlist_played[2] == playlist_provider.pe4
 
-    def test_get_playlist_played_abnormal(self, playlist_provider):
+    def test_get_played_abnormal(self, playlist_provider):
         """Test to get the playlist of played entries in abnormal condition."""
         # pre assert there are 2 entries played
-        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_played()
         assert len(playlist_played) == 2
         assert playlist_played[0] == playlist_provider.pe3
         assert playlist_played[1] == playlist_provider.pe4
@@ -164,7 +164,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there are now 3 entries played
-        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_played()
         assert len(playlist_played) == 3
         assert playlist_played[0] == playlist_provider.pe1
         assert playlist_played[1] == playlist_provider.pe3
@@ -175,7 +175,7 @@ class TestPlaylistEntry:
         playlist_provider.pe1.save()
 
         # assert there are still 3 entries played
-        playlist_played = models.PlaylistEntry.objects.get_playlist_played()
+        playlist_played = models.PlaylistEntry.objects.get_played()
         assert len(playlist_played) == 3
         assert playlist_played[0] == playlist_provider.pe1
         assert playlist_played[1] == playlist_provider.pe3

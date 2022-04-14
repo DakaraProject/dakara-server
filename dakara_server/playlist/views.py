@@ -18,7 +18,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from internal import permissions as internal_permissions
-from internal.pagination import PageNumberPaginationCustom
 from library import permissions as library_permissions
 from playlist import authentications, models, permissions, serializers
 from playlist.consumers import send_to_channel
@@ -29,13 +28,7 @@ logger = logging.getLogger(__name__)
 UserModel = get_user_model()
 
 
-class PlaylistEntryPagination(PageNumberPaginationCustom):
-    """Pagination setup for playlist entries."""
-
-    page_size = 100
-
-
-class PlaylistEntryView(drf_generics.DestroyAPIView):
+class PlaylistQueuingView(drf_generics.DestroyAPIView):
     """Edition or deletion of a playlist entry."""
 
     serializer_class = serializers.PlaylistEntrySerializer
@@ -44,7 +37,7 @@ class PlaylistEntryView(drf_generics.DestroyAPIView):
         permissions.IsPlaylistManager
         | (internal_permissions.IsDelete & permissions.IsOwner),
     ]
-    queryset = models.PlaylistEntry.objects.get_playlist()
+    queryset = models.PlaylistEntry.objects.get_queuing()
 
     def put(self, request, *args, **kwargs):
         playlist_entry = self.get_object()
@@ -66,7 +59,7 @@ class PlaylistEntryView(drf_generics.DestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class PlaylistEntryListView(drf_generics.ListCreateAPIView):
+class PlaylistQueuingListView(drf_generics.ListCreateAPIView):
     """List of entries or creation of a new entry in the playlist."""
 
     serializer_class = serializers.PlaylistEntrySerializer
@@ -76,28 +69,7 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
         (permissions.IsPlaylistManager & library_permissions.IsLibraryManager)
         | permissions.IsSongEnabled,
     ]
-    queryset = models.PlaylistEntry.objects.get_playlist()
-
-    def get(self, request, *args, **kwargs):
-        queryset = self.queryset.all()
-        karaoke = models.Karaoke.objects.get_object()
-        player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
-        date = datetime.now(tz)
-
-        # add player remaining time
-        if player.playlist_entry:
-            date += player.playlist_entry.song.duration - player.timing
-
-        # for each entry, compute when it is supposed to play
-        for playlist_entry in queryset:
-            playlist_entry.date_play = date
-            date += playlist_entry.song.duration
-
-        serializer = serializers.PlaylistEntriesWithDateEndSerializer(
-            {"results": queryset, "date_end": date}, context={"request": request}
-        )
-
-        return Response(serializer.data)
+    queryset = models.PlaylistEntry.objects.get_queuing()
 
     def perform_create(self, serializer):
         # Deny creation if kara is not ongoing
@@ -182,12 +154,11 @@ class PlaylistEntryListView(drf_generics.ListCreateAPIView):
             )
 
 
-class PlaylistPlayedEntryListView(drf_generics.ListAPIView):
+class PlaylistPlayedListView(drf_generics.ListAPIView):
     """List of played entries."""
 
-    pagination_class = PlaylistEntryPagination
     serializer_class = serializers.PlaylistEntrySerializer
-    queryset = models.PlaylistEntry.objects.get_playlist_played()
+    queryset = models.PlaylistEntry.objects.get_played()
 
 
 class PlayerCommandView(drf_generics.UpdateAPIView):

@@ -33,7 +33,7 @@ class PlaylistManager(OrderedModelManager):
 
         return playlist.first()
 
-    def get_playlist(self):
+    def get_queuing(self):
         """Get the playlist of ongoing entries."""
         queryset = self.exclude(
             models.Q(was_played=True) | models.Q(date_play__isnull=False)
@@ -41,7 +41,7 @@ class PlaylistManager(OrderedModelManager):
 
         return queryset
 
-    def get_playlist_played(self):
+    def get_played(self):
         """Get the playlist of passed entries."""
         playlist = self.filter(was_played=True)
 
@@ -62,10 +62,10 @@ class PlaylistManager(OrderedModelManager):
 
         else:
             # do not process a played entry
-            if self.get_playlist_played().filter(pk=entry_id):
+            if self.get_played().filter(pk=entry_id):
                 return None
 
-            playlist = self.get_playlist().exclude(pk=entry_id)
+            playlist = self.get_queuing().exclude(pk=entry_id)
 
         if not playlist:
             return None

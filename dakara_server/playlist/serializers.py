@@ -249,7 +249,7 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
         # about to be played
         if not (
             playlist_entry == PlaylistEntry.objects.get_playing()
-            or playlist_entry in PlaylistEntry.objects.get_playlist_played()
+            or playlist_entry in PlaylistEntry.objects.get_played()
             or PlaylistEntry.objects.get_playing() is None
             and playlist_entry == PlaylistEntry.objects.get_next()
         ):
