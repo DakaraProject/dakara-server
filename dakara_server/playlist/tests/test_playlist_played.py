@@ -23,8 +23,8 @@ class PlaylistPlayedListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(len(response.data["results"]), 2)
 
         # Playlist entries are in order of creation
-        self.check_playlist_played_entry_json(response.data["results"][0], self.pe3)
-        self.check_playlist_played_entry_json(response.data["results"][1], self.pe4)
+        self.check_playlist_played_entry_json(response.data["results"][0], self.pe4)
+        self.check_playlist_played_entry_json(response.data["results"][1], self.pe3)
 
     def test_get_playlist_played_list_forbidden(self):
         """Test to verify playlist entries played list forbidden when not logged in."""

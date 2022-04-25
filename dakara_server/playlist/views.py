@@ -158,7 +158,7 @@ class PlaylistPlayedListView(drf_generics.ListAPIView):
     """List of played entries."""
 
     serializer_class = serializers.PlaylistEntrySerializer
-    queryset = models.PlaylistEntry.objects.get_played()
+    queryset = models.PlaylistEntry.objects.get_played().reverse()
 
 
 class PlayerCommandView(drf_generics.UpdateAPIView):

@@ -41,8 +41,9 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
             "song_id",
             "use_instrumental",
             "date_play",
+            "was_played",
         )
-        read_only_fields = ("date_created", "date_play")
+        read_only_fields = ("date_created", "date_play", "was_played")
 
     def validate(self, data):
         if data.get("use_instrumental") and not data["song"].has_instrumental:
