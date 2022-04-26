@@ -254,7 +254,7 @@ class SongWorkLinkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SongWorkLink
-        fields = ("work", "link_type", "link_type_number", "episodes")
+        fields = ("id", "work", "link_type", "link_type_number", "episodes")
 
     @staticmethod
     def set(song, songworklinks_data):
