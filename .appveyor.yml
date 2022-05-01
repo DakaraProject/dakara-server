@@ -2,6 +2,7 @@ version: 1.8.0-dev-{build}
 
 image:
   - Ubuntu
+  - macos
   - Visual Studio 2019
 
 build: false
@@ -59,7 +60,45 @@ for:
 
   - matrix:
       only:
+        - image: macos
+          PYTHON: "3.10"
+
+    cache:
+      # enable cache for Python dependencies
+      - "$HOME/Library/Caches/pip"
+
+    init:
+      # load virtual env
+      - "source $HOME/venv$PYTHON/bin/activate"
+
+      # check current python version
+      - "python --version"
+
+    install:
+      # upgrade pip
+      - "python -m pip install --upgrade pip"
+
+      # install dependencies for test
+      - "python -m pip install -r requirements.txt -r requirements_dev.txt"
+
+    test_script:
+      # run tests
+      - "python -m pytest -v --cov-report term"
+
+      # run code formatting tests
+      - "python -m isort . --check"
+      - "python -m black . --check"
+      - "python -m flake8"
+
+    after_test:
+      # upload coverage stats to codecov.io
+      # codecov token is stored in appveyor settings
+      - "python -m codecov"
+
+  - matrix:
+      only:
         - image: Visual Studio 2019
+          PYTHON: "3.10"
 
     cache:
       # enable cache for Python dependencies
