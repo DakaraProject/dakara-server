@@ -19,6 +19,7 @@ environment:
     - PYTHON: "3.8"
     - PYTHON: "3.9"
     - PYTHON: "3.10"
+    - PYTHON: "3.11"
 
 for:
   - matrix:
@@ -60,6 +61,7 @@ for:
   - matrix:
       only:
         - image: Visual Studio 2019
+          PYTHON: "3.11"
 
     cache:
       # enable cache for Python dependencies

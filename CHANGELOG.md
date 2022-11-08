@@ -49,6 +49,7 @@ python dakara_server/manage.py shell -c "from users.models import DakaraUser; Da
 - Tags, work types and works are now created with the feeder, using the routes `api/library/song-tags/`, `api/library/work-types/` and `api/library/works/` respectively.
 - Player tokens are generated using the route `/api/playlist/player-token/`.
 - Songs can be restarted, rewound, or fast forwarded during playback.
+- Support Python 3.10 and 3.11.
 
 ### Changed
 
