@@ -13,12 +13,16 @@ branches:
     - develop
 
 environment:
+  WINDOWS_TEST: false
+
   # setup tests matrix
   matrix:
     - PYTHON: "3.7"
     - PYTHON: "3.8"
     - PYTHON: "3.9"
     - PYTHON: "3.10"
+    - PYTHON: "3.11"
+      WINDOWS_TEST: true
 
 for:
   - matrix:
@@ -60,6 +64,7 @@ for:
   - matrix:
       only:
         - image: Visual Studio 2019
+          WINDOWS_TEST: true
 
     cache:
       # enable cache for Python dependencies
