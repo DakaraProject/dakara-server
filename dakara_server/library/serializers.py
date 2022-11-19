@@ -254,7 +254,7 @@ class SongWorkLinkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SongWorkLink
-        fields = ("work", "link_type", "link_type_number", "episodes")
+        fields = ("id", "work", "link_type", "link_type_number", "episodes")
 
     @staticmethod
     def set(song, songworklinks_data):
@@ -412,10 +412,18 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
     artists = ArtistSerializer(many=True, read_only=True)
     works = SongWorkLinkSerializer(many=True, read_only=True, source="songworklink_set")
     file_path = serializers.SerializerMethodField()
+    duration = SecondsDurationField()
 
     class Meta:
         model = Song
-        fields = ("title", "artists", "works", "file_path", "has_instrumental")
+        fields = (
+            "title",
+            "duration",
+            "artists",
+            "works",
+            "file_path",
+            "has_instrumental",
+        )
 
     @staticmethod
     def get_file_path(song):

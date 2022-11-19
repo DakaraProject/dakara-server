@@ -209,7 +209,7 @@ class PlayerCommandView(drf_generics.UpdateAPIView):
         # check the player is not idle
         player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
         if player.playlist_entry is None:
-            raise PermissionDenied("The player cannot receive commands when " "idle")
+            raise PermissionDenied("The player cannot receive commands when idle")
 
         command = serializer.validated_data["command"]
         send_to_channel("playlist.device", "send_command", {"command": command})
