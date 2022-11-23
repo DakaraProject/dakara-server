@@ -34,6 +34,8 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+## 1.8.0 - 2022-11-23
+
 ### Update notes
 
 The player does not need a special user any more to communicate with the server.
