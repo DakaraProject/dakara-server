@@ -34,6 +34,14 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Added
+
+- MacOS support.
+
+## 1.8.1 - 2023-12-17
+
+## 1.8.0 - 2022-11-23
+
 ### Update notes
 
 The player does not need a special user any more to communicate with the server.
@@ -49,6 +57,7 @@ python dakara_server/manage.py shell -c "from users.models import DakaraUser; Da
 - Tags, work types and works are now created with the feeder, using the routes `api/library/song-tags/`, `api/library/work-types/` and `api/library/works/` respectively.
 - Player tokens are generated using the route `/api/playlist/player-token/`.
 - Songs can be restarted, rewound, or fast forwarded during playback.
+- Support Python 3.10 and 3.11.
 
 ### Changed
 

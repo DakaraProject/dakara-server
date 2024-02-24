@@ -61,7 +61,7 @@ class Migration(migrations.Migration):
                             "Letters, digits and @/./+/-/_ only."
                         ),
                         error_messages={
-                            "unique": ("A user with that username " "already exists.")
+                            "unique": ("A user with that username already exists.")
                         },
                     ),
                 ),
