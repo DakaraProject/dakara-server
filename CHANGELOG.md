@@ -34,6 +34,10 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Added
+
+- MacOS support.
+
 ## 1.8.1 - 2023-12-17
 
 ## 1.8.0 - 2022-11-23

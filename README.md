@@ -1,9 +1,10 @@
 # Dakara server
 
 <!-- Badges are displayed for the develop branch -->
-[![Appveyor CI Build status](https://ci.appveyor.com/api/projects/status/2wdia71y3dwsqywp/branch/develop?svg=true)](https://ci.appveyor.com/project/neraste/dakara-server/branch/develop)
+[![Tests status](https://github.com/DakaraProject/dakara-server/actions/workflows/ci.yml/badge.svg)](https://github.com/DakaraProject/dakara-server/actions/workflows/ci.yml)
 [![Codecov coverage analysis](https://codecov.io/gh/DakaraProject/dakara-server/branch/develop/graph/badge.svg)](https://codecov.io/gh/DakaraProject/dakara-server)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
 Server for the Dakara project.
 
@@ -20,7 +21,7 @@ Installation guidelines are provided over here:
 
 * Python3, to make everything up and running (supported versions: 3.7, 3.8, 3.9, 3.10, and 3.11).
 
-Linux and Windows are supported.
+Linux, Mac and Windows are supported.
 
 ### Virtual environment
 
