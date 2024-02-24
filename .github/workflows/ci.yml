@@ -1,40 +1,67 @@
 name: Tests
 
-on: [push]
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - develop
 
 jobs:
-  check:
-
+  unit-tests:
     runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        python-version:
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
-      - name: install python tests dependencies
+      - name: Install dependencies
         run: pip install -r requirements.txt -r requirements_dev.txt
 
-      - name: run tests
+      - name: Run tests
         run: python -m pytest -v
-
-      - name: run isort
-        run: python -m isort . --check
-
-      - name: run black
-        run: python -m black . --check
-
-      - name: run flake8
-        run: python -m flake8
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  static-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements_dev.txt
+
+      - name: Run import order checks
+        run: python -m isort . --check
+
+      - name: Run style checks
+        run: python -m black . --check
+
+      - name: Run PEP8 style checks
+        run: python -m flake8
