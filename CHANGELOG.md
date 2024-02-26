@@ -38,6 +38,10 @@ Any important notes regarding the update.
 
 - MacOS support.
 
+### Removed
+
+- Dropped Python 3.7 support.
+
 ## 1.8.1 - 2023-12-17
 
 ## 1.8.0 - 2022-11-23
