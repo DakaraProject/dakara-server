@@ -19,7 +19,7 @@ Installation guidelines are provided over here:
 
 ### System requirements
 
-* Python3, to make everything up and running (supported versions: 3.7, 3.8, 3.9, 3.10, and 3.11).
+* Python3, to make everything up and running (supported versions: 3.8, 3.9, 3.10, 3.11, and 3.12).
 
 Linux, Mac and Windows are supported.
 
