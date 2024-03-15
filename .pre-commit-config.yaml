@@ -23,8 +23,8 @@ repos:
         entry: black . --check
         language: system
         pass_filenames: false
-      - id: flake8-check
-        name: Check PEP8
-        entry: flake8
+      - id: ruff-check
+        name: Run ruff linter
+        entry: ruff check .
         language: system
         pass_filenames: false
