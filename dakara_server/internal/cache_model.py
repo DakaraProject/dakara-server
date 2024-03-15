@@ -37,17 +37,8 @@ class CacheManager:
         cache model. Instead, we execute the on-delete action with the
         `pre_delete` signal of the related field.
         """
-        for field in self.model._meta.concrete_fields:
-            # only consider foreign key fields with the callable attribute
-            # "cache_on_delete"
-            if not isinstance(field, models.ForeignKey):
-                continue
 
-            on_delete = getattr(field, "cache_on_delete", None)
-
-            if not callable(on_delete):
-                raise TypeError("cache_on_delete must be callable")
-
+        def handle_decorator(field):
             # register the handle to the pre_delete signal
             @receiver(
                 pre_delete,
@@ -59,10 +50,23 @@ class CacheManager:
             )
             def handle(sender, **kwargs):
                 instance = kwargs.get("instance")
-                on_delete(instance, self)
+                field.on_delete(instance, self)
+
+            return handle
+
+        for field in self.model._meta.concrete_fields:
+            # only consider foreign key fields with the callable attribute
+            # "cache_on_delete"
+            if not isinstance(field, models.ForeignKey):
+                continue
+
+            on_delete = getattr(field, "cache_on_delete", None)
+
+            if not callable(on_delete):
+                raise TypeError("cache_on_delete must be callable")
 
             # store the handle
-            self._on_delete_funcs[field.name] = handle
+            self._on_delete_funcs[field.name] = handle_decorator(field)
 
     @contextmanager
     def _access_store(self):
@@ -233,7 +237,7 @@ class CacheModelBase(models.base.ModelBase):
         # create and connect cache manager
         manager = CacheManager()
         manager._connect(new_class)
-        setattr(new_class, "cache", manager)
+        new_class.cache = manager
 
         return new_class
 
@@ -279,7 +283,7 @@ class CacheOnDeleteMixin:
     """
 
     def __init__(self, to, on_delete, *args, **kwargs):
-        super().__init__(to, on_delete=models.DO_NOTHING, *args, **kwargs)
+        super().__init__(to, *args, on_delete=models.DO_NOTHING, **kwargs)
         self.cache_on_delete = on_delete
 
 
