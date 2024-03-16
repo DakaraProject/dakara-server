@@ -50,7 +50,7 @@ class CacheManager:
             )
             def handle(sender, **kwargs):
                 instance = kwargs.get("instance")
-                field.on_delete(instance, self)
+                field.cache_on_delete(instance, self)
 
             return handle
 
