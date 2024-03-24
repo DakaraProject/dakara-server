@@ -238,6 +238,7 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerError
         fields = (
+            "id",
             "playlist_entry",
             "playlist_entry_id",
             "error_message",
