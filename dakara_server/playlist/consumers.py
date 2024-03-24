@@ -118,7 +118,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         # reset current playing playlist entry if any
         current_playlist_entry = models.PlaylistEntry.objects.get_playing()
         if current_playlist_entry is not None:
-            current_playlist_entry.date_played = None
+            current_playlist_entry.date_play = None
             current_playlist_entry.save()
 
         # register the channel in database
@@ -136,7 +136,7 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         # reset the current playing song if any
         entry = models.PlaylistEntry.objects.get_playing()
         if entry:
-            entry.date_played = None
+            entry.date_play = None
             entry.save()
 
         # reset the player

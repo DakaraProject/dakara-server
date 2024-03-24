@@ -73,19 +73,19 @@ urlpatterns = [
         name="playlist-digest",
     ),
     path(
-        "api/playlist/entries/",
-        playlist_views.PlaylistEntryListView.as_view(),
-        name="playlist-entries-list",
+        "api/playlist/queuing/",
+        playlist_views.PlaylistQueuingListView.as_view(),
+        name="playlist-queuing-list",
     ),
     path(
-        "api/playlist/entries/<int:pk>/",
-        playlist_views.PlaylistEntryView.as_view(),
-        name="playlist-entries",
+        "api/playlist/queuing/<int:pk>/",
+        playlist_views.PlaylistQueuingView.as_view(),
+        name="playlist-queuing",
     ),
     path(
-        "api/playlist/played-entries/",
-        playlist_views.PlaylistPlayedEntryListView.as_view(),
-        name="playlist-played-entries-list",
+        "api/playlist/played/",
+        playlist_views.PlaylistPlayedListView.as_view(),
+        name="playlist-played-list",
     ),
     path(
         "api/playlist/karaoke/",

@@ -49,6 +49,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
             response.data["results"][0]["playlist_entry"]["id"], self.pe1.id
         )
         self.assertEqual(response.data["results"][0]["error_message"], "dummy error")
+        self.assertIsNotNone(response.data["results"][0]["date_created"])
 
     def test_get_errors_forbidden(self):
         """Test to get errors when not authenticated."""
@@ -62,7 +63,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # request to create an error
@@ -90,7 +91,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # request to create an error
@@ -129,7 +130,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
         # set first playlit entry played
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.was_played = True
         self.pe1.save()
 
@@ -147,7 +148,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
     def test_post_error_forbidden_not_authenticated(self):
         """Test to create an error when not loged in."""
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # request to create an error
@@ -160,7 +161,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
     def test_post_error_forbidden_not_player(self):
         """Test to create an error when not loged in as player."""
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # log in as user

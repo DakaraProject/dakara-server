@@ -307,7 +307,7 @@ class TestDevice:
         player = await get_player()
 
         # pre assert
-        assert playlist_provider.pe1.date_played is None
+        assert playlist_provider.pe1.date_play is None
 
         karaoke = await get_karaoke()
 
