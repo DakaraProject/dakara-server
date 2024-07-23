@@ -115,7 +115,7 @@ class WorkTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WorkType
-        fields = ("name", "name_plural", "query_name", "icon_name")
+        fields = ("id", "name", "name_plural", "query_name", "icon_name")
 
     @staticmethod
     def set(work_type_data):
