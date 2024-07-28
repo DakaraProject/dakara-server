@@ -63,5 +63,5 @@ jobs:
       - name: Run style checks
         run: python -m black . --check
 
-      - name: Run PEP8 style checks
-        run: python -m flake8
+      - name: Run ruff linter
+        run: python -m ruff check .
