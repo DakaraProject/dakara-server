@@ -131,6 +131,7 @@ class LibraryProvider(BaseProvider):
 
     def check_work_type_json(self, json, expected_work_type):
         """Method to test an representation against the expected work type."""
+        self.assertEqual(json["id"], expected_work_type.id)
         self.assertEqual(json["name"], expected_work_type.name)
         self.assertEqual(json["name_plural"], expected_work_type.name_plural)
         self.assertEqual(json["query_name"], expected_work_type.query_name)
