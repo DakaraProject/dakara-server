@@ -1,13 +1,19 @@
+from datetime import datetime
+
+from django.utils import timezone
 from rest_framework import serializers
 
 from library.models import Song
 from library.serializers import (
     SecondsDurationField,
+    SongForDigestSerializer,
     SongForPlayerSerializer,
     SongSerializer,
 )
 from playlist.models import Karaoke, Player, PlayerError, PlayerToken, PlaylistEntry
 from users.serializers import UserForPublicSerializer
+
+tz = timezone.get_default_timezone()
 
 
 class PlaylistEntrySerializer(serializers.ModelSerializer):
@@ -27,8 +33,17 @@ class PlaylistEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlaylistEntry
-        fields = ("id", "date_created", "owner", "song", "song_id", "use_instrumental")
-        read_only_fields = ("date_created",)
+        fields = (
+            "id",
+            "date_created",
+            "owner",
+            "song",
+            "song_id",
+            "use_instrumental",
+            "date_play",
+            "was_played",
+        )
+        read_only_fields = ("date_created", "date_play", "was_played")
 
     def validate(self, data):
         if data.get("use_instrumental") and not data["song"].has_instrumental:
@@ -49,48 +64,36 @@ class PlaylistEntryForPlayerSerializer(serializers.ModelSerializer):
         read_only_fields = ("date_created",)
 
 
-class PlaylistEntryWithDatePlaySerializer(PlaylistEntrySerializer):
-    """Playlist entry serializer.
+class PlaylistEntryForDigestSerializer(serializers.ModelSerializer):
+    """Played playlist entry serializer for playlist digest info."""
 
-    Reserved for song that will be played.
-    """
+    song = SongForDigestSerializer(many=False, read_only=True)
+    owner = UserForPublicSerializer(read_only=True)
 
-    # date of play in the future, added manually to the PlaylistEntry object
-    date_play = serializers.DateTimeField(read_only=True)
-
-    class Meta(PlaylistEntrySerializer.Meta):
+    class Meta:
+        model = PlaylistEntry
         fields = (
             "id",
-            "date_created",
+            "song",
+            "use_instrumental",
             "date_play",
+            "was_played",
             "owner",
-            "song",
-            "use_instrumental",
         )
-
-
-class PlaylistPlayedEntryWithDatePlayedSerializer(PlaylistEntrySerializer):
-    """Playlist entry serializer.
-
-    Reserved for song that were played.
-    """
-
-    class Meta(PlaylistEntrySerializer.Meta):
-        fields = (
+        read_only_fields = (
             "id",
-            "date_created",
-            "date_played",
-            "owner",
             "song",
             "use_instrumental",
+            "date_play",
+            "was_played",
+            "owner",
         )
-        read_only_fields = ("date_created", "date_played")
 
 
 class PlaylistEntriesWithDateEndSerializer(serializers.Serializer):
     """Playlist entries with playlist end date."""
 
-    results = PlaylistEntryWithDatePlaySerializer(many=True, read_only=True)
+    results = PlaylistEntrySerializer(many=True, read_only=True)
     date_end = serializers.DateTimeField(read_only=True)
 
 
@@ -98,7 +101,7 @@ class PlayerStatusSerializer(serializers.ModelSerializer):
     """Player status serializer."""
 
     # Read only fields for front
-    playlist_entry = PlaylistPlayedEntryWithDatePlayedSerializer(
+    playlist_entry = PlaylistEntrySerializer(
         many=False, read_only=True, allow_null=True
     )
 
@@ -128,6 +131,27 @@ class PlayerStatusSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("paused", "in_transition", "date", "playlist_entry")
         to_update_fields = ("timing",)
+
+    def to_representation(self, instance, *args, **kwargs):
+        # override the representation method to force recalculation of player
+        # timing
+        self.recalculate_timing(instance)
+        return super().to_representation(instance, *args, **kwargs)
+
+    def recalculate_timing(self, player):
+        """Manually update the player timing.
+
+        Args:
+            player (playlist.models.Player): Instance of the current player.
+        """
+        if player is None or not isinstance(player, Player):
+            return
+
+        now = datetime.now(tz)
+        if player.playlist_entry:
+            if not player.paused and not player.in_transition:
+                player.timing += now - player.date
+                player.date = now
 
     def update(self, instance, validated_data):
         # filter out read only values
@@ -204,9 +228,7 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
     """Player errors."""
 
     # get related entry field
-    playlist_entry = PlaylistPlayedEntryWithDatePlayedSerializer(
-        many=False, read_only=True
-    )
+    playlist_entry = PlaylistEntrySerializer(many=False, read_only=True)
 
     # set related entry field
     playlist_entry_id = serializers.PrimaryKeyRelatedField(
@@ -215,7 +237,13 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlayerError
-        fields = ("playlist_entry", "playlist_entry_id", "error_message")
+        fields = (
+            "id",
+            "playlist_entry",
+            "playlist_entry_id",
+            "error_message",
+            "date_created",
+        )
         read_only_fields = ("date_created",)
 
     def validate_playlist_entry_id(self, playlist_entry):
@@ -223,7 +251,7 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
         # about to be played
         if not (
             playlist_entry == PlaylistEntry.objects.get_playing()
-            or playlist_entry in PlaylistEntry.objects.get_playlist_played()
+            or playlist_entry in PlaylistEntry.objects.get_played()
             or PlaylistEntry.objects.get_playing() is None
             and playlist_entry == PlaylistEntry.objects.get_next()
         ):
@@ -233,6 +261,22 @@ class PlayerErrorSerializer(serializers.ModelSerializer):
             )
 
         return playlist_entry
+
+
+class PlayerErrorForDigestSerializer(serializers.ModelSerializer):
+    """Player error serializers for playlist digest info."""
+
+    playlist_entry = PlaylistEntryForDigestSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = PlayerError
+        fields = (
+            "id",
+            "playlist_entry",
+            "error_message",
+            "date_created",
+        )
+        read_only_fields = ("id", "playlist_entry", "error_message", "date_created")
 
 
 class PlayerCommandSerializer(serializers.Serializer):
@@ -269,9 +313,10 @@ class PlayerTokenSerializer(serializers.ModelSerializer):
 class DigestSerializer(serializers.Serializer):
     """Combine player info and kara status."""
 
-    player_status = PlayerStatusSerializer()  # TODO test this
-    player_errors = PlayerErrorSerializer(many=True)
+    player_status = PlayerStatusSerializer()
     karaoke = KaraokeSerializer()
+    player_errors = PlayerErrorForDigestSerializer(many=True)
+    playlist_entries = PlaylistEntryForDigestSerializer(many=True)
 
 
 class PlaylistReorderSerializer(serializers.Serializer):

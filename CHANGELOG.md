@@ -38,10 +38,17 @@ Any important notes regarding the update.
 
 - MacOS support.
 - Added Python 3.12 support.
+- Player errors can be accessed in a library fashion (using pagination).
+
+### Changed
+
+- Playlist is integrated to the digest view in its minimal form.
+- Played and queuing playlist entries can be accessed in a library fashion (using pagination), their routes are `playlist/played` and `playlist/queuing`.
 
 ### Removed
 
 - Dropped Python 3.7 support.
+- Playlist entries in digest view don't have pre-calculated date of play any more. This data has to be calculated by the front now.
 
 ## 1.8.1 - 2023-12-17
 

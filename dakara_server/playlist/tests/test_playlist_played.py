@@ -4,14 +4,14 @@ from rest_framework import status
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlaylistPlayedEntryListViewTestCase(PlaylistAPITestCase):
-    url = reverse("playlist-played-entries-list")
+class PlaylistPlayedListViewTestCase(PlaylistAPITestCase):
+    url = reverse("playlist-played-list")
 
     def setUp(self):
         self.create_test_data()
 
-    def test_get_playlist_entries_list(self):
-        """Test to verify playlist played entries list."""
+    def test_get_playlist_played_list(self):
+        """Test to verify playlist entries played list."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -23,11 +23,11 @@ class PlaylistPlayedEntryListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(len(response.data["results"]), 2)
 
         # Playlist entries are in order of creation
-        self.check_playlist_played_entry_json(response.data["results"][0], self.pe3)
-        self.check_playlist_played_entry_json(response.data["results"][1], self.pe4)
+        self.check_playlist_played_entry_json(response.data["results"][0], self.pe4)
+        self.check_playlist_played_entry_json(response.data["results"][1], self.pe3)
 
-    def test_get_playlist_entries_list_forbidden(self):
-        """Test to verify playlist entries list forbidden when not logged in."""
+    def test_get_playlist_played_list_forbidden(self):
+        """Test to verify playlist entries played list forbidden when not logged in."""
         # Get playlist entries list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

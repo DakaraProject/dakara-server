@@ -55,7 +55,7 @@ class PlaylistProvider(BaseProvider):
             song=self.song2,
             owner=self.manager,
             was_played=True,
-            date_played=datetime.now(tz),
+            date_play=datetime.now(tz),
         )
         self.pe3.save()
 
@@ -63,7 +63,7 @@ class PlaylistProvider(BaseProvider):
             song=self.song1,
             owner=self.user,
             was_played=True,
-            date_played=datetime.now(tz) - timedelta(minutes=15),
+            date_play=datetime.now(tz) - timedelta(minutes=15),
         )
         self.pe4.save()
 
@@ -124,9 +124,7 @@ class PlaylistProvider(BaseProvider):
     def check_playlist_played_entry_json(self, json, expected_entry):
         """Method to check a representation against expected playlist played entry."""
         self.check_playlist_entry_json(json, expected_entry)
-        self.assertEqual(
-            parse_datetime(json["date_played"]), expected_entry.date_played
-        )
+        self.assertEqual(parse_datetime(json["date_play"]), expected_entry.date_play)
 
     def get_player_token(self):
         """Create and give player token."""
