@@ -466,7 +466,7 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
         IsAuthenticated & internal_permissions.IsReadOnly | permissions.IsPlayer
     ]
     serializer_class = serializers.PlayerErrorSerializer
-    queryset = models.PlayerError.objects.order_by("date_created")
+    queryset = models.PlayerError.objects.order_by("date_created").reverse()
 
     def perform_create(self, serializer):
         """Create an error and perform other actions.
