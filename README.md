@@ -11,7 +11,7 @@ Server for the Dakara project.
 ## Installation
 
 To install Dakara completely, you have to get all the parts of the project.
-Installation guidelines are provided over here:
+Installation guidelines are provided here:
 
 * [Dakara web client](https://github.com/DakaraProject/dakara-client-web/);
 * [Dakara player VLC](https://github.com/DakaraProject/dakara-player-vlc/);
@@ -38,15 +38,34 @@ pip install --upgrade pip
 Install dependencies, at the root level of the repo (in the virtual environment):
 
 ```sh
-pip install -r requirements.txt
+pip install .
 ```
+
+## Setup
+
+### Settings presets
+
+The project provides settings presets: "development", "test", and "production".
+By default, the development preset is used.
+
+To select a preset, set the `DJANGO_SETTINGS_MODULE` environment variable accordingly, by instance for production:
+
+```sh
+export DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
+```
+
+Note that with the development settings preset, the database is an SQLite file named `db.sqlite3`, which is located in the current working directory.
+
+### Using Django commands
+
+The traditional Django `manage.py` command file is replaced by the `dakara-server` command line, which provides exactly the same features.
 
 ### Setting up the server
 
 Let's create the server database, after loading the virtual environment, do:
 
 ```sh
-dakara_server/manage.py migrate
+dakara-server migrate
 ```
 
 You should be asked to create a super user.
@@ -54,7 +73,7 @@ Do it.
 Otherwise:
 
 ```sh
-dakara_server/manage.py createsuperuser
+dakara-server createsuperuser
 ```
 
 ### Start the server
@@ -62,7 +81,7 @@ dakara_server/manage.py createsuperuser
 You're almost done! To start the server app, in the right virtual environment, do:
 
 ```sh
-dakara_server/manage.py runserver
+dakara-server runserver
 ```
 
 The server part is now set up correctly.
@@ -70,9 +89,9 @@ The server part is now set up correctly.
 ### Web client, Feeder and player
 
 Now setup the [web client](https://github.com/DakaraProject/dakara-client-web), [feeder](https://github.com/DakaraProject/dakara-feeder) and [player](https://github.com/DakaraProject/dakara-player-vlc) according to their respective documentations.
-The feeder can authenticate to the server using a token, or a couple login/password, of a playlist manager account.
+The feeder can authenticate to the server using a token or a couple login/password of a playlist manager account.
 The player can authenticate using a special token that only a playlist manager can generate.
-Both token can be obtained from the web interface.
+Both tokens can be obtained from the web interface.
 
 After all of this is setup, just grab some friends and have fun!
 

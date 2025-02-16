@@ -61,7 +61,7 @@ Issues = "https://github.com/DakaraProject/dakara-server/issues"
 Changelog = "https://github.com/DakaraProject/dakara-server/blob/master/CHANGELOG.md"
 
 [project.scripts]
-"manage.py" = "dakara_server:django_manage"
+"dakara-server" = "dakara_server:django_manage"
 
 [build-system]
 requires = ["setuptools>=68.0"]
