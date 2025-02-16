@@ -1,8 +1,8 @@
-#!/usr/bin/env python
 import os
 import sys
 
-if __name__ == "__main__":
+
+def django_manage():
     os.environ.setdefault(
         "DJANGO_SETTINGS_MODULE", "dakara_server.settings.development"
     )
