@@ -7,7 +7,7 @@
 For development, you need the extra dependencies:
 
 ```sh
-pip install -r requirements_dev.txt
+pip install -e ".[dev]"
 ```
 
 ### Tests
@@ -34,10 +34,10 @@ You need to call isort before committing changes.
 ### Code style
 
 The code follows the [PEP8](https://www.python.org/dev/peps/pep-0008/) style guide (88 characters per line).
-Quality of code is checked with [Flake8](https://pypi.org/project/flake8/):
+Quality of code is checked with [Ruff](https://pypi.org/project/ruff/):
 
 ```sh
-flake8
+ruff check .
 ```
 
 Style is enforced using [Black](https://github.com/ambv/black):
