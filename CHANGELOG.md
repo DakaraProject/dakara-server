@@ -47,6 +47,7 @@ Any important notes regarding the update.
 
 ### Removed
 
+- Dropped Python 3.8 support.
 - Dropped Python 3.7 support.
 - Playlist entries in digest view don't have pre-calculated date of play any more. This data has to be calculated by the front now.
 
