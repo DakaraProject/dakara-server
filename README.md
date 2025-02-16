@@ -29,13 +29,13 @@ It is strongly recommended to run the Dakara server in a virtual environment.
 
 ### Dependencies
 
-Having a recent enough versio of `pip` is required to install some dependencies properly:
+Install the package with:
 
-```sh
-pip install --upgrade pip
-```
-
-Install dependencies, at the root level of the repo (in the virtual environment):
+<!-- ```sh -->
+<!-- pip install dakaraserver -->
+<!-- ``` -->
+<!--  -->
+<!-- If you have downloaded the repo, you can install the package directly with: -->
 
 ```sh
 pip install .
@@ -54,7 +54,7 @@ To select a preset, set the `DJANGO_SETTINGS_MODULE` environment variable accord
 export DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
 ```
 
-Note that with the development settings preset, the database is an SQLite file named `db.sqlite3`, which is located in the current working directory.
+Note that with the development settings preset, the database is an SQLite file with the default name `db.sqlite3`, which is located in the current working directory.
 
 ### Using Django commands
 
@@ -86,7 +86,7 @@ dakara-server runserver
 
 The server part is now set up correctly.
 
-### Web client, Feeder and player
+### Web client, feeder and player
 
 Now setup the [web client](https://github.com/DakaraProject/dakara-client-web), [feeder](https://github.com/DakaraProject/dakara-feeder) and [player](https://github.com/DakaraProject/dakara-player-vlc) according to their respective documentations.
 The feeder can authenticate to the server using a token or a couple login/password of a playlist manager account.
