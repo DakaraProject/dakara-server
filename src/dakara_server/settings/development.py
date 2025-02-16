@@ -17,12 +17,10 @@ import os
 from pathlib import Path
 
 from decouple import config
-from dj_database_url import parse as db_url
 
 os.environ.setdefault("HOST_URL", "http://localhost:3000")
 
 from dakara_server.settings.base import *  # noqa F403
-from dakara_server.settings.base import BASE_DIR  # noqa E402
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -38,11 +36,12 @@ AUTH_PASSWORD_VALIDATORS = []
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-# `DATABASE_URL` is specified according to dj-databse-url plugin
-# https://github.com/kennethreitz/dj-database-url#url-schema
 
 DATABASES = {
-    "default": db_url(f"sqlite:///{Path.cwd()}/db.sqlite3"),
+    "default": {
+        "NAME": config("DATABASE_FILE", default=Path.cwd() / "db.sqlite3"),
+        "ENGINE": "django.db.backends.sqlite3",
+    }
 }
 
 # Channels
