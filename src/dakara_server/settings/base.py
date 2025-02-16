@@ -2,22 +2,22 @@
 Django base settings for the Dakara server project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/2.2/topics/settings/
+https://docs.djangoproject.com/en/5.1/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/2.2/ref/settings/
+https://docs.djangoproject.com/en/5.1/ref/settings/
 
 This file should not be modified if you are not a dev.
 """
 
-import os
+from pathlib import Path
 
 from decouple import config
 
 from dakara_server.version import __date__ as DATE  # noqa F401
 from dakara_server.version import __version__ as VERSION  # noqa F401
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Application definition
@@ -92,7 +92,7 @@ WSGI_APPLICATION = "dakara_server.wsgi.application"
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/2.2/topics/i18n/
+# https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 USE_I18N = True
 
@@ -102,11 +102,11 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "/static/"
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Django REST config
 REST_FRAMEWORK = {
