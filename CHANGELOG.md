@@ -34,6 +34,26 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Update notes
+
+The project can now be installed as a package directly from Pypi.
+Typically, you would install Dakara server as any dependency.
+This means that code files are now separated from user-generated files, the former are located in what we call the *package directory*, and the later in the *user directory*.
+
+This has the following consequences on how to get and run the server:
+
+- For production, you would install the package with `pip install dakaraserver`, and have your MySQL server (or other database) already configured.
+  You would have the directory for static files in the user directory, or you would specify it with the environment variable `STATIC_DIR`.
+  TODO how to run in production.
+- For development, the user directory and the package directory are likely to be the same.
+  You would install the package with `pip install -e ".[dev]"`, and have the SQLite database file in the user directory, or you would specify it with the environment variable `DATABASE_FILE`.
+  Optionnaly, you would have the directory for static files in the user directory too.
+  You would run the development server in the user directory with `dakara-server runserver`.
+
+Additionnaly, we do not provide the server + front bundle archive anymore for the releases.
+You have to manually get the latest front archive on GitHub (which only contains static files), and unzip it in the user directory.
+TODO talk about the command to do this automatically.
+
 ### Added
 
 - MacOS support.
@@ -42,6 +62,8 @@ Any important notes regarding the update.
 
 ### Changed
 
+- The well-known Django `dakara_server/manage.py` file is replaced by the `dakara-server` command, which does exactly the same things.
+- Dependencies are installed with `pip install .` or `pip install dakaraserver`.
 - Playlist is integrated to the digest view in its minimal form.
 - Played and queuing playlist entries can be accessed in a library fashion (using pagination), their routes are `playlist/played` and `playlist/queuing`.
 
