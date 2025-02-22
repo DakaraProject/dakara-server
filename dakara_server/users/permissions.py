@@ -16,7 +16,11 @@ class IsUsersManager(BasePermissionCustom):
     """Allow access if user is super user or user manager."""
 
     def has_permission(self, request, view):
-        return request and request.user.is_superuser or request.user.is_users_manager
+        return (
+            request
+            and request.user.is_superuser
+            or getattr(request.user, "is_users_manager", False)
+        )
 
 
 class IsSelf(BasePermissionCustom):

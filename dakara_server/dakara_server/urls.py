@@ -17,7 +17,6 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.staticfiles.views import serve
 from django.urls import include, path, re_path
-from rest_framework.documentation import include_docs_urls
 
 from internal import views as internal_views
 from library import views as library_views
@@ -157,8 +156,6 @@ urlpatterns = [
         library_views.SongTagView.as_view(),
         name="library-songtag",
     ),
-    # API documentation routes
-    path("api-docs/", include_docs_urls(title="Dakara server API")),
 ]
 
 if settings.DEBUG:

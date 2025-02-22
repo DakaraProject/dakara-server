@@ -42,11 +42,13 @@ Any important notes regarding the update.
 
 ### Changed
 
+- Self documentation of the API is now handled by `drf-spectacular`.
 - Playlist is integrated to the digest view in its minimal form.
 - Played and queuing playlist entries can be accessed in a library fashion (using pagination), their routes are `playlist/played` and `playlist/queuing`.
 
 ### Removed
 
+- Removed documentation URL entry point `api-doc`.
 - Dropped Python 3.8 support.
 - Dropped Python 3.7 support.
 - Playlist entries in digest view don't have pre-calculated date of play any more. This data has to be calculated by the front now.
