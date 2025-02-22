@@ -164,8 +164,7 @@ if settings.DEBUG:
         [
             # Default to main page
             re_path(
-                r"^(?!api/|api-docs/?)",  # serve everything but the API routes
-                # API documentation routes
+                r"^(?!api/?)",  # serve everything but the API routes
                 serve,
                 kwargs={"path": "index.html"},
             )
