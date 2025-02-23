@@ -12,6 +12,7 @@ connection_created_once = Event()
 def handle_connection_created(connection, **kwargs):
     """Perform playlist initialization operations as soon as the database is
     ready."""
+    # make sure this code is called only once
     if not connection_created_once.is_set():
         connection_created_once.set()
 
