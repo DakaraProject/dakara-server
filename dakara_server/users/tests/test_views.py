@@ -273,6 +273,7 @@ class UserListViewTestCase(UsersAPITestCase):
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user_mail_send_fail(self, mocked_send_email):
         """Test to verify user not created if mail send fail."""
+
         # Patch send email to raise exception
         class MailSendFailException(Exception):
             pass

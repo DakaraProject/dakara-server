@@ -1,38 +1,30 @@
 from django.contrib.auth.models import AnonymousUser
-from rest_framework.authentication import BaseAuthentication
+from rest_framework.authentication import TokenAuthentication
 
 from playlist.models import PlayerToken
 
 
-class PlayerTokenAuthentication(BaseAuthentication):
-    """Check if the token of the request is a player token."""
+class PlayerTokenAuthentication(TokenAuthentication):
+    """Check if the token of the request is a player token.
 
-    def authenticate(self, request):
-        # check the request has a token
-        try:
-            # NOTE: The normal authentication mechanism tries to get a user
-            # from the token provided in the HTTP headers, but does not
-            # recognizes player tokens, as this is not related to a normal
-            # user. Consequently, we have to re-process the token again. For
-            # the device, we chose to take into consideration the HTTP headers
-            # only.
+    The normal authentication mechanism tries to get a user from the token
+    provided in the HTTP headers, but it does not recognizes player tokens, as
+    these tokens are not related to normal users. Consequently, we have to re-process
+    the token again. For the device, we chose to take into consideration the
+    HTTP headers only.
 
-            # just as Django Request, DRF Request object stores the
-            # Authorization HTTP header this way
-            _, token = request.META["HTTP_AUTHORIZATION"].split()
+    Just as a Django Request, a DRF Request object stores the token in the
+    `Authorization` HTTP header.
+    """
 
-        except (KeyError, ValueError):
-            return None
+    model = PlayerToken
 
+    def authenticate_credentials(self, key):
         # check the token is a player token
         try:
-            player_token = PlayerToken.objects.get(key=token)
+            player_token = self.model.objects.get(key=key)
 
-        except PlayerToken.DoesNotExist:
+        except self.model.DoesNotExist:
             return None
 
         return AnonymousUser(), player_token
-
-    def authenticate_header(self, request):
-        # required as otherwise 401 responses are converted to 403 responses
-        return "Invalid player token"

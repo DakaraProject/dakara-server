@@ -1,8 +1,8 @@
-import os
 from abc import ABC
 
 from django.apps import AppConfig
 
+from internal.reloader import is_reloader
 from internal.version import check_version
 
 
@@ -15,21 +15,11 @@ class DakaraConfig(AppConfig, ABC):
     """
 
     def ready(self):
-        """Method called when app start.
-
-        When the server is run with the `runserver` command, two instances of
-        the project are running and hence this method is called twice: one for
-        the reloader and one for the actual development server. The reloader
-        creates the environment variable `RUN_MAIN` with the value "true", so
-        it can be distinguighed.
-
-        See: https://stackoverflow.com/q/33814615
-        See: django/utils/autoreload.py
-        """
+        """Method called when app start."""
         # The code below can be executed by the reloader
         self.ready_reload()
 
-        if os.environ.get("RUN_MAIN") == "true":
+        if is_reloader():
             return
 
         # The code bellow cannot be executed by the reloader
