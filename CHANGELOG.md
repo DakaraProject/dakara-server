@@ -36,6 +36,7 @@ Any important notes regarding the update.
 
 ### Added
 
+- Added Python 3.13 support.
 - MacOS support.
 - Added Python 3.12 support.
 - Player errors can be accessed in a library fashion (using pagination).
