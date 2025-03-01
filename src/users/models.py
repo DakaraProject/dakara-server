@@ -24,20 +24,30 @@ class DakaraUser(AbstractUser):
     MANAGER = "m"
 
     # role for Users app
-    LEVELS_USERS = [(USER, "User"), (MANAGER, "Manager")]
+    LEVELS_USERS = {
+        USER: "User",
+        MANAGER: "Manager",
+    }
 
     users_permission_level = models.CharField(
         max_length=1, choices=LEVELS_USERS, null=True
     )
 
     # role for Libraryapp
-    LEVELS_LIBRARY = [(USER, "User"), (MANAGER, "Manager")]
+    LEVELS_LIBRARY = {
+        USER: "User",
+        MANAGER: "Manager",
+    }
+
     library_permission_level = models.CharField(
         max_length=1, choices=LEVELS_LIBRARY, null=True
     )
 
     # role for Playlist app
-    LEVELS_PLAYLIST = [(USER, "User"), (MANAGER, "Manager")]
+    LEVELS_PLAYLIST = {
+        USER: "User",
+        MANAGER: "Manager",
+    }
 
     playlist_permission_level = models.CharField(
         max_length=1, choices=LEVELS_PLAYLIST, null=True, default=USER

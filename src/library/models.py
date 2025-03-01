@@ -90,12 +90,12 @@ class SongWorkLink(models.Model):
     ENDING = "ED"
     INSERT = "IN"
     IMAGE = "IS"
-    LINK_TYPE_CHOICES = (
-        (OPENING, "Opening"),
-        (ENDING, "Ending"),
-        (INSERT, "Insert song"),
-        (IMAGE, "Image song"),
-    )
+    LINK_TYPE_CHOICES = {
+        OPENING: "Opening",
+        ENDING: "Ending",
+        INSERT: "Insert song",
+        IMAGE: "Image song",
+    }
 
     song = models.ForeignKey(Song, on_delete=models.CASCADE)
     work = models.ForeignKey(Work, on_delete=models.CASCADE)

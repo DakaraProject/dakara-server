@@ -56,6 +56,7 @@ TODO talk about the command to do this automatically.
 
 ### Added
 
+- Added Python 3.13 support.
 - MacOS support.
 - Added Python 3.12 support.
 - Player errors can be accessed in a library fashion (using pagination).
@@ -64,11 +65,14 @@ TODO talk about the command to do this automatically.
 
 - The well-known Django `dakara_server/manage.py` file is replaced by the `dakara-server` command, which does exactly the same things.
 - Dependencies are installed with `pip install .` or `pip install dakaraserver`.
+- Self documentation of the API is now handled by `drf-spectacular`.
 - Playlist is integrated to the digest view in its minimal form.
 - Played and queuing playlist entries can be accessed in a library fashion (using pagination), their routes are `playlist/played` and `playlist/queuing`.
 
 ### Removed
 
+- Removed documentation URL entry point `api-doc`.
+- Dropped Python 3.9 support.
 - Dropped Python 3.8 support.
 - Dropped Python 3.7 support.
 - Playlist entries in digest view don't have pre-calculated date of play any more. This data has to be calculated by the front now.

@@ -22,6 +22,7 @@ from library import permissions as library_permissions
 from playlist import authentications, models, permissions, serializers
 from playlist.consumers import send_to_channel
 from playlist.date_stop import KARAOKE_JOB_NAME, clear_date_stop, scheduler
+from playlist.schemes import PlayerTokenScheme  # noqa F401
 
 tz = timezone.get_default_timezone()
 logger = logging.getLogger(__name__)
@@ -205,6 +206,7 @@ class DigestView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = serializers.DigestSerializer
 
     @method_decorator(cache_page(0.5))
     @method_decorator(vary_on_headers("Authorization"))
@@ -223,7 +225,7 @@ class DigestView(APIView):
         # Get playlist entries
         playlist_entries_pool = models.PlaylistEntry.objects.all()
 
-        serializer = serializers.DigestSerializer(
+        serializer = self.serializer_class(
             {
                 "player_status": player,
                 "karaoke": karaoke,

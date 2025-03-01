@@ -9,7 +9,9 @@ class IsLibraryManager(BasePermissionCustom):
     """Allow access if user is super user or library manager."""
 
     def has_permission(self, request, view):
-        return request.user.is_superuser or request.user.is_library_manager
+        return request.user.is_superuser or getattr(
+            request.user, "is_library_manager", False
+        )
 
 
 class IsLibraryUser(BasePermissionCustom):
@@ -17,4 +19,8 @@ class IsLibraryUser(BasePermissionCustom):
 
     def has_permission(self, request, view):
         user = request.user
-        return user.is_superuser or user.is_library_manager or user.is_library_user
+        return (
+            user.is_superuser
+            or getattr(user, "is_library_manager", False)
+            or getattr(user, "is_library_user", False)
+        )
