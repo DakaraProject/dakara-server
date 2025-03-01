@@ -7,11 +7,10 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 
-You should not modify this file directly.
-To modify config values, set them as environment variables,
-or in a config file in the dakara root directory:
-either in a `.env` file
-or in a `settings.ini` with a single `[settings]` section.
+You should not modify this file directly. To modify config values, set them as
+environment variables, or in a config file in the current worknig directory:
+either in a `.env` file or in a `settings.ini` with a single `[settings]`
+section.
 """
 
 from decouple import Csv, config

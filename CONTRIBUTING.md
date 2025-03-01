@@ -7,7 +7,7 @@
 For development, you need the extra dependencies:
 
 ```sh
-pip install -r requirements_dev.txt
+pip install -e ".[dev]"
 ```
 
 ### Tests
@@ -34,10 +34,10 @@ You need to call isort before committing changes.
 ### Code style
 
 The code follows the [PEP8](https://www.python.org/dev/peps/pep-0008/) style guide (88 characters per line).
-Quality of code is checked with [Flake8](https://pypi.org/project/flake8/):
+Quality of code is checked with [Ruff](https://pypi.org/project/ruff/):
 
 ```sh
-flake8
+ruff check .
 ```
 
 Style is enforced using [Black](https://github.com/ambv/black):
@@ -86,17 +86,13 @@ pre-commit install
    git merge 0.0.0
    git push
    ```
-5. Before creating the server bundle, make sure dependencies are up to date:
+5. Call the script to create the package:
    ```sh
-   pip install -r requirements.txt -r requirements_dev.txt
+   ./create_archive.sh
    ```
-6. Call the script to create the archive:
-   ```sh
-   ./create_archive.sh 0.0.0 9.9.9
-   ```
-   with `0.0.0` the according version number and `9.9.9` the corresponding Dakara web client version number.
-7. On GitHub, draft a new release, set the version number with the created tag ("Existing tag" should read).
+   The distribution and source distribution are created and published on PyPI.
+   Just add your username and password when prompted.
+6. On GitHub, draft a new release, set the version number with the created tag ("Existing tag" should read).
    Set the release title with "Version 0.0.0" (with number, you get it?).
    Copy-paste corresponding section of the changelog file in the release description.
-   Add the created archive file.
    You can now publish the release.

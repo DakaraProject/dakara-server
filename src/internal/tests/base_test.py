@@ -37,7 +37,7 @@ class BaseProvider:
         playlist_level=None,
         library_level=None,
         users_level=None,
-        **kwargs
+        **kwargs,
     ):
         """Create a user with the given permissions.
 

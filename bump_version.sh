@@ -22,7 +22,7 @@ version_date=$(date -I -u)
 version_year=$(date +%Y -u)
 
 # patch version and date in version file
-version_file=dakara_server/dakara_server/version.py
+version_file=src/dakara_server/version.py
 cat <<EOF >$version_file
 # this file is automatically updated by bump_version.sh, do not edit it!
 __version__ = "$version_number"
@@ -35,16 +35,12 @@ sed -i "/^## Unreleased$/a \\
 \\
 ## $version_number - $version_date" $changelog_file
 
-# change version in appveyor config file
-appveyor_file=.appveyor.yml
-sed -i "s/^version: .*-{build}$/version: $version_number-{build}/" $appveyor_file
-
 # change year in license file
 license_file=LICENSE
 sed -i -e "s/(c) [0-9]\{4\}/(c) $version_year/" $license_file
 
 # create commit and tag
-git add $version_file $changelog_file $appveyor_file $license_file
+git add $version_file $changelog_file $license_file
 git commit -m "Version $version_number" --no-verify
 git tag "$version_number"
 
@@ -58,11 +54,8 @@ __version__ = "$dev_version_number"
 __date__ = "$version_date"
 EOF
 
-# change version in appveyor config file for dev version
-sed -i "s/^version: .*-{build}$/version: $dev_version_number-{build}/" $appveyor_file
-
 # create commit
-git add $version_file $appveyor_file
+git add $version_file
 git commit -m "Dev version $dev_version_number" --no-verify
 
 # say something
