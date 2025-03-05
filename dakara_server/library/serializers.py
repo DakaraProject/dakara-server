@@ -144,7 +144,7 @@ class WorkTypeForWorkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WorkType
-        fields = ("name", "name_plural", "query_name", "icon_name")
+        fields = ("id", "name", "name_plural", "query_name", "icon_name")
         extra_kwargs = {
             "name": {"required": False},
             "name_plural": {"required": False},
