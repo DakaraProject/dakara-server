@@ -34,6 +34,14 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Update notes
+
+Due to the change of the program handling the self documentation of the API, `coreapi` should be manually removed from the installed dependencies, as it holds a dependency to the deprecated `pkg_resources`:
+
+```sh
+pip uninstall coreapi
+```
+
 ### Added
 
 - Added Python 3.13 support.
