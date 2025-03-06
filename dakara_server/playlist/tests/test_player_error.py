@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 from django.urls import reverse
+from freezegun import freeze_time
 from rest_framework import status
 
 from internal.tests.base_test import tz
@@ -32,10 +33,13 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         # assert the response
         self.assertEqual(response.data["results"], [])
 
-    def test_get_errors_something(self):
-        """Test to get errors when there is an error."""
+    def test_get_errors_one(self):
+        """Test to get errors when there is one."""
         # set an error
-        PlayerError.objects.create(playlist_entry=self.pe1, error_message="dummy error")
+        with freeze_time("1970-01-01 00:01:00"):
+            PlayerError.objects.create(
+                playlist_entry=self.pe1, error_message="dummy error"
+            )
 
         # log as user
         self.authenticate(self.user)
@@ -45,10 +49,45 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # assert the response
+        self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(
             response.data["results"][0]["playlist_entry"]["id"], self.pe1.id
         )
         self.assertEqual(response.data["results"][0]["error_message"], "dummy error")
+        self.assertEqual(
+            response.data["results"][0]["date_created"], "1970-01-01T00:01:00Z"
+        )
+
+    def test_get_errors_two(self):
+        """Test to get errors when there are two."""
+        # set an error
+        with freeze_time("1970-01-01 00:01:00"):
+            PlayerError.objects.create(
+                playlist_entry=self.pe1, error_message="dummy error 1"
+            )
+
+        with freeze_time("1970-01-01 00:02:00"):
+            PlayerError.objects.create(
+                playlist_entry=self.pe2, error_message="dummy error 2"
+            )
+
+        # log as user
+        self.authenticate(self.user)
+
+        # request the errors list
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # assert the response
+        self.assertEqual(len(response.data["results"]), 2)
+
+        # check the order of the player errors
+        self.assertEqual(
+            response.data["results"][0]["playlist_entry"]["id"], self.pe2.id
+        )
+        self.assertEqual(
+            response.data["results"][1]["playlist_entry"]["id"], self.pe1.id
+        )
 
     def test_get_errors_forbidden(self):
         """Test to get errors when not authenticated."""
@@ -62,7 +101,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # request to create an error
@@ -90,7 +129,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # request to create an error
@@ -129,7 +168,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         self.assertEqual(PlayerError.objects.count(), 0)
 
         # set first playlit entry played
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.was_played = True
         self.pe1.save()
 
@@ -147,7 +186,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
     def test_post_error_forbidden_not_authenticated(self):
         """Test to create an error when not loged in."""
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # request to create an error
@@ -160,7 +199,7 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
     def test_post_error_forbidden_not_player(self):
         """Test to create an error when not loged in as player."""
         # start playing
-        self.pe1.date_played = datetime.now(tz)
+        self.pe1.date_play = datetime.now(tz)
         self.pe1.save()
 
         # log in as user

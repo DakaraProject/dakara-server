@@ -13,12 +13,11 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
+
 from django.conf import settings
-from django.conf.urls import re_path
 from django.contrib import admin
 from django.contrib.staticfiles.views import serve
-from django.urls import include, path
-from rest_framework.documentation import include_docs_urls
+from django.urls import include, path, re_path
 
 from internal import views as internal_views
 from library import views as library_views
@@ -73,19 +72,19 @@ urlpatterns = [
         name="playlist-digest",
     ),
     path(
-        "api/playlist/entries/",
-        playlist_views.PlaylistEntryListView.as_view(),
-        name="playlist-entries-list",
+        "api/playlist/queuing/",
+        playlist_views.PlaylistQueuingListView.as_view(),
+        name="playlist-queuing-list",
     ),
     path(
-        "api/playlist/entries/<int:pk>/",
-        playlist_views.PlaylistEntryView.as_view(),
-        name="playlist-entries",
+        "api/playlist/queuing/<int:pk>/",
+        playlist_views.PlaylistQueuingView.as_view(),
+        name="playlist-queuing",
     ),
     path(
-        "api/playlist/played-entries/",
-        playlist_views.PlaylistPlayedEntryListView.as_view(),
-        name="playlist-played-entries-list",
+        "api/playlist/played/",
+        playlist_views.PlaylistPlayedListView.as_view(),
+        name="playlist-played-list",
     ),
     path(
         "api/playlist/karaoke/",
@@ -158,8 +157,6 @@ urlpatterns = [
         library_views.SongTagView.as_view(),
         name="library-songtag",
     ),
-    # API documentation routes
-    path("api-docs/", include_docs_urls(title="Dakara server API")),
 ]
 
 if settings.DEBUG:
@@ -167,8 +164,7 @@ if settings.DEBUG:
         [
             # Default to main page
             re_path(
-                r"^(?!api/|api-docs/?)",  # serve everything but the API routes
-                # API documentation routes
+                r"^(?!api/?)",  # serve everything but the API routes
                 serve,
                 kwargs={"path": "index.html"},
             )

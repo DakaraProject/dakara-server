@@ -5,7 +5,7 @@ from rest_framework import generics, views
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_registration.settings import registration_settings
-from rest_registration.utils.verification_notifications import (
+from rest_registration.verification_notifications import (
     send_register_verification_email_notification,
 )
 

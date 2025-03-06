@@ -10,14 +10,18 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
 
-from dakara_server.routing import websocket_urlpatterns
-from dakara_server.token_auth import TokenAuthMiddleware
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dakara_server.settings.development")
+
+# Initialize Django ASGI application early to ensure the AppRegistry is
+# populated before importing code that may import ORM models.
+asgi_application = get_asgi_application()
+
+from dakara_server.routing import websocket_urlpatterns  # noqa E402
+from dakara_server.token_auth import TokenAuthMiddleware  # noqa E402
 
 application = ProtocolTypeRouter(
     {
-        "http": get_asgi_application(),
+        "http": asgi_application,
         "websocket": AllowedHostsOriginValidator(
             AuthMiddlewareStack(TokenAuthMiddleware(URLRouter(websocket_urlpatterns)))
         ),

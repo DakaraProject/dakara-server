@@ -28,9 +28,11 @@ INSTALLED_APPS = (
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "daphne",
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
+    "drf_spectacular",
     "channels",
     "ordered_model",
     "rest_registration",
@@ -118,7 +120,15 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "internal.pagination.PageNumberPaginationCustom",
     "PAGE_SIZE": 10,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
-    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# DRF Spectacular settings
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Dakara server API",
+    "DESCRIPTION": "Server for the Dakara project",
+    "VERSION": VERSION,
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 

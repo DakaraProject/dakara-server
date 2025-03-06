@@ -34,14 +34,34 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Update notes
+
+Due to the change of the program handling the self documentation of the API, `coreapi` should be manually removed from the installed dependencies, as it holds a dependency to the deprecated `pkg_resources`:
+
+```sh
+pip uninstall coreapi
+```
+
 ### Added
 
+- Added Python 3.13 support.
 - MacOS support.
 - Added Python 3.12 support.
+- Player errors can be accessed in a library fashion (using pagination).
+
+### Changed
+
+- Self documentation of the API is now handled by `drf-spectacular`.
+- Playlist is integrated to the digest view in its minimal form.
+- Played and queuing playlist entries can be accessed in a library fashion (using pagination), their routes are `playlist/played` and `playlist/queuing`.
 
 ### Removed
 
+- Removed documentation URL entry point `api-doc`.
+- Dropped Python 3.9 support.
+- Dropped Python 3.8 support.
 - Dropped Python 3.7 support.
+- Playlist entries in digest view don't have pre-calculated date of play any more. This data has to be calculated by the front now.
 
 ## 1.8.1 - 2023-12-17
 

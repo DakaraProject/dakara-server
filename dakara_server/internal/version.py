@@ -1,7 +1,7 @@
 import logging
 
 from django.conf import settings
-from pkg_resources import parse_version
+from packaging.version import parse
 
 logger = logging.getLogger("django")
 
@@ -12,6 +12,6 @@ def check_version():
     logger.info("Dakara server %s (%s)", settings.VERSION, settings.DATE)
 
     # check version is a release
-    version = parse_version(settings.VERSION)
+    version = parse(settings.VERSION)
     if version.is_prerelease:
         logger.warning("You are running a dev version, use it at your own risks!")

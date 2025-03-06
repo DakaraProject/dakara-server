@@ -252,6 +252,7 @@ class ArtistPruneView(APIView):
 
     permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
     queryset = models.Artist.objects.filter(song=None)
+    serializer_class = None
 
     def delete(self, request, *args, **kwargs):
         _, deleted_count = self.queryset.delete()
@@ -342,6 +343,7 @@ class WorkPruneView(APIView):
 
     permission_classes = [IsAuthenticated, permissions.IsLibraryManager]
     queryset = models.Work.objects.filter(song=None)
+    serializer_class = None
 
     def delete(self, request, *args, **kwargs):
         _, deleted_count = self.queryset.delete()
