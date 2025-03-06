@@ -34,6 +34,8 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+## 1.9.0 - 2025-03-06
+
 ### Update notes
 
 Due to the change of the program handling the self documentation of the API, `coreapi` should be manually removed from the installed dependencies, as it holds a dependency to the deprecated `pkg_resources`:
