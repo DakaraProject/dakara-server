@@ -51,7 +51,7 @@ pip uninstall coreapi
 
 ### Changed
 
-- Self documentation of the API is now handled by `drf-spectacular`.
+- Self documentation of the API is now handled by [`drf-spectacular`](https://pypi.org/project/drf-spectacular/).
 - Playlist is integrated to the digest view in its minimal form.
 - Played and queuing playlist entries can be accessed in a library fashion (using pagination), their routes are `playlist/played` and `playlist/queuing`.
 
