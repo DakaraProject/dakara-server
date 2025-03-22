@@ -34,6 +34,8 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+## 1.9.2 - 2025-03-22
+
 ## 1.9.1 - 2025-03-15
 
 ## 1.9.0 - 2025-03-06
