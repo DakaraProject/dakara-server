@@ -1,6 +1,7 @@
 # Dakara server
 
 <!-- Badges are displayed for the develop branch -->
+[![Python versions](https://badgen.net/badge/python/3.10%20|%203.11%10|%203.12%20|%203.13/blue)](https://github.com/DakaraProject/dakara-server)
 [![Tests status](https://github.com/DakaraProject/dakara-server/actions/workflows/ci.yml/badge.svg)](https://github.com/DakaraProject/dakara-server/actions/workflows/ci.yml)
 [![Codecov coverage analysis](https://codecov.io/gh/DakaraProject/dakara-server/branch/develop/graph/badge.svg)](https://codecov.io/gh/DakaraProject/dakara-server)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
@@ -19,7 +20,7 @@ Installation guidelines are provided here:
 
 ### System requirements
 
-* Python3, to make everything up and running (supported versions: 3.10, 3.11, 3.12, and 3.13).
+* Python3, to make everything up and running (supported versions: see above).
 
 Linux, Mac and Windows are supported.
 
