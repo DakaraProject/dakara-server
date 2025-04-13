@@ -54,6 +54,25 @@ Additionnaly, we do not provide the server + front bundle archive anymore for th
 You have to manually get the latest front archive on GitHub (which only contains static files), and unzip it in the user directory.
 TODO talk about the command to do this automatically.
 
+### Changed
+
+- The well-known Django `dakara_server/manage.py` file is replaced by the `dakara-server` command, which does exactly the same things.
+- Dependencies are installed with `pip install .` or `pip install dakaraserver`.
+
+## 1.9.2 - 2025-03-22
+
+## 1.9.1 - 2025-03-15
+
+## 1.9.0 - 2025-03-06
+
+### Update notes
+
+Due to the change of the program handling the self documentation of the API, `coreapi` should be manually removed from the installed dependencies, as it holds a dependency to the deprecated `pkg_resources`:
+
+```sh
+pip uninstall coreapi
+```
+
 ### Added
 
 - Added Python 3.13 support.
@@ -63,9 +82,7 @@ TODO talk about the command to do this automatically.
 
 ### Changed
 
-- The well-known Django `dakara_server/manage.py` file is replaced by the `dakara-server` command, which does exactly the same things.
-- Dependencies are installed with `pip install .` or `pip install dakaraserver`.
-- Self documentation of the API is now handled by `drf-spectacular`.
+- Self documentation of the API is now handled by [`drf-spectacular`](https://pypi.org/project/drf-spectacular/).
 - Playlist is integrated to the digest view in its minimal form.
 - Played and queuing playlist entries can be accessed in a library fashion (using pagination), their routes are `playlist/played` and `playlist/queuing`.
 

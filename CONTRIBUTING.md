@@ -59,6 +59,16 @@ They are managed with [Pre-commit](https://pre-commit.com/), use the following c
 pre-commit install
 ```
 
+### API documentation
+
+The project uses [`drf-spectacular`](https://pypi.org/project/drf-spectacular/) for the self-documentation of the API.
+You can generate and browse it locally with:
+
+```sh
+./manage.py spectacular --color --file schema.yml
+docker run -p 80:8080 -e SWAGGER_JSON=/schema.yml -v ${PWD}/schema.yml:/schema.yml swaggerapi/swagger-ui
+```
+
 ## Release
 
 1. Move to the `develop` branch and pull.
@@ -75,9 +85,8 @@ pre-commit install
 3. Push the version commit and its tag:
    ```sh
    git push
-   git push origin 0.0.0
+   git push --tags
    ```
-   with the according version number.
 4. Move to the `master` branch and merge created tag into it.
    Then push.
    ```sh
