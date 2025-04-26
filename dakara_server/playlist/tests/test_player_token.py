@@ -58,6 +58,23 @@ class PlayerTokenViewTestCase(PlaylistAPITestCase):
 
         self.assertEqual(response.data["karaoke_id"], player_token.karaoke.id)
 
+    def test_get_not_found(self):
+        """Test to get a token that doesn't exist"""
+        # login
+        self.authenticate(self.manager)
+
+        # get the token
+        url = reverse("playlist-player-token", kwargs={"pk": 99})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # check the error
+        self.assertNotIn("karaoke_id", response.data)
+        self.assertIn("detail", response.data)
+        detail = response.data["detail"]
+        self.assertEqual(detail.code, "not_found")
+        self.assertEqual(str(detail), "No PlayerToken matches the given query.")
+
     def test_delete(self):
         """Test to delete a token"""
         # get karaoke and token
