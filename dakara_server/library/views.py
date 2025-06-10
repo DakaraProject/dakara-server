@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from internal import permissions as internal_permissions
 from library import models, permissions, serializers
 from library.query_language import QueryLanguageParser
-from library.query import query_songs
+from library.query import query_songs, query_artists
 
 logger = logging.getLogger(__name__)
 
@@ -140,20 +140,7 @@ class ArtistListView(QueryParsedListMixin, ListCreateAPIView):
 
         query = self.request.query_params.get("query", None)
         if query:
-            # there is no need for query language for artists
-            # it is used to split terms and for uniformity
-            res = QueryLanguageParser.split_remaining(query)
-            query_list = []
-            # only unspecific terms are used
-            for remain in res:
-                query_list.append(Q(name__icontains=remain))
-
-            # gather the query objects
-            filter_query = Q()
-            for item in query_list:
-                filter_query &= item
-
-            query_set = query_set.filter(filter_query)
+            query_set, res = query_artists(query_set, query)
             # saving the parsed query to give it back to the client
             self.query_parsed = {"remaining": res}
 
