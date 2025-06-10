@@ -1,6 +1,7 @@
 from django.db.models import Q
 
-from library.query_language import QueryLanguageParser
+from library.models import WorkType
+from library.query_language import QueryLanguageParser, regroup
 
 
 def query_songs(query_set, query):
@@ -17,8 +18,9 @@ def query_songs(query_set, query):
         tuple: Tuple of the filtered query set, and the
         parsed query.
     """
-    language_parser = QueryLanguageParser()
-    res = language_parser.parse(query)
+    work_types = [wt.query_name for wt in WorkType.objects.all()]
+    language_parser = QueryLanguageParser(["artist", "work", "title"] + work_types)
+    res = regroup(language_parser.parse(query), "work_type", work_types)
     query_list = []
     query_list_many = []
     # specific terms of the research, i.e. artists, works and titles
