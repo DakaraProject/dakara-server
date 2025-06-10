@@ -106,7 +106,7 @@ def query_artists(query_set, query):
     """Create a queryset that filters artists according to query.
 
     Args:
-        query_set (): Initial query set (containing all songs).
+        query_set (): Initial query set (containing all artists).
         query (str): Query string. It can only be a simple pattern (no query language).
 
     Returns:
@@ -119,6 +119,38 @@ def query_artists(query_set, query):
     # only unspecific terms are used
     for remain in res:
         query_list.append(Q(name__icontains=remain))
+
+    # gather the query objects
+    filter_query = Q()
+    for item in query_list:
+        filter_query &= item
+
+    query_set_filtered = query_set.filter(filter_query)
+
+    return query_set_filtered, res
+
+
+def query_works(query_set, query):
+    """Create a queryset that filters works according to query.
+
+    Args:
+        query_set (): Initial query set (containing all works).
+        query (str): Query string. It can only be a simple pattern (no query language).
+
+    Returns:
+        tuple: Tuple of the filtered query set, and the
+        parsed query.
+    """
+    # using query language parser to split terms and for uniformity
+    res = QueryLanguageParser.split_remaining(query)
+    query_list = []
+    # only unspecific terms are used
+    for remain in res:
+        query_list.append(
+            Q(title__icontains=remain)
+            | Q(subtitle__icontains=remain)
+            | Q(alternative_title__title__icontains=remain)
+        )
 
     # gather the query objects
     filter_query = Q()

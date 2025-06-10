@@ -1,7 +1,6 @@
 import logging
 
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 from django.db.models.functions import Lower
 from rest_framework import status
 from rest_framework.generics import (
@@ -15,8 +14,7 @@ from rest_framework.views import APIView
 
 from internal import permissions as internal_permissions
 from library import models, permissions, serializers
-from library.query_language import QueryLanguageParser
-from library.query import query_songs, query_artists
+from library.query import query_artists, query_songs, query_works
 
 logger = logging.getLogger(__name__)
 
@@ -192,24 +190,7 @@ class WorkListView(QueryParsedListMixin, MultiSerializerMixin, ListCreateAPIView
 
         query = self.request.query_params.get("query", None)
         if query:
-            # there is no need for query language for works it is used to split
-            # terms and for uniformity
-            res = QueryLanguageParser.split_remaining(query)
-            query_list = []
-            # only unspecific terms are used
-            for remain in res:
-                query_list.append(
-                    Q(title__icontains=remain)
-                    | Q(subtitle__icontains=remain)
-                    | Q(alternative_title__title__icontains=remain)
-                )
-
-            # gather the query objects
-            filter_query = Q()
-            for item in query_list:
-                filter_query &= item
-
-            query_set = query_set.filter(filter_query)
+            query_set, res = query_works(query_set, query)
             # saving the parsed query to give it back to the client
             self.query_parsed = {"remaining": res}
 
