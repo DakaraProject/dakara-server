@@ -43,14 +43,17 @@ class PlaylistProvider(BaseProvider):
         self.song2.save()
 
         # Create playlist entries
+        # pe1 queuing
         self.pe1 = PlaylistEntry(song=self.song1, owner=self.manager)
         self.pe1.save()
 
+        # pe2 queuing with instrumental track
         self.pe2 = PlaylistEntry(
             song=self.song2, owner=self.p_user, use_instrumental=True
         )
         self.pe2.save()
 
+        # pe3 played
         self.pe3 = PlaylistEntry(
             song=self.song2,
             owner=self.manager,
@@ -59,6 +62,7 @@ class PlaylistProvider(BaseProvider):
         )
         self.pe3.save()
 
+        # pe4 played a moment ago
         self.pe4 = PlaylistEntry(
             song=self.song1,
             owner=self.user,

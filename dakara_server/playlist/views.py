@@ -19,9 +19,11 @@ from rest_framework.views import APIView
 
 from internal import permissions as internal_permissions
 from library import permissions as library_permissions
+from library.views import QueryParsedListMixin
 from playlist import authentications, models, permissions, serializers
 from playlist.consumers import send_to_channel
 from playlist.date_stop import KARAOKE_JOB_NAME, clear_date_stop, scheduler
+from playlist.query import query_entries
 from playlist.schemes import PlayerTokenScheme  # noqa F401
 
 tz = timezone.get_default_timezone()
@@ -155,11 +157,27 @@ class PlaylistQueuingListView(drf_generics.ListCreateAPIView):
             )
 
 
-class PlaylistPlayedListView(drf_generics.ListAPIView):
+class PlaylistPlayedListView(QueryParsedListMixin, drf_generics.ListAPIView):
     """List of played entries."""
 
     serializer_class = serializers.PlaylistEntrySerializer
-    queryset = models.PlaylistEntry.objects.get_played().reverse()
+
+    def get_queryset(self):
+        """Search and filters the playlist entries."""
+        query_set = models.PlaylistEntry.objects.get_played().reverse()
+
+        # if 'query' is in the query string then perform search otherwise
+        # return all songs
+        if "query" not in self.request.query_params:
+            return query_set
+
+        query = self.request.query_params.get("query", None)
+        if query:
+            # query the song and save the parsed query
+            # to give it back to the client
+            query_set, self.query_parsed = query_entries(query_set, query)
+
+        return query_set.distinct()
 
 
 class PlayerCommandView(drf_generics.UpdateAPIView):
