@@ -62,7 +62,7 @@ class PlaylistQueuingView(drf_generics.DestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class PlaylistQueuingListView(drf_generics.ListCreateAPIView):
+class PlaylistQueuingListView(QueryParsedListMixin, drf_generics.ListCreateAPIView):
     """List of entries or creation of a new entry in the playlist."""
 
     serializer_class = serializers.PlaylistEntrySerializer
@@ -72,7 +72,23 @@ class PlaylistQueuingListView(drf_generics.ListCreateAPIView):
         (permissions.IsPlaylistManager & library_permissions.IsLibraryManager)
         | permissions.IsSongEnabled,
     ]
-    queryset = models.PlaylistEntry.objects.get_queuing()
+
+    def get_queryset(self):
+        """Search and filters the playlist entries."""
+        query_set = models.PlaylistEntry.objects.get_queuing()
+
+        # if 'query' is in the query string then perform search otherwise
+        # return all songs
+        if "query" not in self.request.query_params:
+            return query_set
+
+        query = self.request.query_params.get("query", None)
+        if query:
+            # query the song and save the parsed query
+            # to give it back to the client
+            query_set, self.query_parsed = query_entries(query_set, query)
+
+        return query_set.distinct()
 
     def perform_create(self, serializer):
         # Deny creation if kara is not ongoing

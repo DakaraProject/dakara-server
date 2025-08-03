@@ -44,6 +44,25 @@ class PlaylistQueuingListViewTestCase(PlaylistAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_get_playlist_queuing_list_with_query(self):
+        """Search playlist entries queuing list with simple query."""
+        self.authenticate(self.user)
+
+        self.check_playlist_entries_query("ong1", [self.pe1])
+
+    def test_get_playlist_queuing_list_with_query_song_title(self):
+        """Search playlist entries queuing list by song title."""
+        self.authenticate(self.user)
+
+        self.check_playlist_entries_query("title: song1", [self.pe1])
+
+    def test_get_playlist_queuing_list_with_query_owner(self):
+        """Search playlist entries queuing list by owner."""
+        self.authenticate(self.user)
+
+        self.check_playlist_entries_query("owner: manager", [self.pe1])
+        self.check_playlist_entries_query("owner: user", [self.pe2])
+
     @patch("playlist.views.send_to_channel")
     def test_post_create_playlist_entry(self, mocked_send_to_channel):
         """Test to verify playlist entry creation."""

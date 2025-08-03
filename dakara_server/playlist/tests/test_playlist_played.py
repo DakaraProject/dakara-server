@@ -36,31 +36,17 @@ class PlaylistPlayedListViewTestCase(PlaylistAPITestCase):
         """Search playlist entries played list with simple query."""
         self.authenticate(self.user)
 
-        self.entries_query_test("ong1", [self.pe4])
+        self.check_playlist_entries_query("ong1", [self.pe4])
 
     def test_get_playlist_played_list_with_query_song_title(self):
         """Search playlist entries played list by song title."""
         self.authenticate(self.user)
 
-        self.entries_query_test("title: song1", [self.pe4])
+        self.check_playlist_entries_query("title: song1", [self.pe4])
 
     def test_get_playlist_played_list_with_query_owner(self):
         """Search playlist entries played list by owner."""
         self.authenticate(self.user)
 
-        self.entries_query_test("owner: manager", [self.pe3])
-        self.entries_query_test("owner: user", [self.pe4])
-
-    def entries_query_test(self, query, expected_entries):
-        """Method to test an entry request with a given query.
-
-        Returned entries should be the same as `expected_entries`, in the same
-        order.
-        """
-        response = self.client.get(self.url, {"query": query})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], len(expected_entries))
-        results = response.data["results"]
-        self.assertEqual(len(results), len(expected_entries))
-        for entry, expected_entry in zip(results, expected_entries):
-            self.assertEqual(entry["id"], expected_entry.id)
+        self.check_playlist_entries_query("owner: manager", [self.pe3])
+        self.check_playlist_entries_query("owner: user", [self.pe4])

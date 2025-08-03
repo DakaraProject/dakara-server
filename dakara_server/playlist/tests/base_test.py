@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from django.core.cache import cache
 from django.utils.dateparse import parse_datetime
+from rest_framework import status
 
 from internal.tests.base_test import BaseAPITestCase, BaseProvider, UserModel, tz
 from library.models import Song, SongTag
@@ -129,6 +130,20 @@ class PlaylistProvider(BaseProvider):
         """Method to check a representation against expected playlist played entry."""
         self.check_playlist_entry_json(json, expected_entry)
         self.assertEqual(parse_datetime(json["date_play"]), expected_entry.date_play)
+
+    def check_playlist_entries_query(self, query, expected_entries):
+        """Method to check a query of playlist entries.
+
+        Returned entries should be the same as `expected_entries`, in the same
+        order.
+        """
+        response = self.client.get(self.url, {"query": query})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], len(expected_entries))
+        results = response.data["results"]
+        self.assertEqual(len(results), len(expected_entries))
+        for entry, expected_entry in zip(results, expected_entries):
+            self.assertEqual(entry["id"], expected_entry.id)
 
     def get_player_token(self):
         """Create and give player token."""
