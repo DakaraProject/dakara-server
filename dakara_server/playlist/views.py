@@ -490,7 +490,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         return player
 
 
-class PlayerErrorView(drf_generics.ListCreateAPIView):
+class PlayerErrorListView(QueryParsedListMixin, drf_generics.ListCreateAPIView):
     """View of the player errors."""
 
     authentication_classes = [

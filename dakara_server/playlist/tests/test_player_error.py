@@ -10,7 +10,7 @@ from playlist.models import PlayerError
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlayerErrorViewTestCase(PlaylistAPITestCase):
+class PlayerErrorListViewTestCase(PlaylistAPITestCase):
     """Test the view of the player errors."""
 
     url = reverse("playlist-player-errors")
