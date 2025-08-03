@@ -49,6 +49,7 @@ class PlaylistQueuingListViewTestCase(PlaylistAPITestCase):
         self.authenticate(self.user)
 
         self.check_playlist_entries_query("ong1", [self.pe1])
+        self.check_playlist_entries_query("user", [self.pe2])
 
     def test_get_playlist_queuing_list_with_query_song_title(self):
         """Search playlist entries queuing list by song title."""
@@ -61,6 +62,8 @@ class PlaylistQueuingListViewTestCase(PlaylistAPITestCase):
         self.authenticate(self.user)
 
         self.check_playlist_entries_query("owner: manager", [self.pe1])
+        self.check_playlist_entries_query('owner:"manager"', [self.pe1])
+        self.check_playlist_entries_query('owner:""testPlaylistManager""', [self.pe1])
         self.check_playlist_entries_query("owner: user", [self.pe2])
 
     @patch("playlist.views.send_to_channel")

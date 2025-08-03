@@ -96,7 +96,23 @@ class PlayerErrorListViewTestCase(PlaylistAPITestCase):
 
     def test_get_errors_with_query(self):
         """Search errors with simple query."""
-        # set an error
+        with freeze_time("1970-01-01 00:01:00"):
+            PlayerError.objects.create(
+                playlist_entry=self.pe1, error_message="dummy error"
+            )
+
+        with freeze_time("1970-01-01 00:02:00"):
+            PlayerError.objects.create(
+                playlist_entry=self.pe2, error_message="leek overflow"
+            )
+
+        self.authenticate(self.user)
+
+        self.check_playlist_entries_query("ong1", [self.pe1])
+        self.check_playlist_entries_query("overflow", [self.pe2])
+
+    def test_get_errors_with_query_message(self):
+        """Search errors with simple query."""
         with freeze_time("1970-01-01 00:01:00"):
             PlayerError.objects.create(
                 playlist_entry=self.pe1, error_message="dummy error"
@@ -104,11 +120,12 @@ class PlayerErrorListViewTestCase(PlaylistAPITestCase):
 
         self.authenticate(self.user)
 
-        self.check_playlist_entries_query("ong1", [self.pe1])
+        self.check_playlist_entries_query("message:dummy", [self.pe1])
+        self.check_playlist_entries_query('message:"dummy error"', [self.pe1])
+        self.check_playlist_entries_query('message:""dummy error""', [self.pe1])
 
     def test_get_errors_with_query_song_title(self):
         """Search errors with simple query."""
-        # set an error
         with freeze_time("1970-01-01 00:01:00"):
             PlayerError.objects.create(
                 playlist_entry=self.pe1, error_message="dummy error"

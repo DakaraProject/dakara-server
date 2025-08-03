@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from internal.query import gather_query, gather_query_many, query
+from internal.query import gather_query, gather_query_many, gather_query_remain, query
 from library.models import WorkType
 from library.query_language import QueryLanguageParser, regroup
 
@@ -13,10 +13,11 @@ def make_songs_query_from_res(res, prefix=None):
         prefix (str or None): Optional prefix to add when creating the query.
 
     Returns:
-        tuple of list: List of  queries, and list of queries targeting many to
-        many relations.
+        tuple of list: List of queries, list of remaining queries, and list of
+        queries targeting many to many relations.
     """
     query_list = []
+    query_list_remain = []
     query_list_many = []
 
     # specific terms of the research, i.e. artists, works and titles
@@ -74,7 +75,7 @@ def make_songs_query_from_res(res, prefix=None):
 
     # unspecific terms of the research
     for remain in res["remaining"]:
-        query_list.append(
+        query_list_remain.append(
             query(prefix, "title__icontains", remain)
             | query(prefix, "artists__name__icontains", remain)
             | query(prefix, "works__title__icontains", remain)
@@ -88,7 +89,7 @@ def make_songs_query_from_res(res, prefix=None):
     for tag in res["tag"]:
         query_list_many.append(query(prefix, "tags__name", tag))
 
-    return query_list, query_list_many
+    return query_list, query_list_remain, query_list_many
 
 
 def query_songs(query_set, query):
@@ -110,11 +111,12 @@ def query_songs(query_set, query):
     res = regroup(language_parser.parse(query), "work_type", work_types)
 
     # query
-    query_list, query_list_many = make_songs_query_from_res(res)
+    query_list, query_list_remain, query_list_many = make_songs_query_from_res(res)
 
     # gather the query objects
     query_set_filtered = gather_query_many(
-        gather_query(query_set, query_list), query_list_many
+        gather_query_remain(gather_query(query_set, query_list), query_list_remain),
+        query_list_many,
     )
 
     return query_set_filtered, res

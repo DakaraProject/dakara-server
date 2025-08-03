@@ -37,6 +37,16 @@ def gather_query(query_set, query_list):
     return query_set.filter(filter_query)
 
 
+def gather_query_remain(query_set, query_list_remain):
+    # now, gather the query objects
+    filter_query = Q()
+    for item in query_list_remain:
+        filter_query |= item
+
+    # gather the query objects for usual relations
+    return query_set.filter(filter_query)
+
+
 def gather_query_many(query_set, query_list_many):
     """Filter a query set by elements of a query list of many to many fields.
 
