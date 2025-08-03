@@ -108,8 +108,8 @@ class PlayerErrorListViewTestCase(PlaylistAPITestCase):
 
         self.authenticate(self.user)
 
-        self.check_playlist_entries_query("ong1", [self.pe1])
-        self.check_playlist_entries_query("overflow", [self.pe2])
+        self.check_query("ong1", [self.pe1])
+        self.check_query("overflow", [self.pe2])
 
     def test_get_errors_with_query_message(self):
         """Search errors with simple query."""
@@ -120,9 +120,9 @@ class PlayerErrorListViewTestCase(PlaylistAPITestCase):
 
         self.authenticate(self.user)
 
-        self.check_playlist_entries_query("message:dummy", [self.pe1])
-        self.check_playlist_entries_query('message:"dummy error"', [self.pe1])
-        self.check_playlist_entries_query('message:""dummy error""', [self.pe1])
+        self.check_query("message:dummy", [self.pe1])
+        self.check_query('message:"dummy error"', [self.pe1])
+        self.check_query('message:""dummy error""', [self.pe1])
 
     def test_get_errors_with_query_song_title(self):
         """Search errors with simple query."""
@@ -133,7 +133,7 @@ class PlayerErrorListViewTestCase(PlaylistAPITestCase):
 
         self.authenticate(self.user)
 
-        self.check_playlist_entries_query("title: song1", [self.pe1])
+        self.check_query("title: song1", [self.pe1])
 
     @patch("playlist.views.send_to_channel")
     def test_post_error_success(self, mocked_send_to_channel):

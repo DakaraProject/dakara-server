@@ -1,7 +1,7 @@
 from django.db.models import Q
 
 
-def query(prefix, name, value):
+def q(prefix, name, value):
     """Shorthand to make a query with the Q object and a prefix.
 
     Args:

@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from internal.query import gather_query, gather_query_many, gather_query_remain, query
+from internal.query import gather_query, gather_query_many, gather_query_remain, q
 from library.models import WorkType
 from library.query_language import QueryLanguageParser, regroup
 
@@ -22,27 +22,27 @@ def make_songs_query_from_res(res, prefix=None):
 
     # specific terms of the research, i.e. artists, works and titles
     for artist in res["artist"]["contains"]:
-        query_list_many.append(query(prefix, "artists__name__icontains", artist))
+        query_list_many.append(q(prefix, "artists__name__icontains", artist))
 
     for artist in res["artist"]["exact"]:
-        query_list_many.append(query(prefix, "artists__name__iexact", artist))
+        query_list_many.append(q(prefix, "artists__name__iexact", artist))
 
     for title in res["title"]["contains"]:
-        query_list.append(query(prefix, "title__icontains", title))
+        query_list.append(q(prefix, "title__icontains", title))
 
     for title in res["title"]["exact"]:
-        query_list.append(query(prefix, "title__iexact", title))
+        query_list.append(q(prefix, "title__iexact", title))
 
     for work in res["work"]["contains"]:
         query_list.append(
-            query(prefix, "works__title__icontains", work)
-            | query(prefix, "works__alternative_title__title__icontains", work)
+            q(prefix, "works__title__icontains", work)
+            | q(prefix, "works__alternative_title__title__icontains", work)
         )
 
     for work in res["work"]["exact"]:
         query_list.append(
-            query(prefix, "works__title__iexact", work)
-            | query(prefix, "works__alternative_title__title__iexact", work)
+            q(prefix, "works__title__iexact", work)
+            | q(prefix, "works__alternative_title__title__iexact", work)
         )
 
     # specific terms of the research derivating from work
@@ -50,21 +50,19 @@ def make_songs_query_from_res(res, prefix=None):
         for keyword in search_keywords["contains"]:
             query_list.append(
                 (
-                    query(prefix, "works__title__icontains", keyword)
-                    | query(
-                        prefix, "works__alternative_title__title__icontains", keyword
-                    )
+                    q(prefix, "works__title__icontains", keyword)
+                    | q(prefix, "works__alternative_title__title__icontains", keyword)
                 )
-                & query(prefix, "works__work_type__query_name", query_name)
+                & q(prefix, "works__work_type__query_name", query_name)
             )
 
         for keyword in search_keywords["exact"]:
             query_list.append(
                 (
-                    query(prefix, "works__title__iexact", keyword)
-                    | query(prefix, "works__alternative_title__title__iexact", keyword)
+                    q(prefix, "works__title__iexact", keyword)
+                    | q(prefix, "works__alternative_title__title__iexact", keyword)
                 )
-                & query(prefix, "works__work_type__query_name", query_name)
+                & q(prefix, "works__work_type__query_name", query_name)
             )
 
         # one may want to factor the duplicated query on the work type
@@ -76,18 +74,18 @@ def make_songs_query_from_res(res, prefix=None):
     # unspecific terms of the research
     for remain in res["remaining"]:
         query_list_remain.append(
-            query(prefix, "title__icontains", remain)
-            | query(prefix, "artists__name__icontains", remain)
-            | query(prefix, "works__title__icontains", remain)
-            | query(prefix, "works__alternative_title__title__icontains", remain)
-            | query(prefix, "version__icontains", remain)
-            | query(prefix, "detail__icontains", remain)
-            | query(prefix, "detail_video__icontains", remain)
+            q(prefix, "title__icontains", remain)
+            | q(prefix, "artists__name__icontains", remain)
+            | q(prefix, "works__title__icontains", remain)
+            | q(prefix, "works__alternative_title__title__icontains", remain)
+            | q(prefix, "version__icontains", remain)
+            | q(prefix, "detail__icontains", remain)
+            | q(prefix, "detail_video__icontains", remain)
         )
 
     # tags
     for tag in res["tag"]:
-        query_list_many.append(query(prefix, "tags__name", tag))
+        query_list_many.append(q(prefix, "tags__name", tag))
 
     return query_list, query_list_remain, query_list_many
 
@@ -135,13 +133,14 @@ def query_artists(query_set, query):
     """
     # using query language parser to split terms and for uniformity
     res = QueryLanguageParser.split_remaining(query)
-    query_list = []
+
+    query_list_remain = []
     # only unspecific terms are used
     for remain in res:
-        query_list.append(Q(name__icontains=remain))
+        query_list_remain.append(Q(name__icontains=remain))
 
     # gather the query objects
-    query_set_filtered = gather_query(query_set, query_list)
+    query_set_filtered = gather_query_remain(query_set, query_list_remain)
 
     return query_set_filtered, res
 
@@ -159,16 +158,17 @@ def query_works(query_set, query):
     """
     # using query language parser to split terms and for uniformity
     res = QueryLanguageParser.split_remaining(query)
-    query_list = []
+
+    query_list_remain = []
     # only unspecific terms are used
     for remain in res:
-        query_list.append(
+        query_list_remain.append(
             Q(title__icontains=remain)
             | Q(subtitle__icontains=remain)
             | Q(alternative_title__title__icontains=remain)
         )
 
     # gather the query objects
-    query_set_filtered = gather_query(query_set, query_list)
+    query_set_filtered = gather_query_remain(query_set, query_list_remain)
 
     return query_set_filtered, res

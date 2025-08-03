@@ -504,7 +504,7 @@ class PlayerErrorListView(QueryParsedListMixin, drf_generics.ListCreateAPIView):
     serializer_class = serializers.PlayerErrorSerializer
 
     def get_queryset(self):
-        """Search and filters the playlist entries."""
+        """Search and filters the player errors."""
         query_set = models.PlayerError.objects.all()
 
         # if 'query' is in the query string then perform search otherwise

@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from internal.query import gather_query, gather_query_many, gather_query_remain, query
+from internal.query import gather_query, gather_query_many, gather_query_remain, q
 from library.models import WorkType
 from library.query import make_songs_query_from_res
 from library.query_language import QueryLanguageParser, regroup
@@ -24,14 +24,14 @@ def make_entries_query_from_res(res, prefix=None):
 
     # query for owner
     for owner in res["owner"]["contains"]:
-        query_list.append(query(prefix, "owner__username__icontains", owner))
+        query_list.append(q(prefix, "owner__username__icontains", owner))
 
     for owner in res["owner"]["exact"]:
-        query_list.append(query(prefix, "owner__username__iexact", owner))
+        query_list.append(q(prefix, "owner__username__iexact", owner))
 
     # unspecific terms of the research
     for remain in res["remaining"]:
-        query_list_remain.append(query(prefix, "owner__username__icontains", remain))
+        query_list_remain.append(q(prefix, "owner__username__icontains", remain))
 
     return query_list, query_list_remain, query_list_many
 

@@ -220,9 +220,7 @@ class UserListViewTestCase(UsersAPITestCase):
         self.user = self.create_user("TestUser")
 
         # Create a users manager
-        self.manager = self.create_user(
-            "TestUserManager", users_level=UserModel.MANAGER
-        )
+        self.manager = self.create_user("TestManager", users_level=UserModel.MANAGER)
 
     def test_get_users_list(self):
         """Test to verify users list."""
@@ -240,6 +238,13 @@ class UserListViewTestCase(UsersAPITestCase):
         # Get users list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_users_list_with_query(self):
+        """Search users list with simple query."""
+        self.authenticate(self.user)
+
+        self.check_query("stuser", [self.user])
+        self.check_query("anager", [self.manager])
 
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user(self, mocked_send_email):

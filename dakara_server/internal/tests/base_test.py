@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
@@ -65,6 +66,24 @@ class BaseProvider:
         user.validated_by_manager = True
         user.save()
         return user
+
+    def check_query(self, query, expected):
+        """Method to check a query.
+
+        Returned entries should be the same as `expected`, in the same order.
+
+        Args:
+            query (str): Terms of the query, to be parsed.
+            expected_items (list): List of expected objects, that must have an
+            `id`.
+        """
+        response = self.client.get(self.url, {"query": query})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], len(expected))
+        results = response.data["results"]
+        self.assertEqual(len(results), len(expected))
+        for item, expected_item in zip(results, expected):
+            self.assertEqual(item["id"], expected_item.id)
 
 
 class BaseAPITestCase(APITestCase, BaseProvider):

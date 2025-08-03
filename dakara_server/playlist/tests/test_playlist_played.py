@@ -36,20 +36,20 @@ class PlaylistPlayedListViewTestCase(PlaylistAPITestCase):
         """Search playlist entries played list with simple query."""
         self.authenticate(self.user)
 
-        self.check_playlist_entries_query("ong1", [self.pe4])
-        self.check_playlist_entries_query("anager", [self.pe3])
+        self.check_query("ong1", [self.pe4])
+        self.check_query("anager", [self.pe3])
 
     def test_get_playlist_played_list_with_query_song_title(self):
         """Search playlist entries played list by song title."""
         self.authenticate(self.user)
 
-        self.check_playlist_entries_query("title: song1", [self.pe4])
+        self.check_query("title: song1", [self.pe4])
 
     def test_get_playlist_played_list_with_query_owner(self):
         """Search playlist entries played list by owner."""
         self.authenticate(self.user)
 
-        self.check_playlist_entries_query("owner:manager", [self.pe3])
-        self.check_playlist_entries_query('owner:"manager"', [self.pe3])
-        self.check_playlist_entries_query('owner:""testPlaylistManager""', [self.pe3])
-        self.check_playlist_entries_query("owner:user", [self.pe4])
+        self.check_query("owner:manager", [self.pe3])
+        self.check_query('owner:"manager"', [self.pe3])
+        self.check_query('owner:""testPlaylistManager""', [self.pe3])
+        self.check_query("owner:user", [self.pe4])
