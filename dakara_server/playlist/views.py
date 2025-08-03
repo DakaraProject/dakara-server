@@ -18,8 +18,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from internal import permissions as internal_permissions
+from internal.views_mixins import QueryParsedListMixin
 from library import permissions as library_permissions
-from library.views import QueryParsedListMixin
 from playlist import authentications, models, permissions, serializers
 from playlist.consumers import send_to_channel
 from playlist.date_stop import KARAOKE_JOB_NAME, clear_date_stop, scheduler
