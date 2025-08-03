@@ -23,7 +23,7 @@ from library import permissions as library_permissions
 from playlist import authentications, models, permissions, serializers
 from playlist.consumers import send_to_channel
 from playlist.date_stop import KARAOKE_JOB_NAME, clear_date_stop, scheduler
-from playlist.query import query_entries
+from playlist.query import query_entries, query_errors
 from playlist.schemes import PlayerTokenScheme  # noqa F401
 
 tz = timezone.get_default_timezone()
@@ -502,7 +502,23 @@ class PlayerErrorListView(QueryParsedListMixin, drf_generics.ListCreateAPIView):
         IsAuthenticated & internal_permissions.IsReadOnly | permissions.IsPlayer
     ]
     serializer_class = serializers.PlayerErrorSerializer
-    queryset = models.PlayerError.objects.order_by("date_created").reverse()
+
+    def get_queryset(self):
+        """Search and filters the playlist entries."""
+        query_set = models.PlayerError.objects.all()
+
+        # if 'query' is in the query string then perform search otherwise
+        # return all songs
+        if "query" not in self.request.query_params:
+            return query_set.order_by("date_created").reverse()
+
+        query = self.request.query_params.get("query", None)
+        if query:
+            # query the song and save the parsed query
+            # to give it back to the client
+            query_set, self.query_parsed = query_errors(query_set, query)
+
+        return query_set.distinct().order_by("date_created").reverse()
 
     def perform_create(self, serializer):
         """Create an error and perform other actions.
