@@ -362,8 +362,9 @@ class TestDevice:
         assert player_new == player
 
         # check there are no other messages
-        done = await communicator.receive_nothing()
-        assert done
+        with pytest.raises(ValueError):
+            done = await communicator.receive_nothing()
+            assert done
 
         # no need to close connection
 
@@ -595,8 +596,9 @@ class TestDevice:
         assert player_new == player
 
         # check there are no other messages
-        done = await communicator.receive_nothing()
-        assert done
+        with pytest.raises(ValueError):
+            done = await communicator.receive_nothing()
+            assert done
 
         # no need to close connection
 
