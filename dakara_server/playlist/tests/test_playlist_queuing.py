@@ -48,8 +48,13 @@ class PlaylistQueuingListViewTestCase(PlaylistAPITestCase):
         """Search playlist entries queuing list with simple query."""
         self.authenticate(self.user)
 
-        self.check_query("ong1", [self.pe1])
-        self.check_query("user", [self.pe2])
+        response0 = self.check_query("ong1", [self.pe1])
+
+        self.assertCountEqual(response0.data["query"]["remaining"], ["ong1"])
+
+        response1 = self.check_query("user", [self.pe2])
+
+        self.assertCountEqual(response1.data["query"]["remaining"], ["user"])
 
     def test_get_playlist_queuing_list_with_query_song_title(self):
         """Search playlist entries queuing list by song title."""

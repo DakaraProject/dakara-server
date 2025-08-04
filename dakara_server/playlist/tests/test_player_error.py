@@ -108,8 +108,13 @@ class PlayerErrorListViewTestCase(PlaylistAPITestCase):
 
         self.authenticate(self.user)
 
-        self.check_query("ong1", [self.pe1])
-        self.check_query("overflow", [self.pe2])
+        response0 = self.check_query("ong1", [self.pe1])
+
+        self.assertCountEqual(response0.data["query"]["remaining"], ["ong1"])
+
+        response1 = self.check_query("overflow", [self.pe2])
+
+        self.assertCountEqual(response1.data["query"]["remaining"], ["overflow"])
 
     def test_get_errors_with_query_message(self):
         """Search errors with simple query."""

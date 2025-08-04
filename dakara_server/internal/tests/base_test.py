@@ -76,6 +76,9 @@ class BaseProvider:
             query (str): Terms of the query, to be parsed.
             expected_items (list): List of expected objects, that must have an
             `id`.
+
+        Returns:
+            Response of the client, for furthur analysis.
         """
         response = self.client.get(self.url, {"query": query})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -84,6 +87,8 @@ class BaseProvider:
         self.assertEqual(len(results), len(expected))
         for item, expected_item in zip(results, expected):
             self.assertEqual(item["id"], expected_item.id)
+
+        return response
 
 
 class BaseAPITestCase(APITestCase, BaseProvider):

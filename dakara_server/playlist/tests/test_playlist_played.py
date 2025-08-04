@@ -36,8 +36,13 @@ class PlaylistPlayedListViewTestCase(PlaylistAPITestCase):
         """Search playlist entries played list with simple query."""
         self.authenticate(self.user)
 
-        self.check_query("ong1", [self.pe4])
-        self.check_query("anager", [self.pe3])
+        response0 = self.check_query("ong1", [self.pe4])
+
+        self.assertCountEqual(response0.data["query"]["remaining"], ["ong1"])
+
+        response1 = self.check_query("anager", [self.pe3])
+
+        self.assertCountEqual(response1.data["query"]["remaining"], ["anager"])
 
     def test_get_playlist_played_list_with_query_song_title(self):
         """Search playlist entries played list by song title."""
