@@ -44,18 +44,7 @@ class UserListView(QueryParsedListMixin, generics.ListCreateAPIView):
         """Search and filters the users."""
         query_set = self.model.objects.all()
 
-        # if 'query' is in the query string then perform search otherwise
-        # return all songs
-        if "query" not in self.request.query_params:
-            return query_set.order_by("username")
-
-        query = self.request.query_params.get("query", None)
-        if query:
-            # query the song and save the parsed query
-            # to give it back to the client
-            query_set, self.query_parsed = query_users(query_set, query)
-
-        return query_set.distinct().order_by("username")
+        return self.perform_query(query_set, query_users).order_by("username")
 
     def get_serializer_class(self):
         # serializer depends on permission level

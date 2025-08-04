@@ -142,7 +142,7 @@ def query_artists(query_set, query):
     # gather the query objects
     query_set_filtered = gather_query_remain(query_set, query_list_remain)
 
-    return query_set_filtered, res
+    return query_set_filtered, {"remaining": res}
 
 
 def query_works(query_set, query):
@@ -171,4 +171,4 @@ def query_works(query_set, query):
     # gather the query objects
     query_set_filtered = gather_query_remain(query_set, query_list_remain)
 
-    return query_set_filtered, res
+    return query_set_filtered, {"remaining": res}

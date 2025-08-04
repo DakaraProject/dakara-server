@@ -19,6 +19,21 @@ class QueryParsedListMixin:
 
         return response
 
+    def perform_query(self, query_set, query_method):
+        """Perform the query in the query set."""
+        # if 'query' is in the query string then perform search otherwise
+        # return all songs
+        if "query" not in self.request.query_params:
+            return query_set
+
+        query = self.request.query_params.get("query", None)
+        if query:
+            # query the song and save the parsed query
+            # to give it back to the client
+            query_set, self.query_parsed = query_method(query_set, query)
+
+        return query_set.distinct()
+
 
 class MultiSerializerMixin:
     """Mixin that adapts serializer if a list of data is provided."""

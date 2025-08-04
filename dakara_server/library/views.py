@@ -40,18 +40,7 @@ class SongListView(QueryParsedListMixin, MultiSerializerMixin, ListCreateAPIView
         if not (user.is_superuser or user.is_library_manager):
             query_set = query_set.exclude(tags__disabled=True)
 
-        # if 'query' is in the query string then perform search otherwise
-        # return all songs
-        if "query" not in self.request.query_params:
-            return query_set.order_by(Lower("title"))
-
-        query = self.request.query_params.get("query", None)
-        if query:
-            # query the song and save the parsed query
-            # to give it back to the client
-            query_set, self.query_parsed = query_songs(query_set, query)
-
-        return query_set.distinct().order_by(Lower("title"))
+        return self.perform_query(query_set, query_songs).order_by(Lower("title"))
 
 
 class SongView(RetrieveUpdateDestroyAPIView):
@@ -89,18 +78,7 @@ class ArtistListView(QueryParsedListMixin, ListCreateAPIView):
         """Search and filter the artists."""
         query_set = models.Artist.objects.all()
 
-        # if 'query' is in the query string then perform search return results
-        # of the corresponding query
-        if "query" not in self.request.query_params:
-            return query_set.order_by(Lower("name"))
-
-        query = self.request.query_params.get("query", None)
-        if query:
-            query_set, res = query_artists(query_set, query)
-            # saving the parsed query to give it back to the client
-            self.query_parsed = {"remaining": res}
-
-        return query_set.order_by(Lower("name"))
+        return self.perform_query(query_set, query_artists).order_by(Lower("name"))
 
 
 class ArtistPruneView(APIView):
@@ -141,18 +119,9 @@ class WorkListView(QueryParsedListMixin, MultiSerializerMixin, ListCreateAPIView
             if work_type:
                 query_set = query_set.filter(work_type__query_name=work_type)
 
-        # if 'query' is in the query string then perform search return results
-        # of the corresponding query and type filter
-        if "query" not in self.request.query_params:
-            return query_set.order_by(Lower("title"), Lower("subtitle"))
-
-        query = self.request.query_params.get("query", None)
-        if query:
-            query_set, res = query_works(query_set, query)
-            # saving the parsed query to give it back to the client
-            self.query_parsed = {"remaining": res}
-
-        return query_set.distinct().order_by(Lower("title"), Lower("subtitle"))
+        return self.perform_query(query_set, query_works).order_by(
+            Lower("title"), Lower("subtitle")
+        )
 
 
 class WorkView(RetrieveUpdateDestroyAPIView):

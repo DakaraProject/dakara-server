@@ -77,18 +77,7 @@ class PlaylistQueuingListView(QueryParsedListMixin, drf_generics.ListCreateAPIVi
         """Search and filters the playlist entries."""
         query_set = models.PlaylistEntry.objects.get_queuing()
 
-        # if 'query' is in the query string then perform search otherwise
-        # return all songs
-        if "query" not in self.request.query_params:
-            return query_set
-
-        query = self.request.query_params.get("query", None)
-        if query:
-            # query the song and save the parsed query
-            # to give it back to the client
-            query_set, self.query_parsed = query_entries(query_set, query)
-
-        return query_set.distinct()
+        return self.perform_query(query_set, query_entries)
 
     def perform_create(self, serializer):
         # Deny creation if kara is not ongoing
@@ -182,18 +171,7 @@ class PlaylistPlayedListView(QueryParsedListMixin, drf_generics.ListAPIView):
         """Search and filters the playlist entries."""
         query_set = models.PlaylistEntry.objects.get_played().reverse()
 
-        # if 'query' is in the query string then perform search otherwise
-        # return all songs
-        if "query" not in self.request.query_params:
-            return query_set
-
-        query = self.request.query_params.get("query", None)
-        if query:
-            # query the song and save the parsed query
-            # to give it back to the client
-            query_set, self.query_parsed = query_entries(query_set, query)
-
-        return query_set.distinct()
+        return self.perform_query(query_set, query_entries)
 
 
 class PlayerCommandView(drf_generics.UpdateAPIView):
@@ -507,18 +485,7 @@ class PlayerErrorListView(QueryParsedListMixin, drf_generics.ListCreateAPIView):
         """Search and filters the player errors."""
         query_set = models.PlayerError.objects.all()
 
-        # if 'query' is in the query string then perform search otherwise
-        # return all songs
-        if "query" not in self.request.query_params:
-            return query_set.order_by("date_created").reverse()
-
-        query = self.request.query_params.get("query", None)
-        if query:
-            # query the song and save the parsed query
-            # to give it back to the client
-            query_set, self.query_parsed = query_errors(query_set, query)
-
-        return query_set.distinct().order_by("date_created").reverse()
+        return self.perform_query(query_set, query_errors).order_by("-date_created")
 
     def perform_create(self, serializer):
         """Create an error and perform other actions.
