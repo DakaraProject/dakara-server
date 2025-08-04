@@ -11,9 +11,7 @@ jobs:
   unit-tests:
     runs-on: ${{ matrix.os }}
 
-    continue-on-error: true
     strategy:
-      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
