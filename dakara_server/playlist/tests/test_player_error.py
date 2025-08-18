@@ -129,6 +129,17 @@ class PlayerErrorListViewTestCase(PlaylistAPITestCase):
         self.check_query('message:"dummy error"', [error])
         self.check_query('message:""dummy error""', [error])
 
+    def test_get_errors_with_query_id(self):
+        """Search error by id."""
+        with freeze_time("1970-01-01 00:01:00"):
+            error = PlayerError.objects.create(
+                id=20, playlist_entry=self.pe1, error_message="dummy error"
+            )
+
+        self.authenticate(self.user)
+
+        self.check_query("id:20", [error])
+
     def test_get_errors_with_query_song_title(self):
         """Search errors with simple query."""
         with freeze_time("1970-01-01 00:01:00"):

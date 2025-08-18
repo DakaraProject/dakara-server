@@ -10,13 +10,26 @@ def make_entries_query_from_res(res, prefix=None):
     """Make a query for playlist entries.
 
     Args:
-        res (dict): Dictionary on research terms, parsed.
+        res (dict): Dictionary on research terms, parsed. If `id` is in the
+            query terms, only filter by it.
         prefix (str or None): Optional prefix to add when creating the query.
 
     Returns:
-        tuple of list: List of  queries, and list of queries targeting many to
-        many relations.
+        tuple of list: List of queries, list of remaining terms, and list of
+        queries targeting many to many relations.
     """
+    # query for id
+    # optional and terminal
+    # same behavior for contains and exact
+    if (res_id := res.pop("id", None)) and (
+        ids := res_id["contains"] + res_id["exact"]
+    ):
+        query_list = []
+        for id in ids:
+            query_list.append(q(prefix, "id", int(id)))
+
+        return query_list, [], []
+
     # query for song
     query_list, query_list_remain, query_list_many = make_songs_query_from_res(
         res, (prefix or "") + "song__"
@@ -52,7 +65,7 @@ def query_entries(query_set, query):
     """
     work_types = [wt.query_name for wt in WorkType.objects.all()]
     language_parser = QueryLanguageParser(
-        ["owner", "artist", "work", "title"] + work_types
+        ["id", "owner", "artist", "work", "title"] + work_types
     )
     res = regroup(language_parser.parse(query), "work_type", work_types)
 
@@ -66,6 +79,47 @@ def query_entries(query_set, query):
     )
 
     return query_set_filtered, res
+
+
+def make_errors_query_from_res(res):
+    """Make a query for player errors.
+
+    Args:
+        res (dict): Dictionary on research terms, parsed. If `id` is in the
+            query terms, only filter by it.
+
+    Returns:
+        tuple of list: List of queries, list of remaining terms, and list of
+        queries targeting many to many relations.
+    """
+    # query for id
+    # terminal
+    # same behavior for contains and exact
+    res_id = res.pop("id")
+    if ids := res_id["contains"] + res_id["exact"]:
+        query_list = []
+        for id in ids:
+            query_list.append(Q(id=int(id)))
+
+        return query_list, [], []
+
+    # query for entries
+    query_list, query_list_remain, query_list_many = make_entries_query_from_res(
+        res, "playlist_entry__"
+    )
+
+    # query for error message
+    for message in res["message"]["contains"]:
+        query_list.append(Q(error_message__icontains=message))
+
+    for message in res["message"]["exact"]:
+        query_list.append(Q(error_message__iexact=message))
+
+    # unspecific terms of the research
+    for remain in res["remaining"]:
+        query_list_remain.append(Q(error_message__icontains=remain))
+
+    return query_list, query_list_remain, query_list_many
 
 
 def query_errors(query_set, query):
@@ -84,25 +138,12 @@ def query_errors(query_set, query):
     """
     work_types = [wt.query_name for wt in WorkType.objects.all()]
     language_parser = QueryLanguageParser(
-        ["message", "owner", "artist", "work", "title"] + work_types
+        ["id", "message", "owner", "artist", "work", "title"] + work_types
     )
     res = regroup(language_parser.parse(query), "work_type", work_types)
 
-    # query for entries
-    query_list, query_list_remain, query_list_many = make_entries_query_from_res(
-        res, "playlist_entry__"
-    )
-
-    # query for error message
-    for message in res["message"]["contains"]:
-        query_list.append(Q(error_message__icontains=message))
-
-    for message in res["message"]["exact"]:
-        query_list.append(Q(error_message__iexact=message))
-
-    # unspecific terms of the research
-    for remain in res["remaining"]:
-        query_list_remain.append(Q(error_message__icontains=remain))
+    # query for errors
+    query_list, query_list_remain, query_list_many = make_errors_query_from_res(res)
 
     # gather the query objects
     query_set_filtered = gather_query_many(
