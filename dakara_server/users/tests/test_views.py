@@ -251,6 +251,12 @@ class UserListViewTestCase(UsersAPITestCase):
 
         self.assertCountEqual(response1.data["query"]["remaining"], ["anager"])
 
+    def test_get_users_list_with_query_id(self):
+        """Search users by ID."""
+        self.authenticate(self.user)
+
+        self.check_query("id:1", [self.user])
+
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user(self, mocked_send_email):
         """Test to verify user creation."""
