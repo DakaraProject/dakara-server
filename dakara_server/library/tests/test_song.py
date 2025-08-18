@@ -118,6 +118,13 @@ And everywhere that Mary went""",
         # Should only return song2
         self.check_query("etail_Video2", [self.song2])
 
+    def test_get_song_list_with_query_id(self):
+        """Test search song by ID."""
+        # Login as simple user
+        self.authenticate(self.user)
+
+        self.check_query("id:1", [self.song1])
+
     def test_get_song_list_with_query_tag(self):
         """Test to verify song list with tag query."""
         # Login as simple user

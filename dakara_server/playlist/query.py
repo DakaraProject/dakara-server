@@ -15,7 +15,7 @@ def make_entries_query_from_res(res, prefix=None):
         prefix (str or None): Optional prefix to add when creating the query.
 
     Returns:
-        tuple of list: List of queries, list of remaining terms, and list of
+        tuple of list: List of queries, list of remaining queries, and list of
         queries targeting many to many relations.
     """
     # query for id
@@ -89,7 +89,7 @@ def make_errors_query_from_res(res):
             query terms, only filter by it.
 
     Returns:
-        tuple of list: List of queries, list of remaining terms, and list of
+        tuple of list: List of queries, list of remaining queries, and list of
         queries targeting many to many relations.
     """
     # query for id

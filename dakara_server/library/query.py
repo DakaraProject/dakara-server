@@ -9,13 +9,26 @@ def make_songs_query_from_res(res, prefix=None):
     """Make a query for songs.
 
     Args:
-        res (dict): Dictionary on research terms, parsed.
+        res (dict): Dictionary on research terms, parsed. If `id` is in the
+            query terms, only filter by it.
         prefix (str or None): Optional prefix to add when creating the query.
 
     Returns:
         tuple of list: List of queries, list of remaining queries, and list of
         queries targeting many to many relations.
     """
+    # query for id
+    # optional and terminal
+    # same behavior for contains and exact
+    if (res_id := res.pop("id", None)) and (
+        ids := res_id["contains"] + res_id["exact"]
+    ):
+        query_list = []
+        for id in ids:
+            query_list.append(q(prefix, "id", int(id)))
+
+        return query_list, [], []
+
     query_list = []
     query_list_remain = []
     query_list_many = []
@@ -105,7 +118,9 @@ def query_songs(query_set, query):
         parsed query.
     """
     work_types = [wt.query_name for wt in WorkType.objects.all()]
-    language_parser = QueryLanguageParser(["artist", "work", "title"] + work_types)
+    language_parser = QueryLanguageParser(
+        ["id", "artist", "work", "title"] + work_types
+    )
     res = regroup(language_parser.parse(query), "work_type", work_types)
 
     # query
