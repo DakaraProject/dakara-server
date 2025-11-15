@@ -20,19 +20,27 @@ class QueryParsedListMixin:
         return response
 
     def perform_query(self, query_set, query_method):
-        """Perform the query in the query set."""
-        # if 'query' is in the query string then perform search otherwise
-        # return all songs
-        if "query" not in self.request.query_params:
-            return query_set
+        """Perform a query in the query set.
 
-        query = self.request.query_params.get("query", None)
-        if query:
-            # query the song and save the parsed query
-            # to give it back to the client
+        Args:
+            query_set: Initial query set for the elements.
+            query_method (function): Function that performs the query. It must
+                returns a new, filtered, query set, and the parsed query.
+
+        Returns:
+            The filtered query set if `query` is present in the query string
+            and not empty, the initial query set otherwise.
+        """
+        # if 'query' is in the query string then perform search otherwise
+        # return the initial query set
+        if query := self.request.query_params.get("query", None):
+            # query the elements and save the parsed query to give it back to
+            # the client
             query_set, self.query_parsed = query_method(query_set, query)
 
-        return query_set.distinct()
+            return query_set.distinct()
+
+        return query_set
 
 
 class MultiSerializerMixin:
