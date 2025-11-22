@@ -69,6 +69,16 @@ class WorkListViewTestCase(LibraryAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_get_work_list_parsed_query(self):
+        """Test the parsed query."""
+        self.authenticate(self.user)
+
+        response = self.client.get(self.url, {"query": "none"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        query = response.data["query"]
+        self.assertIn("remaining", query)
+
     def test_get_work_list_type_filter(self):
         """Test to verify work list with work type filter."""
         # Login as simple user

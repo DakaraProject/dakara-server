@@ -92,6 +92,26 @@ And everywhere that Mary went""",
         # Should only return song2 which is linked to Work1
         self.check_query("ork1", [self.song2])
 
+    def test_get_song_list_parsed_query(self):
+        """Test the parsed query."""
+        self.authenticate(self.user)
+
+        response = self.client.get(self.url, {"query": "none"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        query = response.data["query"]
+        self.assertIn("artist", query)
+        self.assertIn("contains", query["artist"])
+        self.assertIn("exact", query["artist"])
+        self.assertIn("title", query)
+        self.assertIn("contains", query["title"])
+        self.assertIn("exact", query["title"])
+        self.assertIn("work", query)
+        self.assertIn("contains", query["work"])
+        self.assertIn("exact", query["work"])
+        self.assertIn("work_type", query)
+        self.assertIn("remaining", query)
+
     def test_get_song_list_with_query_empty(self):
         """Test to verify song list with empty query."""
         # Login as simple user

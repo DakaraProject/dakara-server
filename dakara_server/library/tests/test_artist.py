@@ -53,6 +53,16 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         # Should not return any artist
         self.artist_query_test("ork1", [])
 
+    def test_get_artist_list_parsed_query(self):
+        """Test the parsed query."""
+        self.authenticate(self.user)
+
+        response = self.client.get(self.url, {"query": "none"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        query = response.data["query"]
+        self.assertIn("remaining", query)
+
     def test_get_artist_list_with_query_empty(self):
         """Test to verify artist list with empty query."""
         # Login as simple user
