@@ -187,3 +187,28 @@ def query_works(query_set, query):
     query_set_filtered = gather_query_remain(query_set, query_list_remain)
 
     return query_set_filtered, {"remaining": res}
+
+
+def query_song_tags(query_set, query):
+    """Create a queryset that filters song tags according to query.
+
+    Args:
+        query_set (): Initial query set (containing all song tags).
+        query (str): Query string. It can only be a simple pattern (no query
+            language).
+
+    Returns:
+        tuple: Tuple of the filtered query set, and the parsed query.
+    """
+    # using query language parser to split terms and for uniformity
+    res = QueryLanguageParser.split_remaining(query)
+
+    query_list_remain = []
+    # only unspecific terms are used
+    for remain in res:
+        query_list_remain.append(Q(name__icontains=remain))
+
+    # gather the query objects
+    query_set_filtered = gather_query_remain(query_set, query_list_remain)
+
+    return query_set_filtered, {"remaining": res}

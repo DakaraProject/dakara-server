@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from internal import permissions as internal_permissions
 from internal.views_mixins import MultiSerializerMixin, QueryParsedListMixin
 from library import models, permissions, serializers
-from library.query import query_artists, query_songs, query_works
+from library.query import query_artists, query_song_tags, query_songs, query_works
 
 logger = logging.getLogger(__name__)
 
@@ -186,15 +186,20 @@ class WorkTypeView(RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.WorkTypeSerializer
 
 
-class SongTagListView(ListCreateAPIView):
+class SongTagListView(QueryParsedListMixin, ListCreateAPIView):
     """List of song tags."""
 
     permission_classes = [
         IsAuthenticated,
         permissions.IsLibraryManager | internal_permissions.IsReadOnly,
     ]
-    queryset = models.SongTag.objects.all().order_by(Lower("name"))
     serializer_class = serializers.SongTagSerializer
+
+    def get_queryset(self):
+        """Search and filter the song tags."""
+        query_set = models.SongTag.objects.all()
+
+        return self.perform_query(query_set, query_song_tags).order_by(Lower("name"))
 
 
 class SongTagView(RetrieveUpdateDestroyAPIView):
