@@ -81,7 +81,7 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         # Should not return anything since it searched for the whole string
         self.artist_query_test("title:Artist1", [], ["title:Artist1"])
 
-    def test_get_artists_list_with_query__multi_words(self):
+    def test_get_artists_list_with_query_multi_words(self):
         """Test query parse with multi words remaining."""
         # Login as simple user
         self.authenticate(self.user)
@@ -103,10 +103,10 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         )
 
     def artist_query_test(self, query, expected_artists, remaining=None):
-        """Method to test a artist request with a given query.
+        """Method to test an artist request against a given query.
 
-        Returned artist should be the same as expected_artists,
-        in the same order.
+        Returned artists should be the same as `expected_artists`, in the same
+        order.
         """
         # TODO This only works when there is only one page of artists
         response = self.client.get(self.url, {"query": query})
