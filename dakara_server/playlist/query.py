@@ -93,7 +93,7 @@ def make_errors_query_from_res(res):
         queries targeting many to many relations.
     """
     # query for id
-    # terminal
+    # optional and terminal
     # same behavior for contains and exact
     res_id = res.pop("id")
     if ids := res_id["contains"] + res_id["exact"]:
