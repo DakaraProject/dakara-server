@@ -19,11 +19,12 @@ def q(prefix, name, value):
 
 
 def gather_query(query_set, query_list):
-    """Filter a query set by elements of a query list.
+    """Filter a query set by conjunction of elements of a query list.
 
     Args:
         query_set: Initial query set.
-        query_list (list of django.db.models.Q): List of queries.
+        query_list (list of django.db.models.Q): List of queries. They will be
+            chained using the conjunction (`&=`) operator.
 
     Returns:
         New firtered query set.
@@ -38,6 +39,16 @@ def gather_query(query_set, query_list):
 
 
 def gather_query_remain(query_set, query_list_remain):
+    """Filter a query set by disjunction of elements of a query list.
+
+    Args:
+        query_set: Initial query set.
+        query_list (list of django.db.models.Q): List of queries. They will be
+            chained using the disjunction (`|=`) operator.
+
+    Returns:
+        New firtered query set.
+    """
     # now, gather the query objects
     filter_query = Q()
     for item in query_list_remain:
@@ -48,12 +59,12 @@ def gather_query_remain(query_set, query_list_remain):
 
 
 def gather_query_many(query_set, query_list_many):
-    """Filter a query set by elements of a query list of many to many fields.
+    """Chain filter a query set by elements of a query list.
 
     Args:
         query_set: Initial query set.
-        query_list (list of django.db.models.Q): List of queries for many to
-        many fields.
+        query_list (list of django.db.models.Q): List of queries. They will be
+            chained to the initial query set by the `filter` method.
 
     Returns:
         New firtered query set.
