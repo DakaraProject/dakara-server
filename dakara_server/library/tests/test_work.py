@@ -24,24 +24,6 @@ class WorkListViewTestCase(LibraryAPITestCase):
         # create urls
         self.url_work1 = reverse("library-work", kwargs={"pk": self.work1.id})
 
-    def work_query_test(self, query, expected_works, remaining=None):
-        """Method to test a work request with a given query and worktype.
-
-        Returned work should be the same as expected_works,
-        in the same order.
-        """
-        # TODO This only works when there is only one page of works
-        response = self.client.get(self.url, {"query": query})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], len(expected_works))
-        results = response.data["results"]
-        self.assertEqual(len(results), len(expected_works))
-        for work, expected_work in zip(results, expected_works):
-            self.assertEqual(work["id"], expected_work.id)
-
-        if remaining is not None:
-            self.assertEqual(response.data["query"]["remaining"], remaining)
-
     def test_get_work_list(self):
         """Test to verify work list with no query."""
         # Login as simple user
@@ -112,11 +94,11 @@ class WorkListViewTestCase(LibraryAPITestCase):
 
         # Get works list with query = "ork1"
         # Should only return work1
-        self.work_query_test("ork1", [self.work1])
+        self.check_query("ork1", [self.work1])
 
         # Get works list with query = "tist1"
         # Should not return any work
-        self.work_query_test("tist1", [])
+        self.check_query("tist1", [])
 
     def test_get_work_list_with_query_alternative_title(self):
         """Test to verify work list with query alternative title."""
@@ -125,11 +107,11 @@ class WorkListViewTestCase(LibraryAPITestCase):
 
         # Get works list with query = "ltTitle1"
         # Should only return work1
-        self.work_query_test("ltTitle1", [self.work1])
+        self.check_query("ltTitle1", [self.work1])
 
         # Get works list with query = "ltTitle2"
         # Should return work1 and work2
-        self.work_query_test("ltTitle2", [self.work1, self.work2])
+        self.check_query("ltTitle2", [self.work1, self.work2])
 
     def test_get_work_list_with_query_empty(self):
         """Test to verify work list with empty query."""
@@ -138,7 +120,7 @@ class WorkListViewTestCase(LibraryAPITestCase):
 
         # Get works list with query = ""
         # Should return all works
-        self.work_query_test("", [self.work1, self.work2, self.work3])
+        self.check_query("", [self.work1, self.work2, self.work3])
 
     def test_get_work_list_with_query_no_keywords(self):
         """Test to verify work query do not parse keywords."""
@@ -147,7 +129,7 @@ class WorkListViewTestCase(LibraryAPITestCase):
 
         # Get works list with query = "title:work1"
         # Should not return anything since it searched for the whole string
-        self.work_query_test("title:work1", [], ["title:work1"])
+        self.check_query("title:work1", [], ["title:work1"])
 
     def test_get_works_list_with_query_multi_words(self):
         """Test query parse with multi words remaining."""
@@ -156,7 +138,7 @@ class WorkListViewTestCase(LibraryAPITestCase):
 
         # Get works list with escaped space query
         # Should not return anything but check query
-        self.work_query_test(
+        self.check_query(
             r"word words\ words\ words remain",
             [],
             ["word", "words words words", "remain"],
@@ -164,7 +146,7 @@ class WorkListViewTestCase(LibraryAPITestCase):
 
         # Get works list with quoted query
         # Should not return anything but check query
-        self.work_query_test(
+        self.check_query(
             """ word"words words words" remain""",
             [],
             ["word", "words words words", "remain"],

@@ -46,8 +46,8 @@ class SongTagListViewTestCase(LibraryAPITestCase):
         """Test to verify song tag list with query"""
         self.authenticate(self.user)
 
-        self.song_tag_query_test("tag1", [self.tag1])
-        self.song_tag_query_test("aaaaa", [])
+        self.check_query("tag1", [self.tag1])
+        self.check_query("aaaaa", [])
 
     def test_get_tag_list_parsed_query(self):
         """Test the parsed query"""
@@ -63,7 +63,7 @@ class SongTagListViewTestCase(LibraryAPITestCase):
         """Test to verify song tag list with empty query"""
         self.authenticate(self.user)
 
-        self.song_tag_query_test("", [self.tag1, self.tag2])
+        self.check_query("", [self.tag1, self.tag2])
 
     def test_post_tag_already_exists(self):
         """Test to create a tag when it already exists."""
@@ -73,24 +73,6 @@ class SongTagListViewTestCase(LibraryAPITestCase):
         # create an existing tag
         response = self.client.post(self.url, {"name": "TAG1"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def song_tag_query_test(self, query, expected_song_tags, remaining=None):
-        """Method to test a song tag request against a given query.
-
-        Returned song tags  should be the same as `expected_song_tags`, in the
-        same order.
-        """
-        # TODO This only works when there is only one page of song tags
-        response = self.client.get(self.url, {"query": query})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], len(expected_song_tags))
-        results = response.data["results"]
-        self.assertEqual(len(results), len(expected_song_tags))
-        for song_tag, expected_song_tag in zip(results, expected_song_tags):
-            self.assertEqual(song_tag["id"], expected_song_tag.id)
-
-        if remaining is not None:
-            self.assertEqual(response.data["query"]["remaining"], remaining)
 
 
 class SongTagViewTestCase(LibraryAPITestCase):

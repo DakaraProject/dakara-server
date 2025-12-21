@@ -67,7 +67,7 @@ class BaseProvider:
         user.save()
         return user
 
-    def check_query(self, query, expected):
+    def check_query(self, query, expected, remaining=None):
         """Method to check a query.
 
         Returned entries should be the same as `expected`, in the same order.
@@ -87,6 +87,9 @@ class BaseProvider:
         self.assertEqual(len(results), len(expected))
         for item, expected_item in zip(results, expected):
             self.assertEqual(item["id"], expected_item.id)
+
+        if remaining is not None:
+            self.assertEqual(response.data["query"]["remaining"], remaining)
 
         return response
 
