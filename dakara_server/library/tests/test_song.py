@@ -196,6 +196,20 @@ And everywhere that Mary went""",
         # Should not return any result since Work1 is not of type workType2
         self.check_query("wt2:Work1", [])
 
+    def test_get_song_list_with_query_old_worktype(self):
+        """Reproduce a bug where old work types would be kept in memory."""
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Pre-assertion, get a song using wt1
+        self.check_query("wt1:work1", [self.song2])
+
+        # Now remove work type 1
+        self.wt1.delete()
+
+        # Assertion, there are no songs using wt1
+        self.check_query("wt1:work1", [])
+
     def test_get_song_list_with_query_work_alternative_title(self):
         """Test to verify song list with work alternative title query."""
         # Login as simple user

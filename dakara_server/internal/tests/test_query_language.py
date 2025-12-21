@@ -1,17 +1,10 @@
 from django.test import TestCase
 
-from library.models import WorkType
-from library.query_language import QueryLanguageParser
+from internal.query_language import QueryLanguageParser
 
 
 class QueryLanguageParserTestCase(TestCase):
     def setUp(self):
-        # Create work types
-        self.wt1 = WorkType(name="WorkType1", query_name="wt1")
-        self.wt1.save()
-        self.wt2 = WorkType(name="WorkType2", query_name="wt2")
-        self.wt2.save()
-
         # Create parser instance
         self.parser = QueryLanguageParser(("artist", "work", "title", "wt1", "wt2"))
 
@@ -198,50 +191,6 @@ class QueryLanguageParserTestCase(TestCase):
 
         res = self.parser.parse(""" word"words words words" remain""")
         self.assertCountEqual(res["remaining"], ["word", "words words words", "remain"])
-        self.assertCountEqual(res["tag"], [])
-        self.assertCountEqual(res["title"]["contains"], [])
-        self.assertCountEqual(res["title"]["exact"], [])
-        self.assertCountEqual(res["artist"]["contains"], [])
-        self.assertCountEqual(res["artist"]["exact"], [])
-        self.assertCountEqual(res["work"]["contains"], [])
-        self.assertCountEqual(res["work"]["exact"], [])
-
-    def test_parse_old_worktype(self):
-        """This test attempts to reproduce a bug where old work types were kept in
-        memory.
-        """
-        # Pre-assertion, keywords contains wt1 and wt2
-        self.assertCountEqual(
-            self.parser.keywords, ["artist", "work", "title", "wt1", "wt2"]
-        )
-
-        # Request with work type 2
-        res = self.parser.parse("wt2:mywork")
-        self.assertCountEqual(res["remaining"], [])
-        self.assertCountEqual(res["tag"], [])
-        self.assertCountEqual(res["title"]["contains"], [])
-        self.assertCountEqual(res["title"]["exact"], [])
-        self.assertCountEqual(res["artist"]["contains"], [])
-        self.assertCountEqual(res["artist"]["exact"], [])
-        self.assertCountEqual(res["work"]["contains"], [])
-        self.assertCountEqual(res["work"]["exact"], [])
-        self.assertCountEqual(res["wt2"]["contains"], ["mywork"])
-        self.assertCountEqual(res["wt2"]["exact"], [])
-
-        # Now remove work type 2
-        self.wt2.delete()
-
-        # Create a new parser so that keywords are re-initialized with current
-        # workTypes
-        self.parser = QueryLanguageParser(("artist", "work", "title", "wt1"))
-
-        # Check parser keywords, should not include wt2 anymore
-        self.assertCountEqual(self.parser.keywords, ["artist", "work", "title", "wt1"])
-
-        # Now the request with wt2 should not be parsed since wt2 is not a
-        # keyword anymore
-        res = self.parser.parse("wt2:mywork")
-        self.assertCountEqual(res["remaining"], ["wt2:mywork"])
         self.assertCountEqual(res["tag"], [])
         self.assertCountEqual(res["title"]["contains"], [])
         self.assertCountEqual(res["title"]["exact"], [])

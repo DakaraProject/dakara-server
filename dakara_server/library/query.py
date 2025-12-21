@@ -1,8 +1,8 @@
 from django.db.models import Q
 
 from internal.query import gather_query, gather_query_many, gather_query_remain, q
+from internal.query_language import QueryLanguageParser, regroup
 from library.models import WorkType
-from library.query_language import QueryLanguageParser, regroup
 
 
 def make_songs_query_from_res(res, prefix=None):

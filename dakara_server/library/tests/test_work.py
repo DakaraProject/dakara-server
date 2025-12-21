@@ -149,7 +149,7 @@ class WorkListViewTestCase(LibraryAPITestCase):
         # Should not return anything since it searched for the whole string
         self.work_query_test("title:work1", [], ["title:work1"])
 
-    def test_get_works_list_with_query__multi_words(self):
+    def test_get_works_list_with_query_multi_words(self):
         """Test query parse with multi words remaining."""
         # Login as simple user
         self.authenticate(self.user)

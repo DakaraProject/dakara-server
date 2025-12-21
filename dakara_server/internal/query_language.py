@@ -96,7 +96,6 @@ class QueryLanguageParser:
                 `remaining`: Unparsed text.
         """
         # create results structure
-        # work_type will be filled only if necessary
         result = {kw: {"contains": [], "exact": []} for kw in self.keywords}
         result.update(
             {

@@ -1,7 +1,7 @@
 from django.db.models import Q
 
 from internal.query import gather_query, gather_query_remain
-from library.query_language import QueryLanguageParser
+from internal.query_language import QueryLanguageParser
 
 
 def make_users_query_from_res(res):
