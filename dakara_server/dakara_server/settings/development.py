@@ -2,22 +2,20 @@
 Django local settings for the Dakara server project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/2.2/topics/settings/
+https://docs.djangoproject.com/en/5.1/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/2.2/ref/settings/
+https://docs.djangoproject.com/en/5.1/ref/settings/
 
-You should not modify this file directly.
-To modify config values, set them as environment variables,
-or in a config file in the dakara root directory:
-either in a `.env` file
-or in a `settings.ini` with a single `[settings]` section.
+You should not modify this file directly. To modify config values, set them as
+environment variables, or in a config file in the current working directory:
+either in a `.env` file or in a `settings.ini` with a single `[settings]`
+section.
 """
 
 import os
 
 from decouple import config
-from dj_database_url import parse as db_url
 
 os.environ.setdefault("HOST_URL", "http://localhost:3000")
 
@@ -25,24 +23,25 @@ from dakara_server.settings.base import *  # noqa F403
 from dakara_server.settings.base import BASE_DIR  # noqa E402
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 SECRET_KEY = "YourSecretKey"
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 # Django password security policy
-# https://docs.djangoproject.com/en/2.2/topics/auth/passwords/#module-django.contrib.auth.password_validation
+# https://docs.djangoproject.com/en/5.1/topics/auth/passwords/#module-django.contrib.auth.password_validation
 
 AUTH_PASSWORD_VALIDATORS = []
 
 # Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-# `DATABASE_URL` is specified according to dj-databse-url plugin
-# https://github.com/kennethreitz/dj-database-url#url-schema
+# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    "default": db_url("sqlite:///" + os.path.join(BASE_DIR, "db.sqlite3")),
+    "default": {
+        "NAME": config("DATABASE_FILE", default=BASE_DIR / "db.sqlite3"),
+        "ENGINE": "django.db.backends.sqlite3",
+    }
 }
 
 # Channels
@@ -51,7 +50,7 @@ DATABASES = {
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 # Internationalization
-# https://docs.djangoproject.com/en/2.2/topics/i18n/
+# https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
 
