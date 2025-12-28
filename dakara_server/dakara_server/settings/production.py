@@ -20,16 +20,21 @@ from dj_database_url import parse as db_url
 
 from dakara_server.settings.base import *  # noqa F403
 
-SECRET_KEY = config("SECRET_KEY")
+SECRET_KEY = config("SECRET_KEY", default="secret_key")
 DEBUG = config("DEBUG", cast=bool, default=False)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv(), default="[]")
+CSRF_TRUSTED_ORIGINS = ["http://localhost"]
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 # `DATABASE_URL` is specified according to dj-databse-url plugin
 # https://github.com/kennethreitz/dj-database-url#url-schema
 
-DATABASES = {"default": config("DATABASE_URL", cast=db_url)}
+DATABASES = {
+    "default": config(
+        "DATABASE_URL", cast=db_url, default="mysql://dakara:dakara@mysql/dakara"
+    )
+}
 
 # Channels
 # http://channels.readthedocs.io/en/latest/topics/channel_layers.html
@@ -38,12 +43,12 @@ CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
 
 # Static root
 # Should point to the static directory served by nginx
-STATIC_ROOT = config("STATIC_ROOT")
+STATIC_ROOT = config("STATIC_ROOT", "/app/static")
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = config("LANGUAGE_CODE", default="en-us")
+LANGUAGE_CODE = config("LANGUAGE", default="en-us")
 
 TIME_ZONE = config("TIME_ZONE", default="UTC")
 
@@ -73,9 +78,9 @@ LOGGING = {
         "logfile": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": config("LOG_FILE_PATH"),
-            "maxBytes": config("LOG_FILE_MAX_SIZE", cast=int),
-            "backupCount": config("LOG_FILE_BACKUP_COUNT", cast=int),
+            "filename": config("LOG_FILE_PATH", default="/data/logs/dakara_server.log"),
+            "maxBytes": config("LOG_FILE_MAX_SIZE", cast=int, default=1000000),
+            "backupCount": config("LOG_FILE_BACKUP_COUNT", cast=int, default=2),
             "formatter": "default",
         },
     },
@@ -99,7 +104,7 @@ LOGGING = {
 }
 
 # email backend
-EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_HOST = config("EMAIL_HOST", default="postfix")
 EMAIL_PORT = config("EMAIL_PORT", cast=int, default="25")
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")

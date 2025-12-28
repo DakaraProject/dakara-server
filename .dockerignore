@@ -1,0 +1,6 @@
+*.sqlite3
+*_cache
+.git
+.github
+.venv
+venv

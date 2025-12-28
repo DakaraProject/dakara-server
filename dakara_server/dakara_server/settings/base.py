@@ -17,7 +17,7 @@ from decouple import config
 from dakara_server.version import __date__ as DATE  # noqa F401
 from dakara_server.version import __version__ as VERSION  # noqa F401
 
-PASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Application definition
@@ -131,7 +131,7 @@ SPECTACULAR_SETTINGS = {
 
 
 SENDER_EMAIL = config("SENDER_EMAIL", default="no-reply@example.com")
-HOST_URL = config("HOST_URL")
+HOST_URL = config("HOST_URL", default="http://example.com")
 EMAIL_ENABLED = config("EMAIL_ENABLED", default=True, cast=bool)
 
 
