@@ -25,7 +25,8 @@ arguments=$(\
 
 # run daphne
 daphne \
+    $arguments \
+    --log-fmt "[%(asctime)s] [%(process)d] %(levelname)s %(message)s" \
     -b 0.0.0.0 \
     -p 8001 \
-    $arguments \
     dakara_server.asgi:application

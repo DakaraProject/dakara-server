@@ -57,8 +57,10 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "default": {"format": "[%(asctime)s] %(levelname)s %(message)s"},
-        "no_time": {"format": "%(levelname)s %(message)s"},
+        "default": {
+            "format": "[%(asctime)s] [%(process)d] %(levelname)s %(message)s",
+            "datefmt": "[%Y-%m-%d %H:%M:%S %z]",
+        },
     },
     "filters": {
         "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
@@ -69,11 +71,6 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "default",
             "filters": ["require_debug_true"],
-        },
-        "console_playlist": {"class": "logging.StreamHandler", "formatter": "default"},
-        "console_interactive": {
-            "class": "logging.StreamHandler",
-            "formatter": "no_time",
         },
         "logfile": {
             "level": "DEBUG",
@@ -88,14 +85,6 @@ LOGGING = {
         "playlist.views": {"handlers": ["logfile"], "level": "INFO"},
         "playlist.date_stop": {"handlers": ["logfile"], "level": "INFO"},
         "playlist.consumers": {"handlers": ["logfile"], "level": "INFO"},
-        "library.management.commands.feed": {
-            "handlers": ["console_interactive"],
-            "level": "INFO",
-        },
-        "library.management.commands.createworks": {
-            "handlers": ["console_interactive"],
-            "level": "INFO",
-        },
         "django": {
             "handlers": ["logfile"],
             "level": config("DJANGO_LOG_LEVEL", default="INFO"),
