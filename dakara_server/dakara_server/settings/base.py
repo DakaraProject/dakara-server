@@ -84,12 +84,6 @@ TEMPLATES = [
     }
 ]
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "TIMEOUT": None,
-    }
-}
 
 WSGI_APPLICATION = "dakara_server.wsgi.application"
 
@@ -131,34 +125,36 @@ SPECTACULAR_SETTINGS = {
 }
 
 
-SENDER_EMAIL = config("SENDER_EMAIL", default="no-reply@example.com")
-HOST_URL = config("HOST_URL", default="http://example.com")
-EMAIL_ENABLED = config("EMAIL_ENABLED", default=True, cast=bool)
+EMAIL_ENABLED = config("DAKARA_EMAIL_ENABLED", default=True, cast=bool)
 
 
 # Django rest registration config
-REST_REGISTRATION = {
-    "LOGIN_AUTHENTICATE_SESSION": False,
-    "LOGIN_SERIALIZER_CLASS": "users.serializers.DakaraLoginSerializer",
-    "REGISTER_VERIFICATION_URL": HOST_URL + "/verify-registration/",
-    "RESET_PASSWORD_VERIFICATION_URL": HOST_URL + "/reset-password/",
-    "REGISTER_EMAIL_VERIFICATION_URL": HOST_URL + "/verify-email/",
-    "VERIFICATION_FROM_EMAIL": SENDER_EMAIL,
-    "USER_VERIFICATION_FLAG_FIELD": "validated_by_email",
-    "USER_LOGIN_FIELDS": ["username", "email"],
-    "REGISTER_VERIFICATION_ENABLED": EMAIL_ENABLED,
-    "REGISTER_EMAIL_VERIFICATION_ENABLED": EMAIL_ENABLED,
-    "RESET_PASSWORD_VERIFICATION_ENABLED": EMAIL_ENABLED,
-}
+def get_rest_registration(host_url, sender_email, email_enabled):
+    return {
+        "LOGIN_AUTHENTICATE_SESSION": False,
+        "LOGIN_SERIALIZER_CLASS": "users.serializers.DakaraLoginSerializer",
+        "REGISTER_VERIFICATION_URL": host_url + "/verify-registration/",
+        "RESET_PASSWORD_VERIFICATION_URL": host_url + "/reset-password/",
+        "REGISTER_EMAIL_VERIFICATION_URL": host_url + "/verify-email/",
+        "VERIFICATION_FROM_EMAIL": sender_email,
+        "USER_VERIFICATION_FLAG_FIELD": "validated_by_email",
+        "USER_LOGIN_FIELDS": ["username", "email"],
+        "REGISTER_VERIFICATION_ENABLED": email_enabled,
+        "REGISTER_EMAIL_VERIFICATION_ENABLED": email_enabled,
+        "RESET_PASSWORD_VERIFICATION_ENABLED": email_enabled,
+    }
+
 
 AUTHENTICATION_BACKENDS = ["users.backends.DakaraModelBackend"]
 
 
 # Front URLs
-HOST_URLS = {
-    "USER_EDIT_URL": HOST_URL + "/settings/users/{id}",
-    "LOGIN_URL": HOST_URL + "/login",
-}
+def get_host_urls(host_url):
+    return {
+        "USER_EDIT_URL": host_url + "/settings/users/{id}",
+        "LOGIN_URL": host_url + "/login",
+    }
+
 
 # limit of the playlist size
-PLAYLIST_SIZE_LIMIT = config("PLAYLIST_SIZE_LIMIT", cast=int, default=100)
+PLAYLIST_SIZE_LIMIT = config("DAKARA_PLAYLIST_SIZE_LIMIT", cast=int, default=100)

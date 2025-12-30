@@ -29,6 +29,11 @@ Linux, Mac and Windows are supported.
 
 It is strongly recommended to run the Dakara server in a virtual environment.
 
+```sh
+python -m virtualenv venv
+source venv/bin/activate
+```
+
 ### Dependencies
 
 Having a recent enough versio of `pip` is required to install some dependencies properly:
@@ -64,7 +69,9 @@ To select a preset, set the `DJANGO_SETTINGS_MODULE` environment variable accord
 export DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
 ```
 
-### Setting up the server
+### Preparation of the server
+
+Running the server in development requires some preliminary steps.
 
 Let's create the server database, after loading the virtual environment, do:
 
@@ -88,6 +95,13 @@ You're almost done! To start the server app, in the right virtual environment, d
 dakara_server/manage.py runserver
 ```
 
+In a separate terminal, also run the scheduler.
+This is currently only required for the kara date stop feature (which stop the karaoke at a certain date):
+
+```sh
+dakara_server/manage.py runapscheduler
+```
+
 The server part is now set up correctly.
 
 ### Web client, feeder and player
@@ -98,6 +112,53 @@ The player can authenticate using a special token that only a playlist manager c
 Both tokens can be obtained from the web interface.
 
 After all of this is setup, just grab some friends and have fun!
+
+## Docker image
+
+For production, it is recommended to use the provided Docker image, which takes care of all the aspects of the execution.
+
+You can build the local Docker image with:
+
+```sh
+sudo docker build . -t dakara-server
+```
+
+Then, run the container with:
+
+```sh
+sudo docker run \
+         -d \
+         -v path/to/persistent/data:/data \
+         -e DAKARA_DATABASE_URL="mysql://user:password@mysql/dakara" \
+         -e DAKARA_REDIS_URL="redis://redis:6379" \
+         -e DAKARA_ALLOWED_HOSTS="localhost,example.com" \
+         -e DAKARA_HOST_URL="http://example.com" \
+         -e DAKARA_SECRET_KEY="your-secret-key" \
+         -e DAKARA_LANGUAGE_CODE="en-us" \
+         -e DAKARA_TIME_ZONE="UTC" \
+         -e DAKARA_LOG_LEVEL="INFO" \
+         -e DAKARA_EMAIL_ENABLED=<true or false> \
+         -e DAKARA_EMAIL_HOST="postfix" \
+         -e DAKARA_EMAIL_HOST_USER="user" \
+         -e DAKARA_EMAIL_HOST_PASSWORD="password" \
+         -e DAKARA_SENDER_EMAIL="no-reply@example.com" \
+         -p 80:80 \
+         dakara-server
+```
+
+A `docker-compose.yaml` file is given as an example in `deployment/docker-compose/docker-compose.yaml`.
+
+```sh
+cp deployment/docker-compose/docker-compose.yaml ./
+# edit it as you like
+sudo docker compose up -d
+```
+
+Then, use your browser to acces the web page:
+
+```sh
+xdg-open http://localhost
+```
 
 ## Development
 

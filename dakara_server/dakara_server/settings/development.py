@@ -13,14 +13,18 @@ either in a `.env` file or in a `settings.ini` with a single `[settings]`
 section.
 """
 
-import os
-
 from decouple import config
 
-os.environ.setdefault("HOST_URL", "http://localhost:3000")
-
 from dakara_server.settings.base import *  # noqa F403
-from dakara_server.settings.base import BASE_DIR  # noqa E402
+from dakara_server.settings.base import (
+    BASE_DIR,
+    EMAIL_ENABLED,
+    get_host_urls,
+    get_rest_registration,
+)
+
+HOST_URL = "http://localhost:3000"
+SENDER_EMAIL = "no-reply@localhost"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -48,6 +52,14 @@ DATABASES = {
 # http://channels.readthedocs.io/en/latest/topics/channel_layers.html
 
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "TIMEOUT": None,
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -102,6 +114,5 @@ LOGGING = {
 # email backend
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-# values imported from base config
-# SENDER_EMAIL is get from the environment
-# HOST_URL is get from the environment
+REST_REGISTRATION = get_rest_registration(HOST_URL, SENDER_EMAIL, EMAIL_ENABLED)
+HOST_URLS = get_host_urls(HOST_URL)

@@ -19,10 +19,17 @@ from decouple import Csv, config
 from dj_database_url import parse as db_url
 
 from dakara_server.settings.base import *  # noqa F403
+from dakara_server.settings.base import (
+    EMAIL_ENABLED,
+    get_host_urls,
+    get_rest_registration,
+)
 
-SECRET_KEY = config("SECRET_KEY", default="secret_key")
-DEBUG = config("DEBUG", cast=bool, default=False)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv(), default="[]")
+SENDER_EMAIL = config("DAKARA_SENDER_EMAIL", default="no-reply@example.com")
+HOST_URL = config("DAKARA_HOST_URL", default="http://example.com")
+SECRET_KEY = config("DAKARA_SECRET_KEY", default="secret_key")
+DEBUG = config("DAKARA_DEBUG", cast=bool, default=False)
+ALLOWED_HOSTS = config("DAKARA_ALLOWED_HOSTS", cast=Csv(), default="")
 CSRF_TRUSTED_ORIGINS = ["http://localhost"]
 
 # Database
@@ -32,25 +39,44 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost"]
 
 DATABASES = {
     "default": config(
-        "DATABASE_URL", cast=db_url, default="mysql://dakara:dakara@mysql/dakara"
+        "DAKARA_DATABASE_URL", cast=db_url, default="mysql://user:password@mysql/dakara"
     )
 }
+
+REDIS_URL = config("DAKARA_REDIS_URL", default="redis://redis:6379")
 
 # Channels
 # http://channels.readthedocs.io/en/latest/topics/channel_layers.html
 
-CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [REDIS_URL]},
+    }
+}
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "{}/1".format(REDIS_URL),
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+    }
+}
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 
 # Static root
 # Should point to the static directory served by nginx
-STATIC_ROOT = config("STATIC_ROOT", "/app/static")
+STATIC_ROOT = config("DAKARA_STATIC_ROOT", "/app/static")
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = config("LANGUAGE", default="en-us")
+LANGUAGE_CODE = config("DAKARA_LANGUAGE_CODE", default="en-us")
 
-TIME_ZONE = config("TIME_ZONE", default="UTC")
+TIME_ZONE = config("DAKARA_TIME_ZONE", default="UTC")
 
 # Loggin config
 LOGGING = {
@@ -86,12 +112,21 @@ LOGGING = {
         },
     },
     "loggers": {
-        "playlist.views": {"handlers": ["logfile"], "level": "INFO"},
-        "playlist.date_stop": {"handlers": ["logfile"], "level": "INFO"},
-        "playlist.consumers": {"handlers": ["logfile"], "level": "INFO"},
+        "playlist.views": {
+            "handlers": ["logfile"],
+            "level": config("DAKARA_LOG_LEVEL", default="INFO"),
+        },
+        "playlist.date_stop": {
+            "handlers": ["logfile"],
+            "level": config("DAKARA_LOG_LEVEL", default="INFO"),
+        },
+        "playlist.consumers": {
+            "handlers": ["logfile"],
+            "level": config("DAKARA_LOG_LEVEL", default="INFO"),
+        },
         "playlist.management.commands.runapscheduler": {
             "handlers": ["logfile"],
-            "level": "INFO",
+            "level": config("DAKARA_LOG_LEVEL", default="INFO"),
         },
         "django": {
             "handlers": ["logfile"],
@@ -101,16 +136,15 @@ LOGGING = {
 }
 
 # email backend
-EMAIL_HOST = config("EMAIL_HOST", default="postfix")
-EMAIL_PORT = config("EMAIL_PORT", cast=int, default="25")
-EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default="false")
-EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default="false")
-EMAIL_TIMEOUT = config("EMAIL_TIMEOUT", cast=int, default="0") or None
-EMAIL_SSL_KEYFILE = config("EMAIL_SSL_KEYFILE", default="") or None
-EMAIL_SSL_CERTIFICATE = config("EMAIL_SSL_CERTIFICATE", default="") or None
+EMAIL_HOST = config("DAKARA_EMAIL_HOST", default="postfix")
+EMAIL_PORT = config("DAKARA_EMAIL_PORT", cast=int, default="25")
+EMAIL_HOST_USER = config("DAKARA_EMAIL_HOST_USER", default="user")
+EMAIL_HOST_PASSWORD = config("DAKARA_EMAIL_HOST_PASSWORD", default="password")
+EMAIL_USE_TLS = config("DAKARA_EMAIL_USE_TLS", cast=bool, default="false")
+EMAIL_USE_SSL = config("DAKARA_EMAIL_USE_SSL", cast=bool, default="false")
+EMAIL_TIMEOUT = config("DAKARA_EMAIL_TIMEOUT", cast=int, default="0") or None
+EMAIL_SSL_KEYFILE = config("DAKARA_EMAIL_SSL_KEYFILE", default="") or None
+EMAIL_SSL_CERTIFICATE = config("DAKARA_EMAIL_SSL_CERTIFICATE", default="") or None
 
-# values imported from base config
-# SENDER_EMAIL is get from the environment
-# HOST_URL is get from the environment
+REST_REGISTRATION = get_rest_registration(HOST_URL, SENDER_EMAIL, EMAIL_ENABLED)
+HOST_URLS = get_host_urls(HOST_URL)

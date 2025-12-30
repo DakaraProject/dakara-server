@@ -12,11 +12,16 @@ This file should not be modified if you are not a dev.
 
 import os
 
-os.environ.setdefault("HOST_URL", "http://frontend-host")
-
 from dakara_server.settings.base import *  # noqa F403
+from dakara_server.settings.base import (
+    EMAIL_ENABLED,
+    get_host_urls,
+    get_rest_registration,
+)
 
 # use test config
+HOST_URL = "http://frontend-host"
+SENDER_EMAIL = "no-reply@frontend-host"
 SECRET_KEY = "test secret key"
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
@@ -26,6 +31,14 @@ DATABASES = {"default": {"NAME": os.devnull, "ENGINE": "django.db.backends.sqlit
 
 # use memory channels backend
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+
+# use memory cache
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "TIMEOUT": None,
+    }
+}
 
 # use faster password hasher
 PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
@@ -75,8 +88,8 @@ LOGGING = {
 }
 
 PLAYLIST_SIZE_LIMIT = 100
+
 EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
 
-# values imported from base config
-# SENDER_EMAIL is get from the environment
-# HOST_URL is get from the environment
+REST_REGISTRATION = get_rest_registration(HOST_URL, SENDER_EMAIL, EMAIL_ENABLED)
+HOST_URLS = get_host_urls(HOST_URL)
