@@ -1,3 +1,3 @@
 # Custom configuration file for gunicorn
 
-workers = 1
+workers = 4
