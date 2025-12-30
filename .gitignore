@@ -80,3 +80,5 @@ settings.ini
 
 # Pyenv config
 .python-version
+
+/docker-compose.yaml

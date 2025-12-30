@@ -85,7 +85,7 @@ LOGGING = {
     "formatters": {
         "default": {
             "format": "[%(asctime)s] [%(process)d] %(levelname)s %(message)s",
-            "datefmt": "[%Y-%m-%d %H:%M:%S %z]",
+            "datefmt": "%Y-%m-%d %H:%M:%S %z",
         },
     },
     "filters": {

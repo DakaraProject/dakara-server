@@ -12,4 +12,5 @@ then
 fi
 
 # run nginx
+echo "Starting nginx"
 /usr/sbin/nginx
