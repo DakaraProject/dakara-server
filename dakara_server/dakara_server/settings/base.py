@@ -30,6 +30,7 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "daphne",
     "django.contrib.staticfiles",
+    "django_apscheduler",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",

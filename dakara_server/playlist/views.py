@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -21,7 +20,6 @@ from internal import permissions as internal_permissions
 from library import permissions as library_permissions
 from playlist import authentications, models, permissions, serializers
 from playlist.consumers import send_to_channel
-from playlist.date_stop import KARAOKE_JOB_NAME, clear_date_stop, scheduler
 from playlist.schemes import PlayerTokenScheme  # noqa F401
 
 tz = timezone.get_default_timezone()
@@ -251,30 +249,6 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
         """Update the karaoke."""
         super().perform_update(serializer)
         karaoke = serializer.instance
-
-        # Management of date stop
-
-        if "date_stop" in serializer.validated_data:
-            # Clear existing scheduled task
-            existing_job_id = cache.get(KARAOKE_JOB_NAME)
-            if existing_job_id is not None:
-                existing_job = scheduler.get_job(existing_job_id)
-                if existing_job is not None:
-                    existing_job.remove()
-                    logger.debug("Existing date stop job was found and unscheduled")
-
-                else:
-                    cache.delete(KARAOKE_JOB_NAME)
-
-            if karaoke.date_stop is not None:
-                # Schedule date stop clear
-                job = scheduler.add_job(
-                    clear_date_stop, "date", run_date=karaoke.date_stop
-                )
-                cache.set(KARAOKE_JOB_NAME, job.id)
-                logger.debug("New date stop job was scheduled")
-
-        # Management of kara status Booleans change
 
         # empty the playlist and clear the player if the kara is switched to not ongoing
         if "ongoing" in serializer.validated_data and not karaoke.ongoing:

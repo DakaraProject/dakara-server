@@ -35,6 +35,7 @@ RUN FRONT_ARCHIVE="dakara-client-web_$FRONT_VERSION.zip" && \
         /tmp/$FRONT_ARCHIVE \
         /tmp/front
 
+COPY deployment/etc/supervisor/apscheduler.ini /etc/supervisor.d/apscheduler.ini
 COPY deployment/etc/supervisor/daphne.ini /etc/supervisor.d/daphne.ini
 COPY deployment/etc/supervisor/gunicorn.ini /etc/supervisor.d/gunicorn.ini
 COPY deployment/etc/supervisor/logging.ini /etc/supervisor.d/logging.ini

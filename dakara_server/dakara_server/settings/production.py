@@ -72,6 +72,10 @@ LOGGING = {
             "formatter": "default",
             "filters": ["require_debug_true"],
         },
+        "console_interactive": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
         "logfile": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
@@ -85,6 +89,10 @@ LOGGING = {
         "playlist.views": {"handlers": ["logfile"], "level": "INFO"},
         "playlist.date_stop": {"handlers": ["logfile"], "level": "INFO"},
         "playlist.consumers": {"handlers": ["logfile"], "level": "INFO"},
+        "playlist.management.commands.runapscheduler": {
+            "handlers": ["logfile"],
+            "level": "INFO",
+        },
         "django": {
             "handlers": ["logfile"],
             "level": config("DJANGO_LOG_LEVEL", default="INFO"),
