@@ -2,6 +2,8 @@
 
 set -e
 
+cd /app/dakara_server
+
 # populating data volume
 /app/deployment/bin/make_directories.sh
 
