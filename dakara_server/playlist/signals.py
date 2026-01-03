@@ -1,6 +1,7 @@
 from threading import Event
 
 from django.db.backends.signals import connection_created
+from django.db.utils import ProgrammingError
 from django.dispatch import receiver
 
 connection_created_once = Event()
@@ -16,4 +17,9 @@ def handle_connection_created(connection, **kwargs):
 
         from playlist.models import clean_channel_names
 
-        clean_channel_names()
+        try:
+            clean_channel_names()
+
+        except ProgrammingError:
+            # database not yet created
+            pass

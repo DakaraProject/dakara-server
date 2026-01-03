@@ -2,6 +2,9 @@
 
 set -e
 
+# populating data volume
+/app/deployment/bin/make_directories.sh
+
 # production preset
 export DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
 
@@ -22,6 +25,9 @@ arguments=$(\
             /data/config/daphne.conf \
         | awk '{printf("%s ", $0)}' \
     )
+
+# wait for database
+./manage.py wait_db_ready
 
 # run daphne
 daphne \

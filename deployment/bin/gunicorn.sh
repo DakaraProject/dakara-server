@@ -2,6 +2,9 @@
 
 set -e
 
+# populating data volume
+/app/deployment/bin/make_directories.sh
+
 # production preset
 export DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
 
@@ -15,20 +18,24 @@ then
 fi
 
 # collect static files
-/app/dakara_server/manage.py collectstatic --noinput
+./manage.py collectstatic --noinput
+
+# wait for database
+./manage.py wait_db_ready
 
 # apply migrations
-/app/dakara_server/manage.py makemigrations
-/app/dakara_server/manage.py migrate
+./manage.py makemigrations
+./manage.py migrate
 
 # create superuser once
-if [[ ! -f /data/NOT_FIRST_RUN_GUNICORN ]]
+if [[ ! -f /data/state/gunicorn_first_superuser ]]
 then
+    # create the superuser with a dummy password
     echo \
         "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('root', 'root@localhost', 'root')" \
-    | /app/dakara_server/manage.py shell
+    | ./manage.py shell
 
-    touch /data/NOT_FIRST_RUN_GUNICORN
+    touch /data/state/gunicorn_first_superuser
 fi
 
 # run gunicorn

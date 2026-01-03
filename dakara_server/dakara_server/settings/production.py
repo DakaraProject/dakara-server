@@ -16,7 +16,8 @@ If you want to customize this file more, duplicate it under a different name.
 """
 
 from decouple import Csv, config
-from dj_database_url import parse as db_url
+from dj_database_url import config as config_db
+from dj_database_url import register
 
 from dakara_server.settings.base import *  # noqa F403
 from dakara_server.settings.base import (
@@ -32,14 +33,18 @@ DEBUG = config("DAKARA_DEBUG", cast=bool, default=False)
 ALLOWED_HOSTS = config("DAKARA_ALLOWED_HOSTS", cast=Csv(), default="")
 CSRF_TRUSTED_ORIGINS = ["http://localhost"]
 
+# register mysql-connector for database URL
+register("mysql-connector", "mysql.connector.django")
+
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-# `DATABASE_URL` is specified according to dj-databse-url plugin
+# `DAKARA_DATABASE_URL` is specified according to dj-databse-url plugin
 # https://github.com/kennethreitz/dj-database-url#url-schema
 
 DATABASES = {
-    "default": config(
-        "DAKARA_DATABASE_URL", cast=db_url, default="mysql://user:password@mysql/dakara"
+    "default": config_db(
+        "DAKARA_DATABASE_URL",
+        default="mysql-connector://user:password@mysql:3306/dakara",
     )
 }
 
@@ -59,7 +64,7 @@ CHANNEL_LAYERS = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "{}/1".format(REDIS_URL),
+        "LOCATION": f"{REDIS_URL}/1",
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
     }
 }

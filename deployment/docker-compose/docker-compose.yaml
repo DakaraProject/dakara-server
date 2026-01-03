@@ -19,8 +19,8 @@ services:
     volumes:
       - dakara_server_data:/data
     environment:
-      DAKARA_DATABASE_URL: "mysql://user:password@mysql/dakara"
-      DAKARA_REDIS_URL: "redis://redis"
+      DAKARA_DATABASE_URL: "mysql-connector://user:password@mysql:3306/dakara"
+      DAKARA_REDIS_URL: "redis://redis:6379"
       DAKARA_ALLOWED_HOSTS: "localhost,example.com"
       DAKARA_HOST_URL: "http://example.com"
       DAKARA_SECRET_KEY: "your-secret-key"

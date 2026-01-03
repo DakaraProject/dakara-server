@@ -14,14 +14,15 @@ RUN apk add --no-cache \
         unzip \
         wget
 
-COPY requirements.txt /app/
+COPY requirements.txt requirements_prod.txt /app/
 
 # install dependencies
 RUN pip install \
         --no-cache-dir \
         --root-user-action ignore \
         --break-system-packages \
-        -r /app/requirements.txt
+        -r /app/requirements.txt \
+        -r /app/requirements_prod.txt
 
 # get the front archive
 RUN FRONT_ARCHIVE="dakara-client-web_$FRONT_VERSION.zip" && \
