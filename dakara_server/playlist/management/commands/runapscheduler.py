@@ -14,14 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 @util.close_old_connections
-def delete_old_job_executions(max_age=604_800):
+def delete_old_job_executions(max_age=3600 * 24):
     """This job deletes APScheduler job execution entries older than `max_age`
     from the database.  It helps to prevent the database from filling up with old
     historical records that are no longer useful.
 
     Args:
         max_age: The maximum length of time to retain historical job execution
-            records. Defaults to 7 days.
+            records. Defaults to 1 day.
     """
     DjangoJobExecution.objects.delete_old_job_executions(max_age)
 
@@ -44,12 +44,12 @@ class Command(BaseCommand):
 
         scheduler.add_job(
             delete_old_job_executions,
-            trigger=CronTrigger(day_of_week="mon", hour="00", minute="00"),
+            trigger=CronTrigger(hour="00", minute="00"),
             id="delete_old_job_executions",
             max_instances=1,
             replace_existing=True,
         )
-        logger.info("Added weekly job 'delete_old_job_executions'")
+        logger.info("Added daily job 'delete_old_job_executions'")
 
         try:
             logger.info("Starting scheduler...")
