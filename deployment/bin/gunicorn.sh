@@ -32,10 +32,12 @@ fi
 # create superuser once
 if [[ ! -f /data/state/gunicorn_first_superuser ]]
 then
-    # create the superuser with a dummy password
-    echo \
-        "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('root', 'root@localhost', 'root')" \
-    | ./manage.py shell
+    export DJANGO_SUPERUSER_USERNAME=${DAKARA_SUPERUSER_USERNAME:-root}
+    export DJANGO_SUPERUSER_EMAIL=${DAKARA_SUPERUSER_EMAIL:-root@localhost}
+    export DJANGO_SUPERUSER_PASSWORD=${DAKARA_SUPERUSER_PASSWORD:-root}
+
+    ./manage.py createsuperuser --no-input
+    echo "Superuser created; you should create admin accounts and remove the superuser account as soon as possible for security reasons"
 
     touch /data/state/gunicorn_first_superuser
 fi
