@@ -18,6 +18,7 @@ from dakara_server.version import __date__ as DATE  # noqa F401
 from dakara_server.version import __version__ as VERSION  # noqa F401
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+PROJECT_DIR = BASE_DIR.parent
 
 
 # Application definition

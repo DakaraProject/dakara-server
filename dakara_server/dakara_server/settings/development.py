@@ -17,8 +17,8 @@ from decouple import config
 
 from dakara_server.settings.base import *  # noqa F403
 from dakara_server.settings.base import (
-    BASE_DIR,
     EMAIL_ENABLED,
+    PROJECT_DIR,
     get_host_urls,
     get_rest_registration,
 )
@@ -43,7 +43,7 @@ AUTH_PASSWORD_VALIDATORS = []
 
 DATABASES = {
     "default": {
-        "NAME": config("DATABASE_FILE", default=BASE_DIR / "db.sqlite3"),
+        "NAME": config("DATABASE_FILE", default=PROJECT_DIR / "db.sqlite3"),
         "ENGINE": "django.db.backends.sqlite3",
     }
 }
