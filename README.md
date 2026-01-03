@@ -10,7 +10,7 @@
 
 Server for the Dakara project.
 
-## Installation
+## Local installation
 
 To install Dakara completely, you have to get all the parts of the project.
 Installation guidelines are provided here:
@@ -46,6 +46,12 @@ Install dependencies, at the root level of the repo (in the virtual environment)
 
 ```sh
 pip install -r requirements.txt
+```
+
+For production, you will need some extra dependencies:
+
+```sh
+pip install -r requirements_prod.txt
 ```
 
 ## Setup
@@ -96,7 +102,7 @@ dakara_server/manage.py runserver
 ```
 
 In a separate terminal, also run the scheduler.
-This is currently only required for the kara date stop feature (which stop the karaoke at a certain date):
+This is currently only required for the kara date stop feature (which stops the karaoke at a certain date):
 
 ```sh
 dakara_server/manage.py runapscheduler
