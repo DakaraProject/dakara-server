@@ -46,6 +46,22 @@ LANGUAGE_CODE = config("LANGUAGE_CODE", default="en-us")
 
 TIME_ZONE = config("TIME_ZONE", default="UTC")
 
+logfile_handler = {}
+handlers = ["console_playlist"]
+if config("LOG_FILE_PATH", default=""):
+    logfile_handler = {
+        "logfile": {
+            "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": config("LOG_FILE_PATH"),
+            "maxBytes": config("LOG_FILE_MAX_SIZE", cast=int),
+            "backupCount": config("LOG_FILE_BACKUP_COUNT", cast=int),
+            "formatter": "default",
+        },
+    }
+    handlers = ["logfile"]
+
+
 # Loggin config
 LOGGING = {
     "version": 1,
@@ -69,19 +85,12 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "no_time",
         },
-        "logfile": {
-            "level": "DEBUG",
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": config("LOG_FILE_PATH"),
-            "maxBytes": config("LOG_FILE_MAX_SIZE", cast=int),
-            "backupCount": config("LOG_FILE_BACKUP_COUNT", cast=int),
-            "formatter": "default",
-        },
+        **logfile_handler,
     },
     "loggers": {
-        "playlist.views": {"handlers": ["logfile"], "level": "INFO"},
-        "playlist.date_stop": {"handlers": ["logfile"], "level": "INFO"},
-        "playlist.consumers": {"handlers": ["logfile"], "level": "INFO"},
+        "playlist.views": {"handlers": handlers, "level": "INFO"},
+        "playlist.date_stop": {"handlers": handlers, "level": "INFO"},
+        "playlist.consumers": {"handlers": handlers, "level": "INFO"},
         "library.management.commands.feed": {
             "handlers": ["console_interactive"],
             "level": "INFO",
@@ -91,7 +100,7 @@ LOGGING = {
             "level": "INFO",
         },
         "django": {
-            "handlers": ["logfile"],
+            "handlers": handlers,
             "level": config("DJANGO_LOG_LEVEL", default="INFO"),
         },
     },
