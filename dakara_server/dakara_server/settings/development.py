@@ -91,14 +91,6 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "no_time",
         },
-        "logfile": {
-            "level": "DEBUG",
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": config("LOG_FILE_PATH", default="/dev/null"),
-            "maxBytes": config("LOG_FILE_MAX_SIZE", cast=int, default=1000000),
-            "backupCount": config("LOG_FILE_BACKUP_COUNT", cast=int, default=2),
-            "formatter": "default",
-        },
     },
     "loggers": {
         "playlist.views": {"handlers": ["console_playlist"], "level": "INFO"},
