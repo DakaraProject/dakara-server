@@ -83,6 +83,11 @@ LANGUAGE_CODE = config("DAKARA_LANGUAGE_CODE", default="en-us")
 
 TIME_ZONE = config("DAKARA_TIME_ZONE", default="UTC")
 
+if config("LOG_TO_CONSOLE", cast=bool, default=False):
+    log_handlers = ["console_interactive"]
+else:
+    log_handlers = ["logfile"]
+
 # Loggin config
 LOGGING = {
     "version": 1,
@@ -118,23 +123,23 @@ LOGGING = {
     },
     "loggers": {
         "playlist.views": {
-            "handlers": ["logfile"],
+            "handlers": log_handlers,
             "level": config("DAKARA_LOG_LEVEL", default="INFO"),
         },
         "playlist.date_stop": {
-            "handlers": ["logfile"],
+            "handlers": log_handlers,
             "level": config("DAKARA_LOG_LEVEL", default="INFO"),
         },
         "playlist.consumers": {
-            "handlers": ["logfile"],
+            "handlers": log_handlers,
             "level": config("DAKARA_LOG_LEVEL", default="INFO"),
         },
         "playlist.management.commands.runapscheduler": {
-            "handlers": ["logfile"],
+            "handlers": log_handlers,
             "level": config("DAKARA_LOG_LEVEL", default="INFO"),
         },
         "django": {
-            "handlers": ["logfile"],
+            "handlers": log_handlers,
             "level": config("DJANGO_LOG_LEVEL", default="INFO"),
         },
     },
