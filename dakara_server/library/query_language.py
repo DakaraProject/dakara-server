@@ -28,9 +28,7 @@ class QueryLanguageParser:
             |
             (?P<contains2>(?:\\\s|\S)+) # contains with no quotes
         )
-        """.format(
-            keywords_regex=r"|".join(self.keywords)
-        )
+        """.format(keywords_regex=r"|".join(self.keywords))
 
         self.language_matcher = re.compile(regex, re.I | re.X)
 

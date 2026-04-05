@@ -36,7 +36,7 @@ class WorkListViewTestCase(LibraryAPITestCase):
         self.assertEqual(response.data["count"], len(expected_works))
         results = response.data["results"]
         self.assertEqual(len(results), len(expected_works))
-        for work, expected_work in zip(results, expected_works):
+        for work, expected_work in zip(results, expected_works, strict=False):
             self.assertEqual(work["id"], expected_work.id)
 
         if remaining is not None:
