@@ -18,7 +18,7 @@ class Command(BaseCommand):
                     db_up = True
 
                 except (OperationalError, InterfaceError):
-                    self.stdout.write("Database unavailable, waiting for 5 second...")
+                    self.stdout.write("Database unavailable, waiting 5 seconds...")
                     time.sleep(5)
 
         except KeyboardInterrupt:
