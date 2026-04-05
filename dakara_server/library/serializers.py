@@ -403,6 +403,14 @@ class SongSerializer(serializers.ModelSerializer):
         return song
 
 
+class SongLyricsSerializer(serializers.ModelSerializer):
+    """Song lyrics field serializer."""
+
+    class Meta:
+        model = Song
+        fields = ("id", "lyrics")
+
+
 class SongForPlayerSerializer(serializers.ModelSerializer):
     """Song serializer.
 

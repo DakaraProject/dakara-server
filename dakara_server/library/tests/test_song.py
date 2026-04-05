@@ -57,6 +57,9 @@ Mary went, Mary."""
         self.assertEqual(len(response.data["results"]), 2)
 
         # check lyrics
+        self.assertNotEqual(
+            response.data["results"][1]["lyrics_preview"]["text"], self.song2.lyrics
+        )
         self.assertDictEqual(
             response.data["results"][1]["lyrics_preview"],
             {
@@ -269,7 +272,7 @@ And everywhere that Mary went""",
         self.assertEqual(response.data["count"], len(expected_songs))
         results = response.data["results"]
         self.assertEqual(len(results), len(expected_songs))
-        for song, expected_song in zip(results, expected_songs):
+        for song, expected_song in zip(results, expected_songs, strict=False):
             self.assertEqual(song["id"], expected_song.id)
 
     def test_get_song_list_disabled_tag(self):
@@ -936,3 +939,34 @@ class SongViewTestCase(LibraryAPITestCase):
         self.assertEqual(Work.objects.count(), 4)
         workNew = Work.objects.get(title="Work1", subtitle="", work_type=self.wt1)
         self.assertIsNotNone(workNew)
+
+
+class SongLyricsViewTestCase(LibraryAPITestCase):
+    def setUp(self):
+        # create a user without any rights
+        self.user = self.create_user("TestUser")
+
+        # create test data
+        self.create_test_data()
+
+        # add lyrics to one song
+        self.song2.lyrics = """Mary had a little lamb
+Little lamb, little lamb
+Mary had a little lamb
+Its fleece was white as snow
+And everywhere that Mary went
+Mary went, Mary."""
+        self.song2.save()
+
+        # Create urls to access these playlist entries
+        self.url_song2 = reverse("library-song-lyrics", kwargs={"pk": self.song2.id})
+
+    def test_get_lyrics(self):
+        """Get a song lyrics."""
+        self.authenticate(self.user)
+
+        response = self.client.get(self.url_song2)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.song2.id)
+        self.assertEqual(response.data["lyrics"], self.song2.lyrics)
