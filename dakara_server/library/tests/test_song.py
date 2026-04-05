@@ -272,7 +272,7 @@ And everywhere that Mary went""",
         self.assertEqual(response.data["count"], len(expected_songs))
         results = response.data["results"]
         self.assertEqual(len(results), len(expected_songs))
-        for song, expected_song in zip(results, expected_songs):
+        for song, expected_song in zip(results, expected_songs, strict=False):
             self.assertEqual(song["id"], expected_song.id)
 
     def test_get_song_list_disabled_tag(self):

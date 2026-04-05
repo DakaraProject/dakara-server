@@ -104,7 +104,7 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         self.assertEqual(response.data["count"], len(expected_artists))
         results = response.data["results"]
         self.assertEqual(len(results), len(expected_artists))
-        for artist, expected_artist in zip(results, expected_artists):
+        for artist, expected_artist in zip(results, expected_artists, strict=False):
             self.assertEqual(artist["id"], expected_artist.id)
 
         if remaining is not None:
