@@ -7,9 +7,6 @@ cd /app/dakara_server
 # populating data volume
 /app/deployment/bin/make_directories.sh
 
-# production preset
-export DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
-
 # wait for database
 ./manage.py wait_db_ready
 
@@ -17,7 +14,7 @@ export DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
 echo "Wating for migrations to be done..."
 while ! ./manage.py migrate --check
 do
-    echo "Migrations not done, waiting for 5 seconds..."
+    echo "Migrations not done, waiting 5 seconds..."
     sleep 5
 done
 echo "Migrations done!"

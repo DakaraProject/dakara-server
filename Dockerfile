@@ -2,6 +2,7 @@ FROM alpine:3.23
 
 ARG FRONT_VERSION="1.9.2"
 
+# optimizations for Python and pip
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -10,7 +11,6 @@ RUN apk add --no-cache \
         nginx \
         py3-pip \
         python3 \
-        supervisor \
         unzip \
         wget
 
@@ -36,12 +36,6 @@ RUN FRONT_ARCHIVE="dakara-client-web_$FRONT_VERSION.zip" && \
         /tmp/$FRONT_ARCHIVE \
         /tmp/front
 
-COPY deployment/etc/supervisor/apscheduler.ini /etc/supervisor.d/apscheduler.ini
-COPY deployment/etc/supervisor/daphne.ini /etc/supervisor.d/daphne.ini
-COPY deployment/etc/supervisor/gunicorn.ini /etc/supervisor.d/gunicorn.ini
-COPY deployment/etc/supervisor/logging.ini /etc/supervisor.d/logging.ini
-COPY deployment/etc/supervisor/nginx.ini /etc/supervisor.d/nginx.ini
-
 COPY deployment/etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
 COPY . /app
@@ -49,6 +43,7 @@ COPY . /app
 EXPOSE 80
 VOLUME /data
 
-WORKDIR /
+# django settings
+ENV DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
 
-CMD ["sh", "/app/deployment/bin/run.sh"]
+WORKDIR /

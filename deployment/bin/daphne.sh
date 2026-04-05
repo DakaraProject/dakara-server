@@ -7,9 +7,6 @@ cd /app/dakara_server
 # populating data volume
 /app/deployment/bin/make_directories.sh
 
-# production preset
-export DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
-
 # create config file once
 if [[ ! -f /data/config/daphne.conf ]]
 then
@@ -36,5 +33,5 @@ daphne \
     $arguments \
     --log-fmt "[%(asctime)s] [%(process)d] %(levelname)s %(message)s" \
     -b 0.0.0.0 \
-    -p 8001 \
+    -p 80 \
     dakara_server.asgi:application
