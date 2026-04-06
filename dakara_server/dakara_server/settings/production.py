@@ -32,7 +32,7 @@ HOST_URL = config("DAKARA_HOST_URL", default="http://example.com")
 SECRET_KEY = config("DAKARA_SECRET_KEY", default="secret_key")
 DEBUG = config("DAKARA_DEBUG", cast=bool, default=False)
 ALLOWED_HOSTS = config("DAKARA_ALLOWED_HOSTS", cast=Csv(), default="")
-CSRF_TRUSTED_ORIGINS = ["http://localhost"]
+CSRF_TRUSTED_ORIGINS = config("DAKARA_CSRF_TRUSTED_ORIGINS", cast=Csv(), default="")
 
 # register mysql-connector for database URL
 register("mysql-connector", "mysql.connector.django")
