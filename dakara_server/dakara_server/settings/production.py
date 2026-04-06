@@ -84,7 +84,7 @@ LANGUAGE_CODE = config("DAKARA_LANGUAGE_CODE", default="en-us")
 
 TIME_ZONE = config("DAKARA_TIME_ZONE", default="UTC")
 
-if config("LOG_TO_CONSOLE", cast=bool, default=False):
+if config("DAKARA_LOG_TO_CONSOLE", cast=bool, default=False):
     log_handlers = ["console_interactive"]
 else:
     log_handlers = ["logfile"]
@@ -116,9 +116,9 @@ LOGGING = {
         "logfile": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": config("LOG_FILE_PATH", default="/data/logs/dakara_server.log"),
-            "maxBytes": config("LOG_FILE_MAX_SIZE", cast=int, default=1000000),
-            "backupCount": config("LOG_FILE_BACKUP_COUNT", cast=int, default=2),
+            "filename": config("DAKARA_LOG_FILE_PATH", default="/data/logs/dakara_server.log"),
+            "maxBytes": config("DAKARA_LOG_FILE_MAX_SIZE", cast=int, default=1000000),
+            "backupCount": config("DAKARA_LOG_FILE_BACKUP_COUNT", cast=int, default=2),
             "formatter": "default",
         },
     },
