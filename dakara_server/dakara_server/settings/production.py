@@ -116,7 +116,9 @@ LOGGING = {
         "logfile": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": config("DAKARA_LOG_FILE_PATH", default="/data/logs/dakara_server.log"),
+            "filename": config(
+                "DAKARA_LOG_FILE_PATH", default="/data/logs/dakara_server.log"
+            ),
             "maxBytes": config("DAKARA_LOG_FILE_MAX_SIZE", cast=int, default=1000000),
             "backupCount": config("DAKARA_LOG_FILE_BACKUP_COUNT", cast=int, default=2),
             "formatter": "default",
