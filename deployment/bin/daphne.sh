@@ -21,6 +21,9 @@ then
         /data/config/daphne.conf
 fi
 
+# check version of config file
+check_version.sh /data/config/daphne.conf.sample /data/config/daphne.conf
+
 # read config file
 # remove comments and concat to one line
 arguments=$(\

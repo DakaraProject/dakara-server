@@ -29,6 +29,10 @@ then
         /data/config/nginx_server.conf
 fi
 
+# check version of config files
+check_version.sh /data/config/nginx_main.conf.sample /data/config/nginx_main.conf
+check_version.sh /data/config/nginx_server.conf.sample /data/config/nginx_server.conf
+
 # run nginx
 echo "Starting nginx"
 /usr/sbin/nginx

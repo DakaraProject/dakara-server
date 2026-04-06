@@ -21,6 +21,9 @@ then
         /data/config/gunicorn.conf.py
 fi
 
+# check version of config file
+check_version.sh /data/config/gunicorn.conf.py.sample /data/config/gunicorn.conf.py
+
 # collect static files
 ./manage.py collectstatic --noinput
 
