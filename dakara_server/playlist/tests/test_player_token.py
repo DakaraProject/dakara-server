@@ -23,7 +23,7 @@ class PlayerTokenListViewTestCase(PlaylistAPITestCase):
         self.authenticate(self.manager)
 
         # create the token
-        response = self.client.post(self.url, {"karaoke": karaoke.id})
+        response = self.client.post(self.url, {"karaoke_id": karaoke.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # check the token exists
@@ -56,7 +56,7 @@ class PlayerTokenViewTestCase(PlaylistAPITestCase):
         self.assertEqual(len(response.data["key"]), 40)
         self.assertEqual(response.data["key"], player_token.key)
 
-        self.assertEqual(response.data["karaoke_id"], player_token.karaoke.id)
+        self.assertEqual(response.data["karaoke"], player_token.karaoke.id)
 
     def test_get_not_found(self):
         """Test to get a token that doesn't exist"""
