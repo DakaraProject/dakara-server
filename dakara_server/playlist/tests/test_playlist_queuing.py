@@ -44,6 +44,39 @@ class PlaylistQueuingListViewTestCase(PlaylistAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_get_playlist_queuing_list_with_query(self):
+        """Search playlist entries queuing list with simple query."""
+        self.authenticate(self.user)
+
+        response0 = self.check_query("ong1", [self.pe1])
+
+        self.assertCountEqual(response0.data["query"]["remaining"], ["ong1"])
+
+        response1 = self.check_query("user", [self.pe2])
+
+        self.assertCountEqual(response1.data["query"]["remaining"], ["user"])
+
+    def test_get_playlist_queuing_list_with_query_id(self):
+        """Search playlist entries queuing list by id."""
+        self.authenticate(self.user)
+
+        self.check_query("id:1", [self.pe1])
+
+    def test_get_playlist_queuing_list_with_query_song_title(self):
+        """Search playlist entries queuing list by song title."""
+        self.authenticate(self.user)
+
+        self.check_query("title: song1", [self.pe1])
+
+    def test_get_playlist_queuing_list_with_query_owner(self):
+        """Search playlist entries queuing list by owner."""
+        self.authenticate(self.user)
+
+        self.check_query("owner: manager", [self.pe1])
+        self.check_query('owner:"manager"', [self.pe1])
+        self.check_query('owner:""testPlaylistManager""', [self.pe1])
+        self.check_query("owner: user", [self.pe2])
+
     @patch("playlist.views.send_to_channel")
     def test_post_create_playlist_entry(self, mocked_send_to_channel):
         """Test to verify playlist entry creation."""

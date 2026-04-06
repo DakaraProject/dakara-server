@@ -22,7 +22,7 @@ class SongTagListViewTestCase(LibraryAPITestCase):
         self.create_test_data()
 
     def test_get_tag_list(self):
-        """Test to verify tag list."""
+        """Test to verify tag list with no query."""
         # Login as simple user
         self.authenticate(self.user)
 
@@ -41,6 +41,29 @@ class SongTagListViewTestCase(LibraryAPITestCase):
         # Attempt to get work type list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_tag_list_with_query(self):
+        """Test to verify song tag list with query"""
+        self.authenticate(self.user)
+
+        self.check_query("tag1", [self.tag1])
+        self.check_query("aaaaa", [])
+
+    def test_get_tag_list_parsed_query(self):
+        """Test the parsed query"""
+        self.authenticate(self.user)
+
+        response = self.client.get(self.url, {"query": "none"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        query = response.data["query"]
+        self.assertIn("remaining", query)
+
+    def test_get_tag_list_with_query_empty(self):
+        """Test to verify song tag list with empty query"""
+        self.authenticate(self.user)
+
+        self.check_query("", [self.tag1, self.tag2])
 
     def test_post_tag_already_exists(self):
         """Test to create a tag when it already exists."""

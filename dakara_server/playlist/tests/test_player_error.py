@@ -10,7 +10,7 @@ from playlist.models import PlayerError
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
-class PlayerErrorViewTestCase(PlaylistAPITestCase):
+class PlayerErrorListViewTestCase(PlaylistAPITestCase):
     """Test the view of the player errors."""
 
     url = reverse("playlist-player-errors")
@@ -93,6 +93,63 @@ class PlayerErrorViewTestCase(PlaylistAPITestCase):
         """Test to get errors when not authenticated."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_errors_with_query(self):
+        """Search errors with simple query."""
+        with freeze_time("1970-01-01 00:01:00"):
+            error1 = PlayerError.objects.create(
+                playlist_entry=self.pe1, error_message="dummy error"
+            )
+
+        with freeze_time("1970-01-01 00:02:00"):
+            error2 = PlayerError.objects.create(
+                playlist_entry=self.pe2, error_message="leek overflow"
+            )
+
+        self.authenticate(self.user)
+
+        response0 = self.check_query("ong1", [error1])
+
+        self.assertCountEqual(response0.data["query"]["remaining"], ["ong1"])
+
+        response1 = self.check_query("overflow", [error2])
+
+        self.assertCountEqual(response1.data["query"]["remaining"], ["overflow"])
+
+    def test_get_errors_with_query_message(self):
+        """Search errors with simple query."""
+        with freeze_time("1970-01-01 00:01:00"):
+            error = PlayerError.objects.create(
+                playlist_entry=self.pe1, error_message="dummy error"
+            )
+
+        self.authenticate(self.user)
+
+        self.check_query("message:dummy", [error])
+        self.check_query('message:"dummy error"', [error])
+        self.check_query('message:""dummy error""', [error])
+
+    def test_get_errors_with_query_id(self):
+        """Search error by id."""
+        with freeze_time("1970-01-01 00:01:00"):
+            error = PlayerError.objects.create(
+                id=20, playlist_entry=self.pe1, error_message="dummy error"
+            )
+
+        self.authenticate(self.user)
+
+        self.check_query("id:20", [error])
+
+    def test_get_errors_with_query_song_title(self):
+        """Search errors with simple query."""
+        with freeze_time("1970-01-01 00:01:00"):
+            error = PlayerError.objects.create(
+                playlist_entry=self.pe1, error_message="dummy error"
+            )
+
+        self.authenticate(self.user)
+
+        self.check_query("title: song1", [error])
 
     @patch("playlist.views.send_to_channel")
     def test_post_error_success(self, mocked_send_to_channel):

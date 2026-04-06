@@ -37,6 +37,8 @@ Any important notes regarding the update.
 ### Added
 
 - Allow to fetch full lyrics of a song at URL `api/library/songs/lyrics/<id>/`.
+- Allow to search playlist entries, player errors, users, and song tags.
+- Allow to search songs, playlist entries, player errors and users by ID.
 
 ## 1.9.2 - 2025-03-22
 

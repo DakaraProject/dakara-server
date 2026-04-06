@@ -10,7 +10,9 @@ from rest_registration.verification_notifications import (
 )
 
 from internal import permissions as internal_permissions
+from internal.views_mixins import QueryParsedListMixin
 from users import emails, permissions, serializers
+from users.query import query_users
 
 UserModel = get_user_model()
 
@@ -29,15 +31,20 @@ class CurrentUserView(views.APIView):
         return Response(serializer.data)
 
 
-class UserListView(generics.ListCreateAPIView):
+class UserListView(QueryParsedListMixin, generics.ListCreateAPIView):
     """List and creation of users."""
 
     model = UserModel
-    queryset = UserModel.objects.all().order_by("username")
     permission_classes = [
         IsAuthenticated,
         permissions.IsUsersManager | internal_permissions.IsReadOnly,
     ]
+
+    def get_queryset(self):
+        """Search and filters the users."""
+        query_set = self.model.objects.all()
+
+        return self.perform_query(query_set, query_users).order_by("username")
 
     def get_serializer_class(self):
         # serializer depends on permission level
