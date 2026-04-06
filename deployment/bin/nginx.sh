@@ -33,6 +33,9 @@ fi
 check_version.sh /data/config/nginx_main.conf.sample /data/config/nginx_main.conf
 check_version.sh /data/config/nginx_server.conf.sample /data/config/nginx_server.conf
 
+# collect static files
+/app/dakara_server/manage.py collectstatic --noinput
+
 # run nginx
 echo "Starting nginx"
 /usr/sbin/nginx
