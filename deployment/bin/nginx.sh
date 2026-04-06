@@ -1,14 +1,32 @@
 #!/bin/sh
 
-set -e
+set -eu
 
-# create config file once
-if [[ ! -f /data/config/nginx.conf ]]
+# populating data volume
+make_directories.sh
+
+# create default config files
+cp \
+    /app/deployment/config/nginx_main.conf \
+    /data/config/nginx_main.conf.sample
+cp \
+    /app/deployment/config/nginx_server.conf \
+    /data/config/nginx_server.conf.sample
+
+# create actual config files once
+if [[ ! -f /data/config/nginx_main.conf ]]
 then
-    echo "Create default custom configuration file for nginx"
+    echo "Create main configuration file for nginx"
     cp \
-        /app/deployment/config/nginx.conf \
-        /data/config/nginx.conf
+        /data/config/nginx_main.conf.sample \
+        /data/config/nginx_main.conf
+fi
+if [[ ! -f /data/config/nginx_server.conf ]]
+then
+    echo "Create server configuration file for nginx"
+    cp \
+        /data/config/nginx_server.conf.sample \
+        /data/config/nginx_server.conf
 fi
 
 # run nginx

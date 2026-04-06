@@ -1,11 +1,11 @@
 #!/bin/sh
 
-set -e
+set -eu
 
 cd /app/dakara_server
 
 # populating data volume
-/app/deployment/bin/make_directories.sh
+make_directories.sh
 
 # wait for database
 ./manage.py wait_db_ready

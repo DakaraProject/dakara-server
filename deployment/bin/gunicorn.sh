@@ -1,18 +1,23 @@
 #!/bin/sh
 
-set -e
+set -eu
 
 cd /app/dakara_server
 
 # populating data volume
-/app/deployment/bin/make_directories.sh
+make_directories.sh
+
+# create default config file
+cp \
+    /app/deployment/config/gunicorn.conf.py \
+    /data/config/gunicorn.conf.py.sample
 
 # create config file once
 if [[ ! -f /data/config/gunicorn.conf.py ]]
 then
     echo "Create default custom configuration file for gunicorn"
     cp \
-        /app/deployment/config/gunicorn.conf.py \
+        /data/config/gunicorn.conf.py.sample \
         /data/config/gunicorn.conf.py
 fi
 

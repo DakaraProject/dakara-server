@@ -46,4 +46,7 @@ VOLUME /data
 # django settings
 ENV DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
 
+# path
+ENV PATH="$PATH:/app/deployment/bin"
+
 WORKDIR /

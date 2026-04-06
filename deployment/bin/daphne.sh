@@ -1,18 +1,23 @@
 #!/bin/sh
 
-set -e
+set -eu
 
 cd /app/dakara_server
 
 # populating data volume
-/app/deployment/bin/make_directories.sh
+make_directories.sh
 
-# create config file once
+# create default config file
+cp \
+    /app/deployment/config/daphne.conf \
+    /data/config/daphne.conf.sample
+
+# create actual config file once
 if [[ ! -f /data/config/daphne.conf ]]
 then
-    echo "Create default custom configuration file for daphne"
+    echo "Create configuration file for daphne"
     cp \
-        /app/deployment/config/daphne.conf \
+        /data/config/daphne.conf.sample \
         /data/config/daphne.conf
 fi
 
