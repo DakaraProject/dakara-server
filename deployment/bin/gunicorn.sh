@@ -15,7 +15,7 @@ cp \
 # create config file once
 if [[ ! -f /data/config/gunicorn.conf.py ]]
 then
-    echo "Create default custom configuration file for gunicorn"
+    echo "Create default configuration file for gunicorn"
     cp \
         /data/config/gunicorn.conf.py.sample \
         /data/config/gunicorn.conf.py
@@ -23,9 +23,6 @@ fi
 
 # check version of config file
 check_version.sh /data/config/gunicorn.conf.py.sample /data/config/gunicorn.conf.py
-
-# collect static files
-./manage.py collectstatic --noinput
 
 # wait for database
 ./manage.py wait_db_ready
@@ -38,7 +35,7 @@ if [[ ! -f /data/state/gunicorn_first_superuser ]]
 then
     DJANGO_SUPERUSER_USERNAME=${DAKARA_SUPERUSER_USERNAME:-admin} \
         DJANGO_SUPERUSER_EMAIL=${DAKARA_SUPERUSER_EMAIL:-admin@localhost} \
-        DJANGO_SUPERUSER_PASSWORD=${DAKARA_SUPERUSER_PASSWORD:-admin} \
+        DJANGO_SUPERUSER_PASSWORD=${DAKARA_SUPERUSER_PASSWORD} \
         ./manage.py createsuperuser --no-input
 
     echo "Superuser created; you should create admin accounts and remove the superuser account as soon as possible for security reasons"

@@ -3,6 +3,7 @@
 # https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/
 
 services:
+  # database server
   mysql:
     image: mariadb:latest
     volumes:
@@ -14,10 +15,12 @@ services:
       MARIADB_DATABASE: "dakara"
     restart: "unless-stopped"
 
+  # cache server
   redis:
     image: redis:latest
     restart: "unless-stopped"
 
+  # websocket server (and base configuration)
   daphne: &dakara-server
     image: dakara-server:latest
     volumes:
@@ -28,6 +31,8 @@ services:
       DAKARA_ALLOWED_HOSTS: "localhost,example.com"
       DAKARA_HOST_URL: "http://example.com"
       DAKARA_SECRET_KEY: "your-secret-key"
+      # DAKARA_SUPERUSER_USERNAME: "admin"
+      # DAKARA_SUPERUSER_EMAIL: "admin@localhost"
       DAKARA_SUPERUSER_PASSWORD: "admin-password"
       # DAKARA_LANGUAGE_CODE: "en-us"
       # DAKARA_TIME_ZONE: "UTC"
@@ -45,14 +50,17 @@ services:
       - redis
     command: "daphne.sh"
 
+  # api server
   gunicorn:
     <<: *dakara-server
     command: "gunicorn.sh"
 
+  # scheduler for tasks
   apscheduler:
     <<: *dakara-server
     command: "apscheduler.sh"
 
+  # web server (main entrygate)
   nginx:
     <<: *dakara-server
     depends_on:
