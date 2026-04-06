@@ -18,6 +18,7 @@ If you want to customize this file more, duplicate it under a different name.
 from decouple import Csv, config
 from dj_database_url import config as config_db
 from dj_database_url import register
+from dj_email_url import config as config_email
 
 from dakara_server.settings.base import *  # noqa F403
 from dakara_server.settings.base import (
@@ -146,13 +147,14 @@ LOGGING = {
 }
 
 # email backend
-EMAIL_HOST = config("DAKARA_EMAIL_HOST", default="postfix")
-EMAIL_PORT = config("DAKARA_EMAIL_PORT", cast=int, default="25")
-EMAIL_HOST_USER = config("DAKARA_EMAIL_HOST_USER", default="user")
-EMAIL_HOST_PASSWORD = config("DAKARA_EMAIL_HOST_PASSWORD", default="password")
-EMAIL_USE_TLS = config("DAKARA_EMAIL_USE_TLS", cast=bool, default="false")
-EMAIL_USE_SSL = config("DAKARA_EMAIL_USE_SSL", cast=bool, default="false")
-EMAIL_TIMEOUT = config("DAKARA_EMAIL_TIMEOUT", cast=int, default="0") or None
+EMAIL = config_email("DAKARA_EMAIL_URL", default="smtp://user:password@postfix:25")
+EMAIL_HOST = EMAIL["EMAIL_HOST"]
+EMAIL_PORT = EMAIL["EMAIL_PORT"]
+EMAIL_HOST_USER = EMAIL["EMAIL_HOST_USER"]
+EMAIL_HOST_PASSWORD = EMAIL["EMAIL_HOST_PASSWORD"]
+EMAIL_USE_TLS = EMAIL["EMAIL_USE_TLS"]
+EMAIL_USE_SSL = EMAIL["EMAIL_USE_SSL"]
+EMAIL_TIMEOUT = EMAIL["EMAIL_TIMEOUT"]
 EMAIL_SSL_KEYFILE = config("DAKARA_EMAIL_SSL_KEYFILE", default="") or None
 EMAIL_SSL_CERTIFICATE = config("DAKARA_EMAIL_SSL_CERTIFICATE", default="") or None
 
