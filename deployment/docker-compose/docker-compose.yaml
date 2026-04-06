@@ -20,6 +20,9 @@ services:
     image: redis:latest
     restart: "unless-stopped"
 
+  # mail server
+  # TODO
+
   # websocket server (and base configuration)
   daphne: &dakara-server
     image: dakara-server:latest
@@ -30,7 +33,7 @@ services:
       # DAKARA_REDIS_URL: "redis://redis:6379"
       DAKARA_ALLOWED_HOSTS: "localhost,example.com"
       DAKARA_HOST_URL: "http://example.com"
-      DAKARA_CSRF_TRUSTED_ORIGINS: "http://localhost"
+      DAKARA_CSRF_TRUSTED_ORIGINS: "http://example.com"
       DAKARA_SECRET_KEY: "your-secret-key"
       # DAKARA_SUPERUSER_USERNAME: "admin"
       # DAKARA_SUPERUSER_EMAIL: "admin@localhost"
@@ -38,6 +41,7 @@ services:
       # DAKARA_LANGUAGE_CODE: "en-us"
       # DAKARA_TIME_ZONE: "UTC"
       # DAKARA_LOG_LEVEL: "INFO"
+      # DAKARA_PLAYLIST_SIZE_LIMIT: 100
       DAKARA_EMAIL_ENABLED: true
       DAKARA_EMAIL_URL: "smtp://user:password@postfix:25"
       DAKARA_SENDER_EMAIL: "no-reply@example.com"
@@ -70,7 +74,7 @@ services:
       - apscheduler
     command: "nginx.sh"
     ports:
-      - 8080:80
+      - 80:80
 
 volumes:
   dakara_server_data:
