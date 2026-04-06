@@ -24,17 +24,25 @@ RUN pip install \
         -r /app/requirements.txt \
         -r /app/requirements_prod.txt
 
+# copy custom front file if provided
+COPY dakara-client-web.zip* /tmp
+
 # get the front archive
 RUN FRONT_ARCHIVE="dakara-client-web_$FRONT_VERSION.zip" && \
-    wget \
-        -P /tmp \
-        https://github.com/DakaraProject/dakara-client-web/releases/download/$FRONT_VERSION/$FRONT_ARCHIVE && \
+    if [ -f /tmp/dakara-client-web.zip ]; \
+    then \
+        echo "Using provided custom front archive" && \
+        mv /tmp/dakara-client-web.zip /tmp/$FRONT_ARCHIVE; \
+    else \
+        wget \
+            -P /tmp \
+            https://github.com/DakaraProject/dakara-client-web/releases/download/$FRONT_VERSION/$FRONT_ARCHIVE; \
+    fi && \
     unzip \
         /tmp/$FRONT_ARCHIVE \
         -d /app && \
     rm -rf \
-        /tmp/$FRONT_ARCHIVE \
-        /tmp/front
+        /tmp/$FRONT_ARCHIVE
 
 COPY deployment/etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
