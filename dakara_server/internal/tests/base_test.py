@@ -85,7 +85,7 @@ class BaseProvider:
         self.assertEqual(response.data["count"], len(expected))
         results = response.data["results"]
         self.assertEqual(len(results), len(expected))
-        for item, expected_item in zip(results, expected):
+        for item, expected_item in zip(results, expected, strict=False):
             self.assertEqual(item["id"], expected_item.id)
 
         if remaining is not None:

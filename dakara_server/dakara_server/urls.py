@@ -103,6 +103,11 @@ urlpatterns = [
         name="library-song",
     ),
     path(
+        "api/library/songs/lyrics/<int:pk>/",
+        library_views.SongLyricsView.as_view(),
+        name="library-song-lyrics",
+    ),
+    path(
         "api/library/songs/retrieve/",
         library_views.SongRetrieveListView.as_view(),
         name="library-song-retrieve-list",

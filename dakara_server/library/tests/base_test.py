@@ -85,19 +85,21 @@ class LibraryProvider(BaseProvider):
         # tags
         expected_tags = expected_song.tags.all()
         self.assertEqual(len(json["tags"]), len(expected_tags))
-        for tag, expected_tag in zip(json["tags"], expected_tags):
+        for tag, expected_tag in zip(json["tags"], expected_tags, strict=False):
             self.check_tag_json(tag, expected_tag)
 
         # artists
         expected_artists = expected_song.artists.all()
         self.assertEqual(len(json["artists"]), len(expected_artists))
-        for artist, expected_artist in zip(json["artists"], expected_artists):
+        for artist, expected_artist in zip(
+            json["artists"], expected_artists, strict=False
+        ):
             self.check_artist_json(artist, expected_artist)
 
         # works
         expected_works = expected_song.songworklink_set.all()
         self.assertEqual(len(json["works"]), len(expected_works))
-        for work, expected_work in zip(json["works"], expected_works):
+        for work, expected_work in zip(json["works"], expected_works, strict=False):
             self.check_work_json(work["work"], expected_work.work)
             self.assertEqual(work["link_type"], expected_work.link_type)
             self.assertEqual(work["link_type_number"], expected_work.link_type_number)
@@ -125,7 +127,7 @@ class LibraryProvider(BaseProvider):
         expected_alt_titles = expected_work.alternative_titles.all()
         self.assertEqual(len(json["alternative_titles"]), len(expected_alt_titles))
         for alt_title, expected_alt_title in zip(
-            json["alternative_titles"], expected_alt_titles
+            json["alternative_titles"], expected_alt_titles, strict=False
         ):
             self.assertEqual(alt_title["title"], expected_alt_title.title)
 

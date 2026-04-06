@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
+    RetrieveAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
@@ -52,6 +53,17 @@ class SongView(RetrieveUpdateDestroyAPIView):
     ]
     queryset = models.Song.objects.all()
     serializer_class = serializers.SongSerializer
+
+
+class SongLyricsView(RetrieveAPIView):
+    """List of songs."""
+
+    permission_classes = [
+        IsAuthenticated,
+        permissions.IsLibraryManager | internal_permissions.IsReadOnly,
+    ]
+    queryset = models.Song.objects.all()
+    serializer_class = serializers.SongLyricsSerializer
 
 
 class SongRetrieveListView(ListAPIView):
