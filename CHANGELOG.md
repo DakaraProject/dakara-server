@@ -40,6 +40,10 @@ Any important notes regarding the update.
 - Allow to search playlist entries, player errors, users, and song tags.
 - Allow to search songs, playlist entries, player errors and users by ID.
 
+### Fixed
+
+- Fixed a bug when creating a player token with a MariaDB database.
+
 ## 1.9.2 - 2025-03-22
 
 ## 1.9.1 - 2025-03-15
