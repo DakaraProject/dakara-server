@@ -31,3 +31,36 @@ class PlaylistPlayedListViewTestCase(PlaylistAPITestCase):
         # Get playlist entries list
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_playlist_played_list_with_query(self):
+        """Search playlist entries played list with simple query."""
+        self.authenticate(self.user)
+
+        response0 = self.check_query("ong1", [self.pe4])
+
+        self.assertCountEqual(response0.data["query"]["remaining"], ["ong1"])
+
+        response1 = self.check_query("anager", [self.pe3])
+
+        self.assertCountEqual(response1.data["query"]["remaining"], ["anager"])
+
+    def test_get_playlist_played_list_with_query_id(self):
+        """Search playlist entries played list by id."""
+        self.authenticate(self.user)
+
+        self.check_query("id:4", [self.pe4])
+
+    def test_get_playlist_played_list_with_query_song_title(self):
+        """Search playlist entries played list by song title."""
+        self.authenticate(self.user)
+
+        self.check_query("title: song1", [self.pe4])
+
+    def test_get_playlist_played_list_with_query_owner(self):
+        """Search playlist entries played list by owner."""
+        self.authenticate(self.user)
+
+        self.check_query("owner:manager", [self.pe3])
+        self.check_query('owner:"manager"', [self.pe3])
+        self.check_query('owner:""testPlaylistManager""', [self.pe3])
+        self.check_query("owner:user", [self.pe4])

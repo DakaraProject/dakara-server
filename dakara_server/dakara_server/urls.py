@@ -48,7 +48,7 @@ urlpatterns = [
     ),
     path(
         "api/playlist/player/errors/",
-        playlist_views.PlayerErrorView.as_view(),
+        playlist_views.PlayerErrorListView.as_view(),
         name="playlist-player-errors",
     ),
     path(

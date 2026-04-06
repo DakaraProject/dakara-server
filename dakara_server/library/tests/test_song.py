@@ -85,15 +85,35 @@ And everywhere that Mary went""",
 
         # Get songs list with query = "ong1"
         # Should only return song1
-        self.song_query_test("ong1", [self.song1])
+        self.check_query("ong1", [self.song1])
 
         # Get songs list with query = "tist1"
         # Should only return song2 which has Artist1 as artist
-        self.song_query_test("tist1", [self.song2])
+        self.check_query("tist1", [self.song2])
 
         # Get songs list with query = "ork1"
         # Should only return song2 which is linked to Work1
-        self.song_query_test("ork1", [self.song2])
+        self.check_query("ork1", [self.song2])
+
+    def test_get_song_list_parsed_query(self):
+        """Test the parsed query."""
+        self.authenticate(self.user)
+
+        response = self.client.get(self.url, {"query": "none"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        query = response.data["query"]
+        self.assertIn("artist", query)
+        self.assertIn("contains", query["artist"])
+        self.assertIn("exact", query["artist"])
+        self.assertIn("title", query)
+        self.assertIn("contains", query["title"])
+        self.assertIn("exact", query["title"])
+        self.assertIn("work", query)
+        self.assertIn("contains", query["work"])
+        self.assertIn("exact", query["work"])
+        self.assertIn("work_type", query)
+        self.assertIn("remaining", query)
 
     def test_get_song_list_with_query_empty(self):
         """Test to verify song list with empty query."""
@@ -102,7 +122,7 @@ And everywhere that Mary went""",
 
         # Get songs list with query = ""
         # Should return all songs
-        self.song_query_test("", [self.song1, self.song2])
+        self.check_query("", [self.song1, self.song2])
 
     def test_get_song_list_with_query_detail(self):
         """Test to verify song list with detail query."""
@@ -111,15 +131,22 @@ And everywhere that Mary went""",
 
         # Get songs list with query = "Version2"
         # Should only return song2
-        self.song_query_test("ersion2", [self.song2])
+        self.check_query("ersion2", [self.song2])
 
         # Get songs list with query = "Detail2"
         # Should only return song2
-        self.song_query_test("etail2", [self.song2])
+        self.check_query("etail2", [self.song2])
 
         # Get songs list with query = "Detail_Video2"
         # Should only return song2
-        self.song_query_test("etail_Video2", [self.song2])
+        self.check_query("etail_Video2", [self.song2])
+
+    def test_get_song_list_with_query_id(self):
+        """Test search song by ID."""
+        # Login as simple user
+        self.authenticate(self.user)
+
+        self.check_query("id:1", [self.song1])
 
     def test_get_song_list_with_query_tag(self):
         """Test to verify song list with tag query."""
@@ -128,11 +155,11 @@ And everywhere that Mary went""",
 
         # Get songs list with query = "#TAG1"
         # Should only return song2
-        self.song_query_test("#TAG1", [self.song2])
+        self.check_query("#TAG1", [self.song2])
 
         # Get songs list with query = "#TAG2"
         # Should not return any result
-        self.song_query_test("#TAG2", [])
+        self.check_query("#TAG2", [])
 
     def test_get_song_list_with_query_artist(self):
         """Test to verify song list with artist query."""
@@ -141,19 +168,19 @@ And everywhere that Mary went""",
 
         # Get songs list with query = "artist:1"
         # Should only return song2
-        self.song_query_test("artist:1", [self.song2])
+        self.check_query("artist:1", [self.song2])
 
         # Get songs list with query = "artist:k"
         # Should not return any result
-        self.song_query_test("artist:k", [])
+        self.check_query("artist:k", [])
 
         # Get songs list with query = "artist:""Artist1"""
         # Should only return song2
-        self.song_query_test('artist:""Artist1""', [self.song2])
+        self.check_query('artist:""Artist1""', [self.song2])
 
         # Get songs list with query = "artist:""tist1"""
         # Should not return any result
-        self.song_query_test('artist:""tist1""', [])
+        self.check_query('artist:""tist1""', [])
 
     def test_get_song_list_with_query_work(self):
         """Test to verify song list with work query."""
@@ -162,15 +189,29 @@ And everywhere that Mary went""",
 
         # Get songs list with query = "wt1:Work1"
         # Should only return song2
-        self.song_query_test("wt1:Work1", [self.song2])
+        self.check_query("wt1:Work1", [self.song2])
 
         # Get songs list with query = "wt1:""Work1"""
         # Should only return song2
-        self.song_query_test("""wt1:""Work1"" """, [self.song2])
+        self.check_query("""wt1:""Work1"" """, [self.song2])
 
         # Get songs list with query = "wt2:Work1"
         # Should not return any result since Work1 is not of type workType2
-        self.song_query_test("wt2:Work1", [])
+        self.check_query("wt2:Work1", [])
+
+    def test_get_song_list_with_query_old_worktype(self):
+        """Reproduce a bug where old work types would be kept in memory."""
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Pre-assertion, get a song using wt1
+        self.check_query("wt1:work1", [self.song2])
+
+        # Now remove work type 1
+        self.wt1.delete()
+
+        # Assertion, there are no songs using wt1
+        self.check_query("wt1:work1", [])
 
     def test_get_song_list_with_query_work_alternative_title(self):
         """Test to verify song list with work alternative title query."""
@@ -179,27 +220,27 @@ And everywhere that Mary went""",
 
         # Get songs list with query = "work:AltTitle1"
         # Should only return song2
-        self.song_query_test("work:AltTitle1", [self.song2])
+        self.check_query("work:AltTitle1", [self.song2])
 
         # Get songs list with query = "work:""AltTitle1"""
         # Should only return song2
-        self.song_query_test("""work:""AltTitle1"" """, [self.song2])
+        self.check_query("""work:""AltTitle1"" """, [self.song2])
 
         # Get songs list with query = "wt1:AltTitle1"
         # Should only return song2
-        self.song_query_test("wt1:AltTitle1", [self.song2])
+        self.check_query("wt1:AltTitle1", [self.song2])
 
         # Get songs list with query = "wt1:""AltTitle1"""
         # Should only return song2
-        self.song_query_test("""wt1:""AltTitle1"" """, [self.song2])
+        self.check_query("""wt1:""AltTitle1"" """, [self.song2])
 
         # Get songs list with query = "AltTitle1"
         # Should only return song2
-        self.song_query_test("AltTitle1", [self.song2])
+        self.check_query("AltTitle1", [self.song2])
 
         # Get songs list with query = "wt2:AltTitle1"
         # Should not return any result since Work1 is not of type workType2
-        self.song_query_test("wt2:AltTitle1", [])
+        self.check_query("wt2:AltTitle1", [])
 
     def test_get_song_list_with_query_title(self):
         """Test to verify song list with title query."""
@@ -208,15 +249,15 @@ And everywhere that Mary went""",
 
         # Get songs list with query = "title:1"
         # Should only return song1
-        self.song_query_test("title:1", [self.song1])
+        self.check_query("title:1", [self.song1])
 
         # Get songs list with query = "title:""Song1"""
         # Should only return song1
-        self.song_query_test(""" title:""Song1"" """, [self.song1])
+        self.check_query(""" title:""Song1"" """, [self.song1])
 
         # Get songs list with query = "title:Artist"
         # Should not return any result
-        self.song_query_test("title:Artist", [])
+        self.check_query("title:Artist", [])
 
     def test_get_song_list_with_query_multiple(self):
         """Test to verify song list with title query."""
@@ -225,7 +266,7 @@ And everywhere that Mary went""",
 
         # Get songs list with query = "artist:Artist1 title:1"
         # Should not return any song
-        self.song_query_test("artist:Artist1 title:1", [])
+        self.check_query("artist:Artist1 title:1", [])
 
     def test_get_song_list_with_query_complex(self):
         """Test to verify parsed query is returned."""
@@ -259,21 +300,6 @@ And everywhere that Mary went""",
         self.assertCountEqual(query["work_type"].keys(), ["wt1"])
         self.assertCountEqual(query["work_type"]["wt1"]["contains"], ["workName"])
         self.assertCountEqual(query["work_type"]["wt1"]["exact"], [])
-
-    def song_query_test(self, query, expected_songs):
-        """Method to test a song request with a given query.
-
-        Returned songs should be the same as expected_songs,
-        in the same order.
-        """
-        # TODO This only works when there is only one page of songs
-        response = self.client.get(self.url, {"query": query})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], len(expected_songs))
-        results = response.data["results"]
-        self.assertEqual(len(results), len(expected_songs))
-        for song, expected_song in zip(results, expected_songs, strict=False):
-            self.assertEqual(song["id"], expected_song.id)
 
     def test_get_song_list_disabled_tag(self):
         """Test to verify songs with disabled for user.

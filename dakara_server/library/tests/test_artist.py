@@ -47,11 +47,21 @@ class ArtistListViewTestCase(LibraryAPITestCase):
 
         # Get artists list with query = "tist1"
         # Should only return artist1
-        self.artist_query_test("tist1", [self.artist1])
+        self.check_query("tist1", [self.artist1])
 
         # Get artists list with query = "ork1"
         # Should not return any artist
-        self.artist_query_test("ork1", [])
+        self.check_query("ork1", [])
+
+    def test_get_artist_list_parsed_query(self):
+        """Test the parsed query."""
+        self.authenticate(self.user)
+
+        response = self.client.get(self.url, {"query": "none"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        query = response.data["query"]
+        self.assertIn("remaining", query)
 
     def test_get_artist_list_with_query_empty(self):
         """Test to verify artist list with empty query."""
@@ -60,7 +70,7 @@ class ArtistListViewTestCase(LibraryAPITestCase):
 
         # Get artists list with query = ""
         # Should return all artists
-        self.artist_query_test("", [self.artist1, self.artist2])
+        self.check_query("", [self.artist1, self.artist2])
 
     def test_get_artist_list_with_query_no_keywords(self):
         """Test to verify artist query do not parse keywords."""
@@ -69,16 +79,16 @@ class ArtistListViewTestCase(LibraryAPITestCase):
 
         # Get artists list with query = "title:Artist1"
         # Should not return anything since it searched for the whole string
-        self.artist_query_test("title:Artist1", [], ["title:Artist1"])
+        self.check_query("title:Artist1", [], ["title:Artist1"])
 
-    def test_get_artists_list_with_query__multi_words(self):
+    def test_get_artists_list_with_query_multi_words(self):
         """Test query parse with multi words remaining."""
         # Login as simple user
         self.authenticate(self.user)
 
         # Get artists list with escaped space query
         # Should not return anything but check query
-        self.artist_query_test(
+        self.check_query(
             r"word words\ words\ words remain",
             [],
             ["word", "words words words", "remain"],
@@ -86,29 +96,11 @@ class ArtistListViewTestCase(LibraryAPITestCase):
 
         # Get artists list with quoted query
         # Should not return anything but check query
-        self.artist_query_test(
+        self.check_query(
             """ word"words words words" remain""",
             [],
             ["word", "words words words", "remain"],
         )
-
-    def artist_query_test(self, query, expected_artists, remaining=None):
-        """Method to test a artist request with a given query.
-
-        Returned artist should be the same as expected_artists,
-        in the same order.
-        """
-        # TODO This only works when there is only one page of artists
-        response = self.client.get(self.url, {"query": query})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], len(expected_artists))
-        results = response.data["results"]
-        self.assertEqual(len(results), len(expected_artists))
-        for artist, expected_artist in zip(results, expected_artists, strict=False):
-            self.assertEqual(artist["id"], expected_artist.id)
-
-        if remaining is not None:
-            self.assertEqual(response.data["query"]["remaining"], remaining)
 
 
 class ArtistPruneViewAPIViewTestCase(LibraryAPITestCase):

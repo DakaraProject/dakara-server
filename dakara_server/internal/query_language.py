@@ -1,19 +1,16 @@
 import re
 
-from library.models import WorkType
-
-KEYWORDS = ["artist", "work", "title"]
-
 
 class QueryLanguageParser:
-    """Parser for search query mini language used to search song."""
+    """Parser for search query mini language.
 
-    def __init__(self):
-        self.keywords_work_type = [
-            work_type.query_name for work_type in WorkType.objects.all()
-        ]
+    Args:
+        keywords (list of str): List of keywords to use
+        for parsing.
+    """
 
-        self.keywords = KEYWORDS + self.keywords_work_type
+    def __init__(self, keywords):
+        self.keywords = keywords
 
         regex = r"""
         \b(?P<keyword>{keywords_regex}) # keyword
@@ -86,33 +83,24 @@ class QueryLanguageParser:
                 with spaces.
 
         Returns:
-            dict: Query terms arranged among the following keys:
-                `artist`:
-                    `contains`: List of list of artists names to match
-                        partially.
-                    `exact`: List of list of artists names to match exactly.
-                `work`:
-                    `contains`: List of works names to match partially.
-                    `exact`: List of works names to match exactly.
-                `title:
-                    `contains`: Titles to match partially
-                    `exact`: Titles to match exactly.
+            dict: Query terms parsed according to the
+            provided keywords. Each item is a dict
+            containing two lists:
+                `contains`: List of partial matches.
+                `exact`: List of exact matches.
+            In addition, two extra items are present in
+            the dict:
                 `tag`: List of tags to match in uppercase.
-                `work_type`: Dict with queryname as key and a dict as value
-                    with the keys `contains` and `exact`.
-
                 `remaining`: Unparsed text.
         """
         # create results structure
-        # work_type will be filled only if necessary
-        result = {
-            "artist": {"contains": [], "exact": []},
-            "work": {"contains": [], "exact": []},
-            "title": {"contains": [], "exact": []},
-            "work_type": {},
-            "remaining": [],
-            "tag": [],
-        }
+        result = {kw: {"contains": [], "exact": []} for kw in self.keywords}
+        result.update(
+            {
+                "remaining": [],
+                "tag": [],
+            }
+        )
 
         for match in self.language_matcher.finditer(query):
             group_index = match.groupdict()
@@ -126,21 +114,11 @@ class QueryLanguageParser:
                 .strip()
             )
 
-            if target in self.keywords_work_type:
-                # create worktype if not exists
-                if target not in result["work_type"]:
-                    result["work_type"][target] = {"contains": [], "exact": []}
-
-                result_target = result["work_type"][target]
-
-            else:
-                result_target = result[target]
-
             if value_contains and not value_exact:
-                result_target["contains"].append(value_contains)
+                result[target]["contains"].append(value_contains)
 
             elif value_exact and not value_contains:
-                result_target["exact"].append(value_exact)
+                result[target]["exact"].append(value_exact)
 
             else:
                 raise ValueError("Inconsistency")
@@ -158,3 +136,23 @@ class QueryLanguageParser:
                     result["tag"].append(item_clean.upper())
 
         return result
+
+
+def regroup(res, key, keys):
+    """Regroup non empty keys in a specific key.
+
+    Args:
+        res (dict): Dictionary where to regroup keys.
+        key (str): Key where to regroup `keys`.
+        keys (list of str): Keys to regroup in `key`.
+            Any key with no items in `exact` and
+            `contains` will just be removed.
+    """
+    res_copy = res.copy()
+    res_copy[key] = {}
+    for k in keys:
+        val = res_copy.pop(k)
+        if len(val["exact"]) or len(val["contains"]):
+            res_copy[key][k] = val
+
+    return res_copy

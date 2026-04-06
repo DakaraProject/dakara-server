@@ -18,10 +18,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from internal import permissions as internal_permissions
+from internal.views_mixins import QueryParsedListMixin
 from library import permissions as library_permissions
 from playlist import authentications, models, permissions, serializers
 from playlist.consumers import send_to_channel
 from playlist.date_stop import KARAOKE_JOB_NAME, clear_date_stop, scheduler
+from playlist.query import query_entries, query_errors
 from playlist.schemes import PlayerTokenScheme  # noqa F401
 
 tz = timezone.get_default_timezone()
@@ -60,7 +62,7 @@ class PlaylistQueuingView(drf_generics.DestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class PlaylistQueuingListView(drf_generics.ListCreateAPIView):
+class PlaylistQueuingListView(QueryParsedListMixin, drf_generics.ListCreateAPIView):
     """List of entries or creation of a new entry in the playlist."""
 
     serializer_class = serializers.PlaylistEntrySerializer
@@ -70,7 +72,12 @@ class PlaylistQueuingListView(drf_generics.ListCreateAPIView):
         (permissions.IsPlaylistManager & library_permissions.IsLibraryManager)
         | permissions.IsSongEnabled,
     ]
-    queryset = models.PlaylistEntry.objects.get_queuing()
+
+    def get_queryset(self):
+        """Search and filters the playlist entries."""
+        query_set = models.PlaylistEntry.objects.get_queuing()
+
+        return self.perform_query(query_set, query_entries)
 
     def perform_create(self, serializer):
         # Deny creation if kara is not ongoing
@@ -155,11 +162,16 @@ class PlaylistQueuingListView(drf_generics.ListCreateAPIView):
             )
 
 
-class PlaylistPlayedListView(drf_generics.ListAPIView):
+class PlaylistPlayedListView(QueryParsedListMixin, drf_generics.ListAPIView):
     """List of played entries."""
 
     serializer_class = serializers.PlaylistEntrySerializer
-    queryset = models.PlaylistEntry.objects.get_played().reverse()
+
+    def get_queryset(self):
+        """Search and filters the playlist entries."""
+        query_set = models.PlaylistEntry.objects.get_played().reverse()
+
+        return self.perform_query(query_set, query_entries)
 
 
 class PlayerCommandView(drf_generics.UpdateAPIView):
@@ -456,7 +468,7 @@ class PlayerStatusView(drf_generics.RetrieveUpdateAPIView):
         return player
 
 
-class PlayerErrorView(drf_generics.ListCreateAPIView):
+class PlayerErrorListView(QueryParsedListMixin, drf_generics.ListCreateAPIView):
     """View of the player errors."""
 
     authentication_classes = [
@@ -468,7 +480,12 @@ class PlayerErrorView(drf_generics.ListCreateAPIView):
         IsAuthenticated & internal_permissions.IsReadOnly | permissions.IsPlayer
     ]
     serializer_class = serializers.PlayerErrorSerializer
-    queryset = models.PlayerError.objects.order_by("date_created").reverse()
+
+    def get_queryset(self):
+        """Search and filters the player errors."""
+        query_set = models.PlayerError.objects.all()
+
+        return self.perform_query(query_set, query_errors).order_by("-date_created")
 
     def perform_create(self, serializer):
         """Create an error and perform other actions.
