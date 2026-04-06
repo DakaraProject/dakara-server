@@ -18,7 +18,7 @@ services:
     image: redis:latest
     restart: "unless-stopped"
 
-  dakara-server:
+  daphne: &dakara-server
     image: dakara-server:latest
     volumes:
       - dakara_server_data:/data
@@ -28,22 +28,37 @@ services:
       DAKARA_ALLOWED_HOSTS: "localhost,example.com"
       DAKARA_HOST_URL: "http://example.com"
       DAKARA_SECRET_KEY: "your-secret-key"
-      DAKARA_SUPERUSER_PASSWORD: "root-password"
+      DAKARA_SUPERUSER_PASSWORD: "admin-password"
       DAKARA_LANGUAGE_CODE: "en-us"
       DAKARA_TIME_ZONE: "UTC"
       DAKARA_LOG_LEVEL: "INFO"
       DAKARA_EMAIL_ENABLED: true # or false
-      DAKARA_EMAIL_HOST: "postfix"
-      DAKARA_EMAIL_HOST_USER: "user"
-      DAKARA_EMAIL_HOST_PASSWORD: "password"
+      DAKARA_EMAIL_URL: "smtp://user:password@postfix:25"
       DAKARA_SENDER_EMAIL: "no-reply@example.com"
     restart: "unless-stopped"
-    ports:
-      - 80
     depends_on:
       - mysql
       - redis
+    command: "daphne.sh"
 
-volume:
+  gunicorn:
+    <<: *dakara-server
+    command: "gunicorn.sh"
+
+  apscheduler:
+    <<: *dakara-server
+    command: "apscheduler.sh"
+
+  nginx:
+    <<: *dakara-server
+    depends_on:
+      - daphne
+      - gunicorn
+      - apscheduler
+    command: "nginx.sh"
+    ports:
+      - 8080:80
+
+volumes:
   dakara_server_data:
   mysql_data:
