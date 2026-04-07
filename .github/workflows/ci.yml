@@ -35,7 +35,7 @@ jobs:
         run: pip install -r requirements.txt -r requirements_dev.txt
 
       - name: Run tests
-        run: python -m pytest -v --cov src
+        run: python -m pytest -v --cov dakara_server
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
