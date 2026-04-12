@@ -1,7 +1,10 @@
 FROM alpine:3.23
 
-# if this variable is set to "dev", then the "dakara-client-web_dev.zip" file
-# in the current working directory will be used
+# the front archive name must be in the format "dakara-client-web_<FRONT_VERSION>.zip"
+# any front archive in the current build directory will be directly copied in
+# the image, and will be used if the version number corresponds to the one
+# requested below
+# otherwise, the front archive will be downloaded
 ARG FRONT_VERSION="1.9.2"
 
 # optimizations for Python and pip
@@ -26,14 +29,14 @@ RUN pip install \
         -r /app/requirements.txt \
         -r /app/requirements_prod.txt
 
-# copy dev front file if provided
-COPY dakara-client-web_dev.zip* /tmp
+COPY . /app
 
 # get the front archive
 RUN FRONT_ARCHIVE="dakara-client-web_$FRONT_VERSION.zip" && \
-    if [ -f "/tmp/$FRONT_ARCHIVE" ]; \
+    if [ -f "/app/$FRONT_ARCHIVE" ]; \
     then \
-        echo "Using provided dev front archive"; \
+        echo "Using provided dev front archive" && \
+        mv "/app/$FRONT_ARCHIVE" "/tmp/$FRONT_ARCHIVE"; \
     else \
         echo "Downloading front archive v$FRONT_VERSION" && \
         wget \
@@ -43,12 +46,15 @@ RUN FRONT_ARCHIVE="dakara-client-web_$FRONT_VERSION.zip" && \
     unzip \
         "/tmp/$FRONT_ARCHIVE" \
         -d /app && \
-    rm -rf \
-        "/tmp/$FRONT_ARCHIVE"
+    rm \
+        -f \
+        "/tmp/$FRONT_ARCHIVE" && \
+    find \
+        /app \
+        -name "dakara-client-web_*" \
+        -delete
 
 COPY deployment/etc/nginx/nginx.conf /etc/nginx/nginx.conf
-
-COPY . /app
 
 EXPOSE 80
 VOLUME /data
