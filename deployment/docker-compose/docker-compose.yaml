@@ -40,15 +40,18 @@ services:
       DAKARA_SUPERUSER_PASSWORD: "admin-password"
       # DAKARA_LANGUAGE_CODE: "en-us"
       # DAKARA_TIME_ZONE: "UTC"
-      # DAKARA_LOG_LEVEL: "INFO"
       # DAKARA_PLAYLIST_SIZE_LIMIT: 100
       DAKARA_EMAIL_ENABLED: true
       DAKARA_EMAIL_URL: "smtp://user:password@postfix:25"
+      # DAKARA_EMAIL_SSL_KEYFILE: ""
+      # DAKARA_EMAIL_SSL_CERTIFICATE: ""
       DAKARA_SENDER_EMAIL: "no-reply@example.com"
       DAKARA_LOG_TO_CONSOLE: false
+      # DAKARA_LOG_LEVEL: "INFO"
       # DAKARA_LOG_FILE_PATH: "/data/logs/dakara_server.log"
       # DAKARA_LOG_FILE_MAX_SIZE: 1000000
       # DAKARA_LOG_FILE_BACKUP_COUNT: 2
+      # DJANGO_LEG_LEVEL: "INFO"
     restart: "unless-stopped"
     depends_on:
       - mysql
