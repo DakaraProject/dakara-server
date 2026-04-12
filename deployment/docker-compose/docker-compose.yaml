@@ -53,17 +53,17 @@ services:
     depends_on:
       - mysql
       - redis
-    command: "daphne.sh"
+    command: "run_daphne.sh"
 
   # api server
   gunicorn:
     <<: *dakara-server
-    command: "gunicorn.sh"
+    command: "run_gunicorn.sh"
 
   # scheduler for tasks
   apscheduler:
     <<: *dakara-server
-    command: "apscheduler.sh"
+    command: "run_apscheduler.sh"
 
   # web server (main entrygate)
   nginx:
@@ -72,7 +72,7 @@ services:
       - daphne
       - gunicorn
       - apscheduler
-    command: "nginx.sh"
+    command: "run_nginx.sh"
     ports:
       - 80:80
 
