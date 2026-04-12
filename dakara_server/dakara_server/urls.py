@@ -165,13 +165,11 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns.extend(
-        [
-            # Default to main page
-            re_path(
-                r"^(?!api/?)",  # serve everything but the API routes
-                serve,
-                kwargs={"path": "index.html"},
-            )
-        ]
+    # Default to main page
+    urlpatterns.append(
+        re_path(
+            r"^(?!api/?)",  # serve everything but the API routes
+            serve,
+            kwargs={"path": "index.html"},
+        ),
     )

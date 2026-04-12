@@ -53,13 +53,17 @@ DATABASES = {
 
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
-
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         "TIMEOUT": None,
     }
 }
+
+# Static files for develepmont only, if the folder exists
+static_dir = PROJECT_DIR / "static"
+if static_dir.exists():
+    STATICFILES_DIRS = [static_dir]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

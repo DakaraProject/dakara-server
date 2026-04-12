@@ -23,6 +23,7 @@ from dj_email_url import config as config_email
 from dakara_server.settings.base import *  # noqa F403
 from dakara_server.settings.base import (
     EMAIL_ENABLED,
+    PROJECT_DIR,
     get_host_urls,
     get_rest_registration,
 )
@@ -73,9 +74,9 @@ CACHES = {
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
-# Static root
+# Static files for production only
 # Should point to the static directory served by nginx
-STATIC_ROOT = config("DAKARA_STATIC_ROOT", "/app/static")
+STATIC_ROOT = config("DAKARA_STATIC_ROOT", default=PROJECT_DIR / "static")
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
