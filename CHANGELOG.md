@@ -40,6 +40,10 @@ Any important notes regarding the update.
 - Allow to search playlist entries, player errors, users, and song tags.
 - Allow to search songs, playlist entries, player errors and users by ID.
 
+### Changed
+
+- When running the server for development, with `manage.py runserver`, the default database location has changed from `<repo_dir>/dakara_server/db.sqlite3` to `<repo_dir>/db.sqlite3`.
+
 ### Fixed
 
 - Fixed a bug when creating a player token with a MariaDB database.
