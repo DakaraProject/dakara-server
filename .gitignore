@@ -82,3 +82,5 @@ settings.ini
 .python-version
 
 /docker-compose.yaml
+
+dakara-client-web*.zip

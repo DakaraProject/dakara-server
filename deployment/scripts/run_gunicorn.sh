@@ -22,7 +22,7 @@ then
 fi
 
 # check version of config file
-check_version.sh /data/config/gunicorn.conf.py.sample /data/config/gunicorn.conf.py
+check_version.py /data/config/gunicorn.conf.py.sample /data/config/gunicorn.conf.py
 
 # wait for database
 ./manage.py wait_db_ready

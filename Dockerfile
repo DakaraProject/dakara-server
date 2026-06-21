@@ -11,6 +11,7 @@ ARG FRONT_VERSION="1.9.2"
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV AUTOBAHN_USE_NVX=0
 
 RUN apk add --no-cache \
         nginx \
@@ -19,15 +20,15 @@ RUN apk add --no-cache \
         unzip \
         wget
 
-COPY requirements.txt requirements_prod.txt /app/
-
 # install dependencies
-RUN pip install \
+RUN --mount=source=requirements.txt,target=/requirements.txt \
+    --mount=source=requirements_prod.txt,target=/requirements_prod.txt \
+    pip install \
         --no-cache-dir \
         --root-user-action ignore \
         --break-system-packages \
-        -r /app/requirements.txt \
-        -r /app/requirements_prod.txt
+        -r /requirements.txt \
+        -r /requirements_prod.txt
 
 COPY . /app
 
@@ -63,6 +64,6 @@ VOLUME /data
 ENV DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
 
 # path
-ENV PATH="$PATH:/app/deployment/bin"
+ENV PATH="$PATH:/app/deployment/scripts"
 
 WORKDIR /

@@ -22,7 +22,7 @@ then
 fi
 
 # check version of config file
-check_version.sh /data/config/daphne.conf.sample /data/config/daphne.conf
+check_version.py /data/config/daphne.conf.sample /data/config/daphne.conf
 
 # read config file
 # remove comments and concat to one line
