@@ -40,6 +40,10 @@ Any important notes regarding the update.
 - Allow to search playlist entries, player errors, users, and song tags.
 - Allow to search songs, playlist entries, player errors and users by ID.
 
+### Changed
+
+- The `has_instrumental` field of songs has been replaced by the `instrumental_file` and `instrumental_track` fields. It field remains in the songs serializer (for client) as a read-only field.
+
 ### Fixed
 
 - Fixed a bug when creating a player token with a MariaDB database.

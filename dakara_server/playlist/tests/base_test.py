@@ -38,7 +38,7 @@ class PlaylistProvider(BaseProvider):
         self.song1.save()
         self.song1.tags.add(self.tag1)
         self.song2 = Song(
-            title="Song2", duration=timedelta(seconds=10), has_instrumental=True
+            title="Song2", duration=timedelta(seconds=10), instrumental_track=1
         )
         self.song2.save()
 

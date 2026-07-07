@@ -18,12 +18,18 @@ class Song(models.Model):
     artists = models.ManyToManyField("Artist")
     works = models.ManyToManyField("Work", through="SongWorkLink")
     lyrics = models.TextField(blank=True)
-    has_instrumental = models.BooleanField(default=False)
+    instrumental_file = models.CharField(max_length=255, null=True)
+    instrumental_track = models.IntegerField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
+
+    @property
+    def has_instrumental(self):
+        """bool: Check if a song has an instrumental file or an instrumental track."""
+        return self.instrumental_file or self.instrumental_track
 
 
 class Artist(models.Model):
