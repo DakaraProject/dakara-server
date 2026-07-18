@@ -34,6 +34,16 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Update notes
+
+The Dakara server now handles instrumental version of songs differently.
+You should apply the migrations and re-feed the database:
+
+```sh
+# using Dakara feeder
+dakara-feeder feed songs --force
+```
+
 ### Added
 
 - Allow to fetch full lyrics of a song at URL `api/library/songs/lyrics/<id>/`.
