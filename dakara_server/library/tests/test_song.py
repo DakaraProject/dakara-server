@@ -36,6 +36,22 @@ class SongListViewTestCase(LibraryAPITestCase):
         self.check_song_json(response.data["results"][0], self.song1)
         self.check_song_json(response.data["results"][1], self.song2)
 
+    def test_get_song_instrumental(self):
+        """Test to verify song list with one instrumental song."""
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Pre assert
+        self.assertIsNotNone(self.song2.instrumental_track)
+
+        # Get songs list
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 2)
+
+        # Song 2 has an instrumental version
+        self.assertTrue(response.data["results"][1]["has_instrumental"])
+
     def test_get_song_long_lyrics(self):
         """Test to get a song with few lyrics."""
         # Login as simple user
