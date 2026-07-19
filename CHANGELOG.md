@@ -34,11 +34,25 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Update notes
+
+The Dakara server now handles instrumental version of songs differently (by differentiating a specific instrumental file from an instrumental track within the media file).
+You should apply the migrations and re-feed the database:
+
+```sh
+# using Dakara feeder
+dakara-feeder feed songs --force
+```
+
 ### Added
 
 - Allow to fetch full lyrics of a song at URL `api/library/songs/lyrics/<id>/`.
 - Allow to search playlist entries, player errors, users, and song tags.
 - Allow to search songs, playlist entries, player errors and users by ID.
+
+### Changed
+
+- The `has_instrumental` field of songs was replaced by the `instrumental_file` and `instrumental_track` fields. The `has_instrumental` field remains in the song represention in `api/library/songs/` as a read-only field, while the two new fields are write-only.
 
 ### Fixed
 

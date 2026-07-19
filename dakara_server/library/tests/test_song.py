@@ -36,6 +36,22 @@ class SongListViewTestCase(LibraryAPITestCase):
         self.check_song_json(response.data["results"][0], self.song1)
         self.check_song_json(response.data["results"][1], self.song2)
 
+    def test_get_song_instrumental(self):
+        """Test to verify song list with one instrumental song."""
+        # Login as simple user
+        self.authenticate(self.user)
+
+        # Pre assert
+        self.assertIsNotNone(self.song2.instrumental_track)
+
+        # Get songs list
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 2)
+
+        # Song 2 has an instrumental version
+        self.assertTrue(response.data["results"][1]["has_instrumental"])
+
     def test_get_song_long_lyrics(self):
         """Test to get a song with few lyrics."""
         # Login as simple user
@@ -380,6 +396,70 @@ And everywhere that Mary went""",
         self.assertEqual(song.version, "version 1")
         self.assertEqual(song.detail, "test")
         self.assertEqual(song.detail_video, "here")
+        self.assertIsNone(song.instrumental_file)
+        self.assertIsNone(song.instrumental_track)
+
+    def test_post_song_with_instrumental_file(self):
+        """Test to create a song an instrumental file."""
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert the amount of songs
+        self.assertEqual(Song.objects.count(), 2)
+
+        # create a new song
+        song = {
+            "title": "Song3",
+            "filename": "song3",
+            "directory": "directory",
+            "duration": 0,
+            "instrumental_file": "song3.ogg",
+            "instrumental_track": None,
+        }
+        response = self.client.post(self.url, song)
+
+        # assert the response
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert the created song
+        song = Song.objects.get(title="Song3")
+        self.assertIsNotNone(song)
+        self.assertEqual(song.filename, "song3")
+        self.assertEqual(song.directory, "directory")
+        self.assertEqual(song.duration, timedelta(0))
+        self.assertEqual(song.instrumental_file, "song3.ogg")
+        self.assertIsNone(song.instrumental_track)
+
+    def test_post_song_with_instrumental_track(self):
+        """Test to create a song an instrumental track."""
+        # login as manager
+        self.authenticate(self.manager)
+
+        # pre assert the amount of songs
+        self.assertEqual(Song.objects.count(), 2)
+
+        # create a new song
+        song = {
+            "title": "Song3",
+            "filename": "song3",
+            "directory": "directory",
+            "duration": 0,
+            "instrumental_file": None,
+            "instrumental_track": 1,
+        }
+        response = self.client.post(self.url, song)
+
+        # assert the response
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # assert the created song
+        song = Song.objects.get(title="Song3")
+        self.assertIsNotNone(song)
+        self.assertEqual(song.filename, "song3")
+        self.assertEqual(song.directory, "directory")
+        self.assertEqual(song.duration, timedelta(0))
+        self.assertIsNone(song.instrumental_file)
+        self.assertEqual(song.instrumental_track, 1)
 
     def test_post_song_with_tag(self):
         """Test to create a song with nested tags."""
@@ -677,7 +757,8 @@ class SongViewTestCase(LibraryAPITestCase):
             "version": "version 1",
             "detail": "test",
             "detail_video": "here",
-            "has_instrumental": True,
+            "instrumental_file": "song1 new.ogg",
+            "instrumental_track": None,
         }
         response = self.client.put(self.url_song1, song)
 
@@ -694,7 +775,8 @@ class SongViewTestCase(LibraryAPITestCase):
         self.assertEqual(song.version, "version 1")
         self.assertEqual(song.detail, "test")
         self.assertEqual(song.detail_video, "here")
-        self.assertTrue(song.has_instrumental)
+        self.assertEqual(song.instrumental_file, "song1 new.ogg")
+        self.assertIsNone(song.instrumental_track)
 
     def test_put_song_embedded(self):
         """Test to update a song with nested artists, tags and works."""
