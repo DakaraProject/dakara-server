@@ -335,7 +335,7 @@ class SongSerializer(serializers.ModelSerializer):
     tags = SongTagForSongSerializer(many=True, required=False)
     works = SongWorkLinkSerializer(many=True, source="songworklink_set", required=False)
     lyrics_preview = serializers.SerializerMethodField()
-    has_instrumental = serializers.SerializerMethodField()
+    has_instrumental = serializers.ReadOnlyField()
 
     class Meta:
         model = Song
@@ -380,11 +380,6 @@ class SongSerializer(serializers.ModelSerializer):
             return {"text": song.lyrics}
 
         return {"text": "\n".join(lyrics_list[:max_lines]), "truncated": True}
-
-    @staticmethod
-    def get_has_instrumental(song):
-        """Check if the song has an instrumental file or an instrumental track."""
-        return song.instrumental_file or song.instrumental_track
 
     def create(self, validated_data):
         """Create the Song instance."""
