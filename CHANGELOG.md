@@ -36,7 +36,7 @@ Any important notes regarding the update.
 
 ### Update notes
 
-The Dakara server now handles instrumental version of songs differently.
+The Dakara server now handles instrumental version of songs differently (by differentiating a specific instrumental file from an instrumental track within the media file).
 You should apply the migrations and re-feed the database:
 
 ```sh
@@ -52,7 +52,7 @@ dakara-feeder feed songs --force
 
 ### Changed
 
-- The `has_instrumental` field of songs has been replaced by the `instrumental_file` and `instrumental_track` fields. It field remains in the songs serializer (for client) as a read-only field.
+- The `has_instrumental` field of songs was replaced by the `instrumental_file` and `instrumental_track` fields. The `has_instrumental` field remains in the song represention in `api/library/songs/` as a read-only field, while the two new fields are write-only.
 
 ### Fixed
 
