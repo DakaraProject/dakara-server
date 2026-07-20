@@ -81,6 +81,11 @@ class SongTagListViewTestCase(LibraryAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
 
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "performance live"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
     def test_post_tag_already_exists(self):
         """Test to create a tag when it already exists."""
         # Login as simple user

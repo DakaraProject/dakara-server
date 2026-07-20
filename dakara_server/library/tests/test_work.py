@@ -168,6 +168,11 @@ class WorkListViewTestCase(LibraryAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
 
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "suzumiya haruhi"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
     def test_post_work_simple(self):
         """Test to create a work without embedded data."""
         # pre-assert there are 3 works

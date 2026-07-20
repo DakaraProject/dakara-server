@@ -273,6 +273,11 @@ class UserListViewTestCase(UsersAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
 
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "miku hatsune"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user(self, mocked_send_email):
         """Test to verify user creation."""

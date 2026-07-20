@@ -341,6 +341,11 @@ And everywhere that Mary went""",
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 3)
 
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "knows god"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 3)
+
     def test_get_song_list_disabled_tag(self):
         """Test to verify songs with disabled for user.
 

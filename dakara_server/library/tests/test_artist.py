@@ -118,6 +118,11 @@ class ArtistListViewTestCase(LibraryAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
 
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "miku hatsune"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
 
 class ArtistPruneViewAPIViewTestCase(LibraryAPITestCase):
     url = reverse("library-artist-prune")

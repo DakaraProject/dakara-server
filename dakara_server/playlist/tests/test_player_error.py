@@ -173,6 +173,11 @@ class PlayerErrorListViewTestCase(PlaylistAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
 
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "overflow leek"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
     @patch("playlist.views.send_to_channel")
     def test_post_error_success(self, mocked_send_to_channel):
         """Test to create an error."""
