@@ -43,7 +43,7 @@ def make_entries_query_from_res(res, prefix=None):
         query_list.append(q(prefix, "owner__username__iexact", owner))
 
     # unspecific terms of the research
-    # cunjunction of all terms
+    # conjunction of all terms
     query_remain = Q()
     for remain in res["remaining"]:
         query_remain &= q(prefix, "owner__username__icontains", remain)

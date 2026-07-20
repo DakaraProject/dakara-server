@@ -155,8 +155,12 @@ def query_artists(query_set, query):
 
     query_list_remain = []
     # only unspecific terms are used
+    # conjunction of all terms
+    query_remain = Q()
     for remain in res:
-        query_list_remain.append(Q(name__icontains=remain))
+        query_remain &= Q(name__icontains=remain)
+
+    query_list_remain.append(query_remain)
 
     # gather the query objects
     query_set_filtered = gather_query_remain(query_set, query_list_remain)
@@ -180,12 +184,16 @@ def query_works(query_set, query):
 
     query_list_remain = []
     # only unspecific terms are used
+    # conjunction of all terms
+    query_remain = Q()
     for remain in res:
-        query_list_remain.append(
+        query_remain &= (
             Q(title__icontains=remain)
             | Q(subtitle__icontains=remain)
             | Q(alternative_title__title__icontains=remain)
         )
+
+    query_list_remain.append(query_remain)
 
     # gather the query objects
     query_set_filtered = gather_query_remain(query_set, query_list_remain)
@@ -209,8 +217,12 @@ def query_song_tags(query_set, query):
 
     query_list_remain = []
     # only unspecific terms are used
+    # conjunction of all terms
+    query_remain = Q()
     for remain in res:
-        query_list_remain.append(Q(name__icontains=remain))
+        query_remain &= Q(name__icontains=remain)
+
+    query_list_remain.append(query_remain)
 
     # gather the query objects
     query_set_filtered = gather_query_remain(query_set, query_list_remain)
