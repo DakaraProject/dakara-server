@@ -317,6 +317,30 @@ And everywhere that Mary went""",
         self.assertCountEqual(query["work_type"]["wt1"]["contains"], ["workName"])
         self.assertCountEqual(query["work_type"]["wt1"]["exact"], [])
 
+    def test_get_song_list_with_query_two_words(self):
+        """Test to search the intersection of two words in the query.
+
+        Related to #192.
+        """
+        # create songs with "god" and "knows"
+        song_titles = [
+            "she knows",
+            "A Whole New World God Only Knows",
+            "against the gods",
+            "Doggy god's street",
+            "God knows",
+            "God only knows Daisanmaku",
+        ]
+        for title in song_titles:
+            Song.objects.create(title=title)
+
+        self.authenticate(self.user)
+
+        # check that only the conjunction of the two words is found
+        response = self.client.get(self.url, {"query": "god knows"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 3)
+
     def test_get_song_list_disabled_tag(self):
         """Test to verify songs with disabled for user.
 

@@ -6,7 +6,7 @@ from freezegun import freeze_time
 from rest_framework import status
 
 from internal.tests.base_test import tz
-from playlist.models import PlayerError
+from playlist.models import PlayerError, PlaylistEntry
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
@@ -150,6 +150,28 @@ class PlayerErrorListViewTestCase(PlaylistAPITestCase):
         self.authenticate(self.user)
 
         self.check_query("title: song1", [error])
+
+    def test_get_errors_with_query_two_words(self):
+        """Test to search the intersection of two words in the query.
+
+        Related to #192.
+        """
+        error_messages = ["leek overflow", "leek", "overflow"]
+        for message in error_messages:
+            pe = PlaylistEntry.objects.create(
+                song=self.song1,
+                owner=self.manager,
+                was_played=True,
+                date_play=datetime.now(tz),
+            )
+            PlayerError.objects.create(playlist_entry=pe, error_message=message)
+
+        self.authenticate(self.user)
+
+        # check that only the conjunction of the two words is found
+        response = self.client.get(self.url, {"query": "leek overflow"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
 
     @patch("playlist.views.send_to_channel")
     def test_post_error_success(self, mocked_send_to_channel):

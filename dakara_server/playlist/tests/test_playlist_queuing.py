@@ -77,6 +77,26 @@ class PlaylistQueuingListViewTestCase(PlaylistAPITestCase):
         self.check_query('owner:""testPlaylistManager""', [self.pe1])
         self.check_query("owner: user", [self.pe2])
 
+    def test_get_playlist_queuing_list_two_words(self):
+        """Test to search the intersection of two words in the query.
+
+        Related to #192.
+        """
+        user_names = ["hatsune miku", "hatsune", "miku"]
+        for name in user_names:
+            user = self.create_user(name, playlist_level=UserModel.USER)
+            PlaylistEntry.objects.create(
+                song=self.song1,
+                owner=user,
+            )
+
+        self.authenticate(self.user)
+
+        # check that only the conjunction of the two words is found
+        response = self.client.get(self.url, {"query": "hatsune miku"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
     @patch("playlist.views.send_to_channel")
     def test_post_create_playlist_entry(self, mocked_send_to_channel):
         """Test to verify playlist entry creation."""
