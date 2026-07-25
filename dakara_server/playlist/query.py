@@ -10,7 +10,7 @@ def make_entries_query_from_res(res, prefix=None):
     """Make a query for playlist entries.
 
     Args:
-        res (dict): Dictionary on research terms, parsed. If `id` is in the
+        res (dict): Dictionary of research terms, parsed. If `id` is in the
             query terms, only filter by it.
         prefix (str or None): Optional prefix to add when creating the query.
 
@@ -43,8 +43,12 @@ def make_entries_query_from_res(res, prefix=None):
         query_list.append(q(prefix, "owner__username__iexact", owner))
 
     # unspecific terms of the research
+    # conjunction of all terms
+    query_remain = Q()
     for remain in res["remaining"]:
-        query_list_remain.append(q(prefix, "owner__username__icontains", remain))
+        query_remain &= q(prefix, "owner__username__icontains", remain)
+
+    query_list_remain.append(query_remain)
 
     return query_list, query_list_remain, query_list_many
 
@@ -116,8 +120,12 @@ def make_errors_query_from_res(res):
         query_list.append(Q(error_message__iexact=message))
 
     # unspecific terms of the research
+    # conjunction of all terms
+    query_remain = Q()
     for remain in res["remaining"]:
-        query_list_remain.append(Q(error_message__icontains=remain))
+        query_remain &= Q(error_message__icontains=remain)
+
+    query_list_remain.append(query_remain)
 
     return query_list, query_list_remain, query_list_many
 

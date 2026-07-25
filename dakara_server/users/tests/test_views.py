@@ -257,6 +257,27 @@ class UserListViewTestCase(UsersAPITestCase):
 
         self.check_query("id:1", [self.user])
 
+    def test_get_users_list_two_words(self):
+        """Test to search the intersection of two words in the query.
+
+        Related to #192.
+        """
+        user_names = ["hatsune miku", "hatsune", "miku"]
+        for name in user_names:
+            self.create_user(name, playlist_level=UserModel.USER)
+
+        self.authenticate(self.user)
+
+        # check that only the conjunction of the two words is found
+        response = self.client.get(self.url, {"query": "hatsune miku"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "miku hatsune"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
     @patch("users.views.send_register_verification_email_notification")
     def test_create_user(self, mocked_send_email):
         """Test to verify user creation."""

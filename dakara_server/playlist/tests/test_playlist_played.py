@@ -1,6 +1,10 @@
+from datetime import datetime
+
 from django.urls import reverse
 from rest_framework import status
 
+from internal.tests.base_test import UserModel, tz
+from playlist.models import PlaylistEntry
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
@@ -64,3 +68,30 @@ class PlaylistPlayedListViewTestCase(PlaylistAPITestCase):
         self.check_query('owner:"manager"', [self.pe3])
         self.check_query('owner:""testPlaylistManager""', [self.pe3])
         self.check_query("owner:user", [self.pe4])
+
+    def test_get_playlist_played_list_two_words(self):
+        """Test to search the intersection of two words in the query.
+
+        Related to #192.
+        """
+        user_names = ["hatsune miku", "hatsune", "miku"]
+        for name in user_names:
+            user = self.create_user(name, playlist_level=UserModel.USER)
+            PlaylistEntry.objects.create(
+                song=self.song1,
+                owner=user,
+                was_played=True,
+                date_play=datetime.now(tz),
+            )
+
+        self.authenticate(self.user)
+
+        # check that only the conjunction of the two words is found
+        response = self.client.get(self.url, {"query": "hatsune miku"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "miku hatsune"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)

@@ -65,6 +65,27 @@ class SongTagListViewTestCase(LibraryAPITestCase):
 
         self.check_query("", [self.tag1, self.tag2])
 
+    def test_get_tag_list_with_query_two_words(self):
+        """Test to search the intersection of two words in the query.
+
+        Related to #192.
+        """
+        tag_names = ["Live performance", "Live", "Performance"]
+        for name in tag_names:
+            SongTag.objects.create(name=name)
+
+        self.authenticate(self.user)
+
+        # check that only the conjunction of the two words is found
+        response = self.client.get(self.url, {"query": "live performance"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "performance live"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
     def test_post_tag_already_exists(self):
         """Test to create a tag when it already exists."""
         # Login as simple user

@@ -102,6 +102,27 @@ class ArtistListViewTestCase(LibraryAPITestCase):
             ["word", "words words words", "remain"],
         )
 
+    def test_get_artists_list_with_query_two_words(self):
+        """Test to search the intersection of two words in the query.
+
+        Related to #192.
+        """
+        artist_names = ["hatsune miku", "hatsune", "miku"]
+        for name in artist_names:
+            Artist.objects.create(name=name)
+
+        self.authenticate(self.user)
+
+        # check that only the conjunction of the two words is found
+        response = self.client.get(self.url, {"query": "hatsune miku"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "miku hatsune"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
 
 class ArtistPruneViewAPIViewTestCase(LibraryAPITestCase):
     url = reverse("library-artist-prune")

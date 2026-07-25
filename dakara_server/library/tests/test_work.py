@@ -152,6 +152,27 @@ class WorkListViewTestCase(LibraryAPITestCase):
             ["word", "words words words", "remain"],
         )
 
+    def test_get_works_list_with_query_two_words(self):
+        """Test to search the intersection of two words in the query.
+
+        Related to #192.
+        """
+        work_titles = ["haruhi suzumiya", "haruhi", "suzumiya"]
+        for title in work_titles:
+            Work.objects.create(title=title, work_type=self.wt1)
+
+        self.authenticate(self.user)
+
+        # check that only the conjunction of the two words is found
+        response = self.client.get(self.url, {"query": "haruhi suzumiya"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
+        # check that only the conjunction of the two words is found (reverse)
+        response = self.client.get(self.url, {"query": "suzumiya haruhi"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
     def test_post_work_simple(self):
         """Test to create a work without embedded data."""
         # pre-assert there are 3 works

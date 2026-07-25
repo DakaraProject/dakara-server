@@ -29,7 +29,7 @@ def gather_query(query_set, query_list):
     Returns:
         New firtered query set.
     """
-    # now, gather the query objects
+    # now, gather the conjunction of the query objects
     filter_query = Q()
     for item in query_list:
         filter_query &= item
@@ -49,7 +49,7 @@ def gather_query_remain(query_set, query_list_remain):
     Returns:
         New firtered query set.
     """
-    # now, gather the query objects
+    # now, gather the disjunction of the query objects
     filter_query = Q()
     for item in query_list_remain:
         filter_query |= item
