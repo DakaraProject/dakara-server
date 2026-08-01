@@ -335,6 +335,7 @@ class SongSerializer(serializers.ModelSerializer):
     tags = SongTagForSongSerializer(many=True, required=False)
     works = SongWorkLinkSerializer(many=True, source="songworklink_set", required=False)
     lyrics_preview = serializers.SerializerMethodField()
+    has_instrumental = serializers.ReadOnlyField()
 
     class Meta:
         model = Song
@@ -353,10 +354,16 @@ class SongSerializer(serializers.ModelSerializer):
             "lyrics",
             "lyrics_preview",
             "has_instrumental",
+            "instrumental_file",
+            "instrumental_track",
             "date_created",
             "date_updated",
         )
-        extra_kwargs = {"lyrics": {"write_only": True}}
+        extra_kwargs = {
+            "lyrics": {"write_only": True},
+            "instrumental_file": {"write_only": True},
+            "instrumental_track": {"write_only": True},
+        }
 
     @staticmethod
     def get_lyrics_preview(song, max_lines=5):
@@ -430,7 +437,8 @@ class SongForPlayerSerializer(serializers.ModelSerializer):
             "artists",
             "works",
             "file_path",
-            "has_instrumental",
+            "instrumental_file",
+            "instrumental_track",
         )
 
     @staticmethod

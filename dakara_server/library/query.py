@@ -9,7 +9,7 @@ def make_songs_query_from_res(res, prefix=None):
     """Make a query for songs.
 
     Args:
-        res (dict): Dictionary on research terms, parsed. If `id` is in the
+        res (dict): Dictionary of research terms, parsed. If `id` is in the
             query terms, only filter by it.
         prefix (str or None): Optional prefix to add when creating the query.
 
@@ -85,8 +85,10 @@ def make_songs_query_from_res(res, prefix=None):
         # heavier, for no practical reason
 
     # unspecific terms of the research
+    # conjunction of all terms
+    query_remain = Q()
     for remain in res["remaining"]:
-        query_list_remain.append(
+        query_remain &= (
             q(prefix, "title__icontains", remain)
             | q(prefix, "artists__name__icontains", remain)
             | q(prefix, "works__title__icontains", remain)
@@ -95,6 +97,8 @@ def make_songs_query_from_res(res, prefix=None):
             | q(prefix, "detail__icontains", remain)
             | q(prefix, "detail_video__icontains", remain)
         )
+
+    query_list_remain.append(query_remain)
 
     # tags
     for tag in res["tag"]:
@@ -151,8 +155,12 @@ def query_artists(query_set, query):
 
     query_list_remain = []
     # only unspecific terms are used
+    # conjunction of all terms
+    query_remain = Q()
     for remain in res:
-        query_list_remain.append(Q(name__icontains=remain))
+        query_remain &= Q(name__icontains=remain)
+
+    query_list_remain.append(query_remain)
 
     # gather the query objects
     query_set_filtered = gather_query_remain(query_set, query_list_remain)
@@ -176,12 +184,16 @@ def query_works(query_set, query):
 
     query_list_remain = []
     # only unspecific terms are used
+    # conjunction of all terms
+    query_remain = Q()
     for remain in res:
-        query_list_remain.append(
+        query_remain &= (
             Q(title__icontains=remain)
             | Q(subtitle__icontains=remain)
             | Q(alternative_title__title__icontains=remain)
         )
+
+    query_list_remain.append(query_remain)
 
     # gather the query objects
     query_set_filtered = gather_query_remain(query_set, query_list_remain)
@@ -205,8 +217,12 @@ def query_song_tags(query_set, query):
 
     query_list_remain = []
     # only unspecific terms are used
+    # conjunction of all terms
+    query_remain = Q()
     for remain in res:
-        query_list_remain.append(Q(name__icontains=remain))
+        query_remain &= Q(name__icontains=remain)
+
+    query_list_remain.append(query_remain)
 
     # gather the query objects
     query_set_filtered = gather_query_remain(query_set, query_list_remain)

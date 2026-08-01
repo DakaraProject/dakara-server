@@ -8,7 +8,7 @@ def make_users_query_from_res(res):
     """Make a query for users.
 
     Args:
-        res (dict): Dictionary on research terms, parsed. If `id` is in the
+        res (dict): Dictionary of research terms, parsed. If `id` is in the
             query terms, only filter by it.
         prefix (str or None): Optional prefix to add when creating the query.
 
@@ -29,8 +29,12 @@ def make_users_query_from_res(res):
     query_list_remain = []
 
     # only unspecific terms are used
+    # conjunction of all terms
+    query_remain = Q()
     for remain in res["remaining"]:
-        query_list_remain.append(Q(username__icontains=remain))
+        query_remain &= Q(username__icontains=remain)
+
+    query_list_remain.append(query_remain)
 
     return [], query_list_remain
 

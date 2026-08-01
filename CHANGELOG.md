@@ -34,6 +34,16 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+### Update notes
+
+The Dakara server now handles instrumental version of songs differently (by differentiating a specific instrumental file from an instrumental track within the media file).
+You should apply the migrations and re-feed the database:
+
+```sh
+# using Dakara feeder
+dakara-feeder feed songs --force
+```
+
 ### Added
 
 - Allow to fetch full lyrics of a song at URL `api/library/songs/lyrics/<id>/`.
@@ -43,6 +53,7 @@ Any important notes regarding the update.
 ### Changed
 
 - When running the server for development, with `manage.py runserver`, the default database location has changed from `<repo_dir>/dakara_server/db.sqlite3` to `<repo_dir>/db.sqlite3`.
+- The `has_instrumental` field of songs was replaced by the `instrumental_file` and `instrumental_track` fields. The `has_instrumental` field remains in the song represention in `api/library/songs/` as a read-only field, while the two new fields are write-only.
 
 ### Fixed
 
