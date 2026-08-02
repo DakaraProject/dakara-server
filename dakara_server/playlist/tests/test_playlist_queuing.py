@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from unittest.mock import ANY, patch
+from unittest.mock import patch
 
 from django.urls import reverse
 from freezegun import freeze_time
@@ -7,6 +7,7 @@ from rest_framework import status
 
 from internal.tests.base_test import UserModel, tz
 from playlist.models import Karaoke, PlaylistEntry
+from playlist.serializers import PlaylistEntryForPlayerSerializer
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
@@ -167,7 +168,9 @@ class PlaylistQueuingListViewTestCase(PlaylistAPITestCase):
 
         # check the player was requested to play this entry immediately
         mocked_send_to_channel.assert_called_with(
-            ANY, "send_playlist_entry", {"playlist_entry": new_entry}
+            "playlist.device",
+            "send_playlist_entry",
+            data={"playlist_entry": PlaylistEntryForPlayerSerializer(new_entry).data},
         )
 
     def test_post_create_playlist_entry_not_ongoing_forbidden(self):

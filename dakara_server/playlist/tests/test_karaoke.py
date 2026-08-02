@@ -7,6 +7,7 @@ from rest_framework import status
 
 from internal.tests.base_test import tz
 from playlist.models import Karaoke, PlayerError, PlaylistEntry
+from playlist.serializers import PlaylistEntryForPlayerSerializer
 from playlist.tests.base_test import PlaylistAPITestCase
 
 
@@ -203,7 +204,9 @@ class KaraokeViewTestCase(PlaylistAPITestCase):
         # post-assertion
         # the player is requested to start
         mocked_send_to_channel.assert_called_with(
-            ANY, "send_playlist_entry", data={"playlist_entry": self.pe1}
+            "playlist.device",
+            "send_playlist_entry",
+            data={"playlist_entry": PlaylistEntryForPlayerSerializer(self.pe1).data},
         )
 
     @patch("playlist.views.send_to_channel")

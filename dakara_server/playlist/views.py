@@ -153,10 +153,13 @@ class PlaylistQueuingListView(QueryParsedListMixin, drf_generics.ListCreateAPIVi
                 player.playlist_entry is None,
             )
         ):
+            entry_serialized = serializers.PlaylistEntryForPlayerSerializer(
+                next_playlist_entry
+            )
             send_to_channel(
                 "playlist.device",
                 "send_playlist_entry",
-                {"playlist_entry": next_playlist_entry},
+                data={"playlist_entry": entry_serialized.data},
             )
 
 
@@ -286,14 +289,17 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
             player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
 
             # request the player to play the next song if idle,
-            # and there is a next song to play
+            # and if there is a next song to play
             if player.playlist_entry is None:
                 next_playlist_entry = models.PlaylistEntry.objects.get_next()
                 if next_playlist_entry is not None:
+                    entry_serialized = serializers.PlaylistEntryForPlayerSerializer(
+                        next_playlist_entry
+                    )
                     send_to_channel(
                         "playlist.device",
                         "send_playlist_entry",
-                        data={"playlist_entry": next_playlist_entry},
+                        data={"playlist_entry": entry_serialized.data},
                     )
 
     def get_object(self):
