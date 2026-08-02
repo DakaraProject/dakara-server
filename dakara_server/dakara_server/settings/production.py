@@ -58,16 +58,24 @@ REDIS_URL = config("DAKARA_REDIS_URL", default="redis://redis:6379")
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [REDIS_URL]},
+        "CONFIG": {
+            "hosts": [
+                {
+                    "address": REDIS_URL,
+                    # prevent TimeoutError of Redis
+                    # see: https://github.com/redis/redis-py/issues/4091#issuecomment-4576644995
+                    # TODO remove this for future version of Redis
+                    "socket_timeout": None,
+                }
+            ]
+        },
     }
 }
 
-
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/1",
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
     }
 }
 
