@@ -25,12 +25,9 @@ def check_version(file_path_ref: Path, file_path: Path, output=sys.stderr):
 
     if version_ref > version:
         print(
-            "#########################################################################",
-            file=output,
-        )
-        print(f"WARNING: Configuration file {file_path} is outdated", file=output)
-        print(f"You should update it from {file_path_ref}", file=output)
-        print(
+            "#########################################################################"
+            f"WARNING: Configuration file {file_path} is outdated"
+            f"You should update it from {file_path_ref}"
             "#########################################################################",
             file=output,
         )
