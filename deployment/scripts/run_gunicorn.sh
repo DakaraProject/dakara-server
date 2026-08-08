@@ -7,10 +7,10 @@ cd /app/dakara_server
 # populating data volume
 make_directories.sh
 
-# create default config file
+# create or update default config file
 cp \
-    /app/deployment/config/gunicorn.conf.py \
-    /data/config/gunicorn.conf.py.sample
+    /app/deployment/config/gunicorn.conf.py.sample \
+    /data/config/
 
 # create config file once
 if [[ ! -f /data/config/gunicorn.conf.py ]]

@@ -7,10 +7,10 @@ cd /app/dakara_server
 # populating data volume
 make_directories.sh
 
-# create default config file
+# create or update default config file
 cp \
-    /app/deployment/config/daphne.conf \
-    /data/config/daphne.conf.sample
+    /app/deployment/config/daphne.conf.sample \
+    /data/config/
 
 # create actual config file once
 if [[ ! -f /data/config/daphne.conf ]]

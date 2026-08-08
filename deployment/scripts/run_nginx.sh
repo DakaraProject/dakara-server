@@ -5,13 +5,13 @@ set -eu
 # populating data volume
 make_directories.sh
 
-# create default config files
+# create or update default config files
 cp \
-    /app/deployment/config/nginx_main.conf \
-    /data/config/nginx_main.conf.sample
+    /app/deployment/config/nginx_main.conf.sample \
+    /data/config/
 cp \
-    /app/deployment/config/nginx_server.conf \
-    /data/config/nginx_server.conf.sample
+    /app/deployment/config/nginx_server.conf.sample \
+    /data/config/
 
 # create actual config files once
 if [[ ! -f /data/config/nginx_main.conf ]]
