@@ -24,8 +24,8 @@ services:
   # TODO
 
   # websocket server (and base configuration)
-  daphne: &dakara-server
-    image: dakara-server:latest
+  daphne: &base
+    image: dakaraserver:latest
     volumes:
       - dakara_server_data:/data
     environment:
@@ -60,17 +60,17 @@ services:
 
   # api server
   gunicorn:
-    <<: *dakara-server
+    <<: *base
     command: "run_gunicorn.sh"
 
   # scheduler for tasks
   apscheduler:
-    <<: *dakara-server
+    <<: *base
     command: "run_apscheduler.sh"
 
   # web server (main entrygate)
   nginx:
-    <<: *dakara-server
+    <<: *base
     depends_on:
       - daphne
       - gunicorn

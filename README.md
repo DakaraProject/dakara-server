@@ -15,7 +15,7 @@ Server for the Dakara project.
 To install Dakara completely, you have to get all the parts of the project.
 Installation guidelines are provided here:
 
-* [Dakara web client](https://github.com/DakaraProject/dakara-client-web/);
+* [Dakara web client](https://github.com/DakaraProject/dakara-client-web/) (you may not require it, see below);
 * [Dakara player VLC](https://github.com/DakaraProject/dakara-player-vlc/);
 * [Dakara feeder](https://github.com/DakaraProject/dakara-feeder).
 
@@ -123,13 +123,23 @@ After all of this is setup, just grab some friends and have fun!
 
 For production, it is recommended to use the provided Docker image, which takes care of all the aspects of the execution.
 
-You can build the local Docker image with:
+### How to get it
+
+You can pull the image from Docker hub:
 
 ```sh
-sudo docker build . -t dakara-server
+docker pull dakaraproject/dakaraserver:latest
 ```
 
-Then, run the container with:
+Alternatively, you can also build the image locally with:
+
+```sh
+sudo docker build . -t dakaraserver
+```
+
+### Run manually
+
+Run the container with:
 
 ```sh
 sudo docker run \
@@ -139,28 +149,36 @@ sudo docker run \
          -e DAKARA_REDIS_URL="redis://redis:6379" \
          -e DAKARA_ALLOWED_HOSTS="localhost,example.com" \
          -e DAKARA_HOST_URL="http://example.com" \
+         -e DAKARA_CSRF_TRUSTED_ORIGINS: "http://example.com" \
          -e DAKARA_SECRET_KEY="your-secret-key" \
-         -e DAKARA_LANGUAGE_CODE="en-us" \
-         -e DAKARA_TIME_ZONE="UTC" \
-         -e DAKARA_LOG_LEVEL="INFO" \
+         -e DAKARA_SUPERUSER_PASSWORD: "admin-password" \
          -e DAKARA_EMAIL_ENABLED=<true or false> \
-         -e DAKARA_EMAIL_HOST="postfix" \
-         -e DAKARA_EMAIL_HOST_USER="user" \
-         -e DAKARA_EMAIL_HOST_PASSWORD="password" \
+         -e DAKARA_EMAIL_URL="smtp://user:password@postfix:25" \
          -e DAKARA_SENDER_EMAIL="no-reply@example.com" \
+         -e DAKARA_LOG_TO_CONSOLE: false \
          -p 80:80 \
-         dakara-server
+         dakaraserver \
+         <command>
 ```
 
-A `docker-compose.yaml` file is given as an example in `deployment/docker-compose/docker-compose.yaml`.
+with `<command>` being either `run_daphne.sh`, `run_gunicorn.sh`, `run_apscheduler.sh`, or `run_nginx.sh`.
+You need to have all of them running to have a workable instance of the server.
+Running the container for the different services manually like this should be reserved for debugging or testing.
+For production, it is advised to use Docker compose.
+
+### Run with Docker compose
+
+Docker compose is the preffered way to run an instance of the server, especially for production.
+A sample `docker-compose.yaml` file is given in `deployment/docker-compose/docker-compose.yaml`.
 
 ```sh
 cp deployment/docker-compose/docker-compose.yaml ./
 # edit it as you like
+# then start it
 sudo docker compose up -d
 ```
 
-Then, use your browser to acces the web page:
+Finally, use your browser to acces the web client:
 
 ```sh
 xdg-open http://localhost

@@ -36,6 +36,22 @@ Any important notes regarding the update.
 
 ### Update notes
 
+#### Moving to Docker
+
+The Dakara server is now available as a Docker image, which contains the server and the web client.
+You can build it locally or get it with:
+
+```sh
+docker pull dakaraproject/dakaraserver:latest
+```
+
+There is a sample `docker-compose.yaml` file if you want to use Docker compose to manage the different services (this is the recommended way).
+Please check the [readme](README.md#docker-image) for more deployment directions.
+
+As a consequence, further releases will not include the bundle archive anymore.
+
+#### Intrumental files
+
 The Dakara server now handles instrumental version of songs differently (by differentiating a specific instrumental file from an instrumental track within the media file).
 You should apply the migrations and re-feed the database:
 
