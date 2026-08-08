@@ -14,6 +14,9 @@ class Migration(migrations.Migration):
         ("playlist", "0016_playlist_entry_date_play"),
     ]
 
+    # NOTE This migration is artificial as it is triggered by the use of the
+    # in-memory player, that uses Django fields.
+    # NOTE This migration was originaly 0013.
     operations = [
         migrations.CreateModel(
             name="Player",

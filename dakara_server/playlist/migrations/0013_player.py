@@ -9,4 +9,7 @@ class Migration(migrations.Migration):
         ("playlist", "0012_playlist_entry_use_instrumental"),
     ]
 
+    # NOTE This migration is artificial as it is triggered by the use of the
+    # in-memory player, that uses Django fields.
+    # NOTE This migration was moved to 0017.
     operations = []
