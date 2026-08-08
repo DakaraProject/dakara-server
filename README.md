@@ -135,7 +135,7 @@ docker pull dakaraproject/dakaraserver:latest
 Alternatively, you can also build the image locally with:
 
 ```sh
-sudo docker build . -t dakaraserver
+sudo docker build . -t dakaraproject/dakaraserver:latest
 ```
 
 ### Run manually
@@ -158,11 +158,11 @@ sudo docker run \
          -e DAKARA_SENDER_EMAIL="no-reply@example.com" \
          -e DAKARA_LOG_TO_CONSOLE: false \
          -p 80:80 \
-         dakaraserver \
+         dakaraproject/dakaraserver \
          <command>
 ```
 
-with `<command>` being either `run_daphne.sh`, `run_gunicorn.sh`, `run_apscheduler.sh`, or `run_nginx.sh`.
+with `<command>` being either `run_daphne.sh`, `run_gunicorn.sh`, `run_apscheduler.sh`, or `run_nginx.sh` (for which only `-p 80:80` should be passed).
 You need to have all of them running to have a workable instance of the server.
 Running the container for the different services manually like this should be reserved for debugging or testing.
 For production, it is advised to use Docker compose.

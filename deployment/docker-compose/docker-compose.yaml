@@ -25,7 +25,7 @@ services:
 
   # websocket server (and base configuration)
   daphne: &base
-    image: dakaraserver:latest
+    image: dakaraproject/dakaraserver:latest
     volumes:
       - dakara_server_data:/data
     environment:
