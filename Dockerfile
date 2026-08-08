@@ -5,7 +5,7 @@ FROM alpine:3.23
 # the image, and will be used if the version number corresponds to the one
 # requested below
 # otherwise, the front archive will be downloaded
-ARG FRONT_VERSION="1.9.2"
+ARG FRONT_VERSION
 
 # optimizations for Python and pip
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -33,7 +33,12 @@ RUN --mount=source=requirements.txt,target=/requirements.txt \
 COPY . /app
 
 # get the front archive
-RUN FRONT_ARCHIVE="dakara-client-web_$FRONT_VERSION.zip" && \
+RUN if [ -z "$FRONT_VERSION" ]; \
+    then \
+        echo "Error: FRONT_VERSION is not set"; \
+        exit 1; \
+    fi && \
+    FRONT_ARCHIVE="dakara-client-web_$FRONT_VERSION.zip" && \
     if [ -f "/app/$FRONT_ARCHIVE" ]; \
     then \
         echo "Using provided dev front archive" && \
