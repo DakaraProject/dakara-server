@@ -1,10 +1,10 @@
 # Dakara server
 
 <!-- Badges are displayed for the develop branch -->
-[]![Docker Image Version](https://img.shields.io/docker/v/dakaraproject/dakaraserver)](https://hub.docker.com/r/dakaraproject/dakaraserver)
+[![Docker Image Version](https://img.shields.io/docker/v/dakaraproject/dakaraserver)](https://hub.docker.com/r/dakaraproject/dakaraserver)
 [![Python versions](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13-blue)](https://github.com/DakaraProject/dakara-server)
 [![License](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/DakaraProject/dakara-server?tab=MIT-1-ov-file#readme)
-[![Tests status](https://github.com/DakaraProject/dakara-server/actions/workflows/ci.yml/badge.svg)](https://github.com/DakaraProject/dakara-server/actions/workflows/ci.yml)
+[![Tests status](https://github.com/DakaraProject/dakara-server/actions/workflows/ci.yaml/badge.svg)](https://github.com/DakaraProject/dakara-server/actions/workflows/ci.yaml)
 [![Codecov coverage analysis](https://codecov.io/gh/DakaraProject/dakara-server/branch/develop/graph/badge.svg)](https://codecov.io/gh/DakaraProject/dakara-server)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
