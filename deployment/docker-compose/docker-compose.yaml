@@ -58,16 +58,25 @@ services:
     depends_on:
       - database
       - cache
+    healthcheck: &healthcheck
+      test: ["CMD", "check_health_websocket_daphne.sh"]
+      start_period: 30s
     command: "run_websocket_daphne.sh"
 
   # api server
   api:
     <<: *base
     command: "run_api_gunicorn.sh"
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "check_health_api_gunicorn.sh"]
+    command: "run_api_gunicorn.sh"
 
   # scheduler for tasks
   scheduler:
     <<: *base
+    healthcheck:
+      disable: true
     command: "run_scheduler_apscheduler.sh"
 
   # web server (main entrygate)
@@ -77,9 +86,12 @@ services:
       - websocket
       - api
       - scheduler
-    command: "run_web_nginx.sh"
     ports:
       - 80:80
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "check_health_web_nginx.sh"]
+    command: "run_web_nginx.sh"
 
 volumes:
   dakara_server_data:
