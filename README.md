@@ -2,6 +2,7 @@
 
 <!-- Badges are displayed for the develop branch -->
 [![Docker Image Version](https://img.shields.io/docker/v/dakaraproject/dakaraserver)](https://hub.docker.com/r/dakaraproject/dakaraserver)
+[![Docker Image Size](https://img.shields.io/docker/image-size/dakaraproject/dakaraserver)](https://hub.docker.com/r/dakaraproject/dakaraserver)
 [![Python versions](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13-blue)](https://github.com/DakaraProject/dakara-server)
 [![License](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/DakaraProject/dakara-server?tab=MIT-1-ov-file#readme)
 [![Tests status](https://github.com/DakaraProject/dakara-server/actions/workflows/ci.yaml/badge.svg)](https://github.com/DakaraProject/dakara-server/actions/workflows/ci.yaml)
