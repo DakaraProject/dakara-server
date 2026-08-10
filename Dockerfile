@@ -8,10 +8,10 @@ FROM alpine:3.23
 ARG FRONT_VERSION
 
 # optimizations for Python and pip
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV AUTOBAHN_USE_NVX=0
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    AUTOBAHN_USE_NVX=0
 
 RUN apk add --no-cache \
         nginx \
@@ -65,10 +65,8 @@ COPY deployment/etc/nginx/nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 VOLUME /data
 
-# django settings
-ENV DJANGO_SETTINGS_MODULE="dakara_server.settings.production"
-
-# path
-ENV PATH="$PATH:/app/deployment/scripts"
+# django settings and path
+ENV DJANGO_SETTINGS_MODULE="dakara_server.settings.production" \
+    PATH="$PATH:/app/deployment/scripts"
 
 WORKDIR /
