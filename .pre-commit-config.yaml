@@ -34,3 +34,8 @@ repos:
         entry: yamllint .
         language: system
         pass_filenames: false
+      - id: hadolint-check
+        name: Check Docker files quality
+        entry: hadolint Dockerfile
+        language: system
+        pass_filenames: false
