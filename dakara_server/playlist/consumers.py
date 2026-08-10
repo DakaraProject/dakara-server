@@ -3,12 +3,10 @@ import logging
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 from channels.layers import get_channel_layer
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 
 from playlist import models, serializers
 
-UserModel = get_user_model()
 logger = logging.getLogger(__name__)
 channel_layer = get_channel_layer()
 
