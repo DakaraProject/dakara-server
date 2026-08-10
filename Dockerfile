@@ -19,6 +19,7 @@ RUN apk add --no-cache \
         "nginx=1.28.3-r7" \
         "py3-pip=25.1.1-r1" \
         "python3=3.12.13-r0" \
+        "sudo=1.9.17_p2-r0" \
         "unzip=6.0-r16" \
         "wget=1.25.0-r2"
 
@@ -65,6 +66,17 @@ RUN if [ -z "$FRONT_VERSION" ]; \
 
 COPY deployment/etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
+# create user
+RUN addgroup -S appgroup && \
+    adduser -S appuser -G appgroup
+
+# give enough rights to user
+RUN chown -R appuser:appgroup \
+        /app \
+        /var/lib/nginx \
+        /var/log/nginx \
+        /var/run/nginx
+
 EXPOSE 80
 VOLUME /data
 
@@ -73,3 +85,5 @@ ENV DJANGO_SETTINGS_MODULE="dakara_server.settings.production" \
     PATH="$PATH:/app/deployment/scripts"
 
 WORKDIR /
+
+ENTRYPOINT ["/bin/sh", "/app/deployment/scripts/run_entrypoint.sh"]
