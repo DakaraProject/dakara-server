@@ -1,11 +1,12 @@
+---
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-    - id: trailing-whitespace
-    - id: end-of-file-fixer
-    - id: check-yaml
-    - id: check-added-large-files
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
   - repo: local
     hooks:
       - id: pytest-check
@@ -14,7 +15,7 @@ repos:
         language: system
         pass_filenames: false
       - id: isort-check
-        name: Check imports
+        name: Check imports order
         entry: isort . --check
         language: system
         pass_filenames: false
@@ -24,7 +25,12 @@ repos:
         language: system
         pass_filenames: false
       - id: ruff-check
-        name: Run ruff linter
+        name: Check code quality
         entry: ruff check .
+        language: system
+        pass_filenames: false
+      - id: yamllint-check
+        name: Check YAML files quality
+        entry: yamllint .
         language: system
         pass_filenames: false
