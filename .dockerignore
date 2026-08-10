@@ -7,8 +7,9 @@
 # add deployment files
 !deployment/**/*.py
 !deployment/**/*.sh
-!deployment/**/*.conf.sample
 !deployment/**/*.conf
+!deployment/**/*.conf.py.sample
+!deployment/**/*.conf.sample
 
 # add root files
 !/*.md
