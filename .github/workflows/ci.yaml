@@ -60,8 +60,14 @@ jobs:
       - name: Run import order checks
         run: python -m isort . --check
 
-      - name: Run style checks
+      - name: Run format checks
         run: python -m black . --check
 
-      - name: Run ruff linter
+      - name: Run lint checks
         run: python -m ruff check .
+
+      - name: Run YAML files lint checks
+        run: yamllint .
+
+      - name: Run Docker files checks
+        run: hadolint Dockerfile
