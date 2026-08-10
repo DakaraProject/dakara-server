@@ -16,12 +16,12 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     AUTOBAHN_USE_NVX=0
 
 RUN apk add --no-cache \
+        "curl=8.20.0-r0" \
         "nginx=1.28.3-r7" \
         "py3-pip=25.1.1-r1" \
         "python3=3.12.13-r0" \
         "sudo=1.9.17_p2-r0" \
-        "unzip=6.0-r16" \
-        "wget=1.25.0-r2"
+        "unzip=6.0-r16"
 
 # install dependencies
 RUN --mount=source=requirements.txt,target=/requirements.txt \
@@ -48,9 +48,8 @@ RUN if [ -z "$FRONT_VERSION" ]; \
         mv "/app/$FRONT_ARCHIVE" "/tmp/$FRONT_ARCHIVE"; \
     else \
         echo "Downloading front archive v$FRONT_VERSION" && \
-        wget \
-            -q \
-            -P /tmp \
+        curl \
+            --output "/tmp/$FRONT_ARCHIVE" \
             "https://github.com/DakaraProject/dakara-client-web/releases/download/$FRONT_VERSION/$FRONT_ARCHIVE"; \
     fi && \
     unzip \
