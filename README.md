@@ -163,7 +163,7 @@ sudo docker run \
          <command>
 ```
 
-with `<command>` being either `run_daphne.sh`, `run_gunicorn.sh`, `run_apscheduler.sh`, or `run_nginx.sh` (for which only `-p 80:80` should be passed).
+with `<command>` being either `run_websocket_daphne.sh`, `run_api_gunicorn.sh`, `run_scheduler_apscheduler.sh`, or `run_web_nginx.sh` (for which only `-p 80:80` should be passed).
 You need to have all of them running to have a workable instance of the server.
 Running the container for the different services manually like this should be reserved for debugging or testing.
 For production, it is advised to use Docker compose.

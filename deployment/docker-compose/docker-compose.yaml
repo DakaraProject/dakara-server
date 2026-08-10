@@ -6,7 +6,7 @@
 
 services:
   # database server
-  mysql:
+  database:
     image: mariadb:latest
     volumes:
       - mysql_data:/var/lib/mysql:Z
@@ -18,7 +18,7 @@ services:
     restart: "unless-stopped"
 
   # cache server
-  redis:
+  cache:
     image: redis:latest
     restart: "unless-stopped"
 
@@ -26,7 +26,7 @@ services:
   # TODO
 
   # websocket server (and base configuration)
-  daphne: &base
+  websocket: &base
     image: dakaraproject/dakaraserver:latest
     volumes:
       - dakara_server_data:/data
@@ -56,28 +56,28 @@ services:
       # DJANGO_LEG_LEVEL: "INFO"
     restart: "unless-stopped"
     depends_on:
-      - mysql
-      - redis
-    command: "run_daphne.sh"
+      - database
+      - cache
+    command: "run_websocket_daphne.sh"
 
   # api server
-  gunicorn:
+  api:
     <<: *base
-    command: "run_gunicorn.sh"
+    command: "run_api_gunicorn.sh"
 
   # scheduler for tasks
-  apscheduler:
+  scheduler:
     <<: *base
-    command: "run_apscheduler.sh"
+    command: "run_scheduler_apscheduler.sh"
 
   # web server (main entrygate)
-  nginx:
+  web:
     <<: *base
     depends_on:
-      - daphne
-      - gunicorn
-      - apscheduler
-    command: "run_nginx.sh"
+      - websocket
+      - api
+      - scheduler
+    command: "run_web_nginx.sh"
     ports:
       - 80:80
 
