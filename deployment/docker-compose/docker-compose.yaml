@@ -69,7 +69,7 @@ services:
       # DAKARA_PLAYLIST_SIZE_LIMIT: 100
 
       # Allow the instance to send emails
-      DAKARA_EMAIL_ENABLED: true
+      DAKARA_EMAIL_ENABLED: false
 
       # Mail configuration as a URL
       # Note that this setting is ineffective if DAKARA_EMAIL_ENABLED is false
