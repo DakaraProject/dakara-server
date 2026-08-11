@@ -49,7 +49,7 @@ register("mysql-connector", "mysql.connector.django")
 DATABASES = {
     "default": config_db(
         "DAKARA_DATABASE_URL",
-        default="mysql-connector://user:password@mysql:3306/dakara",
+        default="mysql-connector://user:password@database:3306/dakara",
     )
 }
 
