@@ -35,7 +35,7 @@ services:
       # DAKARA_REDIS_URL: "redis://redis:6379"
       DAKARA_ALLOWED_HOSTS: "localhost,example.com"
       DAKARA_HOST_URL: "http://example.com"
-      DAKARA_CSRF_TRUSTED_ORIGINS: "http://example.com"
+      # DAKARA_CSRF_TRUSTED_ORIGINS: "http://other.example.com"  # DAKRA_HOST_URL already accounted for
       DAKARA_SECRET_KEY: "your-secret-key"
       # DAKARA_SUPERUSER_USERNAME: "admin"
       # DAKARA_SUPERUSER_EMAIL: "admin@localhost"
