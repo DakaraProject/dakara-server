@@ -186,6 +186,8 @@ Finally, use your browser to acces the web client:
 xdg-open http://localhost
 ```
 
+Grab some friends again and have fun!
+
 ## Development
 
 Please read the [developers documentation](CONTRIBUTING.md).
