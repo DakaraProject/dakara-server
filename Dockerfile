@@ -49,6 +49,8 @@ RUN if [ -z "$FRONT_VERSION" ]; \
     else \
         echo "Downloading front archive v$FRONT_VERSION" && \
         curl \
+            --fail \
+            --location \
             --output "/tmp/$FRONT_ARCHIVE" \
             "https://github.com/DakaraProject/dakara-client-web/releases/download/$FRONT_VERSION/$FRONT_ARCHIVE"; \
     fi && \
