@@ -53,7 +53,7 @@ DATABASES = {
     )
 }
 
-REDIS_URL = config("DAKARA_REDIS_URL", default="redis://redis:6379")
+REDIS_URL = config("DAKARA_REDIS_URL", default="redis://cache:6379")
 
 # Channels
 # http://channels.readthedocs.io/en/latest/topics/channel_layers.html

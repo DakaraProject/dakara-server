@@ -38,11 +38,11 @@ services:
       #   sqlite://path SQLite
       # Check https://github.com/jazzband/dj-database-url#url-schema for
       #   documentation
-      DAKARA_DATABASE_URL: "mysql-connector://user:password@mysql:3306/dakara"
+      DAKARA_DATABASE_URL: "mysql-connector://user:password@database:3306/dakara"
 
       # Cache configuration as a URL
       # Note that only Redis is supported
-      # DAKARA_REDIS_URL: "redis://redis:6379"
+      # DAKARA_REDIS_URL: "redis://cache:6379"
 
       # Allowed hosts
       DAKARA_ALLOWED_HOSTS: "localhost,example.com"
