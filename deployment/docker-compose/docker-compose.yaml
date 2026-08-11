@@ -22,38 +22,94 @@ services:
     image: redis:latest
     restart: "unless-stopped"
 
-  # mail server
-  # TODO
-
   # websocket server (and base configuration)
   websocket: &base
     image: dakaraproject/dakaraserver:latest
     volumes:
       - dakara_server_data:/data
     environment:
+      # Database configuration as a URL
+      # Main patterns are:
+      #   postgres://user:password@host:port/name PostgreSQL
+      #   mysql://user:password@host:port/name MySQL (using the C driver, not
+      #     available in the image)
+      #   mysql-connector://user:password@host:port/name MySQL (using the
+      #     Python driver)
+      #   sqlite://path SQLite
+      # Check https://github.com/jazzband/dj-database-url#url-schema for
+      #   documentation
       DAKARA_DATABASE_URL: "mysql-connector://user:password@mysql:3306/dakara"
+
+      # Cache configuration as a URL
+      # Note that only Redis is supported
       # DAKARA_REDIS_URL: "redis://redis:6379"
+
+      # Allowed hosts
       DAKARA_ALLOWED_HOSTS: "localhost,example.com"
+
+      # URL of the host
       DAKARA_HOST_URL: "http://example.com"
-      # DAKARA_CSRF_TRUSTED_ORIGINS: "http://other.example.com"  # DAKRA_HOST_URL already accounted for
+
+      # Extra CSRF trusted origins
+      # Note that DAKARA_HOST_URL is already accounted for
+      # DAKARA_CSRF_TRUSTED_ORIGINS: "http://other.example.com"
+
+      # Secret key of the instance
+      # Note that it must be secret
       DAKARA_SECRET_KEY: "your-secret-key"
+
+      # Admin account credentials
+      # Note that the admin account should be only used to create managers, and
+      #   deleted afterward for security reasons
       # DAKARA_SUPERUSER_USERNAME: "admin"
       # DAKARA_SUPERUSER_EMAIL: "admin@localhost"
       DAKARA_SUPERUSER_PASSWORD: "admin-password"
-      # DAKARA_LANGUAGE_CODE: "en-us"
-      # DAKARA_TIME_ZONE: "UTC"
+
+      # Hard limit for the maximum size of the playlist
       # DAKARA_PLAYLIST_SIZE_LIMIT: 100
+
+      # Allow the instance to send emails
       DAKARA_EMAIL_ENABLED: true
-      DAKARA_EMAIL_URL: "smtp://user:password@postfix:25"
+
+      # Mail configuration as a URL
+      # Note that this setting is ineffective if DAKARA_EMAIL_ENABLED is false
+      # Main pattern are:
+      #   smtp://user:password@host:port SMTP with no SSL
+      #   submission://user:password@host:port SMTP with STARTTLS
+      # Check https://github.com/migonzalvar/dj-email-url#supported-backends
+      #   for documentation
+      DAKARA_EMAIL_URL: "smtp://user:password@mail:25"
+
+      # Email SSL files
+      # Note that this setting is ineffective if DAKARA_EMAIL_ENABLED is false
       # DAKARA_EMAIL_SSL_KEYFILE: ""
       # DAKARA_EMAIL_SSL_CERTIFICATE: ""
+
+      # Sender address for the emails of the instance
+      # Note that this setting is ineffective if DAKARA_EMAIL_ENABLED is false
       DAKARA_SENDER_EMAIL: "no-reply@example.com"
-      DAKARA_LOG_TO_CONSOLE: false
+
+      # Log level of the instance
       # DAKARA_LOG_LEVEL: "INFO"
+
+      # Log events directly to the console
+      DAKARA_LOG_TO_CONSOLE: false
+
+      # Logfile location
+      # Note that this setting is ineffective if DAKARA_LOG_TO_CONSOLE is true
       # DAKARA_LOG_FILE_PATH: "/data/logs/dakara_server.log"
+
+      # Logfile maximum size
+      # Note that this setting is ineffective if DAKARA_LOG_TO_CONSOLE is true
       # DAKARA_LOG_FILE_MAX_SIZE: 1000000
+
+      # Logfile number of backups
+      # Note that this setting is ineffective if DAKARA_LOG_TO_CONSOLE is true
       # DAKARA_LOG_FILE_BACKUP_COUNT: 2
-      # DJANGO_LEG_LEVEL: "INFO"
+
+      # Miscellaneous
+      # DAKARA_LANGUAGE_CODE: "en-us"
+      # DAKARA_TIME_ZONE: "UTC"
     restart: "unless-stopped"
     depends_on:
       - database
