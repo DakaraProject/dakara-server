@@ -3,12 +3,10 @@ import logging
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 from channels.layers import get_channel_layer
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 
 from playlist import models, serializers
 
-UserModel = get_user_model()
 logger = logging.getLogger(__name__)
 channel_layer = get_channel_layer()
 
@@ -159,17 +157,20 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
 
     def send_playlist_entry(self, event):
         """Send next playlist entry."""
-        playlist_entry = event["playlist_entry"]
+        playlist_entry = event.get("playlist_entry")
 
         if playlist_entry is None:
             raise ValueError("Playlist entry must not be None")
 
         # log the event
-        logger.info("The player will play '%s'", playlist_entry)
+        logger.info(
+            "The player will play '%s' (for %s)",
+            playlist_entry["song"]["title"],
+            playlist_entry["owner"]["username"],
+        )
 
         # send to device
-        serializer = serializers.PlaylistEntryForPlayerSerializer(playlist_entry)
-        self.send_json({"type": "playlist_entry", "data": serializer.data})
+        self.send_json({"type": "playlist_entry", "data": playlist_entry})
 
     def send_idle(self, event=None):
         """Request the player to be idle."""
@@ -208,7 +209,13 @@ class PlaylistDeviceConsumer(DispatchJsonWebsocketConsumer):
         playlist_entry = models.PlaylistEntry.objects.get_next()
 
         if playlist_entry is not None:
-            self.send_playlist_entry({"playlist_entry": playlist_entry})
+            self.send_playlist_entry(
+                {
+                    "playlist_entry": serializers.PlaylistEntryForPlayerSerializer(
+                        playlist_entry
+                    ).data
+                }
+            )
 
         else:
             self.send_idle()

@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -22,7 +21,6 @@ from internal.views_mixins import QueryParsedListMixin
 from library import permissions as library_permissions
 from playlist import authentications, models, permissions, serializers
 from playlist.consumers import send_to_channel
-from playlist.date_stop import KARAOKE_JOB_NAME, clear_date_stop, scheduler
 from playlist.query import query_entries, query_errors
 from playlist.schemes import PlayerTokenScheme  # noqa F401
 
@@ -155,10 +153,13 @@ class PlaylistQueuingListView(QueryParsedListMixin, drf_generics.ListCreateAPIVi
                 player.playlist_entry is None,
             )
         ):
+            entry_serialized = serializers.PlaylistEntryForPlayerSerializer(
+                next_playlist_entry
+            )
             send_to_channel(
                 "playlist.device",
                 "send_playlist_entry",
-                {"playlist_entry": next_playlist_entry},
+                data={"playlist_entry": entry_serialized.data},
             )
 
 
@@ -264,30 +265,6 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
         super().perform_update(serializer)
         karaoke = serializer.instance
 
-        # Management of date stop
-
-        if "date_stop" in serializer.validated_data:
-            # Clear existing scheduled task
-            existing_job_id = cache.get(KARAOKE_JOB_NAME)
-            if existing_job_id is not None:
-                existing_job = scheduler.get_job(existing_job_id)
-                if existing_job is not None:
-                    existing_job.remove()
-                    logger.debug("Existing date stop job was found and unscheduled")
-
-                else:
-                    cache.delete(KARAOKE_JOB_NAME)
-
-            if karaoke.date_stop is not None:
-                # Schedule date stop clear
-                job = scheduler.add_job(
-                    clear_date_stop, "date", run_date=karaoke.date_stop
-                )
-                cache.set(KARAOKE_JOB_NAME, job.id)
-                logger.debug("New date stop job was scheduled")
-
-        # Management of kara status Booleans change
-
         # empty the playlist and clear the player if the kara is switched to not ongoing
         if "ongoing" in serializer.validated_data and not karaoke.ongoing:
             # request the player to be idle
@@ -312,14 +289,17 @@ class KaraokeView(drf_generics.RetrieveUpdateAPIView):
             player, _ = models.Player.cache.get_or_create(karaoke=karaoke)
 
             # request the player to play the next song if idle,
-            # and there is a next song to play
+            # and if there is a next song to play
             if player.playlist_entry is None:
                 next_playlist_entry = models.PlaylistEntry.objects.get_next()
                 if next_playlist_entry is not None:
+                    entry_serialized = serializers.PlaylistEntryForPlayerSerializer(
+                        next_playlist_entry
+                    )
                     send_to_channel(
                         "playlist.device",
                         "send_playlist_entry",
-                        data={"playlist_entry": next_playlist_entry},
+                        data={"playlist_entry": entry_serialized.data},
                     )
 
     def get_object(self):

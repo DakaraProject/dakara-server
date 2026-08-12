@@ -1,3 +1,4 @@
+---
 name: Tests
 
 on:
@@ -24,9 +25,9 @@ jobs:
           - "3.13"
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
@@ -38,7 +39,7 @@ jobs:
         run: python -m pytest -v --cov dakara_server
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -46,9 +47,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.13"
           cache: 'pip'
@@ -59,8 +60,14 @@ jobs:
       - name: Run import order checks
         run: python -m isort . --check
 
-      - name: Run style checks
+      - name: Run format checks
         run: python -m black . --check
 
-      - name: Run ruff linter
+      - name: Run lint checks
         run: python -m ruff check .
+
+      - name: Run YAML files lint checks
+        run: yamllint .
+
+      - name: Run Docker files checks
+        run: hadolint Dockerfile

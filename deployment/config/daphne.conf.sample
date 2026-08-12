@@ -1,0 +1,8 @@
+# Configuration file for daphne
+# `daphne.conf` is the configuration file that is used and that should be
+# maintained by the user
+# `daphne.conf.sample` is the default configuration file which is updated
+# automatically
+# Version: 1.10.0
+
+# Note: enter here the command-line arguments you want to add

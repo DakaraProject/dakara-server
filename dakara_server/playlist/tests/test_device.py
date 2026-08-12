@@ -11,6 +11,7 @@ from rest_framework import status
 
 from dakara_server.asgi import application
 from playlist import models
+from playlist.serializers import PlaylistEntryForPlayerSerializer
 
 channel_layer = get_channel_layer()
 
@@ -312,9 +313,12 @@ class TestDevice:
         karaoke = await get_karaoke()
 
         # call the method
+        playlist_entry = await sync_to_async(
+            lambda: PlaylistEntryForPlayerSerializer(playlist_provider.pe1).data
+        )()
         await channel_layer.send(
             karaoke.channel_name,
-            {"type": "send_playlist_entry", "playlist_entry": playlist_provider.pe1},
+            {"type": "send_playlist_entry", "playlist_entry": playlist_entry},
         )
 
         # wait the outcoming event

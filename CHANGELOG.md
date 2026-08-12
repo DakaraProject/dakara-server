@@ -36,6 +36,37 @@ Any important notes regarding the update.
 
 ### Update notes
 
+#### Moving to Docker
+
+The Dakara server is now available as a Docker image, which contains the server and the web client.
+The image has Gunicorn for serving the API, Daphne for serving the Websockets, and Nginx for serving static files and doing the routing.
+You can build it locally or get it with:
+
+```sh
+docker pull dakaraproject/dakaraserver:latest
+```
+
+There is a sample `docker-compose.yaml` file if you want to use Docker compose to manage the different services (this is the recommended way).
+Please check the [readme](README.md#docker-image) for more deployment directions.
+
+As a consequence, further releases will not include the bundle archive at some point.
+The version when this change operates remains to be decided.
+
+#### Scheduler
+
+APScheduler, which allows the kara stop time feature to be functional, was being run in the background, which was a terrible idea.
+Not only this is strongly discouraged in APScheduler documentation, but this wasn't compatible with execution in a container.
+The scheduler has now to be executed within its own process.
+This has two consequences:
+
+First, when running Dakara without Docker, you should run `./manage.py runapscheduler` in a separate terminal, in parallel with `./manage.py runserver`.
+
+Second, the interval check for APScheduler, and for the kara stop time feature, is now of 5 minutes.
+This means that the granularity of the kara stop time goes from 1 minute to 5 minutes.
+You can change this behavior with the `DAKARA_SCHEDULER_INTERVAL` environment variable.
+
+#### Intrumental files
+
 The Dakara server now handles instrumental version of songs differently (by differentiating a specific instrumental file from an instrumental track within the media file).
 You should apply the migrations and re-feed the database:
 
@@ -52,6 +83,8 @@ dakara-feeder feed songs --force
 
 ### Changed
 
+- When running the server for development, with `manage.py runserver`, the default database location has changed from `<repo_dir>/dakara_server/db.sqlite3` to `<repo_dir>/db.sqlite3`.
+- When running the server for development or for production, the command `manage.py runapscheduler` has also to be run in a different terminal.
 - The `has_instrumental` field of songs was replaced by the `instrumental_file` and `instrumental_track` fields. The `has_instrumental` field remains in the song represention in `api/library/songs/` as a read-only field, while the two new fields are write-only.
 
 ### Fixed

@@ -99,12 +99,19 @@ docker run -p 80:8080 -e SWAGGER_JSON=/schema.yml -v ${PWD}/schema.yml:/schema.y
    ```sh
    pip install -r requirements.txt -r requirements_dev.txt
    ```
-6. Call the script to create the archive:
+6. Call the script to create the legacy archive:
+   ```sh
+   ./create_archive_legacy.sh 0.0.0 9.9.9
+   ```
+   with `0.0.0` the according version number and `9.9.9` the corresponding Dakara web client version number.
+7. Call the script to create the image:
    ```sh
    ./create_archive.sh 0.0.0 9.9.9
    ```
-   with `0.0.0` the according version number and `9.9.9` the corresponding Dakara web client version number.
-7. On GitHub, draft a new release, set the version number with the created tag ("Existing tag" should read).
+   with `0.0.0` the according version number and `9.9.9` the corresponding Dakara web client version number (if needed).
+8. Push the Docker images with the provided commands.
+9. Update the [overview of the repository](https://hub.docker.com/repository/docker/dakaraproject/dakaraserver/general) with the content of `README.md`.
+10. On GitHub, draft a new release, set the version number with the created tag ("Existing tag" should read).
    Set the release title with "Version 0.0.0" (with number, you get it?).
    Copy-paste corresponding section of the changelog file in the release description.
    Add the created archive file.

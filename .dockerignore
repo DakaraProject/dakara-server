@@ -1,0 +1,20 @@
+# ignore all
+*
+
+# add project python files
+!dakara_server/**/*.py
+
+# add deployment files
+!deployment/**/*.py
+!deployment/**/*.sh
+!deployment/**/*.conf
+!deployment/**/*.conf.py.sample
+!deployment/**/*.conf.sample
+!deployment/**/*.yaml
+
+# add root files
+!/*.md
+!/dakara-client-web*.zip
+!/LICENCE
+!/requirements*.txt
+!/setup.cfg
