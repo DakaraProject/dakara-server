@@ -38,7 +38,7 @@ then
         DJANGO_SUPERUSER_PASSWORD=${DAKARA_SUPERUSER_PASSWORD} \
         ./manage.py createsuperuser --no-input
 
-    echo "Superuser created; you should create admin accounts and remove the superuser account as soon as possible for security reasons"
+    echo "Superuser created; you should create manager accounts and remove the superuser account as soon as possible for security reasons"
 
     touch /data/state/gunicorn_first_superuser
 fi
