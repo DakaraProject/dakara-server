@@ -104,7 +104,7 @@ dakara_server/manage.py runserver
 ```
 
 In a separate terminal, also run the scheduler.
-This is currently only required for the kara date stop feature (which stops the karaoke at a certain date):
+This is currently only required for the kara stop time feature (which stops the karaoke at a certain time):
 
 ```sh
 dakara_server/manage.py runapscheduler

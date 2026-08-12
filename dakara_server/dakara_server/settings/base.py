@@ -159,3 +159,6 @@ def get_host_urls(host_url):
 
 # limit of the playlist size
 PLAYLIST_SIZE_LIMIT = config("DAKARA_PLAYLIST_SIZE_LIMIT", cast=int, default=100)
+
+# interval of the scheduler (in minutes)
+SCHEDULER_INTERVAL = config("DAKARA_SCHEDULER_INTERVAL", cast=int, default=5)

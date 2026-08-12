@@ -35,7 +35,7 @@ class Command(BaseCommand):
 
         scheduler.add_job(
             clear_date_stop,
-            trigger=CronTrigger(minute="*/5"),
+            trigger=CronTrigger(minute=f"*/{settings.SCHEDULER_INTERVAL}"),
             id="clear_date_stop",
             max_instances=1,
             replace_existing=True,

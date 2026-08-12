@@ -68,6 +68,12 @@ services:
       # Hard limit for the maximum size of the playlist
       # DAKARA_PLAYLIST_SIZE_LIMIT: 100
 
+      # Interval for the scheduler (in minutes)
+      # DAKARA_SCHEDULER_INTERVAL: 5
+
+      # Django time zone
+      DAKARA_TIME_ZONE: "UTC"
+
       # Allow the instance to send emails
       DAKARA_EMAIL_ENABLED: false
 
@@ -107,9 +113,8 @@ services:
       # Note that this setting is ineffective if DAKARA_LOG_TO_CONSOLE is true
       # DAKARA_LOG_FILE_BACKUP_COUNT: 2
 
-      # Miscellaneous
+      # Django language
       # DAKARA_LANGUAGE_CODE: "en-us"
-      # DAKARA_TIME_ZONE: "UTC"
     restart: "unless-stopped"
     depends_on:
       - database
