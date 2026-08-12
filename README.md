@@ -21,6 +21,10 @@ Installation guidelines are provided here:
 * [Dakara player VLC](https://github.com/DakaraProject/dakara-player-vlc/);
 * [Dakara feeder](https://github.com/DakaraProject/dakara-feeder).
 
+Repository of the server is here:
+
+* [Dakara server](https://github.com/DakaraProject/dakara-server/).
+
 ### System requirements
 
 * Python3, to make everything up and running (supported versions: see above).
