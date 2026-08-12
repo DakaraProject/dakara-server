@@ -39,6 +39,7 @@ Any important notes regarding the update.
 #### Moving to Docker
 
 The Dakara server is now available as a Docker image, which contains the server and the web client.
+The image has Gunicorn for serving the API, Daphne for serving the Websockets, and Nginx for serving static files and doing the routing.
 You can build it locally or get it with:
 
 ```sh
@@ -48,7 +49,8 @@ docker pull dakaraproject/dakaraserver:latest
 There is a sample `docker-compose.yaml` file if you want to use Docker compose to manage the different services (this is the recommended way).
 Please check the [readme](README.md#docker-image) for more deployment directions.
 
-As a consequence, further releases will not include the bundle archive anymore.
+As a consequence, further releases will not include the bundle archive at some point.
+The version when this change operates remains to be decided.
 
 #### Scheduler
 

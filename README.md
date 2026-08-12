@@ -123,7 +123,9 @@ After all of this is setup, just grab some friends and have fun!
 
 ## Docker image
 
-For production, it is recommended to use the provided Docker image, which takes care of all the aspects of the execution.
+For production, it is recommended to use the provided Docker image, which takes care of all the aspects of the execution: Gunicorn for serving the API, Daphne for serving the Websockets, and Nginx for serving static files and doing the routing.
+Note that neither a database server, nor a cache server is included in the image!
+You should consider Docker compose to have those services included (see below).
 
 ### How to get it
 
@@ -170,8 +172,8 @@ For production, it is advised to use Docker compose.
 
 ### Run with Docker compose
 
-Docker compose is the preffered way to run an instance of the server, especially for production.
-A sample `docker-compose.yaml` file is given in `deployment/docker-compose/docker-compose.yaml`.
+Docker compose is the preffered way to run an instance of the server, especially for production, not only with Dakara server and front, but also with a database server and a cache server.
+A sample `docker-compose.yaml` file, using MariaDB and Redis, is given in `deployment/docker-compose/docker-compose.yaml`.
 
 ```sh
 cp deployment/docker-compose/docker-compose.yaml ./
