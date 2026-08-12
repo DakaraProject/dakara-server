@@ -127,8 +127,8 @@ After all of this is setup, just grab some friends and have fun!
 
 ## Docker image
 
-For production, it is recommended to use the provided Docker image, which takes care of all the aspects of the execution: Gunicorn for serving the API, Daphne for serving the Websockets, and Nginx for serving static files and doing the routing.
-Note that neither a database server, nor a cache server is included in the image!
+For production, it is recommended to use the provided Docker image, which provides an execution environment: Gunicorn for serving the API, Daphne for serving the Websockets, and Nginx for serving static files and doing the routing.
+Note that neither a database server, nor a cache server are included in the image, however!
 You should consider Docker compose to have those services included (see below).
 
 ### How to get it
