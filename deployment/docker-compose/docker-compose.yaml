@@ -77,7 +77,7 @@ services:
       # Allow the instance to send emails
       DAKARA_EMAIL_ENABLED: false
 
-      # Mail configuration as a URL
+      # Email configuration as a URL
       # Note that this setting is ineffective if DAKARA_EMAIL_ENABLED is false
       # Main pattern are:
       #   smtp://user:password@host:port SMTP with no SSL
