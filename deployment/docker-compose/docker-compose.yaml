@@ -66,7 +66,7 @@ services:
       DAKARA_SUPERUSER_PASSWORD: "admin-password"
 
       # Hard limit for the maximum size of the playlist
-      # DAKARA_PLAYLIST_SIZE_LIMIT: 100
+      # DAKARA_PLAYLIST_SIZE_LIMIT: 1000
 
       # Interval for the scheduler (in minutes)
       # DAKARA_SCHEDULER_INTERVAL: 5
