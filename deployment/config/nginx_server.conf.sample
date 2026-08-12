@@ -3,7 +3,7 @@
 # maintained by the user
 # `nginx_server.conf.sample` is the default configuration file which is updated
 # automatically
-# Version: 1.9.0
+# Version: 1.10.0
 
 server {
     listen 80;
