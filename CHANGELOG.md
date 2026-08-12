@@ -84,7 +84,7 @@ dakara-feeder feed songs --force
 ### Changed
 
 - When running the server for development, with `manage.py runserver`, the default database location has changed from `<repo_dir>/dakara_server/db.sqlite3` to `<repo_dir>/db.sqlite3`.
-- When running the server for development or locally, the command `manage.py runapscheduler` has also to be run in a different terminal.
+- When running the server for development or for production, the command `manage.py runapscheduler` has also to be run in a different terminal.
 - The `has_instrumental` field of songs was replaced by the `instrumental_file` and `instrumental_track` fields. The `has_instrumental` field remains in the song represention in `api/library/songs/` as a read-only field, while the two new fields are write-only.
 
 ### Fixed
