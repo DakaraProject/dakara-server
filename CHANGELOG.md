@@ -63,7 +63,7 @@ First, when running Dakara without Docker, you should run `./manage.py runapsche
 
 Second, the interval check for APScheduler, and for the kara stop time feature, is now of 5 minutes.
 This means that the granularity of the kara stop time goes from 1 minute to 5 minutes.
-You can still change this behavior with the `DAKARA_SCHEDULER_INTERVAL` environment variable.
+You can change this behavior with the `DAKARA_SCHEDULER_INTERVAL` environment variable.
 
 #### Intrumental files
 
