@@ -52,7 +52,7 @@ services:
 
       # Extra CSRF trusted origins
       # Note that DAKARA_HOST_URL is already accounted for
-      # DAKARA_CSRF_TRUSTED_ORIGINS: "http://other.example.com"
+      # DAKARA_CSRF_TRUSTED_ORIGINS: "http://other.example.com,http://extra.exmaple.com"
 
       # Secret key of the instance
       # Note that it must be secret
@@ -120,7 +120,7 @@ services:
       - database
       - cache
     healthcheck: &healthcheck
-      test: ["CMD", "check_health_websocket_daphne.sh"]
+      test: ["CMD", "check_health_websocket.sh"]
       interval: 5m
       start_interval: 5s
       start_period: 30s
@@ -131,7 +131,7 @@ services:
     <<: *base
     healthcheck:
       <<: *healthcheck
-      test: ["CMD", "check_health_api_gunicorn.sh"]
+      test: ["CMD", "check_health_api.sh"]
     command: "run_api_gunicorn.sh"
 
   # scheduler for tasks
@@ -152,7 +152,7 @@ services:
       - 80:80
     healthcheck:
       <<: *healthcheck
-      test: ["CMD", "check_health_web_nginx.sh"]
+      test: ["CMD", "check_health_web.sh"]
     command: "run_web_nginx.sh"
 
 volumes:
