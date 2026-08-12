@@ -1,5 +1,5 @@
 channels-redis>=4.3.0,<4.4.0
 dj-email-url>=1.0.6,<1.1.0
-django-redis>=6.0.0,<6.1.0
-gunicorn>=23.0.0,<23.1.0
-mysql-connector-python>=9.5.0,<9.6.0
+django-redis>=7.0.0,<7.1.0
+gunicorn>=26.0.0,<26.1.0
+mysql-connector-python>=26.7.0,<26.8.0
