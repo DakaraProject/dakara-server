@@ -8,34 +8,37 @@ from scripts.check_version import check_version, extract_version
 
 
 class TestExtractVersion:
-    def test_extract(self, tmp_path):
+    def test_extract(self, mocker):
         """Extract version from file."""
-        file = tmp_path / "file.conf"
-        file.write_text("""# Config file
-# Version: 1.4.2""")
+        content = """# Config file
+# Version: 1.4.2"""
+        mocked_read_text = mocker.patch.object(
+            Path, "read_text", return_value=content, autospec=True
+        )
 
-        version = extract_version(file)
+        version = extract_version(Path("file"))
 
         assert version == Version("1.4.2")
+        mocked_read_text.assert_called_with(Path("file"))
 
-    def test_extract_multiple(self, tmp_path):
-        """Extract multiple versions from file."""
-        file = tmp_path / "file.conf"
-        file.write_text("""# Config file
+    def test_extract_multiple(self, mocker):
+        """Extract version from file with several version strings."""
+        content = """# Config file
 # Version: 1.4.2
-# Version: 1.4.3""")
+# Version: 1.4.3"""
+        mocker.patch.object(Path, "read_text", return_value=content, autospec=True)
 
-        version = extract_version(file)
+        version = extract_version(Path("file"))
 
         assert version == Version("1.4.2")
 
-    def test_extract_none(self, tmp_path):
-        """Extract no versions from file."""
-        file = tmp_path / "file.conf"
-        file.write_text("""# Config file""")
+    def test_extract_none(self, mocker):
+        """Try to extract version from file with no version string."""
+        content = """# Config file"""
+        mocker.patch.object(Path, "read_text", return_value=content, autospec=True)
 
         with pytest.raises(ValueError):
-            extract_version(file)
+            extract_version(Path("file"))
 
 
 class TestCheckVersion:
