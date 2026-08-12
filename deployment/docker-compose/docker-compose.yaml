@@ -116,6 +116,8 @@ services:
       - cache
     healthcheck: &healthcheck
       test: ["CMD", "check_health_websocket_daphne.sh"]
+      interval: 5m
+      start_interval: 5s
       start_period: 30s
     command: "run_websocket_daphne.sh"
 
