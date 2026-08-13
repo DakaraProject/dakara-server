@@ -34,6 +34,8 @@ Any important notes regarding the update.
 
 ## Unreleased
 
+## 1.10.0 - 2026-08-13
+
 ### Update notes
 
 #### Moving to Docker
