@@ -55,14 +55,14 @@ The version when this change operates remains to be decided.
 #### Scheduler
 
 APScheduler, which allows the kara stop time feature to be functional, was being run in the background, which was a terrible idea.
-Not only this is strongly discouraged in APScheduler documentation, but this wasn't compatible with execution in a container.
-The scheduler has now to be executed within its own process.
+Not only this is strongly discouraged in APScheduler documentation, but this wasn't compatible with multi-workers execution in a container.
+The scheduler has now to be executed independently.
 This has two consequences:
 
 First, when running Dakara without Docker, you should run `./manage.py runapscheduler` in a separate terminal, in parallel with `./manage.py runserver`.
 
 Second, the interval check for APScheduler, and for the kara stop time feature, is now of 5 minutes.
-This means that the granularity of the kara stop time goes from 1 minute to 5 minutes.
+This means that the granularity of the kara stop time goes from 1 minute, as it was before this release, to 5 minutes.
 You can change this behavior with the `DAKARA_SCHEDULER_INTERVAL` environment variable.
 
 #### Intrumental files
@@ -79,6 +79,7 @@ dakara-feeder feed songs --force
 
 - Allow to fetch full lyrics of a song at URL `api/library/songs/lyrics/<id>/`.
 - Allow to search playlist entries, player errors, users, and song tags.
+  The query mini-language can be used for these items as well.
 - Allow to search songs, playlist entries, player errors and users by ID.
 
 ### Changed
@@ -86,7 +87,8 @@ dakara-feeder feed songs --force
 - The default maximum size of the playlist is increased to 1000.
 - When running the server for development, with `manage.py runserver`, the default database location has changed from `<repo_dir>/dakara_server/db.sqlite3` to `<repo_dir>/db.sqlite3`.
 - When running the server for development or for production, the command `manage.py runapscheduler` has also to be run in a different terminal.
-- The `has_instrumental` field of songs was replaced by the `instrumental_file` and `instrumental_track` fields. The `has_instrumental` field remains in the song represention in `api/library/songs/` as a read-only field, while the two new fields are write-only.
+- The `has_instrumental` field of songs is replaced by the `instrumental_file` and `instrumental_track` fields, containing respectively the name of the instrumental file and the number of the instrumental track.
+  The `has_instrumental` field remains in the song represention in `api/library/songs/` as a read-only field, while the two new fields are write-only.
 
 ### Fixed
 
